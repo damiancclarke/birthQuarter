@@ -45,8 +45,8 @@ lab def AG 1 "15-19" 2 "20-24" 3 "25-29" 4 "30-34" 5 "35-39" 6 "40-44" 7 "45-49"
 lab val ageGroup AG
 
 gen birth = 1
-collapse (count) birth, by(birthqtr1 ageGroup)
-reshape wide birth, i(ageGroup) j(birthqtr1)
+collapse (count) birth, by(birthqtr1 ageGroup year)
+reshape wide birth, i(ageGroup year) j(birthqtr1)
 
 foreach num of numlist 1(1)4 {
     rename birth`num' nQuarter`num'
@@ -71,9 +71,26 @@ lab var nQuarter3 "Number of births in third quarter"
 lab var nQuarter4 "Number of births in fourth quarter"
 
 ********************************************************************************
-*** (4) Summary graph
+*** (4) Summary graphs
 ********************************************************************************
+foreach group of numlist 1(1)7 {
+    local a1 = 15+5*(`group'-1)
+    local a2 = 15+5*(`group')-1
+    dis "`a1', `a2'"
+    #delimit ;
+    twoway line pQuarter1 year if ageGroup==`group',
+      ||   line pQuarter2 year if ageGroup==`group', lpattern(dash)
+      ||   line pQuarter3 year if ageGroup==`group', lpattern(longdash)
+      ||   line pQuarter4 year if ageGroup==`group', lpattern(dash_dot)
+    scheme(s1mono) xtitle("Year") ytitle("Proportion of All Births")
+    legend(label(1 "Q1") label(2 "Q2") label(3 "Q3") label(4 "Q4"))
+    note("Includes all first births (only) for women aged `a1' to `a2'");
+    #delimit cr
+    graph export "$OUT/ipumsTrends`a1'_`a2'.eps", as(eps) replace
+}
 
+
+collapse pQuarter*, by(ageGroup)
 graph bar pQuarter*, over(ageGroup) stack scheme(s1mono) ylabel(0.25(0.25)1) ///
    legend(label(1 "Q1") label(2 "Q2") label(3 "Q3") label(4 "Q4"))           ///
    note("All first births from ACS IPUMS data: 2005-2013.")
