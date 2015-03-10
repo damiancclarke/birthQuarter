@@ -21,8 +21,8 @@ cap log close
 ********************************************************************************
 *** (1) Globals and locals
 ********************************************************************************
-global DAT "~/database/NVSS/Births/dta/clean"
-global OUT "~/investigacion/2015/data/nvss/"
+global DAT "~/database/NVSS/Births/dta"
+global OUT "~/investigacion/2015/birthQuarter/data/nvss/"
 global LOG "~/investigacion/2015/birthQuarter/log"
 
 log using "$LOG/nvssPrep.txt", text replace
@@ -31,11 +31,17 @@ cap mkdir "$OUT"
 ********************************************************************************
 *** (2) Create yearly file from 1975-2012
 ********************************************************************************
-foreach yy of numlist 1975(1)2012 {
-    dis "Working on year `yy' of 2012."
-    use "$DAT/n`yy'"
+foreach yy of numlist 1975(1)2002 {
+    dis "Working on year `yy' of 2002."
+    use "$DAT/natl`yy'"
     count
-    keep if birthOrder==1 & motherAge>=15 & motherAge<=49
+    gen birthOrder = dtotord
+    gen motherAge  = dmage
+    gen birthMonth = birmon
+    keep birthOrder motherAge birthMonth
+
+    
+    keep if birthOrder==1 & (motherAge>=15 & motherAge<=49)
     gen birthQuarter = ceil(birthMonth/3)
     gen ageGroup = ceil((motherAge-14)/5)
     
