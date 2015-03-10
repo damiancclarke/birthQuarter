@@ -52,4 +52,8 @@ foreach group of numlist 1(1)7 {
 ********************************************************************************
 *** (3) Combine one plot for all periods
 ********************************************************************************
-collapse pQuarter*, by(ageGroup year)
+collapse pQuarter*, by(ageGroup)
+graph bar pQuarter*, over(ageGroup) stack scheme(s1mono) ylabel(0.25(0.25)1) ///
+    legend(label(1 "Q1") label(2 "Q2") label(3 "Q3") label(4 "Q4"))          ///
+    note("All first births from NVSS data: 1975-2002.")
+graph export "$OUT/nvssAverage.eps", as(eps) replace
