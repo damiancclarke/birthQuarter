@@ -105,7 +105,7 @@ foreach group of numlist 1(1)3 {
     graph export "$OUT/ipumsTrends`a1'_`a2'.eps", as(eps) replace
 }
 
-
+preserve
 collapse pQuarter*, by(ageGroup)
 #delimit ;
 graph bar pQuarter*, over(ageGroup) stack scheme(s1color) ylabel(0.25(0.25)1) 
@@ -113,3 +113,38 @@ graph bar pQuarter*, over(ageGroup) stack scheme(s1color) ylabel(0.25(0.25)1)
    note("All first births from ACS IPUMS data: 2005-2013.");
 graph export "$OUT/ipumsAverage.eps", as(eps) replace;
 #delimit cr
+restore
+
+********************************************************************************
+*** (5) plots by year*quarter
+********************************************************************************
+foreach group of numlist 1(1)3 {
+    local a1 = 40
+    local a2 = 45
+    if `group'==1 {
+        local a1=25
+        local a2=34        
+    }
+    if `group'==2 {
+        local a1=35
+        local a2=39        
+    }
+
+    dis "`a1', `a2'"
+    graph bar pQuarter* if ageGroup==`group', over(year) scheme(s1color) ///
+        yscale(range(0.2 0.3))
+    graph export "$OUT/ipumsBar`a1'_`a2'.eps", as(eps) replace
+
+    foreach n of numlist 1(1)4 {
+        replace pQuarter`n'=pQuarter`n'-0.25
+    }
+    
+    graph bar pQuarter* if ageGroup==`group', over(year) scheme(s1color) 
+    graph export "$OUT/ipumsDifBar`a1'_`a2'.eps", as(eps) replace
+
+    foreach n of numlist 1(1)4 {
+        replace pQuarter`n'=pQuarter`n'+0.25
+    }
+
+
+}
