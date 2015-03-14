@@ -39,7 +39,7 @@ local data noallocatedagesexrelate_women1549_children_01_bio_reshaped_2005_2013
 ********************************************************************************
 use "$DAT/`data'"
 keep if firstborn_1 == 1
-keep if race==1 & race1==1 & hispan==0 and hispan1==0
+keep if race==1 & race1==1 & hispan==0 & hispan1==0
 keep if bpl<150 & bpl1<150
 
 *gen ageGroup = ceil((age-14)/5)
@@ -52,7 +52,7 @@ lab def AG 1 "25-34" 2 "35-39" 3 "40-45"
 lab val ageGroup AG
 
 gen birth = 1
-collapse (count) birth, by(birthqtr1 ageGroup year)
+collapse (count) birth [pw=perwt], by(birthqtr1 ageGroup year)
 reshape wide birth, i(ageGroup year) j(birthqtr1)
 
 foreach num of numlist 1(1)4 {
@@ -80,14 +80,23 @@ lab var nQuarter4 "Number of births in fourth quarter"
 ********************************************************************************
 *** (4) Summary graphs
 ********************************************************************************
-foreach group of numlist 1(1)7 {
-    local a1 = 15+5*(`group'-1)
-    local a2 = 15+5*(`group')-1
+foreach group of numlist 1(1)3 {
+    local a1 = 40
+    local a2 = 45
+    if `group'==1 {
+        local a1=25
+        local a2=34        
+    }
+    if `group'==2 {
+        local a1=35
+        local a2=39        
+    }
+
     dis "`a1', `a2'"
     #delimit ;
     twoway line pQuarter1 year if ageGroup==`group',
       ||   line pQuarter2 year if ageGroup==`group', lpattern(dash)
-      ||   line pQuarter3 year if ageGroup==`group', lpattern(longdash)
+      ||   line pQuarter3 year if ageGroup==`group', lpattern(dot)
       ||   line pQuarter4 year if ageGroup==`group', lpattern(dash_dot)
     scheme(s1color) xtitle("Year") ytitle("Proportion of All Births")
     legend(label(1 "Q1") label(2 "Q2") label(3 "Q3") label(4 "Q4"))
