@@ -34,6 +34,8 @@ cap mkdir "$OUT"
 local data noallocatedagesexrelate_women1549_children_01_bio_reshaped_2005_2013
 local legd     legend(label(1 "Q1") label(2 "Q2") label(3 "Q3") label(4 "Q4"))
 local note "Quarters represent the difference between percent of yearly births"
+if c(os)=="Unix" local e eps
+if c(os)!="Unix" local e pdf
 
 ********************************************************************************
 *** (2a) open file, subset, gen variables
@@ -80,7 +82,7 @@ foreach num of numlist 1(1)4 {
 }
 
 graph bar pQuarter*, scheme(s1color) over(ageGro) `legd' note("`note', and 0.25")
-graph export "$OUT/aveDifQtrAge.eps", as(eps) replace
+graph export "$OUT/aveDifQtrAge.`e'", as(`e') replace
 restore
 
 
@@ -145,7 +147,7 @@ foreach samp of varlist college highschool alleduc {
             legend(label(1 "Q1") label(2 "Q2") label(3 "Q3") label(4 "Q4"))
             note("Includes all first births (only) for women aged `a1' to `a2'");
             #delimit cr
-            graph export "$OUT/`samp'/Trend`a1'_`a2'_`samp'_`n'.eps", as(eps) replace
+            graph export "$OUT/`samp'/Trend`a1'_`a2'_`samp'_`n'.`e'", as(`e') replace
         }
     }
     ****************************************************************************
@@ -168,7 +170,7 @@ foreach samp of varlist college highschool alleduc {
             dis "`a1', `a2'"
             local cond if ageGroup==`group'&`samp'==`n'
             graph bar pQuarter* `cond', over(year) scheme(s1color) `legd'
-            graph export "$OUT/`samp'/Qtr`a1'_`a2'_`samp'_`n'.eps", as(eps) replace
+            graph export "$OUT/`samp'/Qtr`a1'_`a2'_`samp'_`n'.`e'", as(`e') replace
             
             foreach num of numlist 1(1)4 {
                 replace pQuarter`num'=pQuarter`num'-0.25
@@ -176,7 +178,7 @@ foreach samp of varlist college highschool alleduc {
             
             graph bar pQuarter* `cond', over(year) scheme(s1color) `legd' /*
             */ note("`note', and 0.25")
-            graph export "$OUT/`samp'/difQtr`a1'_`a2'_`samp'_`n'.eps", as(eps) replace
+            graph export "$OUT/`samp'/difQtr`a1'_`a2'_`samp'_`n'.`e'", as(`e') replace
 
             foreach num of numlist 1(1)4 {
                 replace pQuarter`num'=pQuarter`num'+0.25
@@ -208,11 +210,25 @@ foreach samp of varlist college highschool alleduc {
         local cond if ageGroup==`group'
         graph bar pQuarter* `cond', scheme(s1color) over(`samp') `legd' /*
         */ note("`note', and 0.25")
-        graph export "$OUT/`samp'/aveDifQtr`a1'_`a2'_`samp'.eps", as(eps) replace
+        graph export "$OUT/`samp'/aveDifQtr`a1'_`a2'_`samp'.`e'", as(`e') replace
         foreach num of numlist 1(1)4 {
             replace pQuarter`num'=pQuarter`num'+0.25
         }
-        
     }
     restore
 }
+
+************************************************************************************
+*** (X) Convert to pdf if Unix, close 
+************************************************************************************
+if `c(os)'=="Unix" {
+    cd "$OUT"
+    !for i in *.eps; do epstopdf $i; rm $i; done
+    foreach samp of varlist college highschool alleduc {    
+        cd "`samp'"
+        !for i in *.eps; do epstopdf $i; rm $i; done
+        cd ".."
+    }       
+}
+
+log close
