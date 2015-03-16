@@ -67,6 +67,7 @@ gen birth = 1
 foreach samp of varlist college highschool alleduc {
     cap mkdir "$OUT/`samp'"
 
+    preserve
     collapse (count) birth [pw=perwt], by(birthqtr1 ageGroup year `samp')
     reshape wide birth, i(ageGroup year `samp') j(birthqtr1)
 
@@ -110,12 +111,12 @@ foreach samp of varlist college highschool alleduc {
             }
             
             dis "`a1', `a2'"
-            local cond if ageGroup==`group'&`samp'==`n';
+            local cond if ageGroup==`group'&`samp'==`n'
             #delimit ;
-            twoway line pQuarter1 year if ageGroup==`group'&`samp'==`n',
-            ||   line pQuarter2 year if ageGroup==`group'&`samp'==`n', lpattern(dash)
-            ||   line pQuarter3 year if ageGroup==`group'&`samp'==`n', lpattern(dot)
-            ||   line pQuarter4 year if ageGroup==`group'&`samp'==`n', lpattern(dash_dot)
+            twoway line pQuarter1 year `cond',
+            ||   line pQuarter2 year `cond', lpattern(dash)
+            ||   line pQuarter3 year `cond', lpattern(dot)
+            ||   line pQuarter4 year `cond', lpattern(dash_dot)
             scheme(s1color) xtitle("Year") ytitle("Proportion of All Births")
             legend(label(1 "Q1") label(2 "Q2") label(3 "Q3") label(4 "Q4"))
             note("Includes all first births (only) for women aged `a1' to `a2'");
@@ -142,22 +143,22 @@ foreach samp of varlist college highschool alleduc {
             
             dis "`a1', `a2'"
             local cond if ageGroup==`group'&`samp'==`n'
-            graph bar pQuarter* if ageGroup==`group'&`samp'==`n', over(year) scheme(s1color) ///
-                yscale(range(0.2 0.3)) ylab(0.2(0.02)0.3) blabel(bar,format(%9.2f))
+            graph bar pQuarter* `cond', over(year) scheme(s1color)
             graph export "$OUT/`samp'/Qtr`a1'_`a2'_`samp'_`n'.eps", as(eps) replace
             
-            foreach n of numlist 1(1)4 {
-                replace pQuarter`n'=pQuarter`n'-0.25
+            foreach num of numlist 1(1)4 {
+                replace pQuarter`num'=pQuarter`num'-0.25
             }
             
-            graph bar pQuarter* if ageGroup==`group'&`samp'==`n', over(year) scheme(s1color) 
+            graph bar pQuarter* `cond', over(year) scheme(s1color) 
             graph export "$OUT/`samp'/difQtr`a1'_`a2'_`samp'_`n'.eps", as(eps) replace
             
-            foreach n of numlist 1(1)4 {
-                replace pQuarter`n'=pQuarter`n'+0.25
+            foreach num of numlist 1(1)4 {
+                replace pQuarter`num'=pQuarter`num'+0.25
             }    
         }
     }
+    restore
 }
 exit
 ********************************************************************************
