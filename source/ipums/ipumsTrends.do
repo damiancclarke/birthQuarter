@@ -35,7 +35,7 @@ local data noallocatedagesexrelate_women1549_children_01_bio_reshaped_2005_2013
 
 
 ********************************************************************************
-*** (2) open file, subset, gen variables
+*** (2a) open file, subset, gen variables
 ********************************************************************************
 use "$DAT/`data'"
 keep if firstborn_1 == 1
@@ -48,62 +48,122 @@ replace ageGroup = 2 if age>=35 & age<=39
 replace ageGroup = 3 if age>=40 & age<=45
 drop if ageGroup == .
 
+gen college    = educ>=10
+gen highschool = educ>=6
+gen alleduc    = educ>=0
+
+lab var college    "Complete college or higher (4 years college)"
+lab var highschool "Complete highschool or above"
+lab var alleduc    "All education levels combined"
+
 lab def AG 1 "25-34" 2 "35-39" 3 "40-45"
 lab val ageGroup AG
 
 gen birth = 1
-collapse (count) birth [pw=perwt], by(birthqtr1 ageGroup year)
-reshape wide birth, i(ageGroup year) j(birthqtr1)
-
-foreach num of numlist 1(1)4 {
-    rename birth`num' nQuarter`num'
-}
-
-egen Total = rowtotal(nQuarter*)
-foreach num of numlist 1(1)4 {
-    gen pQuarter`num' = nQuarter`num'/Total
-}
 
 ********************************************************************************
-*** (3) label
+*** (2b) collapse to year*birth quarter.  Use three samples
 ********************************************************************************
-lab var ageGroup  "Mother's age group (5 year bins), labelled"
-lab var pQuarter1 "Proportion of births in first quarter"
-lab var pQuarter2 "Proportion of births in second quarter"
-lab var pQuarter3 "Proportion of births in third quarter"
-lab var pQuarter4 "Proportion of births in fourth"
-lab var nQuarter1 "Number of births in first quarter"
-lab var nQuarter2 "Number of births in second quarter"
-lab var nQuarter3 "Number of births in third quarter"
-lab var nQuarter4 "Number of births in fourth quarter"
+for samp of varlist college highschool alleduc {
 
-********************************************************************************
-*** (4) Summary graphs
-********************************************************************************
-foreach group of numlist 1(1)3 {
-    local a1 = 40
-    local a2 = 45
-    if `group'==1 {
-        local a1=25
-        local a2=34        
-    }
-    if `group'==2 {
-        local a1=35
-        local a2=39        
+    cap mkdir "$OUT/`samp'"
+
+    collapse (count) birth [pw=perwt], by(birthqtr1 ageGroup year `samp')
+    reshape wide birth, i(ageGroup year) j(birthqtr1)
+
+    foreach num of numlist 1(1)4 {
+        rename birth`num' nQuarter`num'
     }
 
-    dis "`a1', `a2'"
-    #delimit ;
-    twoway line pQuarter1 year if ageGroup==`group',
-      ||   line pQuarter2 year if ageGroup==`group', lpattern(dash)
-      ||   line pQuarter3 year if ageGroup==`group', lpattern(dot)
-      ||   line pQuarter4 year if ageGroup==`group', lpattern(dash_dot)
-    scheme(s1color) xtitle("Year") ytitle("Proportion of All Births")
-    legend(label(1 "Q1") label(2 "Q2") label(3 "Q3") label(4 "Q4"))
-    note("Includes all first births (only) for women aged `a1' to `a2'");
-    #delimit cr
-    graph export "$OUT/ipumsTrends`a1'_`a2'.eps", as(eps) replace
+    egen Total = rowtotal(nQuarter*)
+    foreach num of numlist 1(1)4 {
+        gen pQuarter`num' = nQuarter`num'/Total
+    }
+
+    ****************************************************************************
+    *** (3) label
+    ****************************************************************************
+    lab var ageGroup  "Mother's age group (5 year bins), labelled"
+    lab var pQuarter1 "Proportion of births in first quarter"
+    lab var pQuarter2 "Proportion of births in second quarter"
+    lab var pQuarter3 "Proportion of births in third quarter"
+    lab var pQuarter4 "Proportion of births in fourth"
+    lab var nQuarter1 "Number of births in first quarter"
+    lab var nQuarter2 "Number of births in second quarter"
+    lab var nQuarter3 "Number of births in third quarter"
+    lab var nQuarter4 "Number of births in fourth quarter"
+    
+    ****************************************************************************
+    *** (4) Summary graphs
+    ****************************************************************************
+    foreach n of numlist 0 1 {
+        if `"`samp'"'=="alleduc"&n==0 exit
+        foreach group of numlist 1(1)3 {
+            local a1 = 40
+            local a2 = 45
+            if `group'==1 {
+                local a1=25
+                local a2=34        
+            }
+            if `group'==2 {
+                local a1=35
+                local a2=39        
+            }
+            
+            dis "`a1', `a2'"
+            #delimit ;
+            local cond if ageGroup==`group'&`samp'==`n'
+            twoway line pQuarter1 year if ageGroup==`group'&`samp'==`n',
+            ||   line pQuarter2 year if ageGroup==`group'&`samp'==`n', lpattern(dash)
+            ||   line pQuarter3 year if ageGroup==`group'&`samp'==`n', lpattern(dot)
+            ||   line pQuarter4 year if ageGroup==`group'&`samp'==`n', lpattern(dash_dot)
+            scheme(s1color) xtitle("Year") ytitle("Proportion of All Births")
+            legend(label(1 "Q1") label(2 "Q2") label(3 "Q3") label(4 "Q4"))
+            note("Includes all first births (only) for women aged `a1' to `a2'");
+            #delimit cr
+            graph export "$OUT/`samp'/Trend`a1'_`a2'_`samp'_`n'.eps", as(eps) replace
+    }
+    
+    ****************************************************************************
+    *** (5) plots by year*quarter
+    ****************************************************************************
+    foreach n of numlist 0 1 {
+        if `"`samp'"'=="alleduc"&n==0 exit
+        foreach group of numlist 1(1)3 {
+            local a1 = 40
+            local a2 = 45
+            if `group'==1 {
+                local a1=25
+                local a2=34        
+            }
+            if `group'==2 {
+                local a1=35
+                local a2=39        
+            }
+            
+            dis "`a1', `a2'"
+            local cond if ageGroup==`group'&`samp'==`n'
+            graph bar pQuarter* if ageGroup==`group'&`samp'==`n', over(year) scheme(s1color) ///
+                yscale(range(0.2 0.3)) ylab(0.2(0.02)0.3) blabel(bar,format(%9.2f))
+            graph export "$OUT/`samp'/Qtr`a1'_`a2'_`samp'_`n'.eps", as(eps) replace
+            
+            foreach n of numlist 1(1)4 {
+                replace pQuarter`n'=pQuarter`n'-0.25
+            }
+            
+            graph bar pQuarter* if ageGroup==`group'&`samp'==`n', over(year) scheme(s1color) 
+            graph export "$OUT/`samp'/difQtr`a1'_`a2'_`samp'_`n'.eps", as(eps) replace
+            
+            foreach n of numlist 1(1)4 {
+                replace pQuarter`n'=pQuarter`n'+0.25
+            }    
+        }
+    }
 }
+exit
+********************************************************************************
+*** (6) Summary plots
+********************************************************************************
 
 preserve
 collapse pQuarter*, by(ageGroup)
@@ -114,37 +174,3 @@ graph bar pQuarter*, over(ageGroup) stack scheme(s1color) ylabel(0.25(0.25)1)
 graph export "$OUT/ipumsAverage.eps", as(eps) replace;
 #delimit cr
 restore
-
-********************************************************************************
-*** (5) plots by year*quarter
-********************************************************************************
-foreach group of numlist 1(1)3 {
-    local a1 = 40
-    local a2 = 45
-    if `group'==1 {
-        local a1=25
-        local a2=34        
-    }
-    if `group'==2 {
-        local a1=35
-        local a2=39        
-    }
-
-    dis "`a1', `a2'"
-    graph bar pQuarter* if ageGroup==`group', over(year) scheme(s1color) ///
-        yscale(range(0.2 0.3))
-    graph export "$OUT/ipumsBar`a1'_`a2'.eps", as(eps) replace
-
-    foreach n of numlist 1(1)4 {
-        replace pQuarter`n'=pQuarter`n'-0.25
-    }
-    
-    graph bar pQuarter* if ageGroup==`group', over(year) scheme(s1color) 
-    graph export "$OUT/ipumsDifBar`a1'_`a2'.eps", as(eps) replace
-
-    foreach n of numlist 1(1)4 {
-        replace pQuarter`n'=pQuarter`n'+0.25
-    }
-
-
-}
