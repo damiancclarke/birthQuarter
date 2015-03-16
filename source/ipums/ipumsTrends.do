@@ -221,7 +221,7 @@ foreach samp of varlist college highschool alleduc {
 ************************************************************************************
 *** (X) Convert to pdf if Unix, close 
 ************************************************************************************
-if `c(os)'=="Unix" {
+if c(os)=="Unix" {
     cd "$OUT"
     !for i in *.eps; do epstopdf $i; rm $i; done
     foreach samp of varlist college highschool alleduc {    
