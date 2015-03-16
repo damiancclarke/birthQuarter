@@ -64,12 +64,11 @@ gen birth = 1
 ********************************************************************************
 *** (2b) collapse to year*birth quarter.  Use three samples
 ********************************************************************************
-for samp of varlist college highschool alleduc {
-
+foreach samp of varlist college highschool alleduc {
     cap mkdir "$OUT/`samp'"
 
     collapse (count) birth [pw=perwt], by(birthqtr1 ageGroup year `samp')
-    reshape wide birth, i(ageGroup year) j(birthqtr1)
+    reshape wide birth, i(ageGroup year `samp') j(birthqtr1)
 
     foreach num of numlist 1(1)4 {
         rename birth`num' nQuarter`num'
@@ -97,7 +96,7 @@ for samp of varlist college highschool alleduc {
     *** (4) Summary graphs
     ****************************************************************************
     foreach n of numlist 0 1 {
-        if `"`samp'"'=="alleduc"&n==0 exit
+        if `"`samp'"'=="alleduc"&`n'==0 exit
         foreach group of numlist 1(1)3 {
             local a1 = 40
             local a2 = 45
@@ -111,8 +110,8 @@ for samp of varlist college highschool alleduc {
             }
             
             dis "`a1', `a2'"
+            local cond if ageGroup==`group'&`samp'==`n';
             #delimit ;
-            local cond if ageGroup==`group'&`samp'==`n'
             twoway line pQuarter1 year if ageGroup==`group'&`samp'==`n',
             ||   line pQuarter2 year if ageGroup==`group'&`samp'==`n', lpattern(dash)
             ||   line pQuarter3 year if ageGroup==`group'&`samp'==`n', lpattern(dot)
@@ -122,13 +121,13 @@ for samp of varlist college highschool alleduc {
             note("Includes all first births (only) for women aged `a1' to `a2'");
             #delimit cr
             graph export "$OUT/`samp'/Trend`a1'_`a2'_`samp'_`n'.eps", as(eps) replace
+        }
     }
-    
     ****************************************************************************
     *** (5) plots by year*quarter
     ****************************************************************************
     foreach n of numlist 0 1 {
-        if `"`samp'"'=="alleduc"&n==0 exit
+        if `"`samp'"'=="alleduc"&`n'==0 exit
         foreach group of numlist 1(1)3 {
             local a1 = 40
             local a2 = 45
