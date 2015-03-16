@@ -32,7 +32,8 @@ log using "$LOG/ipumsSum.txt", text replace
 cap mkdir "$OUT"
 
 local data noallocatedagesexrelate_women1549_children_01_bio_reshaped_2005_2013
-
+local legd     legend(label(1 "Q1") label(2 "Q2") label(3 "Q3") label(4 "Q4"))
+local note "Quarters represent the difference between percent of yearly births"
 
 ********************************************************************************
 *** (2a) open file, subset, gen variables
@@ -62,13 +63,36 @@ lab val ageGroup AG
 gen birth = 1
 
 ********************************************************************************
-*** (2b) collapse to year*birth quarter.  Use three samples
+*** (3) Total graphs for each age group
+********************************************************************************
+preserve
+collapse (count) birth [pw=perwt], by(birthqtr1 ageGroup year)
+drop if ageGroup==0
+reshape wide birth, i(ageGroup year) j(birthqtr1)
+
+foreach num of numlist 1(1)4 {
+    rename birth`num' nQuarter`num'
+}
+
+egen Total = rowtotal(nQuarter*)
+foreach num of numlist 1(1)4 {
+    gen pQuarter`num' = nQuarter`num'/Total - 0.25
+}
+
+graph bar pQuarter*, scheme(s1color) over(ageGro) `legd' note("`note', and 0.25")
+graph export "$OUT/aveDifQtrAge.eps", as(eps) replace
+restore
+
+
+********************************************************************************
+*** (4) collapse to year*birth quarter.  Use three samples
 ********************************************************************************
 foreach samp of varlist college highschool alleduc {
     cap mkdir "$OUT/`samp'"
 
     preserve
     collapse (count) birth [pw=perwt], by(birthqtr1 ageGroup year `samp')
+    drop if ageGroup==0
     reshape wide birth, i(ageGroup year `samp') j(birthqtr1)
 
     foreach num of numlist 1(1)4 {
@@ -81,7 +105,7 @@ foreach samp of varlist college highschool alleduc {
     }
 
     ****************************************************************************
-    *** (3) label
+    *** (5) label
     ****************************************************************************
     lab var ageGroup  "Mother's age group (5 year bins), labelled"
     lab var pQuarter1 "Proportion of births in first quarter"
@@ -94,7 +118,7 @@ foreach samp of varlist college highschool alleduc {
     lab var nQuarter4 "Number of births in fourth quarter"
     
     ****************************************************************************
-    *** (4) Summary graphs
+    *** (6) Summary graphs
     ****************************************************************************
     foreach n of numlist 0 1 {
         if `"`samp'"'=="alleduc"&`n'==0 exit
@@ -125,7 +149,7 @@ foreach samp of varlist college highschool alleduc {
         }
     }
     ****************************************************************************
-    *** (5) plots by year*quarter
+    *** (7) plots by year*quarter
     ****************************************************************************
     foreach n of numlist 0 1 {
         if `"`samp'"'=="alleduc"&`n'==0 exit
@@ -143,34 +167,52 @@ foreach samp of varlist college highschool alleduc {
             
             dis "`a1', `a2'"
             local cond if ageGroup==`group'&`samp'==`n'
-            graph bar pQuarter* `cond', over(year) scheme(s1color)
+            graph bar pQuarter* `cond', over(year) scheme(s1color) `legd'
             graph export "$OUT/`samp'/Qtr`a1'_`a2'_`samp'_`n'.eps", as(eps) replace
             
             foreach num of numlist 1(1)4 {
                 replace pQuarter`num'=pQuarter`num'-0.25
             }
             
-            graph bar pQuarter* `cond', over(year) scheme(s1color) 
+            graph bar pQuarter* `cond', over(year) scheme(s1color) `legd' /*
+            */ note("`note', and 0.25")
             graph export "$OUT/`samp'/difQtr`a1'_`a2'_`samp'_`n'.eps", as(eps) replace
-            
+
             foreach num of numlist 1(1)4 {
                 replace pQuarter`num'=pQuarter`num'+0.25
-            }    
+            }
+            
         }
+    }
+
+    ********************************************************************************
+    *** (8) Summary plots
+    ********************************************************************************
+    foreach group of numlist 1(1)3 {
+        local a1 = 40
+        local a2 = 45
+        if `group'==1 {
+            local a1=25
+            local a2=34        
+        }
+        if `group'==2 {
+            local a1=35
+            local a2=39        
+        }
+        
+        collapse pQuarter*, by(ageGroup `samp')
+        foreach num of numlist 1(1)4 {
+            replace pQuarter`num'=pQuarter`num'-0.25
+        }
+        
+        local cond if ageGroup==`group'
+        graph bar pQuarter* `cond', scheme(s1color) over(`samp') `legd' /*
+        */ note("`note', and 0.25")
+        graph export "$OUT/`samp'/aveDifQtr`a1'_`a2'_`samp'.eps", as(eps) replace
+        foreach num of numlist 1(1)4 {
+            replace pQuarter`num'=pQuarter`num'+0.25
+        }
+        
     }
     restore
 }
-exit
-********************************************************************************
-*** (6) Summary plots
-********************************************************************************
-
-preserve
-collapse pQuarter*, by(ageGroup)
-#delimit ;
-graph bar pQuarter*, over(ageGroup) stack scheme(s1color) ylabel(0.25(0.25)1) 
-   legend(label(1 "Q1") label(2 "Q2") label(3 "Q3") label(4 "Q4"))
-   note("All first births from ACS IPUMS data: 2005-2013.");
-graph export "$OUT/ipumsAverage.eps", as(eps) replace;
-#delimit cr
-restore
