@@ -90,8 +90,11 @@ foreach samp in all college highschool {
             dis "`a1', `a2'"
             local cond if ageGroup==`group'&`samp'==`n'
                 
-            graph bar pQuarter* `cond', over(year) scheme(s1color) `legd' /*
-            */ note("`note', and 0.25")
+            graph bar pQuarter* `cond', scheme(s1color) `legd' note("`note', and 0.25") /*
+            */ over(year, relabel(1 "1975" 2 " " 3 " " 4 " " 5 " " 6 "1980" 7 " " 8 " " /*
+            */ 9 " " 10 " " 11 "1985" 12 " " 13 " " 14 " " 15 " " 16 "1990" 17  " " 18  /*
+            */ " " 19 " " 20  " " 21 "1995" 22 " " 23 " " 24 " " 25 " " 26 "2000" 27 " "/*
+            */ 28 " " 29 " " 30 " " 31 "2005" 32 " " 33 " " 34 " ")) 
             graph export "$OUT/`samp'/difQtr`a1'_`a2'_`samp'_`n'.`e'", as(`e') replace                
         }
     }
@@ -115,8 +118,8 @@ foreach samp in all college highschool {
         collapse pQuarter*, by(ageGroup `samp')
         
         local cond if ageGroup==`group'
-        graph bar pQuarter* `cond', scheme(s1color) over(`samp') `legd' /*
-        */ note("`note', and 0.25")
+        graph bar pQuarter* `cond', scheme(s1color)  `legd' /*
+        */ note("`note', and 0.25") over(`samp', relabel(1 "`samp'" 2 "No `samp'"))
         graph export "$OUT/`samp'/aveDifQtr`a1'_`a2'_`samp'.`e'", as(`e') replace
     }
 }

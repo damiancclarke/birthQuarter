@@ -169,7 +169,7 @@ foreach samp of varlist college highschool alleduc {
             
             dis "`a1', `a2'"
             local cond if ageGroup==`group'&`samp'==`n'
-            graph bar pQuarter* `cond', over(year) scheme(s1color) `legd'
+            graph bar pQuarter* `cond', over(year) scheme(s1color) `legd' exclude0
             graph export "$OUT/`samp'/Qtr`a1'_`a2'_`samp'_`n'.`e'", as(`e') replace
             
             foreach num of numlist 1(1)4 {
@@ -208,8 +208,8 @@ foreach samp of varlist college highschool alleduc {
         }
         
         local cond if ageGroup==`group'
-        graph bar pQuarter* `cond', scheme(s1color) over(`samp') `legd' /*
-        */ note("`note', and 0.25")
+        graph bar pQuarter* `cond', scheme(s1color)  `legd' /*
+        */ note("`note', and 0.25") over(`samp', relabel(1 "`samp'" 2 "No `samp'"))
         graph export "$OUT/`samp'/aveDifQtr`a1'_`a2'_`samp'.`e'", as(`e') replace
         foreach num of numlist 1(1)4 {
             replace pQuarter`num'=pQuarter`num'+0.25
@@ -217,7 +217,7 @@ foreach samp of varlist college highschool alleduc {
     }
     restore
 }
-
+exit
 ************************************************************************************
 *** (X) Convert to pdf if Unix, close 
 ************************************************************************************
