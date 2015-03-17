@@ -28,32 +28,100 @@ global LOG "~/investigacion/2015/birthQuarter/log"
 log using "$LOG/nvssTrends.txt", text replace
 cap mkdir "$OUT"
 
+local legd     legend(label(1 "Q1") label(2 "Q2") label(3 "Q3") label(4 "Q4"))
+local note "Quarters represent the difference between percent of yearly births"
+if c(os)=="Unix" local e eps
+if c(os)!="Unix" local e pdf
+
+
 ********************************************************************************
 *** (2) Open file, plot by age group
 ********************************************************************************
-use "$DAT/nvssAgeQuarter"
+foreach samp in all college highschool {
+    cap mkdir "$OUT/`samp'"
+    use "$DAT/nvssAgeQuarter_`samp'", clear
+    foreach var of varlist pQuarter* {
+        replace `var'=`var'-0.25
+    }
 
-foreach group of numlist 1(1)7 {
-    local a1 = 15+5*(`group'-1)
-    local a2 = 15+5*(`group')-1
-    dis "`a1', `a2'"
-    #delimit ;
-    twoway line pQuarter1 year if ageGroup==`group',
-      ||   line pQuarter2 year if ageGroup==`group', lpattern(dash)
-      ||   line pQuarter3 year if ageGroup==`group', lpattern(longdash)
-      ||   line pQuarter4 year if ageGroup==`group', lpattern(dash_dot)
-    scheme(s1mono) xtitle("Year") ytitle("Proportion of All Births")
-    legend(label(1 "Q1") label(2 "Q2") label(3 "Q3") label(4 "Q4"))
-    note("Includes all first births (only) for women aged `a1' to `a2'");
-    #delimit cr
-    graph export "$OUT/nvssTrends`a1'_`a2'.eps", as(eps) replace
+    foreach n of numlist 0 1 {
+        if `"`samp'"'=="all"&`n'==0 exit
+
+        foreach group of numlist 1(1)3 {
+            local a1 = 40
+            local a2 = 45
+            if `group'==1 local a1 = 25
+            if `group'==1 local a2 = 34
+            if `group'==2 local a1 = 35
+            if `group'==2 local a2 = 39
+    
+            dis "`a1', `a2'"
+            local cond if ageGroup==`group' & `samp'==`n'
+            #delimit ;
+            twoway line pQuarter1 year `cond',
+            ||   line pQuarter2 year `cond', lpattern(dash)
+            ||   line pQuarter3 year `cond', lpattern(dot)
+            ||   line pQuarter4 year `cond', lpattern(dash_dot)
+            scheme(s1color) xtitle("Year") ytitle("Proportion of All Births")
+            `legd'
+            note("Includes all first births (only) for women aged `a1' to `a2'");
+            #delimit cr
+            graph export "$OUT/`samp'/Trend`a1'_`a2'_`samp'_`n'.eps", as(eps) replace
+        }
+    }
+
+    ****************************************************************************
+    *** (3) plots by year*quarter
+    ****************************************************************************
+    foreach n of numlist 0 1 {
+        if `"`samp'"'=="all"&`n'==0 exit
+        foreach group of numlist 1(1)3 {
+            local a1 = 40
+            local a2 = 45
+            if `group'==1 {
+                local a1=25
+                local a2=34
+            }
+            if `group'==2 {
+                local a1=35
+                local a2=39
+            }
+            
+            dis "`a1', `a2'"
+            local cond if ageGroup==`group'&`samp'==`n'
+                
+            graph bar pQuarter* `cond', over(year) scheme(s1color) `legd' /*
+            */ note("`note', and 0.25")
+            graph export "$OUT/`samp'/difQtr`a1'_`a2'_`samp'_`n'.`e'", as(`e') replace                
+        }
+    }
+
+
+    ********************************************************************************
+    *** (4) Summary plots
+    ********************************************************************************
+    foreach group of numlist 1(1)3 {
+        local a1 = 40
+        local a2 = 45
+        if `group'==1 {
+            local a1=25
+            local a2=34
+        }
+        if `group'==2 {
+            local a1=35
+            local a2=39
+        }
+        
+        collapse pQuarter*, by(ageGroup `samp')
+        
+        local cond if ageGroup==`group'
+        graph bar pQuarter* `cond', scheme(s1color) over(`samp') `legd' /*
+        */ note("`note', and 0.25")
+        graph export "$OUT/`samp'/aveDifQtr`a1'_`a2'_`samp'.`e'", as(`e') replace
+    }
 }
 
 ********************************************************************************
-*** (3) Combine one plot for all periods
+*** (X) Close
 ********************************************************************************
-collapse pQuarter*, by(ageGroup)
-graph bar pQuarter*, over(ageGroup) stack scheme(s1mono) ylabel(0.25(0.25)1) ///
-    legend(label(1 "Q1") label(2 "Q2") label(3 "Q3") label(4 "Q4"))          ///
-    note("All first births from NVSS data: 1975-2002.")
-graph export "$OUT/nvssAverage.eps", as(eps) replace
+log close
