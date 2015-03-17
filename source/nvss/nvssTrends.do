@@ -119,10 +119,23 @@ foreach samp in all college highschool {
         
         local cond if ageGroup==`group'
         graph bar pQuarter* `cond', scheme(s1color)  `legd' /*
-        */ note("`note', and 0.25") over(`samp', relabel(1 "`samp'" 2 "No `samp'"))
+        */ note("`note', and 0.25") over(`samp', relabel(1 "No `samp'" 2 "`samp'"))
         graph export "$OUT/`samp'/aveDifQtr`a1'_`a2'_`samp'.`e'", as(`e') replace
     }
 }
+
+********************************************************************************
+*** (5) Total graphs for each age group
+********************************************************************************
+use "$DAT/nvssAgeQuarter_all", clear
+foreach num of numlist 1(1)4 {
+    replace pQuarter`num' = pQuarter`num' - 0.25
+}
+
+graph bar pQuarter*, scheme(s1color) over(ageGro) `legd' note("`note', and 0.25")
+graph export "$OUT/aveDifQtrAge.`e'", as(`e') replace
+
+
 
 ********************************************************************************
 *** (X) Close
