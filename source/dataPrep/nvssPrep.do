@@ -62,20 +62,19 @@ foreach yy of numlist 1975(1)2002 {
 
     preserve 
     collapse year (count) birth, by(birthQuarter ageGroup college)
-    drop if college = .
+    drop if college == .
     save `c`yy''
     restore
 
     preserve 
     collapse year (count) birth, by(birthQuarter ageGroup highschool)
-    drop if highschool = .
+    drop if highschool == .
     save `h`yy''
     restore
 
-    preserve 
     collapse year (count) birth, by(birthQuarter ageGroup all)
     save `a`yy''
-
+    
     local afiles `afiles' `a`yy''
     local cfiles `cfiles' `c`yy''
     local hfiles `hfiles' `h`yy''   
