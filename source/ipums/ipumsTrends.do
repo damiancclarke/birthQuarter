@@ -68,10 +68,6 @@ replace ageGroup = 2 if age>=35 & age<=39
 replace ageGroup = 3 if age>=40 & age<=45
 drop if ageGroup == 0
 
-*gen college    = educ>=10
-*gen highschool = educ>=6
-*gen alleduc    = educ>=0
-
 gen educLevel = .
 replace educLevel = 1 if educ<=6
 replace educLevel = 2 if educ>6 & educ<=8
@@ -210,8 +206,42 @@ graph export "$OUT/total.eps", as(eps) replace;
 restore
 
 ********************************************************************************
-*** (3b) Histogram by education level and by period
+*** (3b) Histogram by education level
 ********************************************************************************
+preserve
+collapse (sum) birth [pw=perwt], by(goodQuarter ageGroup educLevel)
+reshape wide birth, i(ageGroup educLevel) j(goodQuarter)
+gen totalbirths = birth0 + birth1
+replace birth0=(round(10000*birth0/totalbirths)/100)-50
+replace birth1=(round(10000*birth1/totalbirths)/100)-50
+
+#delimit ;
+graph bar birth*, over(educLevel, relabel(1 "None" 2 "1-3 yrs" 3 "4-5 yrs")
+                       label(angle(45))) over(ageGroup)
+scheme(s1mono) legend(label(1 "Bad Quarter") label(2 "Good Quarter"))
+bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0)) ylabel(, nogrid) yline(0);
+graph export "$OUT/totalEduc.eps", as(eps) replace;
+#delimit cr
+restore
+
+********************************************************************************
+*** (3b) Histogram by time period
+********************************************************************************
+preserve
+collapse (sum) birth [pw=perwt], by(goodQuarter ageGroup period)
+reshape wide birth, i(ageGroup period) j(goodQuarter)
+gen totalbirths = birth0 + birth1
+replace birth0=(round(10000*birth0/totalbirths)/100)-50
+replace birth1=(round(10000*birth1/totalbirths)/100)-50
+
+#delimit ;
+graph bar birth*, over(period,
+                       label(angle(45))) over(ageGroup)
+scheme(s1mono) legend(label(1 "Bad Quarter") label(2 "Good Quarter"))
+bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0)) ylabel(, nogrid) yline(0);
+graph export "$OUT/totalPeriod.eps", as(eps) replace;
+#delimit cr
+restore
 
 
 exit
