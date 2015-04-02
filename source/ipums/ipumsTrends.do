@@ -39,10 +39,10 @@ local note "Quarters represent the difference between percent of yearly births"
 if c(os)=="Unix" local e eps
 if c(os)!="Unix" local e pdf
 
-local stateFE 0
+local stateFE 1
+local twins   0
 
-if `stateFE'==1 global OUT "$OUT/FE"
-
+if `twins' == 1 local app twins
 
 ********************************************************************************
 *** (1b) Install additional ado files
@@ -56,7 +56,9 @@ if _rc!=0 ssc install listtex
 *** (2a) open file, subset
 ********************************************************************************
 use "$DAT/`data'"
-keep if firstborn_1 == 1
+
+if `twins' == 1 keep if firstborn_twins == 1
+if `twins' == 0 keep if firstborn_1 == 1
 keep if race==1 & race1==1 & hispan==0 & hispan1==0
 keep if bpl<150 & bpl1<150
 
@@ -114,7 +116,7 @@ foreach iter in W Unw {
 
     sort educLevel ageGroup 
     #delimit ;
-    listtex using "$SUM/Count`iter'eighted.tex", rstyle(tabular) replace
+    listtex using "$SUM/Count`iter'eighted`app'.tex", rstyle(tabular) replace
     head("\begin{table}[htpb!]\centering"
          "\caption{`iter'eighted Number of Births per Cell}"
          "\begin{tabular}{llcccccc}\toprule" 
@@ -144,7 +146,7 @@ drop totalbirths
 reshape wide birth0 birth1, i(educLevel ageGroup) j(period)
 
 #delimit ;
-listtex using "$SUM/PropWeighted.tex", rstyle(tabular) replace
+listtex using "$SUM/PropWeighted`app'.tex", rstyle(tabular) replace
  head("\vspace{8mm}\begin{table}[htpb!]"
   "\centering\caption{Percent of Births per Cell (Weighted)}"
   "\begin{tabular}{llcccccc}\toprule" 
@@ -173,7 +175,7 @@ replace birth1=round(10000*birth1/totalbirths)/100
 drop totalbirths
 
 #delimit ;
-listtex using "$SUM/PropWeightedNoTime.tex", rstyle(tabular) replace
+listtex using "$SUM/PropWeightedNoTime`app'.tex", rstyle(tabular) replace
  head("\vspace{8mm}\begin{table}[htpb!]"
   "\centering\caption{Percent of Births per Cell (Weighted, All Years)}"
   "\begin{tabular}{llcc}\toprule" 
@@ -201,7 +203,7 @@ replace birth1=(round(10000*birth1/totalbirths)/100)-50
 graph bar birth*, over(ageGroup) scheme(s1mono) legend(label(1 "Bad Quarter")
 label(2 "Good Quarter")) bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0))
 ylabel(, nogrid) yline(0);
-graph export "$OUT/total.eps", as(eps) replace;
+graph export "$OUT/total`app'.eps", as(eps) replace;
 #delimit cr
 restore
 
@@ -220,12 +222,12 @@ graph bar birth*, over(educLevel, relabel(1 "None" 2 "1-3 yrs" 3 "4-5 yrs")
                        label(angle(45))) over(ageGroup)
 scheme(s1mono) legend(label(1 "Bad Quarter") label(2 "Good Quarter"))
 bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0)) ylabel(, nogrid) yline(0);
-graph export "$OUT/totalEduc.eps", as(eps) replace;
+graph export "$OUT/totalEduc`app'.eps", as(eps) replace;
 #delimit cr
 restore
 
 ********************************************************************************
-*** (3b) Histogram by time period
+*** (3c) Histogram by time period
 ********************************************************************************
 preserve
 collapse (sum) birth [pw=perwt], by(goodQuarter ageGroup period)
@@ -239,176 +241,29 @@ graph bar birth*, over(period,
                        label(angle(45))) over(ageGroup)
 scheme(s1mono) legend(label(1 "Bad Quarter") label(2 "Good Quarter"))
 bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0)) ylabel(, nogrid) yline(0);
-graph export "$OUT/totalPeriod.eps", as(eps) replace;
+graph export "$OUT/totalPeriod`app'.eps", as(eps) replace;
 #delimit cr
 restore
 
 
-exit
-
-
 ********************************************************************************
-*** (3) Total graphs for each age group
+*** (4) Concentrate state FE 
 ********************************************************************************
-preserve
-collapse (count) birth [pw=perwt], by(birthqtr1 ageGroup period statefip)
-drop if ageGroup==0
-if `stateFE'==1 {
+*preserve
+collapse (sum) birth [pw=perwt], by(goodQuarter ageGroup year statefip)
+gen birthHat
+foreach num of numlist 1(1)3 {
     qui reg birth i.statefip
-    drop birth
-    predict birth, residuals 
-}
-collapse (count) birth, by(birthqtr1 ageGroup period)
-reshape wide birth, i(ageGroup period) j(birthqtr1)
-
-
-foreach num of numlist 1(1)4 {
-    rename birth`num' nQuarter`num'
+    predict bh if e(sample), residual
+    replace birthHat = bh if e(sample)
+    drop bh
 }
 
-egen Total = rowtotal(nQuarter*)
-foreach num of numlist 1(1)4 {
-    gen pQuarter`num' = nQuarter`num'/Total - 0.25
-}
 
-graph bar pQuarter*, scheme(s1color) over(ageGro) `legd' note("`note', and 0.25")
-graph export "$OUT/aveDifQtrAge.`e'", as(`e') replace
-restore
+*restore
 
-exit
-********************************************************************************
-*** (4) collapse to year*birth quarter.  Use three samples
-********************************************************************************
-foreach samp of varlist college highschool alleduc {
-    cap mkdir "$OUT/`samp'"
 
-    preserve
-    collapse (count) birth [pw=perwt], by(birthqtr1 ageGroup period `samp')
-    drop if ageGroup==0
-    reshape wide birth, i(ageGroup period `samp') j(birthqtr1)
 
-    foreach num of numlist 1(1)4 {
-        rename birth`num' nQuarter`num'
-    }
-
-    egen Total = rowtotal(nQuarter*)
-    foreach num of numlist 1(1)4 {
-        gen pQuarter`num' = nQuarter`num'/Total
-    }
-
-    ****************************************************************************
-    *** (5) label
-    ****************************************************************************
-    lab var ageGroup  "Mother's age group (5 year bins), labelled"
-    lab var pQuarter1 "Proportion of births in first quarter"
-    lab var pQuarter2 "Proportion of births in second quarter"
-    lab var pQuarter3 "Proportion of births in third quarter"
-    lab var pQuarter4 "Proportion of births in fourth"
-    lab var nQuarter1 "Number of births in first quarter"
-    lab var nQuarter2 "Number of births in second quarter"
-    lab var nQuarter3 "Number of births in third quarter"
-    lab var nQuarter4 "Number of births in fourth quarter"
-    
-    ****************************************************************************
-    *** (6) Summary graphs
-    ****************************************************************************
-    foreach n of numlist 0 1 {
-        if `"`samp'"'=="alleduc"&`n'==0 exit
-        foreach group of numlist 1(1)3 {
-            local a1 = 40
-            local a2 = 45
-            if `group'==1 {
-                local a1=25
-                local a2=34        
-            }
-            if `group'==2 {
-                local a1=35
-                local a2=39        
-            }
-            
-            dis "`a1', `a2'"
-            local cond if ageGroup==`group'&`samp'==`n'
-            #delimit ;
-            twoway line pQuarter1 period `cond',
-            ||   line pQuarter2 period `cond', lpattern(dash)
-            ||   line pQuarter3 period `cond', lpattern(dot)
-            ||   line pQuarter4 period `cond', lpattern(dash_dot)
-            scheme(s1color) xtitle("Time Period") ytitle("Proportion of All Births")
-            legend(label(1 "Q1") label(2 "Q2") label(3 "Q3") label(4 "Q4"))
-            note("Includes all first births (only) for women aged `a1' to `a2'");
-            #delimit cr
-            graph export "$OUT/`samp'/Trend`a1'_`a2'_`samp'_`n'.`e'", as(`e') replace
-        }
-    }
-    ****************************************************************************
-    *** (7) plots by year*quarter
-    ****************************************************************************
-    foreach n of numlist 0 1 {
-        if `"`samp'"'=="alleduc"&`n'==0 exit
-        foreach group of numlist 1(1)3 {
-            local a1 = 40
-            local a2 = 45
-            if `group'==1 {
-                local a1=25
-                local a2=34        
-            }
-            if `group'==2 {
-                local a1=35
-                local a2=39        
-            }
-            
-            dis "`a1', `a2'"
-            local cond if ageGroup==`group'&`samp'==`n'
-            graph bar pQuarter* `cond', scheme(s1color) `legd' exclude0 /*
-            */ over(period, relabel(1 "Pre-crisis" 2 "Crisis" 3 "Post-crisis")) 
-            graph export "$OUT/`samp'/Qtr`a1'_`a2'_`samp'_`n'.`e'", as(`e') replace
-            
-            foreach num of numlist 1(1)4 {
-                replace pQuarter`num'=pQuarter`num'-0.25
-            }
-            
-            graph bar pQuarter* `cond', scheme(s1color) `legd' /*
-            */ note("`note', and 0.25") /*
-            */ over(period, relabel(1 "Pre-crisis" 2 "Crisis" 3 "Post-crisis"))
-            graph export "$OUT/`samp'/difQtr`a1'_`a2'_`samp'_`n'.`e'", as(`e') replace
-
-            foreach num of numlist 1(1)4 {
-                replace pQuarter`num'=pQuarter`num'+0.25
-            }
-            
-        }
-    }
-
-    ********************************************************************************
-    *** (8) Summary plots
-    ********************************************************************************
-    foreach group of numlist 1(1)3 {
-        local a1 = 40
-        local a2 = 45
-        if `group'==1 {
-            local a1=25
-            local a2=34        
-        }
-        if `group'==2 {
-            local a1=35
-            local a2=39        
-        }
-        
-        collapse pQuarter*, by(ageGroup `samp')
-        foreach num of numlist 1(1)4 {
-            replace pQuarter`num'=pQuarter`num'-0.25
-        }
-        
-        local cond if ageGroup==`group'
-        graph bar pQuarter* `cond', scheme(s1color)  `legd' /*
-        */ note("`note', and 0.25") over(`samp', relabel(1 "No `samp'" 2 "`samp'"))
-        graph export "$OUT/`samp'/aveDifQtr`a1'_`a2'_`samp'.`e'", as(`e') replace
-        foreach num of numlist 1(1)4 {
-            replace pQuarter`num'=pQuarter`num'+0.25
-        }
-    }
-    restore
-}
 
 ************************************************************************************
 *** (X) Close 
