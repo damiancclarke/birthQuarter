@@ -104,34 +104,42 @@ lab var period       "Period of time considered (pre/crisis/post)"
 lab var educLevel    "Level of education obtained by mother"
 
 ********************************************************************************
-*** (2d) Collapse to bins counting births
+*** (2d) Collapse to bins counting births to make sumstats over time
 ********************************************************************************
+foreach iter in W Unw {
+    if `"`iter'"'=="W"   local ctype sum
+    if `"`iter'"'=="Unw" local ctype rawsum
+    count
+    preserve
+    collapse (`ctype') birth [pw=perwt], by(goodQuarter educLevel period ageGroup)
+
+    reshape wide birth, i(educLevel period ageGroup) j(goodQuarter)
+    reshape wide birth0 birth1, i(educLevel ageGroup) j(period)
+
+    sort educLevel ageGroup 
+    #delimit ;
+    listtex using "$SUM/Count`iter'eighted.tex", rstyle(tabular) replace
+    head("\begin{table}[htpb!]\centering"
+         "\caption{`iter'eighted Number of Births per Cell}"
+         "\begin{tabular}{llcccccc}\toprule" 
+         "&&\multicolumn{2}{c}{\textbf{Pre-Crisis}}&"
+         "\multicolumn{2}{c}{\textbf{Crisis}}&"
+         "\multicolumn{2}{c}{\textbf{Post-Crisis}}\\"
+         "\cmidrule(r){3-4}\cmidrule(r){5-6}"
+         "\cmidrule(r){7-8}" "&College& Bad Q&Good Q&Badd Q&Good Q&Bad Q&Good Q\\"
+         "\midrule")
+    foot("\midrule\multicolumn{8}{p{13cm}}{\begin{footnotesize}\textsc{Notes:}"
+         "Pre-Crisis is 2005-2007, crisis is 2008-2009, and post-crisis is "
+         "2010-2013. Good Q refers to birth quarters 2 and 3, while Bad Q refers"
+         "to quarters 4 and 1.  All numbers reflect `iter'eighted values using the"
+         "IPUMS ACS 2005-2013 sample.\end{footnotesize}}\\"
+         "\bottomrule\end{tabular}\end{table}");
+    #delimit cr
+    restore
+}
+
+preserve
 collapse (sum) birth [pw=perwt], by(goodQuarter educLevel period ageGroup)
-
-preserve
-reshape wide birth, i(educLevel period ageGroup) j(goodQuarter)
-reshape wide birth0 birth1, i(educLevel ageGroup) j(period)
-
-sort ageGroup educLevel
-#delimit ;
-listtex using "$SUM/CountWeighted.tex", rstyle(tabular) replace
- head("\begin{table}[htpb!]\centering\caption{Weighted Number of Births per Cell}"
-  "\begin{tabular}{llcccccc}\toprule" 
-  "&&\multicolumn{2}{c}{\textbf{Pre-Crisis}}&"
-  "\multicolumn{2}{c}{\textbf{Crisis}}&"
-  "\multicolumn{2}{c}{\textbf{Post-Crisis}}\\ \cmidrule(r){3-4}\cmidrule(r){5-6}"
-  "\cmidrule(r){7-8}" "&College& Bad Q&Good Q&Badd Q&Good Q&Bad Q&Good Q\\ \midrule")
- foot("\midrule\multicolumn{8}{p{13cm}}{\begin{footnotesize}\textsc{Notes:}"
-  "Pre-Crisis is 2005-2007,"
-  "crisis is 2008-2009, and post-crisis is 2010-2013.  Good Q refers to birth "
-  "quarters 2 and 3, while Bad Q refers to quarters 4 and 1.  All numbers reflect"
-  "weighted values using the IPUMS variable perwt.\end{footnotesize}}\\"
-  "\bottomrule\end{tabular}\end{table}");
-#delimit cr
-
-restore
-
-preserve
 reshape wide birth, i(educLevel period ageGroup) j(goodQuarter)
 gen totalbirths = birth0 + birth1
 replace birth0=round(1000*birth0/totalbirths)/10
@@ -155,6 +163,32 @@ listtex using "$SUM/PropWeighted.tex", rstyle(tabular) replace
   "the percent of births for this time period, age group and education level."
   "\end{footnotesize}}\\ \bottomrule\end{tabular}\end{table}");
 #delimit cr
+restore
+
+********************************************************************************
+*** (2e) Sumstats all periods together
+********************************************************************************
+preserve
+collapse (sum) birth [pw=perwt], by(goodQuarter educLevel ageGroup)
+reshape wide birth, i(educLevel ageGroup) j(goodQuarter)
+gen totalbirths = birth0 + birth1
+replace birth0=round(10000*birth0/totalbirths)/100
+replace birth1=round(10000*birth1/totalbirths)/100
+drop totalbirths
+
+#delimit ;
+listtex using "$SUM/PropWeightedNoTime.tex", rstyle(tabular) replace
+ head("\vspace{8mm}\begin{table}[htpb!]"
+  "\centering\caption{Percent of Births per Cell (Weighted, All Years)}"
+  "\begin{tabular}{llcc}\toprule" 
+  "Age Group &College&Bad Quarters&Good Quarters \\ \midrule")
+ foot("\midrule\multicolumn{4}{p{9cm}}{\begin{footnotesize}\textsc{Notes:}"
+      "Good Quarters refer to birth quarters 2 and 3, while Bad Quarters refer"
+      "to quarters 4 and 1. All values reflect the percent of births for this"
+      "age group and education level."
+      "\end{footnotesize}}\\ \bottomrule\end{tabular}\end{table}");
+#delimit cr
+restore
 
 
 exit
