@@ -191,7 +191,31 @@ listtex using "$SUM/PropWeightedNoTime.tex", rstyle(tabular) replace
 restore
 
 
+********************************************************************************
+*** (3a) Global histogram
+********************************************************************************
+preserve
+collapse (sum) birth [pw=perwt], by(goodQuarter ageGroup)
+reshape wide birth, i(ageGroup) j(goodQuarter)
+gen totalbirths = birth0 + birth1
+replace birth0=(round(10000*birth0/totalbirths)/100)-50
+replace birth1=(round(10000*birth1/totalbirths)/100)-50
+
+#delimit ;
+graph bar birth*, over(ageGroup) scheme(s1mono) legend(label(1 "Bad Quarter")
+label(2 "Good Quarter")) bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0))
+ylabel(, nogrid) yline(0);
+graph export "$OUT/total.eps", as(eps) replace;
+#delimit cr
+restore
+
+********************************************************************************
+*** (3b) Histogram by education level and by period
+********************************************************************************
+
+
 exit
+
 
 ********************************************************************************
 *** (3) Total graphs for each age group
