@@ -22,6 +22,8 @@ log using "$LOG/ipumsRegs.txt", text replace
 cap mkdir "$OUT"
 
 local data noallocatedagesexrelate_women1549_children_01_bio_reshaped_2005_2013
+local estopt  cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats /*
+*/            (r2 N, fmt(%9.2f %9.0g)) starlevel ("*" 0.10 "**" 0.05 "***" 0.01)
 
 ********************************************************************************
 *** (2a) Open data, setup for regressions
@@ -68,6 +70,7 @@ lab var period       "Period of time considered (pre/crisis/post)"
 lab var educLevel    "Level of education obtained by mother"
 
 
+
 ********************************************************************************
 *** (3a) Set for binary by birthquarter by woman by educLevel
 ********************************************************************************
@@ -83,10 +86,24 @@ reshape long birth, i(statefip year ageGroup educLevel) j(goodQuarter)
 ********************************************************************************
 *** (3b) regressions
 ********************************************************************************
-areg birth i.educLevel#c.goodQuarter i.year if ageGroup==1, abs(statefip)
-areg birth i.educLevel#c.goodQuarter i.year if ageGroup==2, abs(statefip)
-areg birth i.educLevel#c.goodQuarter i.year if ageGroup==3, abs(statefip)
+local opt abs(statefip) cluster(statefip)
+
+eststo: areg birth i.educLevel#c.goodQuarter i.year if ageGroup==1, `opt'
+eststo: areg birth i.educLevel#c.goodQuarter i.year if ageGroup==2, `opt'
+eststo: areg birth i.educLevel#c.goodQuarter i.year if ageGroup==3, `opt'
+
+#delimit ;
+estout est1 est2 est3 using "$OUT/IPUMSeducation.txt", replace `estopt'
+title("Proportion of births by Quarter (IPUMS 2005-2013)") drop(20* _cons)
+note("All regressions absorb state and year fixed effects.  Coefficients are"
+     "expressed as the difference between the proportion of births in a given"
+     "quarter and the theoretical proportion if births were spaced evenly by"
+     "quarter.");
+#delimit cr
+estimates clear
 restore
+
+
 
 ********************************************************************************
 *** (3c) Set for binary by birthquarter by woman
@@ -100,10 +117,31 @@ drop birthTotal
 reshape long birth, i(statefip year ageGroup) j(goodQuarter)
 
 ********************************************************************************
-*** (3b) regressions
+*** (3d) regressions
 ********************************************************************************
-areg birth goodQuarter i.year if ageGroup==1, abs(statefip)
-areg birth goodQuarter i.year if ageGroup==2, abs(statefip)
-areg birth goodQuarter i.year if ageGroup==3, abs(statefip)
+eststo: areg birth goodQuarter i.year if ageGroup==1, `opt'
+eststo: areg birth goodQuarter i.year if ageGroup==2, `opt'
+eststo: areg birth goodQuarter i.year if ageGroup==3, `opt'
+#delimit ;
+estout est1 est2 est3 using "$OUT/IPUMSAll.txt", replace `estopt'
+title("Proportion of births by Quarter (IPUMS 2005-2013)") drop(20* _cons)
+note("All regressions absorb state and year fixed effects.  Coefficients are"
+     "expressed as the difference between the proportion of births in a given"
+     "quarter and the theoretical proportion if births were spaced evenly by"
+     "quarter.");
+#delimit cr
+estimates clear
+
+eststo: areg birth i.year#c.goodQuarter if ageGroup==1, `opt'
+eststo: areg birth i.year#c.goodQuarter if ageGroup==2, `opt'
+eststo: areg birth i.year#c.goodQuarter if ageGroup==3, `opt'
+#delimit ;
+estout est1 est2 est3 using "$OUT/IPUMSTime.txt", replace `estopt'
+title("Proportion of births by Quarter (IPUMS 2005-2013)") drop(_cons)
+note("All regressions absorb state and year fixed effects.  Coefficients are"
+     "expressed as the difference between the proportion of births in a given"
+     "quarter and the theoretical proportion if births were spaced evenly by"
+     "quarter.");
+#delimit cr
 
     
