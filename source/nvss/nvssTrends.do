@@ -23,121 +23,228 @@ cap log close
 ********************************************************************************
 global DAT "~/investigacion/2015/birthQuarter/data/nvss"
 global OUT "~/investigacion/2015/birthQuarter/results/nvss/graphs"
+global SUM "~/investigacion/2015/birthQuarter/results/nvss/sumStats"
 global LOG "~/investigacion/2015/birthQuarter/log"
 
 log using "$LOG/nvssTrends.txt", text replace
-cap mkdir "$OUT"
+cap mkdir "$SUM"
+
 
 local legd     legend(label(1 "Q1") label(2 "Q2") label(3 "Q3") label(4 "Q4"))
 local note "Quarters represent the difference between percent of yearly births"
 if c(os)=="Unix" local e eps
 if c(os)!="Unix" local e pdf
 
+local stateFE 0
+local twins   0
+if `twins' == 1 local app twins
+
 
 ********************************************************************************
-*** (2) Open file, plot by age group
+*** (2a) Use, subset
 ********************************************************************************
-foreach samp in all college highschool {
-    cap mkdir "$OUT/`samp'"
-    use "$DAT/nvssAgeQuarter_`samp'", clear
-    foreach var of varlist pQuarter* {
-        replace `var'=`var'-0.25
+use $DAT/nvss2005_2013
+
+if `twins'==1 keep if twin == 2
+if `twins'==0 keep if twin == 1
+
+gen birth = 1
+gen goodQuarter = birthQuarter == 2 | birthQuarter == 3
+gen period = .
+replace period = 1 if year >=2005 & year<=2007
+replace period = 2 if year >=2008 & year<=2009
+replace period = 3 if year >=2010 & year<=2013
+
+replace educLevel = educLevel + 1
+
+********************************************************************************
+*** (2b) Label for clarity
+********************************************************************************
+lab def aG  1 "25-34" 2 "35-39" 3 "40-45"
+lab def pr  1 "Pre-crisis" 2 "Crisis" 3 "Post-crisis"
+lab def gQ  0 "quarter 4(t) or quarter 1(t+1)" 1 "quarter 2(t) or quarter 3(t)"
+lab def eL  1 "None" 2 "1-3 years" 3 "4-5 years"
+
+lab val period      pr
+lab val ageGroup    aG
+lab val goodQuarter gQ
+lab val educLevel   eL
+
+lab var goodQuarter  "Binary variable for born Q 2/3 (=1) or Q4/1 (=0)"
+lab var ageGroup     "Categorical age group"
+lab var period       "Period of time considered (pre/crisis/post)"
+lab var educLevel    "Level of education obtained by mother"
+
+
+********************************************************************************
+*** (3) Collapse to bins counting births to make sumstats over time
+********************************************************************************
+count
+preserve
+drop if educLevel==.
+collapse (sum) birth, by(goodQuarter educLevel period ageGroup)
+
+reshape wide birth, i(educLevel period ageGroup) j(goodQuarter)
+reshape wide birth0 birth1, i(educLevel ageGroup) j(period)
+
+sort educLevel ageGroup
+#delimit ;
+listtex using "$SUM/Count.tex", rstyle(tabular) replace
+head("\begin{table}[htpb!]\centering"
+     "\caption{Number of Births per Cell}"
+     "\begin{tabular}{llcccccc}\toprule"
+     "&&\multicolumn{2}{c}{\textbf{Pre-Crisis}}&"
+     "\multicolumn{2}{c}{\textbf{Crisis}}&"
+     "\multicolumn{2}{c}{\textbf{Post-Crisis}}\\"
+     "\cmidrule(r){3-4}\cmidrule(r){5-6}"
+     "\cmidrule(r){7-8}" "&College& Bad Q&Good Q&Badd Q&Good Q&Bad Q&Good Q\\"
+     "\midrule")
+foot("\midrule\multicolumn{8}{p{13cm}}{\begin{footnotesize}\textsc{Notes:}"
+     "Pre-Crisis is 2005-2007, crisis is 2008-2009, and post-crisis is "
+     "2010-2013. Good Q refers to birth quarters 2 and 3, while Bad Q refers"
+     "to quarters 4 and 1. All numbers are calculated based on all recorded"
+     "births in the national vital statistics system (birth certificate) data"
+     "from 2005-2013.\end{footnotesize}}\\"
+     "\bottomrule\end{tabular}\end{table}");
+#delimit cr
+restore
+
+preserve
+drop if educLevel==.
+collapse (sum) birth, by(goodQuarter educLevel period ageGroup)
+reshape wide birth, i(educLevel period ageGroup) j(goodQuarter)
+gen totalbirths = birth0 + birth1
+replace birth0=round(1000*birth0/totalbirths)/10
+replace birth1=round(1000*birth1/totalbirths)/10
+drop totalbirths
+reshape wide birth0 birth1, i(educLevel ageGroup) j(period)
+
+#delimit ;
+listtex using "$SUM/Proportion.tex", rstyle(tabular) replace
+ head("\vspace{8mm}\begin{table}[htpb!]"
+        "\centering\caption{Percent of Births per Cell}"
+        "\begin{tabular}{llcccccc}\toprule"
+        "&&\multicolumn{2}{c}{\textbf{Pre-Crisis}}&"
+        "\multicolumn{2}{c}{\textbf{Crisis}}&"
+        "\multicolumn{2}{c}{\textbf{Post-Crisis}}\\ \cmidrule(r){3-4}\cmidrule(r){5-6}"
+        "\cmidrule(r){7-8}" "&College&Bad Q&Good Q&Bad Q&Good Q&Bad Q& Good Q\\ \midrule")
+ foot("\midrule\multicolumn{8}{p{13cm}}{\begin{footnotesize}\textsc{Notes:}"
+        "Pre-Crisis is 2005-2007,"
+        "crisis is 2008-2009, and post-crisis is 2010-2013.  Good Q refers to birth "
+        "quarters 2 and 3, while Bad Q refers to quarters 4 and 1.  All values reflect"
+        "the percent of births for this time period, age group and education level."
+        "\end{footnotesize}}\\ \bottomrule\end{tabular}\end{table}");
+#delimit cr
+restore
+
+********************************************************************************
+*** (2e) Sumstats all periods together
+********************************************************************************
+preserve
+drop if educLevel==.
+collapse (sum) birth, by(goodQuarter educLevel ageGroup)
+reshape wide birth, i(educLevel ageGroup) j(goodQuarter)
+gen totalbirths = birth0 + birth1
+replace birth0=round(10000*birth0/totalbirths)/100
+replace birth1=round(10000*birth1/totalbirths)/100
+drop totalbirths
+
+#delimit ;
+listtex using "$SUM/PropNoTime.tex", rstyle(tabular) replace
+ head("\vspace{8mm}\begin{table}[htpb!]"
+        "\centering\caption{Percent of Births per Cell (All Years)}"
+        "\begin{tabular}{llcc}\toprule"
+        "Age Group &College&Bad Quarters&Good Quarters \\ \midrule")
+ foot("\midrule\multicolumn{4}{p{9cm}}{\begin{footnotesize}\textsc{Notes:}"
+            "Good Quarters refer to birth quarters 2 and 3, while Bad Quarters refer"
+            "to quarters 4 and 1. All values reflect the percent of births for this"
+            "age group and education level."
+            "\end{footnotesize}}\\ \bottomrule\end{tabular}\end{table}");
+#delimit cr
+restore
+
+
+********************************************************************************
+*** (3a) Global histogram
+********************************************************************************
+preserve
+collapse (sum) birth, by(goodQuarter ageGroup)
+reshape wide birth, i(ageGroup) j(goodQuarter)
+gen totalbirths = birth0 + birth1
+replace birth0=(round(10000*birth0/totalbirths)/100)-50
+replace birth1=(round(10000*birth1/totalbirths)/100)-50
+#delimit ;
+graph bar birth*, over(ageGroup) scheme(s1mono) legend(label(1 "Bad Quarter")
+  label(2 "Good Quarter")) bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0))
+  ylabel(, nogrid) yline(0);
+graph export "$OUT/total`app'.eps", as(eps) replace;
+#delimit cr
+restore
+
+********************************************************************************
+*** (3b) Histogram by education level
+********************************************************************************
+preserve
+collapse (sum) birth, by(goodQuarter ageGroup educLevel)
+reshape wide birth, i(ageGroup educLevel) j(goodQuarter)
+gen totalbirths = birth0 + birth1
+replace birth0=(round(10000*birth0/totalbirths)/100)-50
+replace birth1=(round(10000*birth1/totalbirths)/100)-50
+
+#delimit ;
+graph bar birth*, over(educLevel, relabel(1 "None" 2 "1-3 yrs" 3 "4-5 yrs")
+                                              label(angle(45))) over(ageGroup)
+scheme(s1mono) legend(label(1 "Bad Quarter") label(2 "Good Quarter"))
+bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0)) ylabel(, nogrid) yline(0);
+graph export "$OUT/totalEduc`app'.eps", as(eps) replace;
+#delimit cr
+restore
+
+********************************************************************************
+*** (3c) Histogram by time period
+********************************************************************************
+preserve
+collapse (sum) birth, by(goodQuarter ageGroup period)
+reshape wide birth, i(ageGroup period) j(goodQuarter)
+gen totalbirths = birth0 + birth1
+replace birth0=(round(10000*birth0/totalbirths)/100)-50
+replace birth1=(round(10000*birth1/totalbirths)/100)-50
+
+#delimit ;
+graph bar birth*, over(period, label(angle(45))) over(ageGroup)
+scheme(s1mono) legend(label(1 "Bad Quarter") label(2 "Good Quarter"))
+bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0)) ylabel(, nogrid) yline(0);
+graph export "$OUT/totalPeriod`app'.eps", as(eps) replace;
+#delimit cr
+restore
+
+
+exit
+********************************************************************************
+*** (4) Concentrate state FE
+********************************************************************************
+preserve
+collapse (sum) birth [pw=perwt], by(goodQuarter ageGroup year statefip)
+gen birthHat = .
+foreach num of numlist 1(1)3 {
+        qui reg birth i.statefip
+            predict bh if e(sample), residual
+            replace birthHat = bh if e(sample)
+            drop bh
     }
-
-    foreach n of numlist 0 1 {
-        if `"`samp'"'=="all"&`n'==0 exit
-
-        foreach group of numlist 1(1)3 {
-            local a1 = 40
-            local a2 = 45
-            if `group'==1 local a1 = 25
-            if `group'==1 local a2 = 34
-            if `group'==2 local a1 = 35
-            if `group'==2 local a2 = 39
-    
-            dis "`a1', `a2'"
-            local cond if ageGroup==`group' & `samp'==`n'
-            #delimit ;
-            twoway line pQuarter1 year `cond',
-            ||   line pQuarter2 year `cond', lpattern(dash)
-            ||   line pQuarter3 year `cond', lpattern(dot)
-            ||   line pQuarter4 year `cond', lpattern(dash_dot)
-            scheme(s1color) xtitle("Year") ytitle("Proportion of All Births")
-            `legd'
-            note("Includes all first births (only) for women aged `a1' to `a2'");
-            #delimit cr
-            graph export "$OUT/`samp'/Trend`a1'_`a2'_`samp'_`n'.eps", as(eps) replace
-        }
-    }
-
-    ****************************************************************************
-    *** (3) plots by year*quarter
-    ****************************************************************************
-    foreach n of numlist 0 1 {
-        if `"`samp'"'=="all"&`n'==0 exit
-        foreach group of numlist 1(1)3 {
-            local a1 = 40
-            local a2 = 45
-            if `group'==1 {
-                local a1=25
-                local a2=34
-            }
-            if `group'==2 {
-                local a1=35
-                local a2=39
-            }
-            
-            dis "`a1', `a2'"
-            local cond if ageGroup==`group'&`samp'==`n'
-                
-            graph bar pQuarter* `cond', scheme(s1color) `legd' note("`note', and 0.25") /*
-            */ over(year, relabel(1 "1975" 2 " " 3 " " 4 " " 5 " " 6 "1980" 7 " " 8 " " /*
-            */ 9 " " 10 " " 11 "1985" 12 " " 13 " " 14 " " 15 " " 16 "1990" 17  " " 18  /*
-            */ " " 19 " " 20  " " 21 "1995" 22 " " 23 " " 24 " " 25 " " 26 "2000" 27 " "/*
-            */ 28 " " 29 " " 30 " " 31 "2005" 32 " " 33 " " 34 " ")) 
-            graph export "$OUT/`samp'/difQtr`a1'_`a2'_`samp'_`n'.`e'", as(`e') replace                
-        }
-    }
+collapse birthHat, by(goodQuarter ageGroup)
+reshape wide birthHat, i(ageGroup) j(goodQuarter)
+gen totalbirths = birthHat0 + birthHat1
+replace birthHat0=(round(10000*birthHat0/totalbirths)/100)
+replace birthHat1=(round(10000*birthHat1/totalbirths)/100)
 
 
-    ********************************************************************************
-    *** (4) Summary plots
-    ********************************************************************************
-    foreach group of numlist 1(1)3 {
-        local a1 = 40
-        local a2 = 45
-        if `group'==1 {
-            local a1=25
-            local a2=34
-        }
-        if `group'==2 {
-            local a1=35
-            local a2=39
-        }
-        
-        collapse pQuarter*, by(ageGroup `samp')
-        
-        local cond if ageGroup==`group'
-        graph bar pQuarter* `cond', scheme(s1color)  `legd' /*
-        */ note("`note', and 0.25") over(`samp', relabel(1 "No `samp'" 2 "`samp'"))
-        graph export "$OUT/`samp'/aveDifQtr`a1'_`a2'_`samp'.`e'", as(`e') replace
-    }
-}
-
-********************************************************************************
-*** (5) Total graphs for each age group
-********************************************************************************
-use "$DAT/nvssAgeQuarter_all", clear
-foreach num of numlist 1(1)4 {
-    replace pQuarter`num' = pQuarter`num' - 0.25
-}
-
-graph bar pQuarter*, scheme(s1color) over(ageGro) `legd' note("`note', and 0.25")
-graph export "$OUT/aveDifQtrAge.`e'", as(`e') replace
+restore
 
 
 
-********************************************************************************
+
+************************************************************************************
 *** (X) Close
-********************************************************************************
+************************************************************************************
 log close
