@@ -25,11 +25,17 @@ log using "$LOG/nvss0512Prep.txt", text replace
 ********************************************************************************
 use "$DAT/natl2005"
 
-gen birthOrder = lbo_rec
-gen motherAge  = mager
-gen birthMonth = dob_mm
-gen year       = dob_yy
-gen twin       = dplural
+gen birthOrder  = lbo_rec
+gen motherAge   = mager
+gen birthMonth  = dob_mm
+gen year        = dob_yy
+gen twin        = dplural
+gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
+gen vlbw        = birthweight < 1500
+gen lbw         = birthweight < 2500
+gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
+gen gestation   = combgest if combgest!=99
+gen premature   = gestation < 37
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -44,7 +50,8 @@ gen educLevel=dmeduc>=13
 replace educLevel=2 if dmeduc>=16
 replace educLeve=. if dmeduc==99
 
-keep birthQuarter ageGroup educLevel twin year
+keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
+*/ gestation premature
 tempfile B2005
 save `B2005'
 
@@ -53,11 +60,17 @@ save `B2005'
 ********************************************************************************
 use "$DAT/natl2006"
 
-gen birthOrder = lbo_rec
-gen motherAge  = mager
-gen birthMonth = dob_mm
-gen year       = dob_yy
-gen twin       = dplural
+gen birthOrder  = lbo_rec
+gen motherAge   = mager
+gen birthMonth  = dob_mm
+gen year        = dob_yy
+gen twin        = dplural
+gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
+gen vlbw        = birthweight < 1500
+gen lbw         = birthweight < 2500
+gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
+gen gestation   = combgest if combgest!=99
+gen premature   = gestation < 37
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -72,7 +85,8 @@ gen educLevel=dmeduc>=13
 replace educLevel=2 if dmeduc>=16
 replace educLevel=. if dmeduc==99|dmeduc==.
 
-keep birthQuarter ageGroup educLevel twin year
+keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
+*/ gestation premature
 tempfile B2006
 save `B2006'
 
@@ -85,6 +99,12 @@ gen motherAge  = mager
 gen birthMonth = dob_mm
 gen year       = dob_yy
 gen twin       = dplural
+gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
+gen vlbw        = birthweight < 1500
+gen lbw         = birthweight < 2500
+gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
+gen gestation   = combgest if combgest!=99
+gen premature   = gestation < 37
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -99,7 +119,8 @@ gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
 
-keep birthQuarter ageGroup educLevel twin year
+keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
+*/ gestation premature
 tempfile B2007
 save `B2007'
 
@@ -112,6 +133,12 @@ gen motherAge  = mager
 gen birthMonth = dob_mm
 gen year       = dob_yy
 gen twin       = dplural
+gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
+gen vlbw        = birthweight < 1500
+gen lbw         = birthweight < 2500
+gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
+gen gestation   = combgest if combgest!=99
+gen premature   = gestation < 37
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -126,7 +153,8 @@ gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
 
-keep birthQuarter ageGroup educLevel twin year
+keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
+*/ gestation premature
 tempfile B2008
 save `B2008'
 
@@ -140,6 +168,12 @@ gen motherAge  = mager
 gen birthMonth = dob_mm
 gen year       = dob_yy
 gen twin       = dplural
+gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
+gen vlbw        = birthweight < 1500
+gen lbw         = birthweight < 2500
+gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
+gen gestation   = combgest if combgest!=99
+gen premature   = gestation < 37
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -154,7 +188,8 @@ gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
 
-keep birthQuarter ageGroup educLevel twin year
+keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
+*/ gestation premature
 tempfile B2009
 save `B2009'
 
@@ -168,6 +203,12 @@ gen motherAge  = mager
 gen birthMonth = dob_mm
 gen year       = dob_yy
 gen twin       = dplural
+gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
+gen vlbw        = birthweight < 1500
+gen lbw         = birthweight < 2500
+gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
+gen gestation   = combgest if combgest!=99
+gen premature   = gestation < 37
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -182,7 +223,8 @@ gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
 
-keep birthQuarter ageGroup educLevel twin year
+keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
+*/ gestation premature
 tempfile B2010
 save `B2010'
 
@@ -196,6 +238,12 @@ gen motherAge  = mager
 gen birthMonth = dob_mm
 gen year       = dob_yy
 gen twin       = dplural
+gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
+gen vlbw        = birthweight < 1500
+gen lbw         = birthweight < 2500
+gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
+gen gestation   = combgest if combgest!=99
+gen premature   = gestation < 37
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -210,7 +258,8 @@ gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
 
-keep birthQuarter ageGroup educLevel twin year
+keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
+*/ gestation premature
 tempfile B2011
 save `B2011'
 
@@ -224,6 +273,12 @@ gen motherAge  = mager
 gen birthMonth = dob_mm
 gen year       = dob_yy
 gen twin       = dplural
+gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
+gen vlbw        = birthweight < 1500
+gen lbw         = birthweight < 2500
+gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
+gen gestation   = combgest if combgest!=99
+gen premature   = gestation < 37
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -238,12 +293,13 @@ gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
 
-keep birthQuarter ageGroup educLevel twin year
+keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
+*/ gestation premature
 tempfile B2012
 save `B2012'
 
 ********************************************************************************
-*** (2i) 2012 File
+*** (2i) 2013 File
 ********************************************************************************
 use "$DAT/natl2013"
 
@@ -252,6 +308,12 @@ gen motherAge  = mager
 gen birthMonth = dob_mm
 gen year       = dob_yy
 gen twin       = dplural
+gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
+gen vlbw        = birthweight < 1500
+gen lbw         = birthweight < 2500
+gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
+gen gestation   = combgest if combgest!=99
+gen premature   = gestation < 37
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -266,7 +328,8 @@ gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
 
-keep birthQuarter ageGroup educLevel twin year
+keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
+*/ gestation premature
 tempfile B2013
 save `B2013'
 
@@ -281,4 +344,4 @@ append using `B2005' `B2006' `B2007' `B2008' `B2009' `B2010' `B2011' `B2012'
 *** (4) Save, clean
 ********************************************************************************
 lab dat "NVSS birth data 2005-2013 (first births, white, 25-45 year olds)"
-save using "$OUT/nvss2005_2013", replace
+save "$OUT/nvss2005_2013.dta", replace
