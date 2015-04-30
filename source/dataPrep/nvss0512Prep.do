@@ -51,7 +51,7 @@ replace educLevel=2 if dmeduc>=16
 replace educLeve=. if dmeduc==99
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature
+*/ gestation premature motherAge
 tempfile B2005
 save `B2005'
 
@@ -86,7 +86,7 @@ replace educLevel=2 if dmeduc>=16
 replace educLevel=. if dmeduc==99|dmeduc==.
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature
+*/ gestation premature motherAge
 tempfile B2006
 save `B2006'
 
@@ -120,7 +120,7 @@ replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature
+*/ gestation premature motherAge
 tempfile B2007
 save `B2007'
 
@@ -154,7 +154,7 @@ replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature
+*/ gestation premature motherAge
 tempfile B2008
 save `B2008'
 
@@ -189,7 +189,7 @@ replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature
+*/ gestation premature motherAge
 tempfile B2009
 save `B2009'
 
@@ -224,7 +224,7 @@ replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature
+*/ gestation premature motherAge
 tempfile B2010
 save `B2010'
 
@@ -259,7 +259,7 @@ replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature
+*/ gestation premature motherAge
 tempfile B2011
 save `B2011'
 
@@ -294,7 +294,7 @@ replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature
+*/ gestation premature motherAge
 tempfile B2012
 save `B2012'
 
@@ -329,7 +329,7 @@ replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature
+*/ gestation premature motherAge
 tempfile B2013
 save `B2013'
 

@@ -36,15 +36,34 @@ if c(os)=="Unix" local e eps
 if c(os)!="Unix" local e pdf
 
 local stateFE 0
-local twins   0
+local twins   1
 if `twins' == 1 local app twins
 
 
 ********************************************************************************
-*** (2a) Use, subset
+*** (2a) Use, descriptive graph
 ********************************************************************************
 use $DAT/nvss2005_2013
+histogram motherAge, frac scheme(s1mono) xtitle("Mother's Age")
+graph export "$OUT/ageDescriptive.eps", as(eps) replace
 
+keep if twin<3
+
+preserve
+gen birth=1
+collapse (sum) birth, by(motherAge twin)
+bys twin: egen total=sum(birth)
+replace birth=birth/total
+sort twin motherAge 
+twoway line birth motherAge if twin==1, || line birth motherAge if twin==2,/*
+*/ scheme(s1mono) xtitle("Mother's Age") ytitle("Proportion (first birth)")/*
+*/ legend(label(1 "Single Births") label(2 "Twin Births")) lpattern(dash)
+graph export "$OUT/ageDescriptiveParity.eps", as(eps) replace
+restore
+                                                      
+********************************************************************************
+*** (2b) Subset
+********************************************************************************
 if `twins'==1 keep if twin == 2
 if `twins'==0 keep if twin == 1
 
@@ -240,39 +259,11 @@ foreach outcome in `hkbirth' {
       scheme(s1mono) legend(label(1 "Bad Quarter") label(2 "Good Quarter"))
       bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0)) ylabel(, nogrid)
       exclude0 ylab(`1');
-    graph export "$OUT/Quality_`outcome'.eps", as(eps) replace;
+    graph export "$OUT/Quality_`outcome'_`app'.eps", as(eps) replace;
     #delimit cr
     macro shift
 }
 restore
-
-
-
-
-exit
-********************************************************************************
-*** (5) Concentrate state FE
-********************************************************************************
-preserve
-collapse (sum) birth [pw=perwt], by(goodQuarter ageGroup year statefip)
-gen birthHat = .
-foreach num of numlist 1(1)3 {
-        qui reg birth i.statefip
-            predict bh if e(sample), residual
-            replace birthHat = bh if e(sample)
-            drop bh
-    }
-collapse birthHat, by(goodQuarter ageGroup)
-reshape wide birthHat, i(ageGroup) j(goodQuarter)
-gen totalbirths = birthHat0 + birthHat1
-replace birthHat0=(round(10000*birthHat0/totalbirths)/100)
-replace birthHat1=(round(10000*birthHat1/totalbirths)/100)
-
-
-restore
-
-
-
 
 ************************************************************************************
 *** (X) Close
