@@ -226,12 +226,13 @@ restore
 *** (4) Birth outcomes by groups
 ********************************************************************************
 local hkbirth birthweight vlbw lbw apgar gestation premature
-collapse `hkbirth' (sum) birth, by(goodQuarter ageGroup educLevel)
+collapse `hkbirth', by(goodQuarter ageGroup educLevel)
 reshape wide `hkbirth', i(ageGroup educLevel) j(goodQuarter)
+drop if educLevel == .
 
-foreach outcome of varlist `hkbirth' {
+foreach outcome in `hkbirth' {
     #delimit ;
-    graph bar `outcome', over(educLevel, relabel(1 "No College" 2 "1-5 yrs")
+    graph bar `outcome'*, over(educLevel, relabel(1 "No College" 2 "1-5 yrs")
                                               label(angle(45))) over(ageGroup)
       scheme(s1mono) legend(label(1 "Bad Quarter") label(2 "Good Quarter"))
       bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0)) ylabel(, nogrid) yline(0);
