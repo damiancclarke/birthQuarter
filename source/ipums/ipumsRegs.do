@@ -22,8 +22,9 @@ log using "$LOG/ipumsRegs.txt", text replace
 cap mkdir "$OUT"
 
 local data noallocatedagesexrelate_women1549_children_01_bio_reshaped_2005_2013
-local estopt  cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats /*
-*/            (r2 N, fmt(%9.2f %9.0g)) starlevel ("*" 0.10 "**" 0.05 "***" 0.01)
+local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats /*
+*/           (r2 N, fmt(%9.2f %9.0g)) starlevel ("*" 0.10 "**" 0.05 "***" 0.01)/*
+*/           mlabels("20-34" "35-39" "40-45")
 
 ********************************************************************************
 *** (2a) Open data, setup for regressions
@@ -33,15 +34,13 @@ use "$DAT/`data'"
 keep if race==1 & race1==1 & hispan==0 & hispan1==0
 keep if bpl<150 & bpl1<150
 
-gen ageGroup = age>=25 & age<=34
-replace ageGroup = 2 if age>=35 & age<=39
-replace ageGroup = 3 if age>=40 & age<=45
+gen ageGroup = age>=25 & age<=39
+replace ageGroup = 2 if age>=40 & age<=45
 drop if ageGroup == 0
 
 gen educLevel = .
 replace educLevel = 1 if educ<=6
-replace educLevel = 2 if educ>6 & educ<=8
-replace educLevel = 3 if educ>8 & educ<=11
+replace educLevel = 2 if educ>6 & educ<=11
 
 gen birth  = 1
 gen period = .
@@ -51,13 +50,15 @@ replace period = 3 if year>=2010&year<=2013
 
 gen goodQuarter = birthqtr1==2|birthqtr1==3
 
+gen married = marst==1|marst==2
+
 ********************************************************************************
 *** (2b) Label for clarity
 ********************************************************************************
-lab def aG  1 "25-34" 2 "35-39" 3 "40-45"
+lab def aG  1 "25-39" 2 "40-45"
 lab def pr  1 "Pre-crisis" 2 "Crisis" 3 "Post-crisis"
 lab def gQ  0 "quarter 4(t) or quarter 1(t+1)" 1 "quarter 2(t) or quarter 3(t)"
-lab def eL  1 "None" 2 "1-3 years" 3 "4-5 years"
+lab def eL  1 "No College" 2 "1-5 years"
 
 lab val period      pr
 lab val ageGroup    aG
@@ -69,31 +70,60 @@ lab var ageGroup     "Categorical age group"
 lab var period       "Period of time considered (pre/crisis/post)"
 lab var educLevel    "Level of education obtained by mother"
 
+********************************************************************************
+*** (2c) Generate a set of empty cells for quarter*state*educ
+********************************************************************************
+preserve
+gen zero = 0
+collapse zero, by(statefip)
+expand 9
+bys statefip: gen year=2004+_n
+expand 2
+bys statefip year: gen goodQuarter=_n-1
+expand 2
+bys statefip year goodQuarter: gen ageGroup=_n
+expand 2
+bys statefip year goodQuarter ageGroup: gen educLevel=_n
+count
 
+lab val ageGroup    aG
+lab val goodQuarter gQ
+lab val educLevel   eL
+tempfile zeros znoeduc
+save `zeros'
+keep if educLevel==1
+drop educLevel
+save `znoeduc'
+restore
 
 ********************************************************************************
 *** (3a) Set for binary by birthquarter by woman by educLevel
 ********************************************************************************
 preserve
 collapse (sum) birth, by(year goodQuarter ageGroup statefip educLevel)
+merge 1:1 year goodQuarter ageGroup statefip educLevel using `zeros'
+replace birth = zero if _merge==2
+drop zero _merge
+
 reshape wide birth, i(statefip year ageGroup educLevel) j(goodQuarter)
 gen birthTotal = birth0 + birth1
 replace birth0 = birth0/birthTotal-0.5
 replace birth1 = birth1/birthTotal-0.5
 drop birthTotal
 reshape long birth, i(statefip year ageGroup educLevel) j(goodQuarter)
+replace birth=0 if birth==.
 
 ********************************************************************************
 *** (3b) regressions
 ********************************************************************************
-local opt abs(statefip) cluster(statefip)
+local se cluster(statefip)
+local abs abs(statefip)
 
-eststo: areg birth i.educLevel#c.goodQuarter i.year if ageGroup==1, `opt'
-eststo: areg birth i.educLevel#c.goodQuarter i.year if ageGroup==2, `opt'
-eststo: areg birth i.educLevel#c.goodQuarter i.year if ageGroup==3, `opt'
+eststo: areg birth i.educLevel#c.goodQuarter i.year if ageGroup==1, `se' `abs'
+eststo: areg birth i.educLevel#c.goodQuarter i.year if ageGroup==2, `se' `abs'
 
 #delimit ;
-estout est1 est2 est3 using "$OUT/IPUMSeducation.txt", replace `estopt'
+estout est1 est2 using "$OUT/IPUMSeducation.txt", replace `estopt'
 title("Proportion of births by Quarter (IPUMS 2005-2013)") drop(20* _cons)
 note("All regressions absorb state and year fixed effects.  Coefficients are"
      "expressed as the difference between the proportion of births in a given"
@@ -104,26 +134,32 @@ estimates clear
 restore
 
 
-
 ********************************************************************************
 *** (3c) Set for binary by birthquarter by woman
 ********************************************************************************
+preserve
 collapse (sum) birth, by(year goodQuarter ageGroup statefip)
+merge 1:1 year goodQuarter ageGroup statefip using `znoeduc'
+replace birth = zero if _merge==2
+drop zero _merge
+
 reshape wide birth, i(statefip year ageGroup) j(goodQuarter)
 gen birthTotal = birth0 + birth1
 replace birth0 = birth0/birthTotal-0.5
 replace birth1 = birth1/birthTotal-0.5
 drop birthTotal
 reshape long birth, i(statefip year ageGroup) j(goodQuarter)
+replace birth=0 if birth==.
 
 ********************************************************************************
 *** (3d) regressions
 ********************************************************************************
-eststo: areg birth goodQuarter i.year if ageGroup==1, `opt'
-eststo: areg birth goodQuarter i.year if ageGroup==2, `opt'
-eststo: areg birth goodQuarter i.year if ageGroup==3, `opt'
+foreach group of numlist 1 2 {
+    eststo: areg birth goodQuarter i.year if ageGroup==`group', `se' `abs'
+}
+
 #delimit ;
-estout est1 est2 est3 using "$OUT/IPUMSAll.txt", replace `estopt'
+estout est1 est2 using "$OUT/IPUMSAll.txt", replace `estopt'
 title("Proportion of births by Quarter (IPUMS 2005-2013)") drop(20* _cons)
 note("All regressions absorb state and year fixed effects.  Coefficients are"
      "expressed as the difference between the proportion of births in a given"
@@ -132,16 +168,40 @@ note("All regressions absorb state and year fixed effects.  Coefficients are"
 #delimit cr
 estimates clear
 
-eststo: areg birth i.year#c.goodQuarter if ageGroup==1, `opt'
-eststo: areg birth i.year#c.goodQuarter if ageGroup==2, `opt'
-eststo: areg birth i.year#c.goodQuarter if ageGroup==3, `opt'
+foreach group of numlist 1 2 {
+    eststo: areg birth i.year#c.goodQuarter if ageGroup==`group', `se' `abs'
+}
+
 #delimit ;
-estout est1 est2 est3 using "$OUT/IPUMSTime.txt", replace `estopt'
+estout est1 est2 using "$OUT/IPUMSTime.txt", replace `estopt'
 title("Proportion of births by Quarter (IPUMS 2005-2013)") drop(_cons)
 note("All regressions absorb state and year fixed effects.  Coefficients are"
      "expressed as the difference between the proportion of births in a given"
      "quarter and the theoretical proportion if births were spaced evenly by"
      "quarter.");
 #delimit cr
-
+restore
     
+********************************************************************************
+*** (4) regressions of good season of birth
+********************************************************************************
+set matsize 3000
+local ctrls hhincome married i.empstat i.sex1
+local yFE   i.year
+local sFE   i.statefip
+local sxyFE i.year##i.statefip
+local wt    [pw=perwt]
+
+gen highEd = educLevel == 2
+gen young  = ageGroup  == 1
+gen youngXhighEd = young*highEd
+
+eststo: reg goodQuarter young                                   `wt', `se'
+eststo: reg goodQuarter young               `yFE'               `wt', `se' 
+eststo: reg goodQuarter young               `yFE' `sFE'         `wt', `se'
+eststo: reg goodQuarter young highEd youngX `yFE' `sFE'         `wt', `se'
+eststo: reg goodQuarter young highEd youngX `yFE' `sFE' `ctrls' `wt', `se'
+eststo: reg goodQuarter young                 `sxyFE'           `wt', `se'
+eststo: reg goodQuarter young highEd youngX   `sxyFE'           `wt', `se'
+eststo: reg goodQuarter young highEd youngX   `sxyFE'   `ctrls' `wt', `se'
+
