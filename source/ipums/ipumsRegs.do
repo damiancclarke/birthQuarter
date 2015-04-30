@@ -181,7 +181,8 @@ note("All regressions absorb state and year fixed effects.  Coefficients are"
      "quarter.");
 #delimit cr
 restore
-    
+estimates clear
+
 ********************************************************************************
 *** (4) regressions of good season of birth
 ********************************************************************************
@@ -205,3 +206,13 @@ eststo: reg goodQuarter young                 `sxyFE'           `wt', `se'
 eststo: reg goodQuarter young highEd youngX   `sxyFE'           `wt', `se'
 eststo: reg goodQuarter young highEd youngX   `sxyFE'   `ctrls' `wt', `se'
 
+estout est1 est2 est3 est4 est5 est6 est7 est8 using "$OUT/IPUMSBinary.txt",
+replace `estopt' title("Proportion of births by Quarter (IPUMS 2005-2013)")
+keep(_cons young highEd youngX `ctrls')
+note("All regressions absorb state and year fixed effects.  Coefficients are"
+     "expressed as the difference between the proportion of births in a given"
+     "quarter and the theoretical proportion if births were spaced evenly by"
+     "quarter.");
+#delimit cr
+
+**NOTE: add footer saying what type of FEs...  Also, change note.
