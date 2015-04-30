@@ -56,14 +56,17 @@ replace period = 2 if year >=2008 & year<=2009
 replace period = 3 if year >=2010 & year<=2013
 
 replace educLevel = educLevel + 1
+replace educLevel = 2 if educLevel == 3
+replace ageGroup  = 1 if ageGroup  == 2
+replace ageGroup  = 2 if ageGroup  == 3
 
 ********************************************************************************
 *** (2b) Label for clarity
 ********************************************************************************
-lab def aG  1 "25-34" 2 "35-39" 3 "40-45"
+lab def aG  1 "25-39" 2 "40-45"
 lab def pr  1 "Pre-crisis" 2 "Crisis" 3 "Post-crisis"
 lab def gQ  0 "quarter 4(t) or quarter 1(t+1)" 1 "quarter 2(t) or quarter 3(t)"
-lab def eL  1 "None" 2 "1-3 years" 3 "4-5 years"
+lab def eL  1 "No College" 2 "1-5 years"
 
 lab val period      pr
 lab val ageGroup    aG

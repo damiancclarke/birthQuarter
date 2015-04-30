@@ -65,15 +65,13 @@ keep if bpl<150 & bpl1<150
 ********************************************************************************
 *** (2b) Generate necessary variables
 ********************************************************************************
-gen ageGroup = age>=25 & age<=34
-replace ageGroup = 2 if age>=35 & age<=39
-replace ageGroup = 3 if age>=40 & age<=45
+gen ageGroup = age>=25 & age<=39
+replace ageGroup = 2 if age>=40 & age<=45
 drop if ageGroup == 0
 
 gen educLevel = .
 replace educLevel = 1 if educ<=6
-replace educLevel = 2 if educ>6 & educ<=8
-replace educLevel = 3 if educ>8 & educ<=11
+replace educLevel = 2 if educ>6 & educ<=11
 
 gen birth  = 1
 gen period = .
@@ -86,10 +84,10 @@ gen goodQuarter = birthqtr1==2|birthqtr1==3
 ********************************************************************************
 *** (2c) Label for clarity
 ********************************************************************************
-lab def aG  1 "25-34" 2 "35-39" 3 "40-45"
+lab def aG  1 "25-39" 2  "40-45"
 lab def pr  1 "Pre-crisis" 2 "Crisis" 3 "Post-crisis"
 lab def gQ  0 "quarter 4(t) or quarter 1(t+1)" 1 "quarter 2(t) or quarter 3(t)"
-lab def eL  1 "None" 2 "1-3 years" 3 "4-5 years" 
+lab def eL  1 "No College" 2 "1-5 years"
 
 lab val period      pr
 lab val ageGroup    aG
@@ -124,7 +122,7 @@ foreach iter in W Unw {
          "\multicolumn{2}{c}{\textbf{Crisis}}&"
          "\multicolumn{2}{c}{\textbf{Post-Crisis}}\\"
          "\cmidrule(r){3-4}\cmidrule(r){5-6}"
-         "\cmidrule(r){7-8}" "&College& Bad Q&Good Q&Badd Q&Good Q&Bad Q&Good Q\\"
+         "\cmidrule(r){7-8}" "&College& Bad Q&Good Q&Bad Q&Good Q&Bad Q&Good Q\\"
          "\midrule")
     foot("\midrule\multicolumn{8}{p{13cm}}{\begin{footnotesize}\textsc{Notes:}"
          "Pre-Crisis is 2005-2007, crisis is 2008-2009, and post-crisis is "
@@ -198,7 +196,6 @@ reshape wide birth, i(ageGroup) j(goodQuarter)
 gen totalbirths = birth0 + birth1
 replace birth0=(round(10000*birth0/totalbirths)/100)-50
 replace birth1=(round(10000*birth1/totalbirths)/100)-50
-
 #delimit ;
 graph bar birth*, over(ageGroup) scheme(s1mono) legend(label(1 "Bad Quarter")
 label(2 "Good Quarter")) bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0))
@@ -218,7 +215,7 @@ replace birth0=(round(10000*birth0/totalbirths)/100)-50
 replace birth1=(round(10000*birth1/totalbirths)/100)-50
 
 #delimit ;
-graph bar birth*, over(educLevel, relabel(1 "None" 2 "1-3 yrs" 3 "4-5 yrs")
+graph bar birth*, over(educLevel, relabel(1 "No College" 2 "1-5 yrs")
                        label(angle(45))) over(ageGroup)
 scheme(s1mono) legend(label(1 "Bad Quarter") label(2 "Good Quarter"))
 bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0)) ylabel(, nogrid) yline(0);
@@ -249,18 +246,23 @@ restore
 ********************************************************************************
 *** (4) Concentrate state FE 
 ********************************************************************************
-*preserve
+preserve
 collapse (sum) birth [pw=perwt], by(goodQuarter ageGroup year statefip)
-gen birthHat
+gen birthHat = .
 foreach num of numlist 1(1)3 {
     qui reg birth i.statefip
     predict bh if e(sample), residual
     replace birthHat = bh if e(sample)
     drop bh
 }
+collapse birthHat, by(goodQuarter ageGroup)
+reshape wide birthHat, i(ageGroup) j(goodQuarter)
+gen totalbirths = birthHat0 + birthHat1
+replace birthHat0=(round(10000*birthHat0/totalbirths)/100)
+replace birthHat1=(round(10000*birthHat1/totalbirths)/100)
 
 
-*restore
+restore
 
 
 
