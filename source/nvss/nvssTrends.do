@@ -225,7 +225,10 @@ restore
 ********************************************************************************
 *** (4) Birth outcomes by groups
 ********************************************************************************
-local hkbirth birthweight vlbw lbw apgar gestation premature
+local hkbirth birthweight lbw gestation premature vlbw apgar  
+local axesN   3100[50]3350 0.04[0.02]0.14 38[0.2]39 0.06[0.02]0.18
+tokenize `axesN'
+preserve
 collapse `hkbirth', by(goodQuarter ageGroup educLevel)
 reshape wide `hkbirth', i(ageGroup educLevel) j(goodQuarter)
 drop if educLevel == .
@@ -235,9 +238,11 @@ foreach outcome in `hkbirth' {
     graph bar `outcome'*, over(educLevel, relabel(1 "No College" 2 "1-5 yrs")
                                               label(angle(45))) over(ageGroup)
       scheme(s1mono) legend(label(1 "Bad Quarter") label(2 "Good Quarter"))
-      bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0)) ylabel(, nogrid) yline(0);
+      bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0)) ylabel(, nogrid)
+      exclude0 ylab(`1');
     graph export "$OUT/Quality_`outcome'.eps", as(eps) replace;
     #delimit cr
+    macro shift
 }
 restore
 
