@@ -195,7 +195,7 @@ replace birth0=(round(10000*birth0/totalbirths)/100)-50
 replace birth1=(round(10000*birth1/totalbirths)/100)-50
 
 #delimit ;
-graph bar birth*, over(educLevel, relabel(1 "None" 2 "1-3 yrs" 3 "4-5 yrs")
+graph bar birth*, over(educLevel, relabel(1 "No College" 2 "1-5 yrs")
                                               label(angle(45))) over(ageGroup)
 scheme(s1mono) legend(label(1 "Bad Quarter") label(2 "Good Quarter"))
 bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0)) ylabel(, nogrid) yline(0);
@@ -222,9 +222,30 @@ graph export "$OUT/totalPeriod`app'.eps", as(eps) replace;
 restore
 
 
+********************************************************************************
+*** (4) Birth outcomes by groups
+********************************************************************************
+local hkbirth birthweight vlbw lbw apgar gestation premature
+collapse `hkbirth' (sum) birth, by(goodQuarter ageGroup educLevel)
+reshape wide `hkbirth', i(ageGroup educLevel) j(goodQuarter)
+
+foreach outcome of varlist `hkbirth' {
+    #delimit ;
+    graph bar `outcome', over(educLevel, relabel(1 "No College" 2 "1-5 yrs")
+                                              label(angle(45))) over(ageGroup)
+      scheme(s1mono) legend(label(1 "Bad Quarter") label(2 "Good Quarter"))
+      bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0)) ylabel(, nogrid) yline(0);
+    graph export "$OUT/Quality_`outcome'.eps", as(eps) replace;
+    #delimit cr
+}
+restore
+
+
+
+
 exit
 ********************************************************************************
-*** (4) Concentrate state FE
+*** (5) Concentrate state FE
 ********************************************************************************
 preserve
 collapse (sum) birth [pw=perwt], by(goodQuarter ageGroup year statefip)
