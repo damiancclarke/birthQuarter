@@ -40,7 +40,7 @@ if c(os)=="Unix" local e eps
 if c(os)!="Unix" local e pdf
 
 local stateFE 1
-local twins   0
+local twins   1
 
 if `twins' == 1 local app twins
 
@@ -53,17 +53,40 @@ if _rc!=0 ssc install listtex
 
 
 ********************************************************************************
-*** (2a) open file, subset
+*** (2a) open file, descriptive graph
 ********************************************************************************
 use "$DAT/`data'"
-
-if `twins' == 1 keep if firstborn_twins == 1
-if `twins' == 0 keep if firstborn_1 == 1
 keep if race==1 & race1==1 & hispan==0 & hispan1==0
 keep if bpl<150 & bpl1<150
+keep if age>=25 & age<=45
+
+histogram age, frac scheme(s1mono) xtitle("Mother's Age")
+graph export "$OUT/ageDescriptive.eps", as(eps) replace
+
+preserve
+gen birth=1
+collapse (sum) birth, by(age firstborn_twins)
+rename firstborn_twin twin
+replace twin=twin+1
+bys twin: egen total=sum(birth)
+replace birth=birth/total
+sort twin age
+twoway line birth age if twin==1, || line birth age if twin==2,/*
+*/ scheme(s1mono) xtitle("Mother's Age") ytitle("Proportion (first birth)")/*
+*/ legend(label(1 "Single Births") label(2 "Twin Births")) lpattern(dash)
+graph export "$OUT/ageDescriptiveParity.eps", as(eps) replace
+restore
+
+
 
 ********************************************************************************
-*** (2b) Generate necessary variables
+*** (2b) subset
+********************************************************************************
+if `twins' == 1 keep if firstborn_twins == 1
+if `twins' == 0 keep if firstborn_1 == 1
+
+********************************************************************************
+*** (2c) Generate necessary variables
 ********************************************************************************
 gen ageGroup = age>=25 & age<=39
 replace ageGroup = 2 if age>=40 & age<=45
@@ -82,7 +105,7 @@ replace period = 3 if year>=2010&year<=2013
 gen goodQuarter = birthqtr1==2|birthqtr1==3 
 
 ********************************************************************************
-*** (2c) Label for clarity
+*** (2d) Label for clarity
 ********************************************************************************
 lab def aG  1 "25-39" 2  "40-45"
 lab def pr  1 "Pre-crisis" 2 "Crisis" 3 "Post-crisis"
@@ -100,7 +123,7 @@ lab var period       "Period of time considered (pre/crisis/post)"
 lab var educLevel    "Level of education obtained by mother"
 
 ********************************************************************************
-*** (2d) Collapse to bins counting births to make sumstats over time
+*** (2e) Collapse to bins counting births to make sumstats over time
 ********************************************************************************
 foreach iter in W Unw {
     if `"`iter'"'=="W"   local ctype sum
@@ -162,7 +185,7 @@ listtex using "$SUM/PropWeighted`app'.tex", rstyle(tabular) replace
 restore
 
 ********************************************************************************
-*** (2e) Sumstats all periods together
+*** (2f) Sumstats all periods together
 ********************************************************************************
 preserve
 collapse (sum) birth [pw=perwt], by(goodQuarter educLevel ageGroup)
@@ -178,7 +201,29 @@ listtex using "$SUM/PropWeightedNoTime`app'.tex", rstyle(tabular) replace
   "\centering\caption{Percent of Births per Cell (Weighted, All Years)}"
   "\begin{tabular}{llcc}\toprule" 
   "Age Group &College&Bad Quarters&Good Quarters \\ \midrule")
- foot("\midrule\multicolumn{4}{p{9cm}}{\begin{footnotesize}\textsc{Notes:}"
+ foot("\midrule\multicolumn{4}{p{9.5cm}}{\begin{footnotesize}\textsc{Notes:}"
+      "Good Quarters refer to birth quarters 2 and 3, while Bad Quarters refer"
+      "to quarters 4 and 1. All values reflect the percent of births for this"
+      "age group and education level."
+      "\end{footnotesize}}\\ \bottomrule\end{tabular}\end{table}");
+#delimit cr
+restore
+
+preserve
+collapse (sum) birth [pw=perwt], by(goodQuarter ageGroup)
+reshape wide birth, i(ageGroup) j(goodQuarter)
+gen totalbirths = birth0 + birth1
+replace birth0=round(10000*birth0/totalbirths)/100
+replace birth1=round(10000*birth1/totalbirths)/100
+drop totalbirths
+
+#delimit ;
+listtex using "$SUM/PropWeightedNoTime2`app'.tex", rstyle(tabular) replace
+ head("\vspace{8mm}\begin{table}[htpb!]"
+  "\centering\caption{Percent of Births per Cell (Weighted, All Years)}"
+  "\begin{tabular}{lcc}\toprule" 
+  "Age Group &Bad Quarters&Good Quarters \\ \midrule")
+ foot("\midrule\multicolumn{3}{p{7.5cm}}{\begin{footnotesize}\textsc{Notes:}"
       "Good Quarters refer to birth quarters 2 and 3, while Bad Quarters refer"
       "to quarters 4 and 1. All values reflect the percent of births for this"
       "age group and education level."
