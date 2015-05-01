@@ -26,7 +26,8 @@ cap mkdir "$OUT"
 local data nvss2005_2013
 local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats /*
 */           (r2 N, fmt(%9.2f %9.0g)) starlevel ("*" 0.10 "**" 0.05 "***" 0.01)/*
-*/           mlabels("20-34" "35-39" "40-45")
+*/           collabels(none) label
+
 
 ********************************************************************************
 *** (2a) Open data, setup for regressions
@@ -35,95 +36,58 @@ use "$DAT/`data'"
 
 gen birth = 1
 gen goodQuarter = birthQuarter == 2 | birthQuarter == 3
+replace ageGroup  = ageGroup-1 if ageGroup>1
+replace educLevel = educLevel+1 if educLevel < 2
+
+gen highEd = educLevel == 2
+gen young  = ageGroup  == 1
+gen youngXhighEd = young*highEd
+gen youngXbadQ   = young*(1-goodQuarter)
 
 ********************************************************************************
 *** (2b) Label for clarity
 ********************************************************************************
-lab def aG  1 "25-34" 2 "35-39" 3 "40-45"
+lab def aG  1 "25-39" 2 "40-45"
 lab def gQ  0 "quarter 4(t) or quarter 1(t+1)" 1 "quarter 2(t) or quarter 3(t)"
-lab def eL  1 "None" 2 "1-3 years" 3 "4-5 years"
+lab def eL  1 "No College" 2 "1-5 years" 
 
 lab val ageGroup    aG
 lab val goodQuarter gQ
 lab val educLevel   eL
 
-lab var goodQuarter  "Binary variable for born Q 2/3 (=1) or Q4/1 (=0)"
+lab var goodQuarter "Good Q"
+lab var highEd      "College Educ"
+lab var young       "Aged 25-39"
+lab var youngXhigh  "College$\times$ Aged 25-39"
 lab var ageGroup     "Categorical age group"
 lab var educLevel    "Level of education obtained by mother"
-
+lab var youngXbadQ  "Young$\times$ Bad Q"
 
 
 ********************************************************************************
-*** (3a) Set for binary by birthquarter by woman by educLevel
+*** (3a) Regressions (goodQuarter on Age)
 ********************************************************************************
-preserve
-collapse (sum) birth, by(year goodQuarter ageGroup statefip educLevel)
-reshape wide birth, i(statefip year ageGroup educLevel) j(goodQuarter)
-gen birthTotal = birth0 + birth1
-replace birth0 = birth0/birthTotal-0.5
-replace birth1 = birth1/birthTotal-0.5
-drop birthTotal
-reshape long birth, i(statefip year ageGroup educLevel) j(goodQuarter)
+local yFE   i.year
 
-********************************************************************************
-*** (3b) regressions
-********************************************************************************
-local opt abs(statefip) cluster(statefip)
-
-eststo: areg birth i.educLevel#c.goodQuarter i.year if ageGroup==1, `opt'
-eststo: areg birth i.educLevel#c.goodQuarter i.year if ageGroup==2, `opt'
-eststo: areg birth i.educLevel#c.goodQuarter i.year if ageGroup==3, `opt'
+eststo: reg goodQuarter young                    
+eststo: reg goodQuarter young               `yFE'
+eststo: reg goodQuarter young highEd youngX `yFE'
 
 #delimit ;
-estout est1 est2 est3 using "$OUT/IPUMSeducation.txt", replace `estopt'
-title("Proportion of births by Quarter (IPUMS 2005-2013)") drop(20* _cons)
-note("All regressions absorb state and year fixed effects.  Coefficients are"
-     "expressed as the difference between the proportion of births in a given"
-     "quarter and the theoretical proportion if births were spaced evenly by"
-     "quarter.");
-#delimit cr
-estimates clear
-restore
-
-
-
-********************************************************************************
-*** (3c) Set for binary by birthquarter by woman
-********************************************************************************
-collapse (sum) birth, by(year goodQuarter ageGroup statefip)
-reshape wide birth, i(statefip year ageGroup) j(goodQuarter)
-gen birthTotal = birth0 + birth1
-replace birth0 = birth0/birthTotal-0.5
-replace birth1 = birth1/birthTotal-0.5
-drop birthTotal
-reshape long birth, i(statefip year ageGroup) j(goodQuarter)
-
-********************************************************************************
-*** (3d) regressions
-********************************************************************************
-eststo: areg birth goodQuarter i.year if ageGroup==1, `opt'
-eststo: areg birth goodQuarter i.year if ageGroup==2, `opt'
-eststo: areg birth goodQuarter i.year if ageGroup==3, `opt'
-#delimit ;
-estout est1 est2 est3 using "$OUT/IPUMSAll.txt", replace `estopt'
-title("Proportion of births by Quarter (IPUMS 2005-2013)") drop(20* _cons)
-note("All regressions absorb state and year fixed effects.  Coefficients are"
-     "expressed as the difference between the proportion of births in a given"
-     "quarter and the theoretical proportion if births were spaced evenly by"
-     "quarter.");
+esttab est1 est2 est3 using "$OUT/NVSSBinary.tex",
+replace `estopt' title("Birth Quarter and Age (NVSS 2005-2013)")
+keep(_cons young highEd youngX*) style(tex) booktabs mlabels(, depvar)
+postfoot("Year FE&&Y&Y\\ \bottomrule"
+         "\multicolumn{4}{p{10cm}}{\begin{footnotesize}Sample consists of all"
+         "first born children of US-born, white, non-hispanic mothers"
+         "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
 
-eststo: areg birth i.year#c.goodQuarter if ageGroup==1, `opt'
-eststo: areg birth i.year#c.goodQuarter if ageGroup==2, `opt'
-eststo: areg birth i.year#c.goodQuarter if ageGroup==3, `opt'
-#delimit ;
-estout est1 est2 est3 using "$OUT/IPUMSTime.txt", replace `estopt'
-title("Proportion of births by Quarter (IPUMS 2005-2013)") drop(_cons)
-note("All regressions absorb state and year fixed effects.  Coefficients are"
-     "expressed as the difference between the proportion of births in a given"
-     "quarter and the theoretical proportion if births were spaced evenly by"
-     "quarter.");
-#delimit cr
+********************************************************************************
+*** (3b) Regressions (Quality on Age, season)
+********************************************************************************
 
-    
+
+
+exit
