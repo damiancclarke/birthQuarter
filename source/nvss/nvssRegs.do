@@ -23,6 +23,7 @@ global LOG "~/investigacion/2015/birthQuarter/log"
 log using "$LOG/nvssRegs.txt", text replace
 cap mkdir "$OUT"
 
+local qual vlbw lbw apgar gestation premature birthweight twin
 local data nvss2005_2013
 local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats /*
 */           (r2 N, fmt(%9.2f %9.0g)) starlevel ("*" 0.10 "**" 0.05 "***" 0.01)/*
@@ -36,6 +37,7 @@ use "$DAT/`data'"
 
 gen birth = 1
 gen goodQuarter = birthQuarter == 2 | birthQuarter == 3
+gen badQuarter = birthQuarter == 4 | birthQuarter == 1
 replace ageGroup  = ageGroup-1 if ageGroup>1
 replace educLevel = educLevel+1 if educLevel < 2
 
@@ -70,8 +72,8 @@ lab var youngXbadQ  "Young$\times$ Bad Q"
 local yFE   i.year
 
 eststo: reg goodQuarter young                    
-eststo: reg goodQuarter young               `yFE'
-eststo: reg goodQuarter young highEd youngX `yFE'
+eststo: reg goodQuarter young                   `yFE'
+eststo: reg goodQuarter young highEd youngXhigh `yFE'
 
 #delimit ;
 esttab est1 est2 est3 using "$OUT/NVSSBinary.tex",
@@ -87,7 +89,40 @@ estimates clear
 ********************************************************************************
 *** (3b) Regressions (Quality on Age, season)
 ********************************************************************************
+foreach y of varlist `qual' {
+    eststo: reg `y' young badQuarter youngXbadQ i.year
+}
+#delimit ;
+esttab est1 est2 est3 est4 est5 est6 est7 using "$OUT/NVSSQuality.tex",
+replace `estopt' title("Birth Quality by Age and Season (NVSS 2005-2013)")
+keep(_cons young badQ* youngX*) style(tex) booktabs mlabels(, depvar)
+postfoot("\bottomrule"
+         "\multicolumn{8}{p{15cm}}{\begin{footnotesize}Sample consists of all"
+         "first born children of US-born, white, non-hispanic mothers"
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
 
+foreach e in 0 1 {
+    if `e'==0 local educN "with no college education"
+    if `e'==1 local educN "with college education"
+    
+    foreach y of varlist `qual' {
+        eststo: reg `y' young badQuarter youngXbadQ i.year if highEd==`e'
+    }
+    #delimit ;
+    esttab est1 est2 est3 est4 est5 est6 est7 using "$OUT/NVSSQuality`e'.tex",
+    replace `estopt' title("Birth Quality by Age and Season (NVSS 2005-2013)")
+    keep(_cons young badQ* youngX*) style(tex) booktabs mlabels(, depvar)
+    postfoot("\bottomrule"
+             "\multicolumn{8}{p{15cm}}{\begin{footnotesize}Sample consists of all"
+             "first born children of US-born, white, non-hispanic mothers `educN'"
+             "\end{footnotesize}}\end{tabular}\end{table}");
+    #delimit cr
+    estimates clear
+}
 
-
-exit
+********************************************************************************
+*** (X) Clear
+********************************************************************************
+log close
