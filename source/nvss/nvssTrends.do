@@ -246,6 +246,9 @@ restore
 ********************************************************************************
 local hkbirth birthweight lbw gestation premature vlbw apgar  
 local axesN   3100[50]3350 0.04[0.02]0.14 38[0.2]39 0.06[0.02]0.18
+if `twins'==1 local axesN 2150[50]2450 0.4[0.05]0.7 34[0.5]36 0.5[0.05]0.8 0.06[0.02]0.14
+
+
 tokenize `axesN'
 preserve
 collapse `hkbirth', by(goodQuarter ageGroup educLevel)
