@@ -24,7 +24,7 @@ cap mkdir "$OUT"
 local data noallocatedagesexrelate_women1549_children_01_bio_reshaped_2005_2013
 local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats /*
 */           (r2 N, fmt(%9.2f %9.0g)) starlevel ("*" 0.10 "**" 0.05 "***" 0.01)/*
-*/           mlabels("20-34" "35-39" "40-45")
+*/           mlabels(, depvar) collabels(none) label
 
 ********************************************************************************
 *** (2a) Open data, setup for regressions
@@ -50,7 +50,9 @@ replace period = 3 if year>=2010&year<=2013
 
 gen goodQuarter = birthqtr1==2|birthqtr1==3
 
-gen married = marst==1|marst==2
+gen married    = marst==1|marst==2
+gen hhincomeSq = hhincome^2
+gen female     = sex1==2
 
 ********************************************************************************
 *** (2b) Label for clarity
@@ -187,7 +189,7 @@ estimates clear
 *** (4) regressions of good season of birth
 ********************************************************************************
 set matsize 3000
-local ctrls hhincome married i.empstat i.sex1
+local ctrls hhincome hhincomeSq married female
 local yFE   i.year
 local sFE   i.statefip
 local sxyFE i.year##i.statefip
@@ -196,6 +198,14 @@ local wt    [pw=perwt]
 gen highEd = educLevel == 2
 gen young  = ageGroup  == 1
 gen youngXhighEd = young*highEd
+
+lab var goodQuarter "Good Q"
+lab var highEd      "College Educ"
+lab var young       "Aged 25-39"
+lab var youngXhigh  "College$\times$ Aged 25-39"
+lab var female      "Female child"
+lab var hhincomeSq  "household income squared"  
+lab var married     "Married"
 
 eststo: reg goodQuarter young                                   `wt', `se'
 eststo: reg goodQuarter young               `yFE'               `wt', `se' 
@@ -206,13 +216,13 @@ eststo: reg goodQuarter young                 `sxyFE'           `wt', `se'
 eststo: reg goodQuarter young highEd youngX   `sxyFE'           `wt', `se'
 eststo: reg goodQuarter young highEd youngX   `sxyFE'   `ctrls' `wt', `se'
 
-estout est1 est2 est3 est4 est5 est6 est7 est8 using "$OUT/IPUMSBinary.txt",
+#delimit ;
+esttab est1 est2 est3 est4 est5 est6 est7 est8 using "$OUT/IPUMSBinary.tex",
 replace `estopt' title("Proportion of births by Quarter (IPUMS 2005-2013)")
-keep(_cons young highEd youngX `ctrls')
-note("All regressions absorb state and year fixed effects.  Coefficients are"
-     "expressed as the difference between the proportion of births in a given"
-     "quarter and the theoretical proportion if births were spaced evenly by"
-     "quarter.");
+keep(_cons young highEd youngX* `ctrls') style(tex) booktabs
+postfoot("\midrule Year FE&&Y&Y&Y&Y&Y&Y&Y\\ State FE&&&Y&Y&Y&Y&Y&Y\\"
+        "Controls&&&&Y&&&&Y\\ State$\times$ Year FE&&&&&&Y&Y&Y\\ \bottomrule"
+        "\multicolumn{8}{p{14cm}}{\begin{footnotesize}Sample consists of all"
+         "first born children of US-born, white, non-hispanic mothers"
+         "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
-
-**NOTE: add footer saying what type of FEs...  Also, change note.
