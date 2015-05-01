@@ -24,7 +24,7 @@ cap mkdir "$OUT"
 local data noallocatedagesexrelate_women1549_children_01_bio_reshaped_2005_2013
 local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats /*
 */           (r2 N, fmt(%9.2f %9.0g)) starlevel ("*" 0.10 "**" 0.05 "***" 0.01)/*
-*/           mlabels(, depvar) collabels(none) label
+*/           collabels(none) label
 
 ********************************************************************************
 *** (2a) Open data, setup for regressions
@@ -67,7 +67,7 @@ lab val ageGroup    aG
 lab val goodQuarter gQ
 lab val educLevel   eL
 
-lab var goodQuarter  "Binary variable for born Q 2/3 (=1) or Q4/1 (=0)"
+lab var goodQuarter  "Good Quarter"
 lab var ageGroup     "Categorical age group"
 lab var period       "Period of time considered (pre/crisis/post)"
 lab var educLevel    "Level of education obtained by mother"
@@ -125,16 +125,17 @@ eststo: areg birth i.educLevel#c.goodQuarter i.year if ageGroup==1, `se' `abs'
 eststo: areg birth i.educLevel#c.goodQuarter i.year if ageGroup==2, `se' `abs'
 
 #delimit ;
-estout est1 est2 using "$OUT/IPUMSeducation.txt", replace `estopt'
-title("Proportion of births by Quarter (IPUMS 2005-2013)") drop(20* _cons)
-note("All regressions absorb state and year fixed effects.  Coefficients are"
-     "expressed as the difference between the proportion of births in a given"
-     "quarter and the theoretical proportion if births were spaced evenly by"
-     "quarter.");
+esttab est1 est2 using "$OUT/IPUMSeducation.tex", replace `estopt' style(tex)
+title("Proportion of births by Quarter (IPUMS 2005-2013)") drop(20*)
+postfoot("\bottomrule\multicolumn{3}{p{9cm}}{\begin{footnotesize}All regressions"
+         "absorb state and year fixed effects. Coefficients are expressed as the "
+         "difference between the proportion of births in a given quarter and "
+         "the theoretical proportion if births were spaced evenly by quarter."
+         "\end{footnotesize}}\end{tabular}\end{table}") booktabs
+mlabels("Age 20-39" "Age 40-45") width(0.8\hsize);
 #delimit cr
 estimates clear
 restore
-
 
 ********************************************************************************
 *** (3c) Set for binary by birthquarter by woman
@@ -161,12 +162,14 @@ foreach group of numlist 1 2 {
 }
 
 #delimit ;
-estout est1 est2 using "$OUT/IPUMSAll.txt", replace `estopt'
-title("Proportion of births by Quarter (IPUMS 2005-2013)") drop(20* _cons)
-note("All regressions absorb state and year fixed effects.  Coefficients are"
-     "expressed as the difference between the proportion of births in a given"
-     "quarter and the theoretical proportion if births were spaced evenly by"
-     "quarter.");
+esttab est1 est2 using "$OUT/IPUMSAll.tex", replace `estopt' style(tex)
+title("Proportion of births by Quarter (IPUMS 2005-2013)") drop(20*)
+postfoot("\bottomrule\multicolumn{3}{p{9cm}}{\begin{footnotesize}"
+         "All regressions absorb state and year fixed effects. Coefficients are"
+         "expressed as the difference between the proportion of births in a"
+         "given quarter and the theoretical proportion if births were spaced"
+         "evenly by quarter.\end{footnotesize}}\end{tabular}\end{table}")
+booktabs mlabels("Age 20-39" " Age 40-45") width(0.8\hsize);
 #delimit cr
 estimates clear
 
@@ -175,12 +178,14 @@ foreach group of numlist 1 2 {
 }
 
 #delimit ;
-estout est1 est2 using "$OUT/IPUMSTime.txt", replace `estopt'
-title("Proportion of births by Quarter (IPUMS 2005-2013)") drop(_cons)
-note("All regressions absorb state and year fixed effects.  Coefficients are"
-     "expressed as the difference between the proportion of births in a given"
-     "quarter and the theoretical proportion if births were spaced evenly by"
-     "quarter.");
+esttab est1 est2 using "$OUT/IPUMSTime.tex", replace `estopt' style(tex)
+title("Proportion of births by Quarter (IPUMS 2005-2013)") 
+postfoot("\bottomrule\multicolumn{3}{p{9cm}}{\begin{footnotesize}"
+         "All regressions absorb state and year fixed effects. Coefficients are"
+         "expressed as the difference between the proportion of births in a given"
+         "quarter and the theoretical proportion if births were spaced evenly by"
+         "quarter. \end{footnotesize}}\end{tabular}\end{table}")
+mlabels("Age 20-39" "Age 40-45") booktabs width(0.8\hsize);
 #delimit cr
 restore
 estimates clear
@@ -219,9 +224,9 @@ eststo: reg goodQuarter young highEd youngX   `sxyFE'   `ctrls' `wt', `se'
 #delimit ;
 esttab est1 est2 est3 est4 est5 est6 est7 est8 using "$OUT/IPUMSBinary.tex",
 replace `estopt' title("Proportion of births by Quarter (IPUMS 2005-2013)")
-keep(_cons young highEd youngX* `ctrls') style(tex) booktabs
+keep(_cons young highEd youngX* `ctrls') style(tex) booktabs mlabels(, depvar) 
 postfoot("\midrule Year FE&&Y&Y&Y&Y&Y&Y&Y\\ State FE&&&Y&Y&Y&Y&Y&Y\\"
-        "Controls&&&&Y&&&&Y\\ State$\times$ Year FE&&&&&&Y&Y&Y\\ \bottomrule"
+        "State$\times$ Year FE&&&&&&Y&Y&Y\\ \bottomrule"
         "\multicolumn{8}{p{14cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of US-born, white, non-hispanic mothers"
          "\end{footnotesize}}\end{tabular}\end{table}");
