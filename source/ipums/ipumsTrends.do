@@ -40,7 +40,7 @@ if c(os)=="Unix" local e eps
 if c(os)!="Unix" local e pdf
 
 local stateFE 1
-local twins   0
+local twins   1
 
 if `twins' == 1 local app twins
 
@@ -110,7 +110,7 @@ gen goodQuarter = birthqtr1==2|birthqtr1==3
 lab def aG  1 "Young" 2  "Old"
 lab def pr  1 "Pre-crisis" 2 "Crisis" 3 "Post-crisis"
 lab def gQ  0 "quarter 4(t) or quarter 1(t+1)" 1 "quarter 2(t) or quarter 3(t)"
-lab def eL  1 "No College" 2 "1-5 years"
+lab def eL  1 "No College" 2 "Some College +"
 
 lab val period      pr
 lab val ageGroup    aG
@@ -193,20 +193,26 @@ reshape wide birth, i(educLevel ageGroup) j(goodQuarter)
 gen totalbirths = birth0 + birth1
 replace birth0=round(10000*birth0/totalbirths)/100
 replace birth1=round(10000*birth1/totalbirths)/100
-drop totalbirths
+gen diff            = birth1 - birth0
+gen rati            = birth1 / birth0
+gen str4 difference = string(diff, "%04.2f")
+gen str4 ratio      = string(rati, "%04.2f")
+drop totalbirths diff rati
 
 #delimit ;
 listtex using "$SUM/PropWeightedNoTime`app'.tex", rstyle(tabular) replace
  head("\vspace{8mm}\begin{table}[htpb!]"
   "\centering\caption{Percent of Births per Cell (Weighted, All Years)}"
-  "\begin{tabular}{llcc}\toprule" 
-  "Age Group &College&Bad Season&Good Season \\ \midrule")
- foot("\midrule\multicolumn{4}{p{9.5cm}}{\begin{footnotesize}\textsc{Notes:}"
+  "\begin{tabular}{llcccc}\toprule" 
+  "Age Group &College&Bad Season&Good Season&Difference&Ratio \\ \midrule")
+ foot("\midrule\multicolumn{6}{p{9.5cm}}{\begin{footnotesize}\textsc{Notes:}"
       "Good Quarters refer to birth quarters 2 and 3, while Bad Quarters refer"
       "to quarters 4 and 1. All values reflect the percent of births for this"
       "age group and education level."
       "\end{footnotesize}}\\ \bottomrule\end{tabular}\end{table}");
 #delimit cr
+drop ageGroup educLevel
+outsheet using "$SUM/EducSample`app'.txt", delimiter("&") replace noquote
 restore
 
 preserve
@@ -232,7 +238,8 @@ listtex using "$SUM/PropWeightedNoTime2`app'.tex", rstyle(tabular) replace
       "age group and education level."
       "\end{footnotesize}}\\ \bottomrule\end{tabular}\end{table}");
 #delimit cr
-outsheet using "$SUM/FullSample.txt", delimiter("&") replace
+drop ageGroup
+outsheet using "$SUM/FullSample`app'.txt", delimiter("&") replace noquote
 restore
 
 
