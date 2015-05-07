@@ -200,7 +200,7 @@ listtex using "$SUM/PropWeightedNoTime`app'.tex", rstyle(tabular) replace
  head("\vspace{8mm}\begin{table}[htpb!]"
   "\centering\caption{Percent of Births per Cell (Weighted, All Years)}"
   "\begin{tabular}{llcc}\toprule" 
-  "Age Group &College&Bad Quarters&Good Quarters \\ \midrule")
+  "Age Group &College&Bad Season&Good Season \\ \midrule")
  foot("\midrule\multicolumn{4}{p{9.5cm}}{\begin{footnotesize}\textsc{Notes:}"
       "Good Quarters refer to birth quarters 2 and 3, while Bad Quarters refer"
       "to quarters 4 and 1. All values reflect the percent of births for this"
@@ -216,14 +216,16 @@ gen totalbirths = birth0 + birth1
 replace birth0=round(10000*birth0/totalbirths)/100
 replace birth1=round(10000*birth1/totalbirths)/100
 drop totalbirths
+gen difference = birth1 - birth0
+gen ratio      = birth1 / birth0
 
 #delimit ;
 listtex using "$SUM/PropWeightedNoTime2`app'.tex", rstyle(tabular) replace
  head("\vspace{8mm}\begin{table}[htpb!]"
   "\centering\caption{Percent of Births per Cell (Weighted, All Years)}"
-  "\begin{tabular}{lcc}\toprule" 
-  "Age Group &Bad Quarters&Good Quarters \\ \midrule")
- foot("\midrule\multicolumn{3}{p{7.5cm}}{\begin{footnotesize}\textsc{Notes:}"
+  "\begin{tabular}{lcccc}\toprule" 
+  "Age Group &Bad Season&Good Season&Difference&Ratio \\ \midrule")
+ foot("\midrule\multicolumn{5}{p{9.5cm}}{\begin{footnotesize}\textsc{Notes:}"
       "Good Quarters refer to birth quarters 2 and 3, while Bad Quarters refer"
       "to quarters 4 and 1. All values reflect the percent of births for this"
       "age group and education level."
