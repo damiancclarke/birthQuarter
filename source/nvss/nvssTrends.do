@@ -60,7 +60,34 @@ twoway line birth motherAge if twin==1, || line birth motherAge if twin==2,/*
 */ legend(label(1 "Single Births") label(2 "Twin Births")) lpattern(dash)
 graph export "$OUT/ageDescriptiveParity.eps", as(eps) replace
 restore
-                                                      
+
+replace educLevel = educLevel + 1
+replace educLevel = 2 if educLevel == 3
+replace ageGroup  = 1 if ageGroup  == 2
+replace ageGroup  = 2 if ageGroup  == 3
+
+foreach edu of numlist 1 2 {
+    if `edu'==1 local title "NoCollege"
+    if `edu'==2 local title "SomeCollege"
+    local cond if educLevel==`edu'
+    
+    histogram motherAge `cond', frac scheme(s1mono) xtitle("Mother's Age")
+    graph export "$OUT/ageDescriptive`title'.eps", as(eps) replace
+
+    preserve
+    keep `cond'
+    gen birth=1
+    collapse (sum) birth, by(motherAge twin)
+    bys twin: egen total=sum(birth)
+    replace birth=birth/total
+    sort twin motherAge
+    twoway line birth motherAge if twin==1, || line birth motherAge if twin==2,/*
+    */ scheme(s1mono) xtitle("Mother's Age") ytitle("Proportion (first birth)")/*
+    */ legend(label(1 "Single Births") label(2 "Twin Births")) lpattern(dash)
+    graph export "$OUT/ageDescriptiveParity`title'.eps", as(eps) replace
+    restore
+}
+
 ********************************************************************************
 *** (2b) Subset
 ********************************************************************************
@@ -74,18 +101,13 @@ replace period = 1 if year >=2005 & year<=2007
 replace period = 2 if year >=2008 & year<=2009
 replace period = 3 if year >=2010 & year<=2013
 
-replace educLevel = educLevel + 1
-replace educLevel = 2 if educLevel == 3
-replace ageGroup  = 1 if ageGroup  == 2
-replace ageGroup  = 2 if ageGroup  == 3
-
 ********************************************************************************
 *** (2b) Label for clarity
 ********************************************************************************
-lab def aG  1 "25-39" 2 "40-45"
+lab def aG  1 "Young " 2  "Old "
 lab def pr  1 "Pre-crisis" 2 "Crisis" 3 "Post-crisis"
 lab def gQ  0 "quarter 4(t) or quarter 1(t+1)" 1 "quarter 2(t) or quarter 3(t)"
-lab def eL  1 "No College" 2 "1-5 years"
+lab def eL  1 "No College" 2 "Some College +"
 
 lab val period      pr
 lab val ageGroup    aG
@@ -111,7 +133,7 @@ reshape wide birth0 birth1, i(educLevel ageGroup) j(period)
 
 sort educLevel ageGroup
 #delimit ;
-listtex using "$SUM/Count.tex", rstyle(tabular) replace
+listtex using "$SUM/Count`app'.tex", rstyle(tabular) replace
 head("\begin{table}[htpb!]\centering"
      "\caption{Number of Births per Cell}"
      "\begin{tabular}{llcccccc}\toprule"
@@ -142,7 +164,7 @@ drop totalbirths
 reshape wide birth0 birth1, i(educLevel ageGroup) j(period)
 
 #delimit ;
-listtex using "$SUM/Proportion.tex", rstyle(tabular) replace
+listtex using "$SUM/Proportion`app'.tex", rstyle(tabular) replace
  head("\vspace{8mm}\begin{table}[htpb!]"
         "\centering\caption{Percent of Births per Cell}"
         "\begin{tabular}{llcccccc}\toprule"
@@ -169,20 +191,61 @@ reshape wide birth, i(educLevel ageGroup) j(goodQuarter)
 gen totalbirths = birth0 + birth1
 replace birth0=round(10000*birth0/totalbirths)/100
 replace birth1=round(10000*birth1/totalbirths)/100
-drop totalbirths
+gen diff            = birth1 - birth0
+gen rati            = birth1 / birth0
+gen str5 b0         = string(birth0, "%05.2f")
+gen str5 b1         = string(birth1, "%05.2f")
+gen str4 difference = string(diff, "%04.2f")
+gen str4 ratio      = string(rati, "%04.2f")
+
+drop totalbirths diff rati birth*
 
 #delimit ;
-listtex using "$SUM/PropNoTime.tex", rstyle(tabular) replace
+listtex using "$SUM/PropNoTime`app'.tex", rstyle(tabular) replace
  head("\vspace{8mm}\begin{table}[htpb!]"
         "\centering\caption{Percent of Births per Cell (All Years)}"
-        "\begin{tabular}{llcc}\toprule"
-        "Age Group &College&Bad Quarters&Good Quarters \\ \midrule")
- foot("\midrule\multicolumn{4}{p{9cm}}{\begin{footnotesize}\textsc{Notes:}"
+        "\begin{tabular}{llcccc}\toprule"
+        "Age Group &College&Bad Quarters&Good Quarters&Difference&Ratio \\ \midrule")
+ foot("\midrule\multicolumn{6}{p{9cm}}{\begin{footnotesize}\textsc{Notes:}"
             "Good Quarters refer to birth quarters 2 and 3, while Bad Quarters refer"
             "to quarters 4 and 1. All values reflect the percent of births for this"
             "age group and education level."
             "\end{footnotesize}}\\ \bottomrule\end{tabular}\end{table}");
 #delimit cr
+decode ageGroup, gen(ag)
+decode educLevel, gen(el)
+egen group=concat(ag el)
+order group
+drop ageGroup educLevel ag el
+outsheet using "$SUM/EducSample`app'.txt", delimiter("&") replace noquote
+restore
+
+preserve
+drop if educLevel==.
+collapse (sum) birth, by(goodQuarter ageGroup)
+reshape wide birth, i( ageGroup) j(goodQuarter)
+gen totalbirths = birth0 + birth1
+replace birth0=round(10000*birth0/totalbirths)/100
+replace birth1=round(10000*birth1/totalbirths)/100
+gen diff            = birth1 - birth0
+gen rati            = birth1 / birth0
+gen str4 difference = string(diff, "%04.2f")
+gen str4 ratio      = string(rati, "%04.2f")
+drop totalbirths diff rati
+
+#delimit ;
+listtex using "$SUM/PropNoTime2`app'.tex", rstyle(tabular) replace
+ head("\vspace{8mm}\begin{table}[htpb!]"
+        "\centering\caption{Percent of Births per Cell (All Years)}"
+        "\begin{tabular}{lcccc}\toprule"
+        "Age Group &Bad Season&Good Season&Difference&Ratio \\ \midrule")
+ foot("\midrule\multicolumn{5}{p{9.5cm}}{\begin{footnotesize}\textsc{Notes:}"
+            "Good Quarters refer to birth quarters 2 and 3, while Bad Quarters refer"
+            "to quarters 4 and 1. All values reflect the percent of births for this"
+            "age group and education level."
+            "\end{footnotesize}}\\ \bottomrule\end{tabular}\end{table}");
+#delimit cr
+outsheet using "$SUM/FullSample`app'.txt", delimiter("&") replace noquote
 restore
 
 

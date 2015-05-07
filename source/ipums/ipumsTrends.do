@@ -77,6 +77,35 @@ twoway line birth age if twin==1, || line birth age if twin==2,/*
 graph export "$OUT/ageDescriptiveParity.eps", as(eps) replace
 restore
 
+gen educLevel = .
+replace educLevel = 1 if educ<=6
+replace educLevel = 2 if educ>6 & educ<=11
+
+foreach edu of numlist 1 2 {
+    if `edu'==1 local title "NoCollege"
+    if `edu'==2 local title "SomeCollege"
+    local cond if educLevel==`edu'
+    
+    histogram age `cond', frac scheme(s1mono) xtitle("Mother's Age")
+    graph export "$OUT/ageDescriptive`title'.eps", as(eps) replace
+
+    preserve
+    keep `cond'
+    gen birth=1
+    collapse (sum) birth, by(age firstborn_twins)
+    rename firstborn_twin twin
+    replace twin=twin+1
+    bys twin: egen total=sum(birth)
+    replace birth=birth/total
+    sort twin age
+    twoway line birth age if twin==1, || line birth age if twin==2,/*
+    */ scheme(s1mono) xtitle("Mother's Age") ytitle("Proportion (first birth)")/*
+    */ legend(label(1 "Single Births") label(2 "Twin Births")) lpattern(dash)
+    graph export "$OUT/ageDescriptiveParity`title'.eps", as(eps) replace
+    restore
+}
+
+drop educLevel
 
 
 ********************************************************************************
@@ -121,6 +150,7 @@ lab var goodQuarter  "Binary variable for born Q 2/3 (=1) or Q4/1 (=0)"
 lab var ageGroup     "Categorical age group"
 lab var period       "Period of time considered (pre/crisis/post)"
 lab var educLevel    "Level of education obtained by mother"
+
 
 ********************************************************************************
 *** (2e) Collapse to bins counting births to make sumstats over time
