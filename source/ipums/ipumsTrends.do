@@ -40,7 +40,7 @@ if c(os)=="Unix" local e eps
 if c(os)!="Unix" local e pdf
 
 local stateFE 1
-local twins   1
+local twins   0
 
 if `twins' == 1 local app twins
 
@@ -107,7 +107,7 @@ gen goodQuarter = birthqtr1==2|birthqtr1==3
 ********************************************************************************
 *** (2d) Label for clarity
 ********************************************************************************
-lab def aG  1 "25-39" 2  "40-45"
+lab def aG  1 "Young" 2  "Old"
 lab def pr  1 "Pre-crisis" 2 "Crisis" 3 "Post-crisis"
 lab def gQ  0 "quarter 4(t) or quarter 1(t+1)" 1 "quarter 2(t) or quarter 3(t)"
 lab def eL  1 "No College" 2 "1-5 years"
@@ -215,10 +215,11 @@ reshape wide birth, i(ageGroup) j(goodQuarter)
 gen totalbirths = birth0 + birth1
 replace birth0=round(10000*birth0/totalbirths)/100
 replace birth1=round(10000*birth1/totalbirths)/100
-drop totalbirths
-gen difference = birth1 - birth0
-gen ratio      = birth1 / birth0
-
+gen diff            = birth1 - birth0
+gen rati            = birth1 / birth0
+gen str4 difference = string(diff, "%04.2f")
+gen str4 ratio      = string(rati, "%04.2f")
+drop totalbirths diff rati
 #delimit ;
 listtex using "$SUM/PropWeightedNoTime2`app'.tex", rstyle(tabular) replace
  head("\vspace{8mm}\begin{table}[htpb!]"
@@ -231,6 +232,7 @@ listtex using "$SUM/PropWeightedNoTime2`app'.tex", rstyle(tabular) replace
       "age group and education level."
       "\end{footnotesize}}\\ \bottomrule\end{tabular}\end{table}");
 #delimit cr
+outsheet using "$SUM/FullSample.txt", delimiter("&") replace
 restore
 
 
