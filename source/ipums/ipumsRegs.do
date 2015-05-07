@@ -227,11 +227,11 @@ replace `estopt' title("Proportion of births by Season (IPUMS 2005-2013)")
 keep(_cons young highEd youngX* `ctrls') style(tex) booktabs mlabels(, depvar) 
 postfoot("\midrule Year FE&&Y&Y&Y&Y&Y&Y&Y\\ State FE&&&Y&Y&Y&Y&Y&Y\\"
         "State$\times$ Year FE&&&&Y&Y&Y&Y&Y\\ \bottomrule"
-        "\multicolumn{8}{p{21cm}}{\begin{footnotesize}Sample consists of all"
+        "\multicolumn{9}{p{20.6cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of US-born, white, non-hispanic mothers."
          "Standard errors are clustered by state, and inverse probability"
          "weights are used.  The outcome variable is a binary variable"
-         "equal to 1 for individuals born in birth quarters 2 or 3 ('good"
+         "equal to 1 for individuals born in birth quarters 2 or 3 (`good"
          "season'). Linear probability models are estimated by OLS."
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
