@@ -24,7 +24,7 @@ log using "$LOG/nvss0512Prep.txt", text replace
 *** (2a) 2005 File
 ********************************************************************************
 use "$DAT/natl2005"
-
+exit
 gen birthOrder  = lbo_rec
 gen motherAge   = mager
 gen birthMonth  = dob_mm
@@ -50,8 +50,20 @@ gen educLevel=dmeduc>=13
 replace educLevel=2 if dmeduc>=16
 replace educLeve=. if dmeduc==99
 
+gen education = 0 if dmeduc==0|dmeduc==99
+replace education=1 if dmeduc>=1&dmeduc<=4
+replace education=2 if dmeduc>=5&dmeduc<=8
+replace education=3 if dmeduc==9
+replace education=4 if dmeduc==10
+replace education=5 if dmeduc==11
+replace education=6 if dmeduc==12
+replace education=7 if dmeduc==13
+replace education=8 if dmeduc==14
+replace education=9 if dmeduc==15|dmeduc==16
+replace education=10 if dmeduc==17
+
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge dmeduc
+*/ gestation premature motherAge education
 tempfile B2005
 save `B2005'
 
@@ -85,8 +97,20 @@ gen educLevel=dmeduc>=13
 replace educLevel=2 if dmeduc>=16
 replace educLevel=. if dmeduc==99|dmeduc==.
 
+gen education = 0 if dmeduc==0|dmeduc==99
+replace education=1 if dmeduc>=1&dmeduc<=4
+replace education=2 if dmeduc>=5&dmeduc<=8
+replace education=3 if dmeduc==9
+replace education=4 if dmeduc==10
+replace education=5 if dmeduc==11
+replace education=6 if dmeduc==12
+replace education=7 if dmeduc==13
+replace education=8 if dmeduc==14
+replace education=9 if dmeduc==15|dmeduc==16
+replace education=10 if dmeduc==17
+
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge dmeduc
+*/ gestation premature motherAge education
 tempfile B2006
 save `B2006'
 
@@ -118,7 +142,8 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
-rename meduc dmeduc
+
+**NEED TO ADD EDUCATION LEVELS HERE
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
 */ gestation premature motherAge dmeduc
@@ -153,6 +178,7 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
+cap drop dmeduc
 rename meduc dmeduc
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
@@ -189,6 +215,7 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
+cap drop dmeduc
 rename meduc dmeduc
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
@@ -225,6 +252,7 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
+cap drop dmeduc
 rename meduc dmeduc
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
@@ -261,6 +289,7 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
+cap drop dmeduc
 rename meduc dmeduc
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
@@ -297,6 +326,7 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
+cap drop dmeduc
 rename meduc dmeduc
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
@@ -333,6 +363,7 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
+cap drop dmeduc
 rename meduc dmeduc
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
