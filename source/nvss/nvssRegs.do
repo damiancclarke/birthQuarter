@@ -23,11 +23,11 @@ global LOG "~/investigacion/2015/birthQuarter/log"
 log using "$LOG/nvssRegs.txt", text replace
 cap mkdir "$OUT"
 
-local qual vlbw lbw apgar gestation premature birthweight twin
+local qual apgar birthweight gestation lbw premature twin vlbw  
 local data nvss2005_2013
 local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats /*
-*/           (r2 N, fmt(%9.2f %9.0g)) starlevel ("*" 0.10 "**" 0.05 "***" 0.01)/*
-*/           collabels(none) label
+*/           (r2 N, fmt(%9.2f %9.0g) label(R-squared Observations))     /*
+*/           starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(none) label
 
 
 ********************************************************************************
@@ -41,10 +41,14 @@ gen badQuarter = birthQuarter == 4 | birthQuarter == 1
 replace ageGroup  = ageGroup-1 if ageGroup>1
 replace educLevel = educLevel+1 if educLevel < 2
 
-gen highEd = educLevel == 2
-gen young  = ageGroup  == 1
-gen youngXhighEd = young*highEd
-gen youngXbadQ   = young*(1-goodQuarter)
+gen highEd              = educLevel == 2
+gen young               = ageGroup  == 1
+gen youngXhighEd        = young*highEd
+gen youngXbadQ          = young*(1-goodQuarter)
+gen highEdXbadQ         = highEd*(1-goodQuarter)
+gen youngXhighEdXbadQ   = young*highEd*(1-goodQuarter)
+
+
 
 ********************************************************************************
 *** (2b) Label for clarity
@@ -57,13 +61,15 @@ lab val ageGroup    aG
 lab val goodQuarter gQ
 lab val educLevel   eL
 
-lab var goodQuarter "Good Q"
-lab var highEd      "College Educ"
-lab var young       "Aged 25-39"
-lab var youngXhigh  "College$\times$ Aged 25-39"
-lab var ageGroup     "Categorical age group"
-lab var educLevel    "Level of education obtained by mother"
-lab var youngXbadQ  "Young$\times$ Bad Q"
+lab var goodQuarter        "Good Q"
+lab var highEd             "College Educ"
+lab var young              "Aged 25-39"
+lab var youngXhighEd       "College$\times$ Aged 25-39"
+lab var ageGroup           "Categorical age group"
+lab var educLevel          "Level of education obtained by mother"
+lab var youngXbadQ         "Young$\times$Bad Q"
+lab var highEdXbadQ        "College$\times$Bad Q"
+lab var youngXhighEdXbadQ  "Young$\times$College$\times$Bad Q"
 
 
 ********************************************************************************
@@ -72,8 +78,8 @@ lab var youngXbadQ  "Young$\times$ Bad Q"
 local yFE   i.year
 
 eststo: reg goodQuarter young                    
-eststo: reg goodQuarter young                   `yFE'
-eststo: reg goodQuarter young highEd youngXhigh `yFE'
+eststo: reg goodQuarter young                     `yFE'
+eststo: reg goodQuarter young highEd youngXhighEd `yFE'
 
 #delimit ;
 esttab est1 est2 est3 using "$OUT/NVSSBinary.tex",
@@ -121,6 +127,26 @@ foreach e in 0 1 {
     #delimit cr
     estimates clear
 }
+estimates clear
+
+********************************************************************************
+*** (3c) Regressions (Quality on Age, season, triple interaction)
+********************************************************************************
+local doubleint young badQuarter highEd youngXbadQ youngXhighEd highEdXbadQ
+foreach y of varlist `qual' {
+    eststo: reg `y' `doubleint' youngXhighEdXbadQ i.year
+}
+#delimit ;
+esttab est1 est2 est3 est4 est5 est6 est7 using "$OUT/NVSSQualityTriple.tex",
+replace `estopt' title("Birth Quality Triple Interacton (NVSS 2005-2013)")
+keep(_cons `doubleint' youngXhighEdX*) style(tex) booktabs mlabels(, depvar)
+postfoot("\bottomrule"
+         "\multicolumn{8}{p{15cm}}{\begin{footnotesize}Sample consists of all"
+         "first born children of US-born, white, non-hispanic mothers"
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+
 
 ********************************************************************************
 *** (X) Clear
