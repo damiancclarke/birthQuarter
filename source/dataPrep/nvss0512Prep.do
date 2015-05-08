@@ -51,7 +51,7 @@ replace educLevel=2 if dmeduc>=16
 replace educLeve=. if dmeduc==99
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge
+*/ gestation premature motherAge dmeduc
 tempfile B2005
 save `B2005'
 
@@ -86,7 +86,7 @@ replace educLevel=2 if dmeduc>=16
 replace educLevel=. if dmeduc==99|dmeduc==.
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge
+*/ gestation premature motherAge dmeduc
 tempfile B2006
 save `B2006'
 
@@ -118,9 +118,10 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
+rename meduc dmeduc
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge
+*/ gestation premature motherAge dmeduc
 tempfile B2007
 save `B2007'
 
@@ -152,9 +153,10 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
+rename meduc dmeduc
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge
+*/ gestation premature motherAge dmeduc
 tempfile B2008
 save `B2008'
 
@@ -187,9 +189,10 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
+rename meduc dmeduc
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge
+*/ gestation premature motherAge dmeduc
 tempfile B2009
 save `B2009'
 
@@ -222,9 +225,10 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
+rename meduc dmeduc
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge
+*/ gestation premature motherAge dmeduc
 tempfile B2010
 save `B2010'
 
@@ -257,9 +261,10 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
+rename meduc dmeduc
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge
+*/ gestation premature motherAge dmeduc
 tempfile B2011
 save `B2011'
 
@@ -292,9 +297,10 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
+rename meduc dmeduc
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge
+*/ gestation premature motherAge dmeduc
 tempfile B2012
 save `B2012'
 
@@ -327,9 +333,10 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
+rename meduc dmeduc
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge
+*/ gestation premature motherAge dmeduc
 tempfile B2013
 save `B2013'
 
