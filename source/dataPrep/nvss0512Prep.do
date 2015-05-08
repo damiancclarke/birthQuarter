@@ -50,17 +50,10 @@ gen educLevel=dmeduc>=13
 replace educLevel=2 if dmeduc>=16
 replace educLeve=. if dmeduc==99
 
-gen education = 0 if dmeduc==0|dmeduc==99
-replace education=1 if dmeduc>=1&dmeduc<=4
-replace education=2 if dmeduc>=5&dmeduc<=8
-replace education=3 if dmeduc==9
-replace education=4 if dmeduc==10
-replace education=5 if dmeduc==11
-replace education=6 if dmeduc==12
-replace education=7 if dmeduc==13
-replace education=8 if dmeduc==14
-replace education=9 if dmeduc==15|dmeduc==16
-replace education=10 if dmeduc==17
+gen education = meduc if meduc <=5
+replace education = 5 if meduc==6
+replace education = 6 if meduc==7|meduc==8
+replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
 */ gestation premature motherAge education
@@ -97,17 +90,10 @@ gen educLevel=dmeduc>=13
 replace educLevel=2 if dmeduc>=16
 replace educLevel=. if dmeduc==99|dmeduc==.
 
-gen education = 0 if dmeduc==0|dmeduc==99
-replace education=1 if dmeduc>=1&dmeduc<=4
-replace education=2 if dmeduc>=5&dmeduc<=8
-replace education=3 if dmeduc==9
-replace education=4 if dmeduc==10
-replace education=5 if dmeduc==11
-replace education=6 if dmeduc==12
-replace education=7 if dmeduc==13
-replace education=8 if dmeduc==14
-replace education=9 if dmeduc==15|dmeduc==16
-replace education=10 if dmeduc==17
+gen education = meduc if meduc <=5
+replace education = 5 if meduc==6
+replace education = 6 if meduc==7|meduc==8
+replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
 */ gestation premature motherAge education
@@ -143,10 +129,13 @@ gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
 
-**NEED TO ADD EDUCATION LEVELS HERE
+gen education = meduc if meduc <=5
+replace education = 5 if meduc==6
+replace education = 6 if meduc==7|meduc==8
+replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge dmeduc
+*/ gestation premature motherAge education
 tempfile B2007
 save `B2007'
 
@@ -178,11 +167,14 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
-cap drop dmeduc
-rename meduc dmeduc
+
+gen education = meduc if meduc <=5
+replace education = 5 if meduc==6
+replace education = 6 if meduc==7|meduc==8
+replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge dmeduc
+*/ gestation premature motherAge education
 tempfile B2008
 save `B2008'
 
@@ -215,11 +207,14 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
-cap drop dmeduc
-rename meduc dmeduc
+
+gen education = meduc if meduc <=5
+replace education = 5 if meduc==6
+replace education = 6 if meduc==7|meduc==8
+replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge dmeduc
+*/ gestation premature motherAge education
 tempfile B2009
 save `B2009'
 
@@ -252,11 +247,14 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
-cap drop dmeduc
-rename meduc dmeduc
+
+gen education = meduc if meduc <=5
+replace education = 5 if meduc==6
+replace education = 6 if meduc==7|meduc==8
+replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge dmeduc
+*/ gestation premature motherAge education
 tempfile B2010
 save `B2010'
 
@@ -289,11 +287,14 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
-cap drop dmeduc
-rename meduc dmeduc
+
+gen education = meduc if meduc <=5
+replace education = 5 if meduc==6
+replace education = 6 if meduc==7|meduc==8
+replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge dmeduc
+*/ gestation premature motherAge education
 tempfile B2011
 save `B2011'
 
@@ -326,11 +327,14 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
-cap drop dmeduc
-rename meduc dmeduc
+
+gen education = meduc if meduc <=5
+replace education = 5 if meduc==6
+replace education = 6 if meduc==7|meduc==8
+replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge dmeduc
+*/ gestation premature motherAge education
 tempfile B2012
 save `B2012'
 
@@ -363,11 +367,14 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
-cap drop dmeduc
-rename meduc dmeduc
+
+gen education = meduc if meduc <=5
+replace education = 5 if meduc==6
+replace education = 6 if meduc==7|meduc==8
+replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge dmeduc
+*/ gestation premature motherAge education
 tempfile B2013
 save `B2013'
 
