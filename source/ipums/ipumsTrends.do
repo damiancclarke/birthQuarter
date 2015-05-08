@@ -53,15 +53,26 @@ if _rc!=0 ssc install listtex
 
 
 ********************************************************************************
-*** (2a) open file, descriptive graph
+*** (2a) open file, descriptive graphs
 ********************************************************************************
 use "$DAT/`data'"
 keep if race==1 & race1==1 & hispan==0 & hispan1==0
 keep if bpl<150 & bpl1<150
 keep if age>=25 & age<=45
 
+
 histogram age, frac scheme(s1mono) xtitle("Mother's Age")
 graph export "$OUT/ageDescriptive.eps", as(eps) replace
+
+lab var educ "Educational Attainment"
+foreach g in all young old {
+    if `"`g'"'=="young" local cond if age>=25 & age<=39
+    if `"`g'"'=="old"   local cond if age>=40 & age<=45
+
+    catplot educ `cond', frac scheme(s1mono)
+    graph export "$OUT/educDescriptive`g'.eps", as(eps) replace
+}
+
 
 preserve
 gen birth=1

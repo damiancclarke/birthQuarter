@@ -231,7 +231,7 @@ postfoot("\midrule Year FE&&Y&Y&Y&Y&Y&Y&Y\\ State FE&&&Y&Y&Y&Y&Y&Y\\"
          "first born children of US-born, white, non-hispanic mothers."
          "Standard errors are clustered by state, and inverse probability"
          "weights are used.  The outcome variable is a binary variable"
-         "equal to 1 for individuals born in birth quarters 2 or 3 (`good"
-         "season'). Linear probability models are estimated by OLS."
+         "equal to 1 for individuals born in birth quarters 2 or 3 (good"
+         "season). Linear probability models are estimated by OLS."
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
