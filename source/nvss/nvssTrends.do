@@ -36,7 +36,7 @@ if c(os)=="Unix" local e eps
 if c(os)!="Unix" local e pdf
 
 local stateFE 0
-local twins   1
+local twins   0
 if `twins' == 1 local app twins
 
 
@@ -335,12 +335,34 @@ drop if educLevel == .
 
 foreach outcome in `hkbirth' {
     #delimit ;
-    graph bar `outcome'*, over(educLevel, relabel(1 "No College" 2 "1-5 yrs")
+    graph bar `outcome'*, over(educLevel, relabel(1 "No College" 2 "1-5 years")
                                               label(angle(45))) over(ageGroup)
-      scheme(s1mono) legend(label(1 "Bad Quarter") label(2 "Good Quarter"))
+      scheme(s1mono) legend(label(1 "Bad Season") label(2 "Good Season"))
       bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0)) ylabel(, nogrid)
       exclude0 ylab(`1');
     graph export "$OUT/Quality_`outcome'_`app'.eps", as(eps) replace;
+    #delimit cr
+    macro shift
+}
+restore
+
+
+local hkbirth birthweight lbw gestation
+local axesN   3225[25]3350 0.05[0.01]0.1 38.4[0.2]39.2
+if `twins'==1 local axesN 2300[25]2400 0.5[0.025]0.6 35[0.1]35.5 
+
+tokenize `axesN'
+preserve
+collapse `hkbirth', by(goodQuarter ageGroup)
+reshape wide `hkbirth', i(ageGroup) j(goodQuarter)
+
+foreach outcome in `hkbirth' {
+    #delimit ;
+    graph bar `outcome'*, over(ageGroup)
+      scheme(s1mono) legend(label(1 "Bad Season") label(2 "Good Season"))
+      bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0)) ylabel(, nogrid)
+      exclude0 ylab(`1');
+    graph export "$OUT/AllQuality_`outcome'_`app'.eps", as(eps) replace;
     #delimit cr
     macro shift
 }
