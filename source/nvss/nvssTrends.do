@@ -49,6 +49,21 @@ graph export "$OUT/ageDescriptive.eps", as(eps) replace
 
 keep if twin<3
 
+#delimit ;
+lab def e 0 "N/A" 1 "Grades 1-8" 2 "Incomplete Highschool" 3 "Complete Highschool"
+4 "Incomplete College" 5 "Bachelor's Degree" 6 "Higher Degree";
+lab val education e;
+#delimit cr
+lab var education "Completed Education"
+foreach g in all young old {
+    if `"`g'"'=="young" local cond if motherAge>=25&motherAge<=39
+    if `"`g'"'=="old"   local cond if motherAge>=40&motherAge<=45
+
+    catplot education `cond', frac scheme(s1mono)
+    graph export "$OUT/educDescriptive`g'.eps", as(eps) replace 
+}
+
+
 preserve
 gen birth=1
 collapse (sum) birth, by(motherAge twin)
