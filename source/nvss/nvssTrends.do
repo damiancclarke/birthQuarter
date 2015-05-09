@@ -36,7 +36,7 @@ if c(os)=="Unix" local e eps
 if c(os)!="Unix" local e pdf
 
 local stateFE 0
-local twins   0
+local twins   1
 if `twins' == 1 local app twins
 
 
@@ -267,6 +267,8 @@ restore
 ********************************************************************************
 *** (3a) Global histogram
 ********************************************************************************
+tempfile all educ
+
 preserve
 collapse (sum) birth, by(goodQuarter ageGroup)
 reshape wide birth, i(ageGroup) j(goodQuarter)
@@ -279,6 +281,7 @@ graph bar birth*, over(ageGroup) scheme(s1mono) legend(label(1 "Bad Quarter")
   ylabel(, nogrid) yline(0);
 graph export "$OUT/total`app'.eps", as(eps) replace;
 #delimit cr
+save `all'
 restore
 
 ********************************************************************************
@@ -298,6 +301,8 @@ scheme(s1mono) legend(label(1 "Bad Quarter") label(2 "Good Quarter"))
 bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0)) ylabel(, nogrid) yline(0);
 graph export "$OUT/totalEduc`app'.eps", as(eps) replace;
 #delimit cr
+drop if educLevel == .
+save `educ'
 restore
 
 ********************************************************************************
@@ -317,6 +322,33 @@ bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0)) ylabel(, nogrid) yline(0);
 graph export "$OUT/totalPeriod`app'.eps", as(eps) replace;
 #delimit cr
 restore
+
+********************************************************************************
+*** (3d) Histogram: All, educ
+********************************************************************************
+preserve
+use `all', replace
+append using `educ'
+keep birth1 ageGroup educLevel
+replace birth1 = birth1*2
+replace educLevel = 0 if educLevel == .
+replace educLevel = educLevel + 1
+lab def eL2  1 "All" 2 "No College" 3 "Some College +"
+lab val educLevel   eL2
+
+list
+reshape wide birth1, i(educLevel) j(ageGroup)
+
+
+#delimit ;
+graph bar birth*, over(educLevel, relabel(1 "All" 2 "No College" 3 "1-5 yrs")
+                       label(angle(45))) yline(0)
+legend(label(1 "Young") label(2 "Old")) ylabel(, nogrid)
+scheme(s1mono) bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0));
+graph export "$OUT/birthQdiff`app'.eps", as(eps) replace;
+#delimit cr
+restore
+
 
 
 ********************************************************************************
