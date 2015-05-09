@@ -103,7 +103,7 @@ for parity in ['single', 'twin']:
     
     
     sumT.write('\n'+mr+mc1+twid[0]+tcm[0]+mc3+
-               "Good season refers to birth quarters 2 and 3 (Apr-Jun and Jul-Sept).  Bad "
+3A               "Good season refers to birth quarters 2 and 3 (Apr-Jun and Jul-Sept).  Bad "
                "quarter refers to quarters 1 and 4 (Jan-Mar and Oct-Dec).  Values reflect "
                "the percent of yearly births each season from 2005-2013. `Young' refers to"
                " 20-39 year olds, `Old' refers to 40-45 year olds. \n"
@@ -123,5 +123,11 @@ final.write("\\input{./../tables/sumtwin.tex} \n")
 final.write("\\begin{landscape}")
 final.write("\\input{./../results/ipums/regressions/IPUMSBinary.tex} \n")
 final.write("\\end{landscape}")
+final.write("\\input{./../results/nvss/regressions/NVSSBinary.tex} \n"
+"\\begin{landscape}""\\input{../results/nvss/regressions/NVSSQuality.tex} \n"
+"\\end{landscape}\\begin{landscape}\n"
+"\\input{./../results/nvss/regressions/NVSSQualityTriple.tex}\\end{landscape}")
+
+
 
 final.close()
