@@ -9,7 +9,7 @@ int to locations on the machine where data files are stored and to where results
 should be exported.
 
 The file used here is called:
-noallocatedagesexrelate_women1549_children_01_bio_reshaped_2005_2013.dta
+noallocatedagesexrelate_women1549_children_01_bio_reshaped_2005_2013_nohomo_with_men.dta
 
 contact: damian.clarke@economics.ox.ac.uk
 
@@ -32,7 +32,7 @@ global LOG "~/investigacion/2015/birthQuarter/log"
 log using "$LOG/ipumsSum.txt", text replace
 cap mkdir "$OUT"
 
-local data noallocatedagesexrelate_women1549_children_01_bio_reshaped_2005_2013
+local data noallocatedagesexrelate_women1549_children_01_bio_reshaped_2005_2013_nohomo_with_men
 local legd     legend(label(1 "Q1") label(2 "Q2") label(3 "Q3") label(4 "Q4"))
 local note "Quarters represent the difference between percent of yearly births"
 
@@ -40,7 +40,7 @@ if c(os)=="Unix" local e eps
 if c(os)!="Unix" local e pdf
 
 local stateFE 1
-local twins   0
+local twins   1
 
 if `twins' == 1 local app twins
 

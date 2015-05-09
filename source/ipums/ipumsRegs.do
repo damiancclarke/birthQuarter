@@ -21,7 +21,7 @@ global LOG "~/investigacion/2015/birthQuarter/log"
 log using "$LOG/ipumsRegs.txt", text replace
 cap mkdir "$OUT"
 
-local data noallocatedagesexrelate_women1549_children_01_bio_reshaped_2005_2013
+local data noallocatedagesexrelate_women1549_children_01_bio_reshaped_2005_2013_nohomo_with_men
 local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats /*
 */           (r2 N, fmt(%9.2f %9.0g) label(R-squared Observations))     /*
 */           starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(none) label
