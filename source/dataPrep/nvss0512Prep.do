@@ -24,9 +24,10 @@ log using "$LOG/nvss0512Prep.txt", text replace
 *** (2a) 2005 File
 ********************************************************************************
 use "$DAT/natl2005"
-exit
+
 gen birthOrder  = lbo_rec
 gen motherAge   = mager
+gen fatherAge   = fagerec11
 gen birthMonth  = dob_mm
 gen year        = dob_yy
 gen twin        = dplural
@@ -45,6 +46,9 @@ gen birthQuarter = ceil(birthMonth/3)
 gen ageGroup = motherAge>=25 & motherAge <=34
 replace ageGroup = 2 if motherAge >= 35 & motherAge <= 39
 replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
+
+gen ageGroupMan = fagerec11>6
+replace ageGroupMan = ageGroupMan + 1
 
 gen educLevel=dmeduc>=13
 replace educLevel=2 if dmeduc>=16
@@ -56,7 +60,7 @@ replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge education
+*/ gestation premature motherAge education fatherAge ageGroupMan
 tempfile B2005
 save `B2005'
 
@@ -67,6 +71,7 @@ use "$DAT/natl2006"
 
 gen birthOrder  = lbo_rec
 gen motherAge   = mager
+gen fatherAge   = fagerec11
 gen birthMonth  = dob_mm
 gen year        = dob_yy
 gen twin        = dplural
@@ -86,6 +91,9 @@ gen ageGroup = motherAge>=25 & motherAge <=34
 replace ageGroup = 2 if motherAge >= 35 & motherAge <= 39
 replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 
+gen ageGroupMan = fagerec11>6
+replace ageGroupMan = ageGroupMan + 1
+
 gen educLevel=dmeduc>=13
 replace educLevel=2 if dmeduc>=16
 replace educLevel=. if dmeduc==99|dmeduc==.
@@ -96,7 +104,7 @@ replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge education
+*/ gestation premature motherAge education fatherAge ageGroupMan
 tempfile B2006
 save `B2006'
 
@@ -106,6 +114,7 @@ save `B2006'
 use "$DAT/natl2007"
 gen birthOrder = lbo_rec
 gen motherAge  = mager
+gen fatherAge  = fagerec11
 gen birthMonth = dob_mm
 gen year       = dob_yy
 gen twin       = dplural
@@ -125,6 +134,9 @@ gen ageGroup = motherAge>=25 & motherAge <=34
 replace ageGroup = 2 if motherAge >= 35 & motherAge <= 39
 replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 
+gen ageGroupMan = fagerec11>6
+replace ageGroupMan = ageGroupMan + 1
+
 gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
@@ -135,7 +147,7 @@ replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge education
+*/ gestation premature motherAge education fatherAge ageGroupMan
 tempfile B2007
 save `B2007'
 
@@ -145,6 +157,7 @@ save `B2007'
 use "$DAT/natl2008"
 gen birthOrder = lbo_rec
 gen motherAge  = mager
+gen fatherAge  = fagerec11
 gen birthMonth = dob_mm
 gen year       = dob_yy
 gen twin       = dplural
@@ -164,6 +177,9 @@ gen ageGroup = motherAge>=25 & motherAge <=34
 replace ageGroup = 2 if motherAge >= 35 & motherAge <= 39
 replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 
+gen ageGroupMan = fagerec11>6
+replace ageGroupMan = ageGroupMan + 1
+
 gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
@@ -174,7 +190,7 @@ replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge education
+*/ gestation premature motherAge education fatherAge ageGroupMan
 tempfile B2008
 save `B2008'
 
@@ -185,6 +201,7 @@ use "$DAT/natl2009"
 
 gen birthOrder = lbo_rec
 gen motherAge  = mager
+gen fatherAge  = fagerec11
 gen birthMonth = dob_mm
 gen year       = dob_yy
 gen twin       = dplural
@@ -204,6 +221,9 @@ gen ageGroup = motherAge>=25 & motherAge <=34
 replace ageGroup = 2 if motherAge >= 35 & motherAge <= 39
 replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 
+gen ageGroupMan = fagerec11>6
+replace ageGroupMan = ageGroupMan + 1
+
 gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
@@ -214,7 +234,7 @@ replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge education
+*/ gestation premature motherAge education fatherAge ageGroupMan
 tempfile B2009
 save `B2009'
 
@@ -225,6 +245,7 @@ use "$DAT/natl2010"
 
 gen birthOrder = lbo_rec
 gen motherAge  = mager
+gen fatherAge  = fagerec11
 gen birthMonth = dob_mm
 gen year       = dob_yy
 gen twin       = dplural
@@ -244,6 +265,9 @@ gen ageGroup = motherAge>=25 & motherAge <=34
 replace ageGroup = 2 if motherAge >= 35 & motherAge <= 39
 replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 
+gen ageGroupMan = fagerec11>6
+replace ageGroupMan = ageGroupMan + 1
+
 gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
@@ -254,7 +278,7 @@ replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge education
+*/ gestation premature motherAge education fatherAge ageGroupMan
 tempfile B2010
 save `B2010'
 
@@ -265,6 +289,7 @@ use "$DAT/natl2011"
 
 gen birthOrder = lbo_rec
 gen motherAge  = mager
+gen fatherAge  = fagerec11
 gen birthMonth = dob_mm
 gen year       = dob_yy
 gen twin       = dplural
@@ -284,6 +309,9 @@ gen ageGroup = motherAge>=25 & motherAge <=34
 replace ageGroup = 2 if motherAge >= 35 & motherAge <= 39
 replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 
+gen ageGroupMan = fagerec11>6
+replace ageGroupMan = ageGroupMan + 1
+
 gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
@@ -294,7 +322,7 @@ replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge education
+*/ gestation premature motherAge education fatherAge ageGroupMan
 tempfile B2011
 save `B2011'
 
@@ -305,6 +333,7 @@ use "$DAT/natl2012"
 
 gen birthOrder = lbo_rec
 gen motherAge  = mager
+gen fatherAge  = fagerec11
 gen birthMonth = dob_mm
 gen year       = dob_yy
 gen twin       = dplural
@@ -324,6 +353,9 @@ gen ageGroup = motherAge>=25 & motherAge <=34
 replace ageGroup = 2 if motherAge >= 35 & motherAge <= 39
 replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 
+gen ageGroupMan = fagerec11>6
+replace ageGroupMan = ageGroupMan + 1
+
 gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
@@ -334,7 +366,7 @@ replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge education
+*/ gestation premature motherAge education fatherAge ageGroupMan
 tempfile B2012
 save `B2012'
 
@@ -345,6 +377,7 @@ use "$DAT/natl2013"
 
 gen birthOrder = lbo_rec
 gen motherAge  = mager
+gen fatherAge  = fagerec11
 gen birthMonth = dob_mm
 gen year       = dob_yy
 gen twin       = dplural
@@ -364,6 +397,9 @@ gen ageGroup = motherAge>=25 & motherAge <=34
 replace ageGroup = 2 if motherAge >= 35 & motherAge <= 39
 replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 
+gen ageGroupMan = fagerec11>6
+replace ageGroupMan = ageGroupMan + 1
+
 gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
@@ -374,7 +410,7 @@ replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge education
+*/ gestation premature motherAge education fatherAge ageGroupMan
 tempfile B2013
 save `B2013'
 
