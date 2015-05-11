@@ -37,7 +37,7 @@ use "$DAT/`data'"
 
 gen birth = 1
 gen goodQuarter = birthQuarter == 2 | birthQuarter == 3
-gen badQuarter = birthQuarter == 4 | birthQuarter == 1
+gen badQuarter = birthQuarter == 4  | birthQuarter == 1
 replace ageGroup  = ageGroup-1 if ageGroup>1
 replace educLevel = educLevel+1 if educLevel < 2
 
@@ -47,7 +47,8 @@ gen youngXhighEd        = young*highEd
 gen youngXbadQ          = young*(1-goodQuarter)
 gen highEdXbadQ         = highEd*(1-goodQuarter)
 gen youngXhighEdXbadQ   = young*highEd*(1-goodQuarter)
-
+gen youngMan            = ageGroupMan == 1
+gen youngManXbadQ       = youngMan*(1-goodQuarter)
 
 
 ********************************************************************************
@@ -61,15 +62,17 @@ lab val ageGroup    aG
 lab val goodQuarter gQ
 lab val educLevel   eL
 
-lab var goodQuarter        "Good Q"
+lab var goodQuarter        "Good Season"
+lab var badQuarter         "Bad Season"
 lab var highEd             "College Educ"
 lab var young              "Aged 25-39"
 lab var youngXhighEd       "College$\times$ Aged 25-39"
 lab var ageGroup           "Categorical age group"
 lab var educLevel          "Level of education obtained by mother"
-lab var youngXbadQ         "Young$\times$Bad Q"
-lab var highEdXbadQ        "College$\times$Bad Q"
-lab var youngXhighEdXbadQ  "Young$\times$College$\times$Bad Q"
+lab var youngXbadQ         "Young$\times$ Bad S"
+lab var highEdXbadQ        "College$\times$ Bad S"
+lab var youngXhighEdXbadQ  "Young$\times$ College$\times$ Bad S"
+lab var youngManXbadQ      "Young Man$\times$ Bad S"
 
 
 ********************************************************************************
@@ -79,16 +82,33 @@ local yFE   i.year
 
 eststo: reg goodQuarter young                    
 eststo: reg goodQuarter young                     `yFE'
+eststo: reg goodQuarter young highEd              `yFE'
 eststo: reg goodQuarter young highEd youngXhighEd `yFE'
 
 #delimit ;
-esttab est1 est2 est3 using "$OUT/NVSSBinary.tex",
+esttab est1 est2 est3 est4 using "$OUT/NVSSBinary.tex",
 replace `estopt' title("Birth Quarter and Age (NVSS 2005-2013)")
 keep(_cons young highEd youngX*) style(tex) booktabs mlabels(, depvar)
-postfoot("Year FE&&Y&Y\\ \bottomrule"
-         "\multicolumn{4}{p{10cm}}{\begin{footnotesize}Sample consists of all"
+postfoot("Year FE&&Y&Y&Y\\ \bottomrule"
+         "\multicolumn{5}{p{14cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of US-born, white, non-hispanic mothers"
          "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+
+local cond if fatherAge!=11
+eststo: reg goodQuarter young youngMan                           `cond'
+eststo: reg goodQuarter young youngMan                     `yFE' `cond'
+eststo: reg goodQuarter young youngMan highEd youngXhighEd `yFE' `cond'
+
+#delimit ;
+esttab est1 est2 est3 using "$OUT/NVSSBinaryM.tex",
+replace `estopt' title("Birth Quarter and Age M/F (NVSS 2005-2013)")
+keep(_cons young* highEd youngX*) style(tex) booktabs mlabels(, depvar)
+postfoot("Year FE&&Y&Y\\ \bottomrule"
+         "\multicolumn{4}{p{10cm}}{\begin{footnotesize}Sample consists of all"
+         "first born children of US-born, white, non-hispanic mothers with male"
+         "partners. \end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
 
@@ -108,6 +128,22 @@ postfoot("\bottomrule"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
+
+local cond if fatherAge!=11
+foreach y of varlist `qual' {
+    eststo: reg `y' young badQuarter youngXbadQ youngMan youngManXbad i.year `cond'
+}
+#delimit ;
+esttab est1 est2 est3 est4 est5 est6 est7 using "$OUT/NVSSQualityM.tex",
+replace `estopt' title("Birth Quality by Age and Season M/F (NVSS 2005-2013)")
+keep(_cons young* badQ* youngX*) style(tex) booktabs mlabels(, depvar)
+postfoot("\bottomrule"
+         "\multicolumn{8}{p{15cm}}{\begin{footnotesize}Sample consists of all"
+         "first born children of US-born, white, non-hispanic mothers with male"
+         "partners. \end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+
 
 foreach e in 0 1 {
     if `e'==0 local educN "with no college education"
