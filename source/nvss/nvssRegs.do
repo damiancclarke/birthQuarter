@@ -41,7 +41,7 @@ gen badQuarter = birthQuarter == 4  | birthQuarter == 1
 replace ageGroup  = ageGroup-1 if ageGroup>1
 replace educLevel = educLevel+1 if educLevel < 2
 
-gen highEd              = educLevel == 2
+gen highEd              = educLevel == 2 if educLevel!=.
 gen young               = ageGroup  == 1
 gen youngXhighEd        = young*highEd
 gen youngXbadQ          = young*(1-goodQuarter)
@@ -164,6 +164,21 @@ foreach e in 0 1 {
     estimates clear
 }
 estimates clear
+
+foreach y of varlist `qual' {
+    eststo: reg `y' young badQuarter youngXbadQ highEd i.year
+}
+#delimit ;
+esttab est1 est2 est3 est4 est5 est6 est7 using "$OUT/NVSSQualityEduc.tex",
+replace `estopt' title("Birth Quality by Age and Season (NVSS 2005-2013)")
+keep(_cons young badQ* youngX* highEd) style(tex) booktabs mlabels(, depvar)
+postfoot("\bottomrule"
+         "\multicolumn{8}{p{15cm}}{\begin{footnotesize}Sample consists of all"
+         "first born children of US-born, white, non-hispanic mothers"
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+
 
 ********************************************************************************
 *** (3c) Regressions (Quality on Age, season, triple interaction)

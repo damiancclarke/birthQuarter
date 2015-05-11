@@ -40,7 +40,7 @@ if c(os)=="Unix" local e eps
 if c(os)!="Unix" local e pdf
 
 local stateFE 1
-local twins   1
+local twins   0
 
 if `twins' == 1 local app twins
 
@@ -414,11 +414,12 @@ lab var goodQuarter "Good season of birth"
 lab var married     "Mother has partner"
 lab var hhincome    "Household Income (1000 USD)"
 replace hhincome=hhincome/1000
+replace hhincome=0 if hhincome<0
 
 local vr age educLevel goodQuarter female married hhincome
 estpost tabstat `vr', statistics(mean sd min max) listwise columns(statistics)
 esttab using "$SUM/ipumsSum`app'.tex", title("Descriptive Statistics (IPUMS)") /*
-*/ replace label cells("Mean(fmt(2)) SD(fmt(2)) Min(fmt(0)) Max(fmt(0))") 
+*/ replace label cells("mean(fmt(2)) sd(fmt(2)) min(fmt(0)) max(fmt(0))") 
 
 ************************************************************************************
 *** (X) Close 
