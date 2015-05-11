@@ -36,7 +36,7 @@ if c(os)=="Unix" local e eps
 if c(os)!="Unix" local e pdf
 
 local stateFE 0
-local twins   1
+local twins   0
 if `twins' == 1 local app twins
 
 
@@ -72,7 +72,8 @@ replace birth=birth/total
 sort twin motherAge 
 twoway line birth motherAge if twin==1, || line birth motherAge if twin==2,/*
 */ scheme(s1mono) xtitle("Mother's Age") ytitle("Proportion (first birth)")/*
-*/ legend(label(1 "Single Births") label(2 "Twin Births")) lpattern(dash)
+*/ legend(label(1 "Single Births") label(2 "Twin Births")) lpattern(dash)  /*
+*/ lcolor(gs0)
 graph export "$OUT/ageDescriptiveParity.eps", as(eps) replace
 restore
 
@@ -349,8 +350,6 @@ graph export "$OUT/birthQdiff`app'.eps", as(eps) replace;
 #delimit cr
 restore
 
-
-
 ********************************************************************************
 *** (4) Birth outcomes by groups
 ********************************************************************************
@@ -399,6 +398,18 @@ foreach outcome in `hkbirth' {
     macro shift
 }
 restore
+
+********************************************************************************
+*** (5) Summary stats table
+********************************************************************************
+gen college = educLevel - 1
+
+
+local vr motherAge college goodQuarter birthweight lbw gestat prematu vlbw apgar
+estpost tabstat `vr', by(ageGro) statistics(mean sd) listwise columns(statistics)
+esttab using "$SUM/nvssSum`app'.txt", replace main(mean) aux(sd) /*
+  */ nostar unstack nonote nomtitle nonumber
+
 
 ************************************************************************************
 *** (X) Close

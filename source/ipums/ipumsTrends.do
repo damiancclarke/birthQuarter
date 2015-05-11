@@ -83,8 +83,8 @@ replace twin=twin+1
 bys twin: egen total=sum(birth)
 replace birth=birth/total
 sort twin age
-twoway line birth age if twin==1, || line birth age if twin==2,/*
-*/ scheme(s1mono) xtitle("Mother's Age") ytitle("Proportion (first birth)")/*
+twoway line birth age if twin==1, || line birth age if twin==2, lcolor(gs0) /*
+*/ scheme(s1mono) xtitle("Mother's Age") ytitle("Proportion (first birth)") /*
 */ legend(label(1 "Single Births") label(2 "Twin Births")) lpattern(dash)
 graph export "$OUT/ageDescriptiveParity.eps", as(eps) replace
 restore
