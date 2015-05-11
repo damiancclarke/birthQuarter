@@ -39,7 +39,8 @@ twinEducNVSS   = RES + 'nvss/sumStats/EducSampletwins.txt'
 TallEducIPUM   = RES + 'ipums/sumStats/JustEductwins.txt'
 TallEducNVSS   = RES + 'nvss/sumStats/JustEductwins.txt'
 
-
+sumIPUM = RES + 'ipums/sumStats/ipumsSum.tex' 
+sumNVSS = RES + 'nvss/sumStats/nvssSum.tex'
 
 #==============================================================================
 #== (1b) shortcuts
@@ -52,8 +53,8 @@ tr   = '\\toprule'
 br   = '\\bottomrule'
 mc1  = '\\multicolumn{'
 mc2  = '}}'
-twid = ['10']
-tcm  = ['}{p{17.0cm}}']
+twid = ['10','5']
+tcm  = ['}{p{17.0cm}}','}{p{12.0cm}}']
 mc3  = '{\\begin{footnotesize}\\textsc{Notes:} '
 lname = "Fertility$\\times$desire"
 tname = "Twin$\\times$desire"
@@ -127,15 +128,56 @@ for parity in ['single', 'twin']:
 
 
 #==============================================================================
+#== (3) Basic Sum stats (NVSS and IPUMS)
+#==============================================================================
+sumT = open(TAB + 'sumStats.tex', 'w')
+sumT.write('\\begin{table}[htpb!] \n \\begin{center} \n' 
+'\\caption{Descriptive Statistics (IPUMS and NVSS)}\n \\begin{tabular}{lcccc} '
+'\n \\toprule\\toprule \\vspace{5mm} \n'
+'& Mean & Std. Dev. & Min. & Max. \\\\ \\midrule \n'
+'\multicolumn{5}{l}{\\textbf{Panel A: IPUMS}} \\\\ \n')
+
+NV  = open(sumNVSS, 'r').readlines()
+IP  = open(sumIPUM, 'r').readlines()
+
+for i,line in enumerate(IP):
+    if i>8 and i<17:
+        line = line.replace('\\hline','\\midrule')
+        line = line.replace('Quarter','season of birth')
+        line = line.replace('Season','season of birth')
+        sumT.write(line)
+
+sumT.write('\\midrule \n \\multicolumn{5}{l}{\\textbf{Panel B: NVSS}}\\\\ \n ')
+for i,line in enumerate(NV):
+    if i>8 and i<19:
+        line = line.replace('\\hline','\\midrule')
+        line = line.replace('Quarter','season of birth')
+        sumT.write(line)
+
+sumT.write('\n'+mr+mc1+twid[1]+tcm[1]+mc3+
+           "Each sample consists of all first-born children born to white, "
+           "non-hispanic, US-born mothers. Good season refers to birth quarters"
+           "  2 and 3 (Apr-Jun and Jul-Sept). \n"
+           "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}\\end{center}"
+           "\\end{table}")
+sumT.close()
+
+#==============================================================================
 #== (X) write tables.tex file
 #==============================================================================
 final = open(TAB + "tables.tex", 'w')
 
+final.write("\\input{./../tables/sumStats.tex} \n")
 final.write("\\input{./../tables/sumsingle.tex} \n")
 final.write("\\input{./../tables/sumtwin.tex} \n")
 final.write("\\begin{landscape}")
 final.write("\\input{./../results/ipums/regressions/IPUMSBinary.tex} \n")
+final.write("\\end{landscape}")
+final.write("\\begin{landscape}")
 final.write("\\input{./../results/ipums/regressions/IPUMSBinaryM.tex} \n")
+final.write("\\end{landscape}")
+final.write("\\begin{landscape}")
+final.write("\\input{./../results/ipums/regressions/IPUMSBinarySingle.tex} \n")
 final.write("\\end{landscape}")
 final.write("\\input{./../results/nvss/regressions/NVSSBinary.tex} \n"
 "\\input{./../results/nvss/regressions/NVSSBinaryM.tex} \n"
