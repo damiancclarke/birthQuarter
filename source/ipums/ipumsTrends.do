@@ -40,7 +40,7 @@ if c(os)=="Unix" local e eps
 if c(os)!="Unix" local e pdf
 
 local stateFE 1
-local twins   0
+local twins   1
 
 if `twins' == 1 local app twins
 
@@ -110,7 +110,7 @@ foreach edu of numlist 1 2 {
     bys twin: egen total=sum(birth)
     replace birth=birth/total
     sort twin age
-    twoway line birth age if twin==1, || line birth age if twin==2,/*
+    twoway line birth age if twin==1, || line birth age if twin==2, lcolor(gs0)/*
     */ scheme(s1mono) xtitle("Mother's Age") ytitle("Proportion (first birth)")/*
     */ legend(label(1 "Single Births") label(2 "Twin Births")) lpattern(dash)
     graph export "$OUT/ageDescriptiveParity`title'.eps", as(eps) replace
@@ -256,9 +256,39 @@ listtex using "$SUM/PropWeightedNoTime`app'.tex", rstyle(tabular) replace
       "age group and education level."
       "\end{footnotesize}}\\ \bottomrule\end{tabular}\end{table}");
 #delimit cr
+sort ageGroup educLevel
 drop ageGroup educLevel
 outsheet using "$SUM/EducSample`app'.txt", delimiter("&") replace noquote
 restore
+
+preserve
+collapse (sum) birth [pw=perwt], by(goodQuarter educLevel)
+reshape wide birth, i(educLevel) j(goodQuarter)
+gen totalbirths = birth0 + birth1
+replace birth0=round(10000*birth0/totalbirths)/100
+replace birth1=round(10000*birth1/totalbirths)/100
+gen diff            = birth1 - birth0
+gen rati            = birth1 / birth0
+gen str4 difference = string(diff, "%04.2f")
+gen str4 ratio      = string(rati, "%04.2f")
+drop totalbirths diff rati
+
+#delimit ;
+listtex using "$SUM/PropJustEduc`app'.tex", rstyle(tabular) replace
+ head("\vspace{8mm}\begin{table}[htpb!]"
+  "\centering\caption{Percent of Births per Cell (Weighted, All Years)}"
+  "\begin{tabular}{lcccc}\toprule" 
+  "College&Bad Season&Good Season&Difference&Ratio \\ \midrule")
+ foot("\midrule\multicolumn{5}{p{9.5cm}}{\begin{footnotesize}\textsc{Notes:}"
+      "Good Quarters refer to birth quarters 2 and 3, while Bad Quarters refer"
+      "to quarters 4 and 1. All values reflect the percent of births for this"
+      "age group and education level."
+      "\end{footnotesize}}\\ \bottomrule\end{tabular}\end{table}");
+#delimit cr
+drop educLevel
+outsheet using "$SUM/JustEduc`app'.txt", delimiter("&") replace noquote
+restore
+
 
 preserve
 collapse (sum) birth [pw=perwt], by(goodQuarter ageGroup)
@@ -377,14 +407,18 @@ restore
 *** (4) Summary stats table
 ********************************************************************************
 replace educLevel = educLevel - 1
-    
+
+lab var age         "Mother's Age"
+lab var educLevel   "At least some college"
+lab var goodQuarter "Good season of birth"
+lab var married     "Mother has partner"
+lab var hhincome    "Household Income (1000 USD)"
+replace hhincome=hhincome/1000
+
 local vr age educLevel goodQuarter female married hhincome
-estpost tabstat `vr', by(ageGro) statistics(mean sd) listwise columns(statistics)
-esttab using "$SUM/ipumsSum`app'.txt", replace main(mean) aux(sd) /*
-  */ nostar unstack nonote nomtitle nonumber
-
-
-
+estpost tabstat `vr', statistics(mean sd min max) listwise columns(statistics)
+esttab using "$SUM/ipumsSum`app'.tex", title("Descriptive Statistics (IPUMS)") /*
+*/ replace label cells("Mean(fmt(2)) SD(fmt(2)) Min(fmt(0)) Max(fmt(0))") 
 
 ************************************************************************************
 *** (X) Close 
