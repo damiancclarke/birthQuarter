@@ -209,7 +209,7 @@ local wt    [pw=perwt]
 gen highEd = educLevel == 2
 gen young  = ageGroup  == 1
 gen youngXhighEd = young*highEd
-gen youngMan     = ageGroupMan == 1
+gen youngMan     = ageGroupMan == 1 if ageGroupMan!=.
 
 lab var goodQuarter "Good S"
 lab var highEd      "College Educ"
@@ -266,3 +266,28 @@ postfoot("\midrule Year FE&&Y&Y&Y&Y&Y\\ State FE&&&Y&Y&Y&Y\\"
          "season). Linear probability models are estimated by OLS."
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
+estimates clear
+
+local cond if _merge==1
+eststo: reg goodQuarter young                             `wt' `cond', `se'
+eststo: reg goodQuarter young         `yFE'               `wt' `cond', `se' 
+eststo: reg goodQuarter young         `yFE' `sFE'         `wt' `cond', `se'
+eststo: reg goodQuarter young           `sxyFE'           `wt' `cond', `se'
+eststo: reg goodQuarter young highEd    `sxyFE'           `wt' `cond', `se'
+eststo: reg goodQuarter young highEd    `sxyFE'   `ctrls' `wt' `cond', `se'
+
+#delimit ;
+esttab est1 est2 est3 est4 est5 est6 using "$OUT/IPUMSBinarySingle.tex",
+replace `estopt' title("Proportion of births by Season (Single Women)")
+keep(_cons young highEd hhinc* marr*) style(tex) booktabs mlabels(, depvar) 
+postfoot("\midrule Year FE&&Y&Y&Y&Y&Y\\ State FE&&&Y&Y&Y&Y\\"
+        "State$\times$ Year FE&&&&Y&Y&Y\\ Occupation FE &&&&&&Y\\ \bottomrule"
+        "\multicolumn{7}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
+         "first born children of US-born, white, non-hispanic mothers with no"
+         "partners.  Standard errors are clustered by state, and inverse"
+         "probability weights are used.  The outcome variable is a binary"
+         "variable equal to 1 for individuals born in birth quarters 2 or 3"
+         "(good season). Linear probability models are estimated by OLS."
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
