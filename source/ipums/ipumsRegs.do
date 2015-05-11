@@ -38,6 +38,9 @@ gen ageGroup = age>=25 & age<=39
 replace ageGroup = 2 if age>=40 & age<=45
 drop if ageGroup == 0
 
+gen ageGroupMan = age_man>39 if age_man!=.
+replace ageGroupMan = ageGroupMan + 1
+
 gen educLevel = .
 replace educLevel = 1 if educ<=6
 replace educLevel = 2 if educ>6 & educ<=11
@@ -58,6 +61,7 @@ gen female     = sex1==2
 *** (2b) Label for clarity
 ********************************************************************************
 lab def aG  1 "25-39" 2 "40-45"
+lab def aGM 1 "Male under 40" 2 "Male over 40"
 lab def pr  1 "Pre-crisis" 2 "Crisis" 3 "Post-crisis"
 lab def gQ  0 "quarter 4(t) or quarter 1(t+1)" 1 "quarter 2(t) or quarter 3(t)"
 lab def eL  1 "No College" 2 "1-5 years"
@@ -66,9 +70,11 @@ lab val period      pr
 lab val ageGroup    aG
 lab val goodQuarter gQ
 lab val educLevel   eL
+lab val ageGroupMan aGM
 
 lab var goodQuarter  "Good Quarter"
 lab var ageGroup     "Categorical age group"
+lab var ageGroupMan  "Categorical age group (man)"
 lab var period       "Period of time considered (pre/crisis/post)"
 lab var educLevel    "Level of education obtained by mother"
 
@@ -194,7 +200,7 @@ estimates clear
 *** (4) regressions of good season of birth
 ********************************************************************************
 set matsize 3000
-local ctrls hhincome hhincomeSq married female
+local ctrls hhincome married i.occ1990
 local yFE   i.year
 local sFE   i.statefip
 local sxyFE i.year##i.statefip
@@ -203,6 +209,7 @@ local wt    [pw=perwt]
 gen highEd = educLevel == 2
 gen young  = ageGroup  == 1
 gen youngXhighEd = young*highEd
+gen youngMan     = ageGroupMan == 1
 
 lab var goodQuarter "Good S"
 lab var highEd      "College Educ"
@@ -212,24 +219,48 @@ lab var female      "Female child"
 lab var hhincomeSq  "household income squared"  
 lab var married     "Married"
 
-eststo: reg goodQuarter young                                   `wt', `se'
-eststo: reg goodQuarter young               `yFE'               `wt', `se' 
-eststo: reg goodQuarter young               `yFE' `sFE'         `wt', `se'
-eststo: reg goodQuarter young                 `sxyFE'           `wt', `se'
-eststo: reg goodQuarter young highEd          `sxyFE'           `wt', `se'
-eststo: reg goodQuarter young highEd          `sxyFE'   `ctrls' `wt', `se'
-eststo: reg goodQuarter young highEd youngX   `sxyFE'   `ctrls' `wt', `se'
-eststo: reg goodQuarter young highEd youngX   `sxyFE'           `wt', `se'
+eststo: reg goodQuarter young                             `wt', `se'
+eststo: reg goodQuarter young         `yFE'               `wt', `se' 
+eststo: reg goodQuarter young         `yFE' `sFE'         `wt', `se'
+eststo: reg goodQuarter young           `sxyFE'           `wt', `se'
+eststo: reg goodQuarter young highEd    `sxyFE'           `wt', `se'
+eststo: reg goodQuarter young highEd    `sxyFE'   `ctrls' `wt', `se'
 
 #delimit ;
-esttab est1 est2 est3 est4 est5 est6 est7 est8 using "$OUT/IPUMSBinary.tex",
+esttab est1 est2 est3 est4 est5 est6 using "$OUT/IPUMSBinary.tex",
 replace `estopt' title("Proportion of births by Season (IPUMS 2005-2013)")
-keep(_cons young highEd youngX* `ctrls') style(tex) booktabs mlabels(, depvar) 
-postfoot("\midrule Year FE&&Y&Y&Y&Y&Y&Y&Y\\ State FE&&&Y&Y&Y&Y&Y&Y\\"
-        "State$\times$ Year FE&&&&Y&Y&Y&Y&Y\\ \bottomrule"
-        "\multicolumn{9}{p{20.6cm}}{\begin{footnotesize}Sample consists of all"
+keep(_cons young highEd hhinc* marr*) style(tex) booktabs mlabels(, depvar) 
+postfoot("\midrule Year FE&&Y&Y&Y&Y&Y\\ State FE&&&Y&Y&Y&Y\\"
+        "State$\times$ Year FE&&&&Y&Y&Y\\ Occupation FE &&&&&&Y\\ \bottomrule"
+        "\multicolumn{7}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of US-born, white, non-hispanic mothers."
          "Standard errors are clustered by state, and inverse probability"
+         "weights are used.  The outcome variable is a binary variable"
+         "equal to 1 for individuals born in birth quarters 2 or 3 (good"
+         "season). Linear probability models are estimated by OLS."
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+
+local ageY young youngMan
+
+eststo: reg goodQuarter `ageY'                             `wt', `se'
+eststo: reg goodQuarter `ageY'         `yFE'               `wt', `se' 
+eststo: reg goodQuarter `ageY'         `yFE' `sFE'         `wt', `se'
+eststo: reg goodQuarter `ageY'           `sxyFE'           `wt', `se'
+eststo: reg goodQuarter `ageY' highEd    `sxyFE'           `wt', `se'
+eststo: reg goodQuarter `ageY' highEd    `sxyFE'   `ctrls' `wt', `se'
+
+#delimit ;
+esttab est1 est2 est3 est4 est5 est6 using "$OUT/IPUMSBinaryM.tex",
+replace `estopt' title("Proportion of births by Season, M/F (IPUMS 2005-2013)")
+keep(_cons `ageY' highEd hhinc* mar*) style(tex) booktabs mlabels(, depvar) 
+postfoot("\midrule Year FE&&Y&Y&Y&Y&Y\\ State FE&&&Y&Y&Y&Y\\"
+        "State$\times$ Year FE&&&&Y&Y&Y\\"
+        "Occupation FE &&&&&&Y\\ \bottomrule"
+        "\multicolumn{7}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
+         "first born children of US-born, white, non-hispanic mothers with male"
+         "partners. Standard errors are clustered by state, and inverse probability"
          "weights are used.  The outcome variable is a binary variable"
          "equal to 1 for individuals born in birth quarters 2 or 3 (good"
          "season). Linear probability models are estimated by OLS."
