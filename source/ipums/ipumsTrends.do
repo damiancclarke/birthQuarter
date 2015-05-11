@@ -40,7 +40,7 @@ if c(os)=="Unix" local e eps
 if c(os)!="Unix" local e pdf
 
 local stateFE 1
-local twins   1
+local twins   0
 
 if `twins' == 1 local app twins
 
@@ -56,6 +56,7 @@ if _rc!=0 ssc install listtex
 *** (2a) open file, descriptive graphs
 ********************************************************************************
 use "$DAT/`data'"
+
 keep if race==1 & race1==1 & hispan==0 & hispan1==0
 keep if bpl<150 & bpl1<150
 keep if age>=25 & age<=45
@@ -143,7 +144,10 @@ replace period = 2 if year>=2008&year<=2009
 replace period = 3 if year>=2010&year<=2013
 
 gen goodQuarter = birthqtr1==2|birthqtr1==3 
-
+gen married    = marst==1|marst==2
+gen hhincomeSq = hhincome^2
+gen female     = sex1==2
+count
 ********************************************************************************
 *** (2d) Label for clarity
 ********************************************************************************
@@ -370,25 +374,14 @@ restore
 
 
 ********************************************************************************
-*** (4) Concentrate state FE 
+*** (4) Summary stats table
 ********************************************************************************
-preserve
-collapse (sum) birth [pw=perwt], by(goodQuarter ageGroup year statefip)
-gen birthHat = .
-foreach num of numlist 1(1)3 {
-    qui reg birth i.statefip
-    predict bh if e(sample), residual
-    replace birthHat = bh if e(sample)
-    drop bh
-}
-collapse birthHat, by(goodQuarter ageGroup)
-reshape wide birthHat, i(ageGroup) j(goodQuarter)
-gen totalbirths = birthHat0 + birthHat1
-replace birthHat0=(round(10000*birthHat0/totalbirths)/100)
-replace birthHat1=(round(10000*birthHat1/totalbirths)/100)
-
-
-restore
+replace educLevel = educLevel - 1
+    
+local vr age educLevel goodQuarter female married hhincome
+estpost tabstat `vr', by(ageGro) statistics(mean sd) listwise columns(statistics)
+esttab using "$SUM/ipumsSum`app'.txt", replace main(mean) aux(sd) /*
+  */ nostar unstack nonote nomtitle nonumber
 
 
 
