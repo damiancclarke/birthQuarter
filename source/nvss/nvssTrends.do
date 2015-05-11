@@ -44,6 +44,7 @@ if `twins' == 1 local app twins
 *** (2a) Use, descriptive graph
 ********************************************************************************
 use $DAT/nvss2005_2013
+
 histogram motherAge, frac scheme(s1mono) xtitle("Mother's Age")
 graph export "$OUT/ageDescriptive.eps", as(eps) replace
 
@@ -99,7 +100,8 @@ foreach edu of numlist 1 2 {
     sort twin motherAge
     twoway line birth motherAge if twin==1, || line birth motherAge if twin==2,/*
     */ scheme(s1mono) xtitle("Mother's Age") ytitle("Proportion (first birth)")/*
-    */ legend(label(1 "Single Births") label(2 "Twin Births")) lpattern(dash)
+    */ legend(label(1 "Single Births") label(2 "Twin Births")) lpattern(dash)  /*
+    */ lcolor(gs0)
     graph export "$OUT/ageDescriptiveParity`title'.eps", as(eps) replace
     restore
 }
@@ -232,9 +234,45 @@ decode ageGroup, gen(ag)
 decode educLevel, gen(el)
 egen group=concat(ag el)
 order group
+sort ageGroup educLevel
 drop ageGroup educLevel ag el
 outsheet using "$SUM/EducSample`app'.txt", delimiter("&") replace noquote
 restore
+
+preserve
+drop if educLevel==.
+collapse (sum) birth, by(goodQuarter educLevel)
+reshape wide birth, i(educLevel) j(goodQuarter)
+gen totalbirths = birth0 + birth1
+replace birth0=round(10000*birth0/totalbirths)/100
+replace birth1=round(10000*birth1/totalbirths)/100
+gen diff            = birth1 - birth0
+gen rati            = birth1 / birth0
+gen str5 b0         = string(birth0, "%05.2f")
+gen str5 b1         = string(birth1, "%05.2f")
+gen str4 difference = string(diff, "%04.2f")
+gen str4 ratio      = string(rati, "%04.2f")
+
+drop totalbirths diff rati birth*
+
+#delimit ;
+listtex using "$SUM/PropNoTimeEduc`app'.tex", rstyle(tabular) replace
+ head("\vspace{8mm}\begin{table}[htpb!]"
+        "\centering\caption{Percent of Births per Cell (All Years)}"
+        "\begin{tabular}{lcccc}\toprule"
+        "College&Bad Quarters&Good Quarters&Difference&Ratio \\ \midrule")
+ foot("\midrule\multicolumn{5}{p{9cm}}{\begin{footnotesize}\textsc{Notes:}"
+            "Good Quarters refer to birth quarters 2 and 3, while Bad Quarters refer"
+            "to quarters 4 and 1. All values reflect the percent of births for this"
+            "age group and education level."
+            "\end{footnotesize}}\\ \bottomrule\end{tabular}\end{table}");
+#delimit cr
+decode educLevel, gen(el)
+order el
+drop educLevel
+outsheet using "$SUM/JustEduc`app'.txt", delimiter("&") replace noquote
+restore
+
 
 preserve
 drop if educLevel==.
@@ -404,11 +442,24 @@ restore
 ********************************************************************************
 gen college = educLevel - 1
 
+count
+tab ageGroup
 
-local vr motherAge college goodQuarter birthweight lbw gestat prematu vlbw apgar
-estpost tabstat `vr', by(ageGro) statistics(mean sd) listwise columns(statistics)
-esttab using "$SUM/nvssSum`app'.txt", replace main(mean) aux(sd) /*
-  */ nostar unstack nonote nomtitle nonumber
+lab var motherAge   "Mother's Age"
+lab var college     "At least some college"
+lab var goodQuarter "Good Quarter"
+lab var birthweight "Birthweight (grams)"
+lab var lbw         "Low Birth Weight ($<$2500 g)"
+lab var gestation   "Weeks of Gestation"
+lab var premature   "Premature ($<$ 37 weeks)"
+lab var apgar       "APGAR (1-10)"
+
+local vr motherAge college goodQuarter birthweight lbw gestat prematu apgar
+sum `vr'
+estpost tabstat `vr', statistics(mean sd min max) listwise columns(statistics)
+esttab using "$SUM/nvssSum`app'.tex", title("Descriptive Statistics (NVSS)") /*
+*/ replace label cells("mean(fmt(2)) sd(fmt(2)) min(fmt(0)) max(fmt(0))")
+
 
 
 ************************************************************************************
