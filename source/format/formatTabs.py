@@ -28,12 +28,16 @@ singleIPUM       = RES + 'ipums/sumStats/FullSample.txt'
 singleNVSS       = RES + 'nvss/sumStats/FullSample.txt'
 singleEducIPUM   = RES + 'ipums/sumStats/EducSample.txt'
 singleEducNVSS   = RES + 'nvss/sumStats/EducSample.txt'
+allEducIPUM      = RES + 'ipums/sumStats/JustEduc.txt'
+allEducNVSS      = RES + 'nvss/sumStats/JustEduc.txt'
 
 
 twinIPUM       = RES + 'ipums/sumStats/FullSampletwins.txt'
 twinNVSS       = RES + 'nvss/sumStats/FullSampletwins.txt'
 twinEducIPUM   = RES + 'ipums/sumStats/EducSampletwins.txt'
 twinEducNVSS   = RES + 'nvss/sumStats/EducSampletwins.txt'
+TallEducIPUM   = RES + 'ipums/sumStats/JustEductwins.txt'
+TallEducNVSS   = RES + 'nvss/sumStats/JustEductwins.txt'
 
 
 
@@ -70,12 +74,16 @@ for parity in ['single', 'twin']:
         IP  = open(twinIPUM, 'r').readlines()
         NVe = open(twinEducNVSS, 'r').readlines()
         IPe = open(twinEducIPUM, 'r').readlines()
+        NVj = open(TallEducNVSS, 'r').readlines()
+        IPj = open(TallEducIPUM, 'r').readlines()
         headline = 'Twins'
     elif parity=='single':
         NV  = open(singleNVSS, 'r').readlines()
         IP  = open(singleIPUM, 'r').readlines()
         NVe = open(singleEducNVSS, 'r').readlines()
         IPe = open(singleEducIPUM, 'r').readlines()
+        NVj = open(allEducNVSS, 'r').readlines()
+        IPj = open(allEducIPUM, 'r').readlines()
         headline = 'Singletons'
 
     sumT.write("\\begin{landscape}\\begin{table}[htpb!]"
@@ -92,7 +100,12 @@ for parity in ['single', 'twin']:
     
     sumT.write(NV[1]+'&&'+IP[1]+'\\\\ \n'
                +NV[2]+'&&'+IP[2]+'\\\\ \n &&&&&&&&& \\\\'
-               "\multicolumn{10}{l}{\\textsc{Panel B: By Age and Education}}\\\\"
+               "\multicolumn{10}{l}{\\textsc{Panel B: By Education}}\\\\"
+               "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*9+
+               "\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
+               NVj[1]+'&&'+IPj[1]+'\\\\ \n'+
+               NVj[2]+'&&'+IPj[2]+'\\\\ \n &&&&&&&&& \\\\'
+               "\multicolumn{10}{l}{\\textsc{Panel C: By Age and Education}}\\\\"
                "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*9+
                "\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
                NVe[1]+'&&'+IPe[1]+'\\\\ \n'+
@@ -106,7 +119,7 @@ for parity in ['single', 'twin']:
                "Good season refers to birth quarters 2 and 3 (Apr-Jun and Jul-Sept).  Bad "
                "quarter refers to quarters 1 and 4 (Jan-Mar and Oct-Dec).  Values reflect "
                "the percent of yearly births each season from 2005-2013. `Young' refers to"
-               " 20-39 year olds, `Old' refers to 40-45 year olds. \n"
+               " 25-39 year olds, `Old' refers to 40-45 year olds. \n"
                "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}\\end{center}"
                "\\end{table}\\end{landscape}")
     
