@@ -99,14 +99,15 @@ estimates clear
 local cond if fatherAge!=11
 eststo: reg goodQuarter young youngMan                           `cond'
 eststo: reg goodQuarter young youngMan                     `yFE' `cond'
+eststo: reg goodQuarter young youngMan highEd              `yFE' `cond'
 eststo: reg goodQuarter young youngMan highEd youngXhighEd `yFE' `cond'
 
 #delimit ;
-esttab est1 est2 est3 using "$OUT/NVSSBinaryM.tex",
+esttab est1 est2 est3 est4 using "$OUT/NVSSBinaryM.tex",
 replace `estopt' title("Birth Quarter and Age M/F (NVSS 2005-2013)")
 keep(_cons young* highEd youngX*) style(tex) booktabs mlabels(, depvar)
 postfoot("Year FE&&Y&Y\\ \bottomrule"
-         "\multicolumn{4}{p{10cm}}{\begin{footnotesize}Sample consists of all"
+         "\multicolumn{4}{p{14cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of US-born, white, non-hispanic mothers with male"
          "partners. \end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
