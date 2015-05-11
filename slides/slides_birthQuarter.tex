@@ -1,7 +1,7 @@
 \documentclass[10pt,letterpaper,subeqn]{beamer}
 \setbeamertemplate{navigation symbols}{}
 \usefonttheme{serif}
-\usecolortheme{orchid}
+\usecolortheme{seahorse}
 
 
 
@@ -22,7 +22,9 @@
 \usepackage{multirow}
 \usepackage{caption}
 \usepackage{subcaption}
+\usepackage{subfloat}
 \setbeamertemplate{caption}[numbered]
+\usepackage{wrapfig}
 
 %================================================================================
 %== TITLE, NAMES, DATE
@@ -47,8 +49,126 @@ Constraints}
 \titlepage
 \end{frame}
 
+\begin{frame}[label=sum]
+\input{./tables/sumStats.tex}
+\end{frame}
+
+\begin{frame}[label=births]
+\frametitle{Maternal Age at Birth: USA}
+\begin{figure}[htpb!]
+\begin{center}
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.37]{./../results/nvss/graphs/ageDescriptiveParity.eps}
+  \caption{Birth certificate data (NVSS)}
+  \label{fig:NVSSbirths}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.37]{./../results/ipums/graphs/ageDescriptiveParity.eps}
+  \caption{IPUMS (ACS) survey}
+  \label{fig:IPUMSbirths}
+\end{subfigure}
+\caption{Age at first birth in USA}
+\label{fig:births}
+\end{center}
+\end{figure}
+\footnotesize{Note to figures: Cohorts are made up of all individuals 
+from the DHS who are over 35 years (for fertility), and over 15 years (for education).  
+In each case the sample is restricted to those who have approximately completed fertility 
+and education respectively.}
+\end{frame}
 
 
+\begin{frame}[label=birthsCollege]
+\frametitle{Maternal Age at Birth (College Education and Above)}
+\begin{figure}[htpb!]
+\begin{center}
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.37]{./../results/nvss/graphs/ageDescriptiveParitySomeCollege.eps}
+  \caption{Birth certificate data (NVSS)}
+  \label{fig:NVSSbirths}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.37]{./../results/ipums/graphs/ageDescriptiveParitySomeCollege.eps}
+  \caption{IPUMS (ACS) survey}
+  \label{fig:IPUMSbirths}
+\end{subfigure}
+\caption{Age at first birth in USA (College Educated Women)}
+\label{fig:births}
+\end{center}
+\end{figure}
+\footnotesize{Note to figures: Cohorts are made up of all individuals 
+from the DHS who are over 35 years (for fertility), and over 15 years (for education).  
+In each case the sample is restricted to those who have approximately completed fertility 
+and education respectively.}
+\end{frame}
+
+\begin{frame}[label=single]
+\input{./tables/sumsingle.tex}
+\hyperlink{twin}{\beamergotobutton{For Twins}}
+\end{frame}
+
+\begin{frame}[label=NVSSseason]
+\frametitle{Season of Birth, Age and Education}
+\input{./tables/NVSSBinary.tex}
+\end{frame}
+
+\begin{frame}[label=IPUMSseason]
+%\frametitle{Season of Birth, Age and Education}
+\input{./tables/IPUMSBinary.tex}
+\end{frame}
+
+\begin{frame}[label=IPUMSseasonSingle]
+%\frametitle{Season of Birth, Age and Education}
+\input{./tables/IPUMSBinarySingle.tex}
+\end{frame}
+
+\begin{frame}[label=Bwt]
+\frametitle{Child Health and Season of Birth}
+\begin{figure}
+  \includegraphics[scale=0.68]{./../results/nvss/graphs/AllQuality_birthweight_.eps}
+  \caption{Child Quality: Birthweight (grams)}
+  \label{fig:Bwt}
+\end{figure}
+\end{frame}
+
+\begin{frame}[label=Bwt]
+\frametitle{Child Health and Season of Birth (By Education)}
+\begin{figure}
+  \includegraphics[scale=0.68]{./../results/nvss/graphs/Quality_birthweight_.eps}
+  \caption{Child Quality: Birthweight (grams)}
+  \label{fig:BwtEduc}
+\end{figure}
+\end{frame}
+
+
+\begin{frame}[label=Quality]
+\frametitle{Child Quality and Season of Birth}
+\input{./tables/NVSSQuality.tex}
+\end{frame}
+
+\begin{frame}[label=Quality]
+\frametitle{Child Quality and Season of Birth with Education}
+\input{./tables/NVSSQualityEduc.tex}
+\end{frame}
+
+
+
+
+\begin{frame}
+\begin{center}
+\large \textcolor{blue}{Appendix Tables}
+\end{center}
+\end{frame}
+
+
+\begin{frame}[label=twin]
+\input{./tables/sumtwin.tex}
+\hyperlink{single}{\beamergotobutton{Back}}
+\end{frame}
 
 
 \end{document}

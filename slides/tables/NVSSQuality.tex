@@ -1,0 +1,25 @@
+\begin{table}[htbp]\centering
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\caption{Birth Quality by Age and Season (NVSS 2005-2013)}
+\scalebox{0.68}{
+\begin{tabular}{l*{7}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}   &\multicolumn{1}{c}{(2)}   &\multicolumn{1}{c}{(3)}   &\multicolumn{1}{c}{(4)}   &\multicolumn{1}{c}{(5)}   &\multicolumn{1}{c}{(6)}   &\multicolumn{1}{c}{(7)}   \\
+                    &       APGAR   & Birthweight   &   Gestation   &         LBW   &   Premature   &        Twin   &        VLBW   \\
+\midrule
+Aged 25-39          &       0.045***&     127.949***&       0.601***&      -0.054***&      -0.065***&      -0.052***&      -0.010***\\
+                    &     [0.003]   &     [2.224]   &     [0.009]   &     [0.001]   &     [0.001]   &     [0.001]   &     [0.000]   \\
+Bad Season          &       0.002   &      -6.537** &      -0.005   &       0.004***&       0.002   &       0.001   &      -0.001   \\
+                    &     [0.004]   &     [3.090]   &     [0.013]   &     [0.001]   &     [0.002]   &     [0.001]   &     [0.001]   \\
+Young$\times$ Bad S &      -0.004   &      -4.140   &      -0.025*  &      -0.001   &       0.001   &       0.000   &       0.001** \\
+                    &     [0.004]   &     [3.136]   &     [0.013]   &     [0.001]   &     [0.002]   &     [0.001]   &     [0.001]   \\
+&&&&&&&\\
+Constant            &       8.794***&    3192.309***&      38.193***&       0.127***&       0.175***&       1.083***&       0.022***\\
+                    &     [0.003]   &     [2.316]   &     [0.010]   &     [0.001]   &     [0.001]   &     [0.001]   &     [0.000]   \\
+\midrule
+R-squared           &        0.00   &        0.00   &        0.00   &        0.00   &        0.00   &        0.00   &        0.00   \\
+Observations        &     4760187   &     4857290   &     4866795   &     4871628   &     4871628   &     4871628   &     4871628   \\
+\bottomrule
+\multicolumn{8}{p{12cm}}{\begin{footnotesize}Sample consists of all
+first born children of US-born, white, non-hispanic mothers
+\end{footnotesize}}\end{tabular}}\end{table}

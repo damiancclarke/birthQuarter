@@ -1,0 +1,24 @@
+\begin{table}[htbp]\centering
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\caption{Birth Quarter and Age (NVSS 2005-2013)}
+\scalebox{0.8}{
+\begin{tabular}{l*{4}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}   &\multicolumn{1}{c}{(2)}   &\multicolumn{1}{c}{(3)}   &\multicolumn{1}{c}{(4)}   \\
+                    & Good Season   & Good Season   & Good Season   & Good Season   \\
+\midrule
+Aged 25-39          &       0.019***&       0.019***&       0.020***&       0.006   \\
+                    &     [0.001]   &     [0.001]   &     [0.002]   &     [0.005]   \\
+College Educ        &               &               &       0.010***&      -0.005   \\
+                    &               &               &     [0.001]   &     [0.005]   \\
+College$\times$ Aged 25-39&               &               &               &       0.015***\\
+                    &               &               &               &     [0.005]   \\
+Constant            &       0.497***&       0.497***&       0.488***&       0.501***\\
+                    &     [0.001]   &     [0.001]   &     [0.002]   &     [0.005]   \\
+\midrule
+R-squared           &        0.00   &        0.00   &        0.00   &        0.00   \\
+Observations        &     4871628   &     4871628   &     3613920   &     3613920   \\
+Year FE&&Y&Y&Y\\ \bottomrule
+\multicolumn{5}{p{12cm}}{\begin{footnotesize}Sample consists of all
+first born children of US-born, white, non-hispanic mothers
+\end{footnotesize}}\end{tabular}}\end{table}

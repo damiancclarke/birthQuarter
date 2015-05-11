@@ -1,0 +1,35 @@
+\begin{table}[htbp]\centering
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\caption{Descriptive Statistics (IPUMS and NVSS)}
+\scalebox{0.8}{
+\begin{tabular}{l*{1}{cccc}}
+\toprule \toprule
+                    &\multicolumn{4}{c}{}                               \\
+                    &        Mean&          s.d.&         Min&         Max\\ \midrule
+\multicolumn{5}{l}{\textbf{Panel A: IPUMS}}\\
+Mother's Age        &       31.55&        4.31&          25&          45\\
+At least some college&        0.79&        0.41&           0&           1\\
+Good season of birth&        0.52&        0.50&           0&           1\\
+female              &        0.49&        0.50&           0&           1\\
+Mother has partner  &        0.93&        0.26&           0&           1\\
+Household Income (1000 USD)&       93.58&       81.56&           0&        1508\\
+\midrule
+Observations        &      107,155&            &            &            \\
+\midrule
+\multicolumn{5}{l}{\textbf{Panel B: NVSS}}\\
+Mother's Age        &       30.15&        4.01&          25&          45\\
+At least some college&        0.87&        0.33&           0&           1\\
+Good season of birth        &        0.52&        0.50&           0&           1\\
+Birthweight (grams) &     3340.29&      544.71&         500&        5000\\
+Low Birth Weight ($<$2500 g)&        0.06&        0.23&           0&           1\\
+Weeks of Gestation  &       38.99&        2.18&          17&          47\\
+Premature ($<$ 37 weeks)&        0.09&        0.28&           0&           1\\
+APGAR (1-10)        &        8.79&        0.78&           0&          10\\
+\hline
+Observations        &     3,424,019&            &            &            \\
+\bottomrule
+\multicolumn{5}{p{9.9cm}}{\begin{footnotesize}\textsc{Notes:} Each sample consists of firstborn
+children born to non-hispanic, white, US-born mothers.  Good season refers to birth quarters 2 and 3.
+\end{footnotesize}}
+\end{tabular}}
+\end{table}

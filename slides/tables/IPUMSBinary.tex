@@ -1,0 +1,32 @@
+\begin{table}[htbp]\centering
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\caption{Proportion of births by Season (IPUMS 2005-2013)}
+\vspace{-1mm}
+\scalebox{0.72}{
+\begin{tabular}{l*{6}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}   &\multicolumn{1}{c}{(2)}   &\multicolumn{1}{c}{(3)}   &\multicolumn{1}{c}{(4)}   &\multicolumn{1}{c}{(5)}   &\multicolumn{1}{c}{(6)}   \\
+                    &      Good S   &      Good S   &      Good S   &      Good S   &      Good S   &      Good S   \\
+\midrule
+Aged 25-39          &       0.022** &       0.022** &       0.022** &       0.022** &       0.023** &       0.021*  \\
+                    &     [0.010]   &     [0.010]   &     [0.011]   &     [0.011]   &     [0.011]   &     [0.011]   \\
+College Educ        &               &               &               &               &       0.012***&       0.010** \\
+                    &               &               &               &               &     [0.004]   &     [0.005]   \\
+Total household income&               &               &               &               &               &      -0.000   \\
+                    &               &               &               &               &               &     [0.000]   \\
+Married             &               &               &               &               &               &       0.002   \\
+                    &               &               &               &               &               &     [0.007]   \\
+Constant            &       0.503***&       0.510***&       0.529***&       0.554***&       0.544***&       0.518***\\
+                    &     [0.010]   &     [0.010]   &     [0.010]   &     [0.010]   &     [0.011]   &     [0.030]   \\
+\midrule
+R-squared           &        0.00   &        0.00   &        0.00   &        0.01   &        0.01   &        0.01   \\
+Observations        &      109495   &      109495   &      109495   &      109495   &      109495   &      109495   \\
+\midrule Year FE&&Y&Y&Y&Y&Y\\ State FE&&&Y&Y&Y&Y\\
+State$\times$ Year FE&&&&Y&Y&Y\\ Occupation FE &&&&&&Y\\ \bottomrule
+\multicolumn{7}{p{13.9cm}}{\begin{footnotesize}Sample consists of all
+first born children of US-born, white, non-hispanic mothers.
+Standard errors are clustered by state, and inverse probability
+weights are used.  The outcome variable is a binary variable
+equal to 1 for individuals born in birth quarters 2 or 3 (good
+season). Linear probability models are estimated by OLS.
+\end{footnotesize}}\end{tabular}}\end{table}
