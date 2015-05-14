@@ -97,25 +97,33 @@ postfoot("Year FE&&Y&Y&Y\\ \bottomrule"
 estimates clear
 
 foreach m of numlist 0 1 {
-    local cond if married==`m'
-    if `m'==0 local Title "unmarried"
-    if `m'==1 local Title "married"
+    foreach g in smk mar {
+        if `"`g'"'=="smk" {
+            local cond if smoker==`m'
+            if `m'==0 local Title "smoking"
+            if `m'==1 local Title "non-smoking"
+        }
+        if `"`g'"'=="mar" {
+            local cond if married==`m'
+            if `m'==0 local Title "unmarried"
+            if `m'==1 local Title "married"
+        }
+        eststo: reg goodQuarter young                           `cond'
+        eststo: reg goodQuarter young                     `yFE' `cond'
+        eststo: reg goodQuarter young highEd              `yFE' `cond'
+        eststo: reg goodQuarter young highEd youngXhighEd `yFE' `cond'
     
-    eststo: reg goodQuarter young                           `cond'
-    eststo: reg goodQuarter young                     `yFE' `cond'
-    eststo: reg goodQuarter young highEd              `yFE' `cond'
-    eststo: reg goodQuarter young highEd youngXhighEd `yFE' `cond'
-    
-    #delimit ;
-    esttab est1 est2 est3 est4 using "$OUT/NVSSBinary`Title'.tex",
-    replace `estopt' title("Birth Season and Age (NVSS: `Title' women)")
-    keep(_cons young highEd youngX*) style(tex) booktabs mlabels(, depvar)
-    postfoot("Year FE&&Y&Y&Y\\ \bottomrule"
+        #delimit ;
+        esttab est1 est2 est3 est4 using "$OUT/NVSSBinary`Title'.tex",
+        replace `estopt' title("Birth Season and Age (NVSS: `Title' women)")
+        keep(_cons young highEd youngX*) style(tex) booktabs mlabels(, depvar)
+        postfoot("Year FE&&Y&Y&Y\\ \bottomrule"
          "\multicolumn{5}{p{14cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of US-born, white, non-hispanic, `Title' mothers."
          "\end{footnotesize}}\end{tabular}\end{table}");
-    #delimit cr
-    estimates clear
+        #delimit cr
+        estimates clear
+    }
 }
 
 local cond if fatherAge!=11
