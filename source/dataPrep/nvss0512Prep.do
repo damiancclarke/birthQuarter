@@ -223,7 +223,7 @@ gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37
 gen smoker      = 1 if cig_rec=="Y"
-replace smoker  = 0 if cig_reg=="N"
+replace smoker  = 0 if cig_rec=="N"
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -270,7 +270,7 @@ gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37
 gen smoker      = 1 if cig_rec=="Y"
-replace smoker  = 0 if cig_reg=="N"
+replace smoker  = 0 if cig_rec=="N"
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -317,7 +317,7 @@ gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37
 gen smoker      = 1 if cig_rec=="Y"
-replace smoker  = 0 if cig_reg=="N"
+replace smoker  = 0 if cig_rec=="N"
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -364,7 +364,7 @@ gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37
 gen smoker      = 1 if cig_rec=="Y"
-replace smoker  = 0 if cig_reg=="N"
+replace smoker  = 0 if cig_rec=="N"
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -411,7 +411,7 @@ gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37
 gen smoker      = 1 if cig_rec=="Y"
-replace smoker  = 0 if cig_reg=="N"
+replace smoker  = 0 if cig_rec=="N"
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
