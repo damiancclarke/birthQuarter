@@ -118,7 +118,7 @@ for parity in ['single', 'twin']:
     
     sumT.write('\n'+mr+mc1+twid[0]+tcm[0]+mc3+
                "Good season refers to birth quarters 2 and 3 (Apr-Jun and Jul-Sept).  Bad "
-               "quarter refers to quarters 1 and 4 (Jan-Mar and Oct-Dec).  Values reflect "
+               "season refers to quarters 1 and 4 (Jan-Mar and Oct-Dec).  Values reflect "
                "the percent of yearly births each season from 2005-2013. `Young' refers to"
                " 25-39 year olds, `Old' refers to 40-45 year olds. \n"
                "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}\\end{center}"
@@ -145,19 +145,21 @@ for i,line in enumerate(IP):
         line = line.replace('\\hline','\\midrule')
         line = line.replace('Quarter','season of birth')
         line = line.replace('Season','season of birth')
+        line = line.replace('At least some college','Some College +')
         sumT.write(line)
 
 sumT.write('\\midrule \n \\multicolumn{5}{l}{\\textbf{Panel B: NVSS}}\\\\ \n ')
 for i,line in enumerate(NV):
     if i>8 and i<19:
         line = line.replace('\\hline','\\midrule')
+        line = line.replace('At least some college','Some College +')
         line = line.replace('Quarter','season of birth')
         sumT.write(line)
 
 sumT.write('\n'+mr+mc1+twid[1]+tcm[1]+mc3+
            "Each sample consists of all first-born children born to white, "
            "non-hispanic, US-born mothers. Good season refers to birth quarters"
-           "  2 and 3 (Apr-Jun and Jul-Sept). \n"
+           " 2 and 3 (Apr-Jun and Jul-Sept). \n"
            "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}\\end{center}"
            "\\end{table}")
 sumT.close()
@@ -181,6 +183,10 @@ final.write("\\input{./../results/ipums/regressions/IPUMSBinarySingle.tex} \n")
 final.write("\\end{landscape}")
 final.write("\\input{./../results/nvss/regressions/NVSSBinary.tex} \n"
 "\\input{./../results/nvss/regressions/NVSSBinaryM.tex} \n"
+"\\input{./../results/nvss/regressions/NVSSBinarymarried.tex} \n"
+"\\input{./../results/nvss/regressions/NVSSBinaryunmarried.tex} \n"
+"\\input{./../results/nvss/regressions/NVSSBinarysmoking.tex} \n"
+"\\input{./../results/nvss/regressions/NVSSBinarynon-smoking.tex} \n"
 "\\begin{landscape}\\input{../results/nvss/regressions/NVSSQuality.tex} \n"
 "\\end{landscape}\\begin{landscape}\n"
 "\\input{../results/nvss/regressions/NVSSQualityM.tex} \n"
