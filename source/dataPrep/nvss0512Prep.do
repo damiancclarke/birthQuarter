@@ -25,6 +25,7 @@ log using "$LOG/nvss0512Prep.txt", text replace
 ********************************************************************************
 use "$DAT/natl2005"
 
+gen married     = mar==1
 gen birthOrder  = lbo_rec
 gen motherAge   = mager
 gen fatherAge   = fagerec11
@@ -37,6 +38,7 @@ gen lbw         = birthweight < 2500
 gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37
+gen smoker      = abs(tobuse-2) if tobuse<3
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -60,7 +62,7 @@ replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge education fatherAge ageGroupMan
+*/ gestation premature motherAge education fatherAge ageGroupMan married smoker
 tempfile B2005
 save `B2005'
 
@@ -69,6 +71,7 @@ save `B2005'
 ********************************************************************************
 use "$DAT/natl2006"
 
+gen married     = mar==1
 gen birthOrder  = lbo_rec
 gen motherAge   = mager
 gen fatherAge   = fagerec11
@@ -81,6 +84,7 @@ gen lbw         = birthweight < 2500
 gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37
+gen smoker      = abs(tobuse-2) if tobuse<3
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -104,7 +108,7 @@ replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge education fatherAge ageGroupMan
+*/ gestation premature motherAge education fatherAge ageGroupMan married smoker
 tempfile B2006
 save `B2006'
 
@@ -112,6 +116,8 @@ save `B2006'
 *** (2c) 2007 File
 ********************************************************************************
 use "$DAT/natl2007"
+
+gen married     = mar==1
 gen birthOrder = lbo_rec
 gen motherAge  = mager
 gen fatherAge  = fagerec11
@@ -124,6 +130,7 @@ gen lbw         = birthweight < 2500
 gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37
+gen smoker      = abs(tobuse-2) if tobuse<3
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -147,7 +154,7 @@ replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge education fatherAge ageGroupMan
+*/ gestation premature motherAge education fatherAge ageGroupMan married smoker
 tempfile B2007
 save `B2007'
 
@@ -155,18 +162,21 @@ save `B2007'
 *** (2d) 2008 File
 ********************************************************************************
 use "$DAT/natl2008"
-gen birthOrder = lbo_rec
-gen motherAge  = mager
-gen fatherAge  = fagerec11
-gen birthMonth = dob_mm
-gen year       = dob_yy
-gen twin       = dplural
+
+gen married     = mar==1
+gen birthOrder  = lbo_rec
+gen motherAge   = mager
+gen fatherAge   = fagerec11
+gen birthMonth  = dob_mm
+gen year        = dob_yy
+gen twin        = dplural
 gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
 gen vlbw        = birthweight < 1500
 gen lbw         = birthweight < 2500
 gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37
+gen smoker      = abs(tobuse-2) if tobuse<3
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -190,7 +200,7 @@ replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge education fatherAge ageGroupMan
+*/ gestation premature motherAge education fatherAge ageGroupMan married smoker
 tempfile B2008
 save `B2008'
 
@@ -199,18 +209,21 @@ save `B2008'
 ********************************************************************************
 use "$DAT/natl2009"
 
-gen birthOrder = lbo_rec
-gen motherAge  = mager
-gen fatherAge  = fagerec11
-gen birthMonth = dob_mm
-gen year       = dob_yy
-gen twin       = dplural
+gen married     = mar==1
+gen birthOrder  = lbo_rec
+gen motherAge   = mager
+gen fatherAge   = fagerec11
+gen birthMonth  = dob_mm
+gen year        = dob_yy
+gen twin        = dplural
 gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
 gen vlbw        = birthweight < 1500
 gen lbw         = birthweight < 2500
 gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37
+gen smoker      = 1 if cig_rec=="Y"
+replace smoker  = 0 if cig_reg=="N"
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -234,7 +247,7 @@ replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge education fatherAge ageGroupMan
+*/ gestation premature motherAge education fatherAge ageGroupMan married smoker
 tempfile B2009
 save `B2009'
 
@@ -243,18 +256,21 @@ save `B2009'
 ********************************************************************************
 use "$DAT/natl2010"
 
-gen birthOrder = lbo_rec
-gen motherAge  = mager
-gen fatherAge  = fagerec11
-gen birthMonth = dob_mm
-gen year       = dob_yy
-gen twin       = dplural
+gen married     = mar==1
+gen birthOrder  = lbo_rec
+gen motherAge   = mager
+gen fatherAge   = fagerec11
+gen birthMonth  = dob_mm
+gen year        = dob_yy
+gen twin        = dplural
 gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
 gen vlbw        = birthweight < 1500
 gen lbw         = birthweight < 2500
 gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37
+gen smoker      = 1 if cig_rec=="Y"
+replace smoker  = 0 if cig_reg=="N"
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -278,7 +294,7 @@ replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge education fatherAge ageGroupMan
+*/ gestation premature motherAge education fatherAge ageGroupMan married smoker
 tempfile B2010
 save `B2010'
 
@@ -287,18 +303,21 @@ save `B2010'
 ********************************************************************************
 use "$DAT/natl2011"
 
-gen birthOrder = lbo_rec
-gen motherAge  = mager
-gen fatherAge  = fagerec11
-gen birthMonth = dob_mm
-gen year       = dob_yy
-gen twin       = dplural
+gen married     = mar==1
+gen birthOrder  = lbo_rec
+gen motherAge   = mager
+gen fatherAge   = fagerec11
+gen birthMonth  = dob_mm
+gen year        = dob_yy
+gen twin        = dplural
 gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
 gen vlbw        = birthweight < 1500
 gen lbw         = birthweight < 2500
 gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37
+gen smoker      = 1 if cig_rec=="Y"
+replace smoker  = 0 if cig_reg=="N"
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -322,7 +341,7 @@ replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge education fatherAge ageGroupMan
+*/ gestation premature motherAge education fatherAge ageGroupMan married smoker
 tempfile B2011
 save `B2011'
 
@@ -331,18 +350,21 @@ save `B2011'
 ********************************************************************************
 use "$DAT/natl2012"
 
-gen birthOrder = lbo_rec
-gen motherAge  = mager
-gen fatherAge  = fagerec11
-gen birthMonth = dob_mm
-gen year       = dob_yy
-gen twin       = dplural
+gen married     = mar==1
+gen birthOrder  = lbo_rec
+gen motherAge   = mager
+gen fatherAge   = fagerec11
+gen birthMonth  = dob_mm
+gen year        = dob_yy
+gen twin        = dplural
 gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
 gen vlbw        = birthweight < 1500
 gen lbw         = birthweight < 2500
 gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37
+gen smoker      = 1 if cig_rec=="Y"
+replace smoker  = 0 if cig_reg=="N"
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -366,7 +388,7 @@ replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge education fatherAge ageGroupMan
+*/ gestation premature motherAge education fatherAge ageGroupMan married smoker
 tempfile B2012
 save `B2012'
 
@@ -375,18 +397,21 @@ save `B2012'
 ********************************************************************************
 use "$DAT/natl2013"
 
-gen birthOrder = lbo_rec
-gen motherAge  = mager
-gen fatherAge  = fagerec11
-gen birthMonth = dob_mm
-gen year       = dob_yy
-gen twin       = dplural
+gen married     = mar==1
+gen birthOrder  = lbo_rec
+gen motherAge   = mager
+gen fatherAge   = fagerec11
+gen birthMonth  = dob_mm
+gen year        = dob_yy
+gen twin        = dplural
 gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
 gen vlbw        = birthweight < 1500
 gen lbw         = birthweight < 2500
 gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37
+gen smoker      = 1 if cig_rec=="Y"
+replace smoker  = 0 if cig_reg=="N"
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -410,7 +435,7 @@ replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge education fatherAge ageGroupMan
+*/ gestation premature motherAge education fatherAge ageGroupMan married smoker
 tempfile B2013
 save `B2013'
 

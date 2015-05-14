@@ -64,7 +64,7 @@ lab val educLevel   eL
 
 lab var goodQuarter        "Good Season"
 lab var badQuarter         "Bad Season"
-lab var highEd             "College Educ"
+lab var highEd             "Some College +"
 lab var young              "Aged 25-39"
 lab var youngXhighEd       "College$\times$ Aged 25-39"
 lab var ageGroup           "Categorical age group"
@@ -87,7 +87,7 @@ eststo: reg goodQuarter young highEd youngXhighEd `yFE'
 
 #delimit ;
 esttab est1 est2 est3 est4 using "$OUT/NVSSBinary.tex",
-replace `estopt' title("Birth Quarter and Age (NVSS 2005-2013)")
+replace `estopt' title("Birth Season and Age (NVSS 2005-2013)")
 keep(_cons young highEd youngX*) style(tex) booktabs mlabels(, depvar)
 postfoot("Year FE&&Y&Y&Y\\ \bottomrule"
          "\multicolumn{5}{p{14cm}}{\begin{footnotesize}Sample consists of all"
@@ -95,6 +95,28 @@ postfoot("Year FE&&Y&Y&Y\\ \bottomrule"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
+
+foreach m of numlist 0 1 {
+    local cond if married==`m'
+    if `m'==0 local Title "unmarried"
+    if `m'==1 local Title "married"
+    
+    eststo: reg goodQuarter young                           `cond'
+    eststo: reg goodQuarter young                     `yFE' `cond'
+    eststo: reg goodQuarter young highEd              `yFE' `cond'
+    eststo: reg goodQuarter young highEd youngXhighEd `yFE' `cond'
+    
+    #delimit ;
+    esttab est1 est2 est3 est4 using "$OUT/NVSSBinary`Title'.tex",
+    replace `estopt' title("Birth Season and Age (NVSS: `Title' women)")
+    keep(_cons young highEd youngX*) style(tex) booktabs mlabels(, depvar)
+    postfoot("Year FE&&Y&Y&Y\\ \bottomrule"
+         "\multicolumn{5}{p{14cm}}{\begin{footnotesize}Sample consists of all"
+         "first born children of US-born, white, non-hispanic, `Title' mothers."
+         "\end{footnotesize}}\end{tabular}\end{table}");
+    #delimit cr
+    estimates clear
+}
 
 local cond if fatherAge!=11
 eststo: reg goodQuarter young youngMan                           `cond'
@@ -104,10 +126,10 @@ eststo: reg goodQuarter young youngMan highEd youngXhighEd `yFE' `cond'
 
 #delimit ;
 esttab est1 est2 est3 est4 using "$OUT/NVSSBinaryM.tex",
-replace `estopt' title("Birth Quarter and Age M/F (NVSS 2005-2013)")
+replace `estopt' title("Birth Season and Age M/F (NVSS 2005-2013)")
 keep(_cons young* highEd youngX*) style(tex) booktabs mlabels(, depvar)
-postfoot("Year FE&&Y&Y\\ \bottomrule"
-         "\multicolumn{4}{p{14cm}}{\begin{footnotesize}Sample consists of all"
+postfoot("Year FE&&Y&Y&Y\\ \bottomrule"
+         "\multicolumn{5}{p{14cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of US-born, white, non-hispanic mothers with male"
          "partners. \end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
