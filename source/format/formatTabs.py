@@ -191,7 +191,13 @@ final.write("\\input{./../results/nvss/regressions/NVSSBinary.tex} \n"
 "\\end{landscape}\\begin{landscape}\n"
 "\\input{../results/nvss/regressions/NVSSQualityM.tex} \n"
 "\\end{landscape}\\begin{landscape}\n"
-"\\input{./../results/nvss/regressions/NVSSQualityTriple.tex}\\end{landscape}")
+"\\input{./../results/nvss/regressions/NVSSQualityTriple.tex}\\end{landscape}"
+"\\begin{landscape}"
+"\\input{../results/nvss/regressions/NVSSQualitySmoke0.tex} \n"
+"\\end{landscape}\\begin{landscape}\n"
+"\\input{../results/nvss/regressions/NVSSQualitySmoke1.tex} \n"
+"\\end{landscape}"
+)
 
 
 

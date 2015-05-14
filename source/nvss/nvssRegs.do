@@ -100,8 +100,8 @@ foreach m of numlist 0 1 {
     foreach g in smk mar {
         if `"`g'"'=="smk" {
             local cond if smoker==`m'
-            if `m'==0 local Title "smoking"
-            if `m'==1 local Title "non-smoking"
+            if `m'==1 local Title "smoking"
+            if `m'==0 local Title "non-smoking"
         }
         if `"`g'"'=="mar" {
             local cond if married==`m'
@@ -195,6 +195,27 @@ foreach e in 0 1 {
     estimates clear
 }
 estimates clear
+
+foreach s in 0 1 {
+    if `s'==0 local smokeN "who do not smoke"
+    if `s'==1 local smokeN "who smoke"
+    
+    foreach y of varlist `qual' {
+        eststo: reg `y' young badQuarter youngXbadQ i.year if smoker==`s'
+    }
+    #delimit ;
+    esttab est1 est2 est3 est4 est5 est6 est7 using "$OUT/NVSSQualitySmoke`s'.tex",
+    replace `estopt' title("Birth Quality by Age and Season (Mothers `smokeN')")
+    keep(_cons young badQ* youngX*) style(tex) booktabs mlabels(, depvar)
+    postfoot("\bottomrule"
+             "\multicolumn{8}{p{15cm}}{\begin{footnotesize}Sample consists of all"
+             "first born children of US-born, white, non-hispanic mothers `smokeN'"
+             "\end{footnotesize}}\end{tabular}\end{table}");
+    #delimit cr
+    estimates clear
+}
+estimates clear
+
 
 foreach y of varlist `qual' {
     eststo: reg `y' young badQuarter youngXbadQ highEd i.year
