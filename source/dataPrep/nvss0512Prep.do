@@ -73,6 +73,7 @@ save `B2005'
 use "$DAT/natl2006"
 
 gen married     = mar==1
+gen single      = married==0&fagerec11==11
 gen birthOrder  = lbo_rec
 gen motherAge   = mager
 gen fatherAge   = fagerec11
@@ -108,8 +109,8 @@ replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
-keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge education fatherAge ageGroupMan married smoker
+keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
+*/ premature motherAge education fatherAge ageGroupMan married smoker single
 tempfile B2006
 save `B2006'
 
@@ -119,6 +120,7 @@ save `B2006'
 use "$DAT/natl2007"
 
 gen married     = mar==1
+gen single      = married==0&fagerec11==11
 gen birthOrder = lbo_rec
 gen motherAge  = mager
 gen fatherAge  = fagerec11
@@ -154,8 +156,8 @@ replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
-keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge education fatherAge ageGroupMan married smoker
+keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
+*/ premature motherAge education fatherAge ageGroupMan married smoker single
 tempfile B2007
 save `B2007'
 
@@ -165,6 +167,7 @@ save `B2007'
 use "$DAT/natl2008"
 
 gen married     = mar==1
+gen single      = married==0&fagerec11==11
 gen birthOrder  = lbo_rec
 gen motherAge   = mager
 gen fatherAge   = fagerec11
@@ -200,8 +203,8 @@ replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
-keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge education fatherAge ageGroupMan married smoker
+keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
+*/ premature motherAge education fatherAge ageGroupMan married smoker single
 tempfile B2008
 save `B2008'
 
@@ -211,6 +214,7 @@ save `B2008'
 use "$DAT/natl2009"
 
 gen married     = mar==1
+gen single      = married==0&fagerec11==11
 gen birthOrder  = lbo_rec
 gen motherAge   = mager
 gen fatherAge   = fagerec11
@@ -247,8 +251,8 @@ replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
-keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge education fatherAge ageGroupMan married smoker
+keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
+*/ premature motherAge education fatherAge ageGroupMan married smoker single
 tempfile B2009
 save `B2009'
 
@@ -258,6 +262,7 @@ save `B2009'
 use "$DAT/natl2010"
 
 gen married     = mar==1
+gen single      = married==0&fagerec11==11
 gen birthOrder  = lbo_rec
 gen motherAge   = mager
 gen fatherAge   = fagerec11
@@ -294,8 +299,8 @@ replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
-keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge education fatherAge ageGroupMan married smoker
+keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
+*/ premature motherAge education fatherAge ageGroupMan married smoker single
 tempfile B2010
 save `B2010'
 
@@ -305,6 +310,7 @@ save `B2010'
 use "$DAT/natl2011"
 
 gen married     = mar==1
+gen single      = married==0&fagerec11==11
 gen birthOrder  = lbo_rec
 gen motherAge   = mager
 gen fatherAge   = fagerec11
@@ -341,8 +347,8 @@ replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
-keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge education fatherAge ageGroupMan married smoker
+keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
+*/ premature motherAge education fatherAge ageGroupMan married smoker single
 tempfile B2011
 save `B2011'
 
@@ -352,6 +358,7 @@ save `B2011'
 use "$DAT/natl2012"
 
 gen married     = mar==1
+gen single      = married==0&fagerec11==11
 gen birthOrder  = lbo_rec
 gen motherAge   = mager
 gen fatherAge   = fagerec11
@@ -388,8 +395,8 @@ replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
-keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge education fatherAge ageGroupMan married smoker
+keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
+*/ premature motherAge education fatherAge ageGroupMan married smoker single
 tempfile B2012
 save `B2012'
 
@@ -399,6 +406,7 @@ save `B2012'
 use "$DAT/natl2013"
 
 gen married     = mar==1
+gen single      = married==0&fagerec11==11
 gen birthOrder  = lbo_rec
 gen motherAge   = mager
 gen fatherAge   = fagerec11
@@ -435,8 +443,8 @@ replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
-keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge education fatherAge ageGroupMan married smoker
+keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
+*/ premature motherAge education fatherAge ageGroupMan married smoker single
 tempfile B2013
 save `B2013'
 
