@@ -126,6 +126,23 @@ foreach m of numlist 0 1 {
     }
 }
 
+local cond if single==1
+eststo: reg goodQuarter young                           `cond'
+eststo: reg goodQuarter young                     `yFE' `cond'
+eststo: reg goodQuarter young highEd              `yFE' `cond'
+eststo: reg goodQuarter young highEd youngXhighEd `yFE' `cond'
+
+#delimit ;
+esttab est1 est2 est3 est4 using "$OUT/NVSSBinarySingle.tex",
+replace `estopt' title("Birth Season and Age: Single Women (NVSS 2005-2013)")
+keep(_cons young highEd youngX*) style(tex) booktabs mlabels(, depvar)
+postfoot("Year FE&&Y&Y&Y\\ \bottomrule"
+         "\multicolumn{5}{p{14cm}}{\begin{footnotesize}Sample consists of all"
+         "first born children of US-born, white, non-hispanic single mothers"
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+
 local cond if fatherAge!=11
 eststo: reg goodQuarter young youngMan                           `cond'
 eststo: reg goodQuarter young youngMan                     `yFE' `cond'
