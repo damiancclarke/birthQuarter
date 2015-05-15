@@ -26,6 +26,7 @@ log using "$LOG/nvss0512Prep.txt", text replace
 use "$DAT/natl2005"
 
 gen married     = mar==1
+gen single      = married==0&fagerec11==11
 gen birthOrder  = lbo_rec
 gen motherAge   = mager
 gen fatherAge   = fagerec11
@@ -61,8 +62,8 @@ replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
-keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw apgar /*
-*/ gestation premature motherAge education fatherAge ageGroupMan married smoker
+keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
+*/ premature motherAge education fatherAge ageGroupMan married smoker single
 tempfile B2005
 save `B2005'
 
