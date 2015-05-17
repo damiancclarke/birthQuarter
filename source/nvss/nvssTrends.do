@@ -106,6 +106,64 @@ foreach edu of numlist 1 2 {
     restore
 }
 
+preserve
+gen birth=1
+keep if education==5|education==6
+collapse (sum) birth, by(motherAge twin)
+bys twin: egen total=sum(birth)
+replace birth=birth/total
+sort twin motherAge 
+twoway line birth motherAge if twin==1, || line birth motherAge if twin==2,/*
+*/ scheme(s1mono) xtitle("Mother's Age") ytitle("Proportion (first birth)")/*
+*/ legend(label(1 "Single Births") label(2 "Twin Births")) lpattern(dash)  /*
+*/ lcolor(gs0)
+graph export "$OUT/ageDescriptiveParityDegree.eps", as(eps) replace
+restore
+
+exit
+********************************************************************************
+*** (2aii) Summary stats table
+********************************************************************************
+gen college = educLevel - 1
+gen educCat = 4 if education==1
+replace educCat = 0  if education == 0
+replace educCat = 10 if education == 2
+replace educCat = 12 if education == 3
+replace educCat = 14 if education == 4
+replace educCat = 16 if education == 5
+replace educCat = 17 if education == 6
+gen goodQuarter = birthQuarter == 2 | birthQuarter == 3    
+count
+tab ageGroup
+
+lab var educCat     "Years of education"
+lab var motherAge   "Mother's Age"
+lab var married     "Married"
+lab var college     "At least some college"
+lab var goodQuarter "Good Quarter"
+lab var birthweight "Birthweight (grams)"
+lab var lbw         "Low Birth Weight ($<$2500 g)"
+lab var gestation   "Weeks of Gestation"
+lab var premature   "Premature ($<$ 37 weeks)"
+lab var apgar       "APGAR (1-10)"
+lab var twin        "Twin"
+lab var female      "Female"
+
+local Mum motherAge married college educCat 
+local Kid goodQuarter birthweight lbw gestat premature apgar twin female
+
+sum `Mum'
+estpost tabstat `Mum', statistics(mean sd min max) listwise columns(statistics)
+esttab using "$SUM/nvssMum.tex", title("Descriptive Statistics (NVSS)") /*
+*/ replace label cells("mean(fmt(2)) sd(fmt(2)) min(fmt(0)) max(fmt(0))")
+
+
+sum `Kid'
+estpost tabstat `Kid', statistics(mean sd min max) listwise columns(statistics)
+esttab using "$SUM/nvssKid.tex", title("Descriptive Statistics (NVSS)") /*
+*/ replace label cells("mean(fmt(2)) sd(fmt(2)) min(fmt(0)) max(fmt(0))")
+
+
 ********************************************************************************
 *** (2b) Subset
 ********************************************************************************
@@ -113,7 +171,7 @@ if `twins'==1 keep if twin == 2
 if `twins'==0 keep if twin == 1
 
 gen birth = 1
-gen goodQuarter = birthQuarter == 2 | birthQuarter == 3
+
 gen period = .
 replace period = 1 if year >=2005 & year<=2007
 replace period = 2 if year >=2008 & year<=2009
@@ -436,30 +494,6 @@ foreach outcome in `hkbirth' {
     macro shift
 }
 restore
-
-********************************************************************************
-*** (5) Summary stats table
-********************************************************************************
-gen college = educLevel - 1
-
-count
-tab ageGroup
-
-lab var motherAge   "Mother's Age"
-lab var college     "At least some college"
-lab var goodQuarter "Good Quarter"
-lab var birthweight "Birthweight (grams)"
-lab var lbw         "Low Birth Weight ($<$2500 g)"
-lab var gestation   "Weeks of Gestation"
-lab var premature   "Premature ($<$ 37 weeks)"
-lab var apgar       "APGAR (1-10)"
-
-local vr motherAge college goodQuarter birthweight lbw gestat prematu apgar
-sum `vr'
-estpost tabstat `vr', statistics(mean sd min max) listwise columns(statistics)
-esttab using "$SUM/nvssSum`app'.tex", title("Descriptive Statistics (NVSS)") /*
-*/ replace label cells("mean(fmt(2)) sd(fmt(2)) min(fmt(0)) max(fmt(0))")
-
 
 
 ************************************************************************************
