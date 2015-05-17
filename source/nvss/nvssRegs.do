@@ -49,6 +49,8 @@ gen highEdXbadQ         = highEd*(1-goodQuarter)
 gen youngXhighEdXbadQ   = young*highEd*(1-goodQuarter)
 gen youngMan            = ageGroupMan == 1
 gen youngManXbadQ       = youngMan*(1-goodQuarter)
+gen vhighEd             = education==5|education==6 if educLevel!=.
+gen youngXvhighEd       = young*vhighEd
 
 
 ********************************************************************************
@@ -73,6 +75,10 @@ lab var youngXbadQ         "Young$\times$ Bad S"
 lab var highEdXbadQ        "College$\times$ Bad S"
 lab var youngXhighEdXbadQ  "Young$\times$ College$\times$ Bad S"
 lab var youngManXbadQ      "Young Man$\times$ Bad S"
+lab var vhighEd            "Complete Degree"
+lab var youngXvhighEd      "Degree$\times$ Aged 25-39"
+lab var married            "Married"
+lab var smoker             "Smoker"
 
 
 ********************************************************************************
@@ -81,16 +87,34 @@ lab var youngManXbadQ      "Young Man$\times$ Bad S"
 local yFE   i.year
 
 eststo: reg goodQuarter young                    
-eststo: reg goodQuarter young                     `yFE'
-eststo: reg goodQuarter young highEd              `yFE'
-eststo: reg goodQuarter young highEd youngXhighEd `yFE'
+eststo: reg goodQuarter young                                    `yFE'
+eststo: reg goodQuarter young highEd                             `yFE'
+eststo: reg goodQuarter young highEd youngXhighEd                `yFE'
+eststo: reg goodQuarter young highEd youngXhighEd married smoker `yFE'
 
 #delimit ;
-esttab est1 est2 est3 est4 using "$OUT/NVSSBinary.tex",
+esttab est1 est2 est3 est4 est5 using "$OUT/NVSSBinary.tex",
 replace `estopt' title("Birth Season and Age (NVSS 2005-2013)")
-keep(_cons young highEd youngX*) style(tex) booktabs mlabels(, depvar)
-postfoot("Year FE&&Y&Y&Y\\ \bottomrule"
-         "\multicolumn{5}{p{14cm}}{\begin{footnotesize}Sample consists of all"
+keep(_cons young highEd youngX* m* s*) style(tex) booktabs mlabels(, depvar)
+postfoot("Year FE&&Y&Y&Y&Y\\ \bottomrule"
+         "\multicolumn{5}{p{15cm}}{\begin{footnotesize}Sample consists of all"
+         "first born children of US-born, white, non-hispanic mothers"
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+
+eststo: reg goodQuarter young                    
+eststo: reg goodQuarter young                                      `yFE'
+eststo: reg goodQuarter young vhighEd                              `yFE'
+eststo: reg goodQuarter young vhighEd youngXvhighEd                `yFE'
+eststo: reg goodQuarter young vhighEd youngXvhighEd married smoker `yFE'
+
+#delimit ;
+esttab est1 est2 est3 est4 est5 using "$OUT/NVSSBinaryHigh.tex",
+replace `estopt' title("Birth Season and Age (NVSS 2005-2013)")
+keep(_cons young vhighEd youngXv* m* s*) style(tex) booktabs mlabels(, depvar)
+postfoot("Year FE&&Y&Y&Y&Y\\ \bottomrule"
+         "\multicolumn{5}{p{15cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of US-born, white, non-hispanic mothers"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
