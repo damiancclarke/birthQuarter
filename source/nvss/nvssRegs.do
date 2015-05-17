@@ -97,7 +97,7 @@ esttab est1 est2 est3 est4 est5 using "$OUT/NVSSBinary.tex",
 replace `estopt' title("Birth Season and Age (NVSS 2005-2013)")
 keep(_cons young highEd youngX* m* s*) style(tex) booktabs mlabels(, depvar)
 postfoot("Year FE&&Y&Y&Y&Y\\ \bottomrule"
-         "\multicolumn{5}{p{15cm}}{\begin{footnotesize}Sample consists of all"
+         "\multicolumn{6}{p{15cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of US-born, white, non-hispanic mothers"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
@@ -114,11 +114,30 @@ esttab est1 est2 est3 est4 est5 using "$OUT/NVSSBinaryHigh.tex",
 replace `estopt' title("Birth Season and Age (NVSS 2005-2013)")
 keep(_cons young vhighEd youngXv* m* s*) style(tex) booktabs mlabels(, depvar)
 postfoot("Year FE&&Y&Y&Y&Y\\ \bottomrule"
-         "\multicolumn{5}{p{15cm}}{\begin{footnotesize}Sample consists of all"
+         "\multicolumn{6}{p{15cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of US-born, white, non-hispanic mothers"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
+
+local cond if twin==2
+eststo: reg goodQuarter young                                          `cond'
+eststo: reg goodQuarter young                                    `yFE' `cond'
+eststo: reg goodQuarter young highEd                             `yFE' `cond'
+eststo: reg goodQuarter young highEd youngXhighEd                `yFE' `cond'
+eststo: reg goodQuarter young highEd youngXhighEd married smoker `yFE' `cond'
+
+#delimit ;
+esttab est1 est2 est3 est4 est5 using "$OUT/NVSSBinaryTwin.tex",
+replace `estopt' title("Birth Season and Age (Twins Only)")
+keep(_cons young highEd youngX* m* s*) style(tex) booktabs mlabels(, depvar)
+postfoot("Year FE&&Y&Y&Y&Y\\ \bottomrule"
+         "\multicolumn{6}{p{15cm}}{\begin{footnotesize}Sample consists of all"
+         "first born children of US-born, white, non-hispanic mothers"
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+
 
 foreach m of numlist 0 1 {
     foreach g in smk mar {
@@ -259,16 +278,16 @@ estimates clear
 
 
 foreach y of varlist `qual' {
-    eststo: reg `y' young badQuarter youngXbadQ highEd i.year
+    eststo: reg `y' young badQuarter youngXbadQ highEd married smoker i.year
 }
 #delimit ;
 esttab est1 est2 est3 est4 est5 est6 est7 using "$OUT/NVSSQualityEduc.tex",
 replace `estopt' title("Birth Quality by Age and Season (NVSS 2005-2013)")
-keep(_cons young badQ* youngX* highEd) style(tex) booktabs mlabels(, depvar)
+keep(_cons young badQ* youngX* highEd m* s*) style(tex) mlabels(, depvar)
 postfoot("\bottomrule"
          "\multicolumn{8}{p{15cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of US-born, white, non-hispanic mothers"
-         "\end{footnotesize}}\end{tabular}\end{table}");
+         "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
 #delimit cr
 estimates clear
 
