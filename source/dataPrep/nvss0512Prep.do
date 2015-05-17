@@ -40,6 +40,7 @@ gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37
 gen smoker      = abs(tobuse-2) if tobuse<3
+gen female      = sex=="F"
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -63,7 +64,7 @@ replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single
+*/ premature motherAge education fatherAge ageGroupMan married smoker single fema
 tempfile B2005
 save `B2005'
 
@@ -87,6 +88,7 @@ gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37
 gen smoker      = abs(tobuse-2) if tobuse<3
+gen female      = sex=="F"
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -110,7 +112,7 @@ replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single
+*/ premature motherAge education fatherAge ageGroupMan married smoker single fema
 tempfile B2006
 save `B2006'
 
@@ -134,6 +136,7 @@ gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37
 gen smoker      = abs(tobuse-2) if tobuse<3
+gen female      = sex=="F"
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -157,7 +160,7 @@ replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single
+*/ premature motherAge education fatherAge ageGroupMan married smoker single fema
 tempfile B2007
 save `B2007'
 
@@ -181,6 +184,7 @@ gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37
 gen smoker      = abs(tobuse-2) if tobuse<3
+gen female      = sex=="F"
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -204,7 +208,7 @@ replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single
+*/ premature motherAge education fatherAge ageGroupMan married smoker single fema
 tempfile B2008
 save `B2008'
 
@@ -229,6 +233,7 @@ gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37
 gen smoker      = 1 if cig_rec=="Y"
 replace smoker  = 0 if cig_rec=="N"
+gen female      = sex=="F"
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -252,7 +257,7 @@ replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single
+*/ premature motherAge education fatherAge ageGroupMan married smoker single fema
 tempfile B2009
 save `B2009'
 
@@ -277,6 +282,7 @@ gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37
 gen smoker      = 1 if cig_rec=="Y"
 replace smoker  = 0 if cig_rec=="N"
+gen female      = sex=="F"
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -300,7 +306,7 @@ replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single
+*/ premature motherAge education fatherAge ageGroupMan married smoker single fema
 tempfile B2010
 save `B2010'
 
@@ -325,6 +331,7 @@ gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37
 gen smoker      = 1 if cig_rec=="Y"
 replace smoker  = 0 if cig_rec=="N"
+gen female      = sex=="F"
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -348,7 +355,7 @@ replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single
+*/ premature motherAge education fatherAge ageGroupMan married smoker single fema
 tempfile B2011
 save `B2011'
 
@@ -373,6 +380,7 @@ gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37
 gen smoker      = 1 if cig_rec=="Y"
 replace smoker  = 0 if cig_rec=="N"
+gen female      = sex=="F"
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -396,7 +404,7 @@ replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single
+*/ premature motherAge education fatherAge ageGroupMan married smoker single fema
 tempfile B2012
 save `B2012'
 
@@ -421,6 +429,7 @@ gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37
 gen smoker      = 1 if cig_rec=="Y"
 replace smoker  = 0 if cig_rec=="N"
+gen female      = sex=="F"
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -444,7 +453,7 @@ replace education = 6 if meduc==7|meduc==8
 replace education = 0 if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single
+*/ premature motherAge education fatherAge ageGroupMan married smoker single fema
 tempfile B2013
 save `B2013'
 
