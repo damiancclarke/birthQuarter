@@ -34,11 +34,11 @@ gen birthMonth  = dob_mm
 gen year        = dob_yy
 gen twin        = dplural
 gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
-gen vlbw        = birthweight < 1500
-gen lbw         = birthweight < 2500
+gen vlbw        = birthweight < 1500 if birthweight != .
+gen lbw         = birthweight < 2500 if birthweight != .
 gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
-gen premature   = gestation < 37
+gen premature   = gestation < 37 if gestation != .
 gen smoker      = abs(tobuse-2) if tobuse<3
 gen female      = sex=="F"
 
@@ -82,11 +82,11 @@ gen birthMonth  = dob_mm
 gen year        = dob_yy
 gen twin        = dplural
 gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
-gen vlbw        = birthweight < 1500
-gen lbw         = birthweight < 2500
+gen vlbw        = birthweight < 1500 if birthweight != .
+gen lbw         = birthweight < 2500 if birthweight != .
 gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
-gen premature   = gestation < 37
+gen premature   = gestation < 37 if gestation != .
 gen smoker      = abs(tobuse-2) if tobuse<3
 gen female      = sex=="F"
 
@@ -130,11 +130,11 @@ gen birthMonth = dob_mm
 gen year       = dob_yy
 gen twin       = dplural
 gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
-gen vlbw        = birthweight < 1500
-gen lbw         = birthweight < 2500
+gen vlbw        = birthweight < 1500 if birthweight != .
+gen lbw         = birthweight < 2500 if birthweight != .
 gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
-gen premature   = gestation < 37
+gen premature   = gestation < 37 if gestation != .
 gen smoker      = abs(tobuse-2) if tobuse<3
 gen female      = sex=="F"
 
@@ -178,11 +178,11 @@ gen birthMonth  = dob_mm
 gen year        = dob_yy
 gen twin        = dplural
 gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
-gen vlbw        = birthweight < 1500
-gen lbw         = birthweight < 2500
+gen vlbw        = birthweight < 1500 if birthweight != .
+gen lbw         = birthweight < 2500 if birthweight != .
 gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
-gen premature   = gestation < 37
+gen premature   = gestation < 37 if gestation != .
 gen smoker      = abs(tobuse-2) if tobuse<3
 gen female      = sex=="F"
 
@@ -226,11 +226,11 @@ gen birthMonth  = dob_mm
 gen year        = dob_yy
 gen twin        = dplural
 gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
-gen vlbw        = birthweight < 1500
-gen lbw         = birthweight < 2500
+gen vlbw        = birthweight < 1500 if birthweight != .
+gen lbw         = birthweight < 2500 if birthweight != .
 gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
-gen premature   = gestation < 37
+gen premature   = gestation < 37 if gestation != .
 gen smoker      = 1 if cig_rec=="Y"
 replace smoker  = 0 if cig_rec=="N"
 gen female      = sex=="F"
@@ -275,11 +275,11 @@ gen birthMonth  = dob_mm
 gen year        = dob_yy
 gen twin        = dplural
 gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
-gen vlbw        = birthweight < 1500
-gen lbw         = birthweight < 2500
+gen vlbw        = birthweight < 1500 if birthweight != .
+gen lbw         = birthweight < 2500 if birthweight != .
 gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
-gen premature   = gestation < 37
+gen premature   = gestation < 37 if gestation != .
 gen smoker      = 1 if cig_rec=="Y"
 replace smoker  = 0 if cig_rec=="N"
 gen female      = sex=="F"
@@ -324,11 +324,11 @@ gen birthMonth  = dob_mm
 gen year        = dob_yy
 gen twin        = dplural
 gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
-gen vlbw        = birthweight < 1500
-gen lbw         = birthweight < 2500
+gen vlbw        = birthweight < 1500 if birthweight != .
+gen lbw         = birthweight < 2500 if birthweight != .
 gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
-gen premature   = gestation < 37
+gen premature   = gestation < 37 if gestation != .
 gen smoker      = 1 if cig_rec=="Y"
 replace smoker  = 0 if cig_rec=="N"
 gen female      = sex=="F"
@@ -373,11 +373,11 @@ gen birthMonth  = dob_mm
 gen year        = dob_yy
 gen twin        = dplural
 gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
-gen vlbw        = birthweight < 1500
-gen lbw         = birthweight < 2500
+gen vlbw        = birthweight < 1500 if birthweight != .
+gen lbw         = birthweight < 2500 if birthweight != .
 gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
-gen premature   = gestation < 37
+gen premature   = gestation < 37 if gestation != .
 gen smoker      = 1 if cig_rec=="Y"
 replace smoker  = 0 if cig_rec=="N"
 gen female      = sex=="F"
@@ -422,11 +422,11 @@ gen birthMonth  = dob_mm
 gen year        = dob_yy
 gen twin        = dplural
 gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
-gen vlbw        = birthweight < 1500
-gen lbw         = birthweight < 2500
+gen vlbw        = birthweight < 1500 if birthweight != .
+gen lbw         = birthweight < 2500 if birthweight != .
 gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
-gen premature   = gestation < 37
+gen premature   = gestation < 37 if gestation != .
 gen smoker      = 1 if cig_rec=="Y"
 replace smoker  = 0 if cig_rec=="N"
 gen female      = sex=="F"
