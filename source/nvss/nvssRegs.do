@@ -87,6 +87,21 @@ gen educMissing  = educLevel == .
 
 reg goodQuarter young married educMissing smokeMissing `yFE', `se'
 
+gen propMissing = .
+gen yearMissing = .
+foreach y of numlist 2005(1)2013 {
+    tab educLevel, m if year==`y'
+
+    replace propMissing = r()
+    replace yearMissing = `y'
+}
+#delimit;
+twoway bar propMissing yearMissing in 1/9, scheme(s1mono) xtitle("Data Year")
+ytitle("Proportion Missing Education") 
+note("Missing education measures occurr in states which use pre-2003 format.")
+graph export "$OUT/missingEduc.eps", as(eps) replace
+#delimit cr
+exit
 ********************************************************************************
 *** (4a) Regressions (goodQuarter on Age)
 ********************************************************************************
@@ -109,7 +124,7 @@ estimates clear
 eststo: reg goodQuarter young                            , `se'
 eststo: reg goodQuarter young                       `yFE', `se'
 eststo: reg goodQuarter young vhighEd               `yFE', `se'
-eststo: reg goodQuarter young vhighE married smoker `yFE', `se'
+eststo: reg goodQuarter young vhighEd married smoker `yFE', `se'
 
 #delimit ;
 esttab est1 est2 est3 est4 using "$OUT/NVSSBinaryHigh.tex",
