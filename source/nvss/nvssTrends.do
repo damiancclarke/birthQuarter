@@ -120,13 +120,11 @@ twoway line birth motherAge if twin==1, || line birth motherAge if twin==2,/*
 graph export "$OUT/ageDescriptiveParityDegree.eps", as(eps) replace
 restore
 
-exit
 ********************************************************************************
 *** (2aii) Summary stats table
 ********************************************************************************
 gen college = educLevel - 1
 gen educCat = 4 if education==1
-replace educCat = 0  if education == 0
 replace educCat = 10 if education == 2
 replace educCat = 12 if education == 3
 replace educCat = 14 if education == 4
