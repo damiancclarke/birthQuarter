@@ -41,6 +41,8 @@ TallEducNVSS   = RES + 'nvss/sumStats/JustEductwins.txt'
 
 sumIPUM = RES + 'ipums/sumStats/ipumsSum.tex' 
 sumNVSS = RES + 'nvss/sumStats/nvssSum.tex'
+MumNVSS = RES + 'nvss/sumStats/nvssMum.tex'
+KidNVSS = RES + 'nvss/sumStats/nvssKid.tex'
 
 #==============================================================================
 #== (1b) shortcuts
@@ -53,8 +55,8 @@ tr   = '\\toprule'
 br   = '\\bottomrule'
 mc1  = '\\multicolumn{'
 mc2  = '}}'
-twid = ['10','5']
-tcm  = ['}{p{17.0cm}}','}{p{12.0cm}}']
+twid = ['5','5']
+tcm  = ['}{p{9.8cm}}','}{p{12.0cm}}']
 mc3  = '{\\begin{footnotesize}\\textsc{Notes:} '
 lname = "Fertility$\\times$desire"
 tname = "Twin$\\times$desire"
@@ -90,29 +92,27 @@ for parity in ['single', 'twin']:
     sumT.write("\\begin{landscape}\\begin{table}[htpb!]"
                "\\caption{Percent of Births, "+headline+"} \n"
                "\\label{bqTab:"+parity+"Sum}\\begin{center}"
-               "\\begin{tabular}{lccccp{6mm}cccc}\n\\toprule \\toprule \n"
-               "&\\multicolumn{4}{c}{NVSS}&&\\multicolumn{4}{c}{ACS}"
-               "\\\\ \\cmidrule(r){2-5} \\cmidrule(r){7-10} \n"
-               "& Bad    & Good   & Diff. & Ratio && Bad    & Good   & Diff. & Ratio\\\\\n"
-               "& Season & Season &       &       && Season & Season &     & \\\\\\midrule"
-               "\multicolumn{10}{l}{\\textsc{Panel A: By Age Groups}}\\\\"
-               "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*9+
+               "\\begin{tabular}{lcccc}\n\\toprule \\toprule \n"
+               "& Bad    & Good   & Diff. & Ratio \\\\\n"
+               "& Season & Season &       &       \\\\\\midrule"
+               "\multicolumn{5}{l}{\\textsc{Panel A: By Age Groups}}\\\\"
+               "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
                "\\begin{footnotesize}\\end{footnotesize}\\\\ \n")
     
-    sumT.write(NV[1]+'&&'+IP[1]+'\\\\ \n'
-               +NV[2]+'&&'+IP[2]+'\\\\ \n &&&&&&&&& \\\\'
-               "\multicolumn{10}{l}{\\textsc{Panel B: By Education}}\\\\"
-               "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*9+
+    sumT.write(NV[1]+'\\\\ \n'
+               +NV[2]+'\\\\ \n &&&& \\\\'
+               "\multicolumn{5}{l}{\\textsc{Panel B: By Education}}\\\\"
+               "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
                "\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
-               NVj[1]+'&&'+IPj[1]+'\\\\ \n'+
-               NVj[2]+'&&'+IPj[2]+'\\\\ \n &&&&&&&&& \\\\'
-               "\multicolumn{10}{l}{\\textsc{Panel C: By Age and Education}}\\\\"
-               "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*9+
+               NVj[1]+'\\\\ \n'+
+               NVj[2]+'\\\\ \n &&&& \\\\'
+               "\multicolumn{5}{l}{\\textsc{Panel C: By Age and Education}}\\\\"
+               "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
                "\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
-               NVe[1]+'&&'+IPe[1]+'\\\\ \n'+
-               NVe[2]+'&&'+IPe[2]+'\\\\ \n'+
-               NVe[3]+'&&'+IPe[3]+'\\\\ \n'+
-               NVe[4]+'&&'+IPe[4]+'\\\\ \n &&&&&&&&& \\\\'
+               NVe[1]+'\\\\ \n'+
+               NVe[2]+'\\\\ \n'+
+               NVe[3]+'\\\\ \n'+
+               NVe[4]+'\\\\ \n &&&& \\\\'
                )
     
     
@@ -132,34 +132,34 @@ for parity in ['single', 'twin']:
 #==============================================================================
 sumT = open(TAB + 'sumStats.tex', 'w')
 sumT.write('\\begin{table}[htpb!] \n \\begin{center} \n' 
-'\\caption{Descriptive Statistics (IPUMS and NVSS)}\n \\begin{tabular}{lcccc} '
+'\\caption{Descriptive Statistics (NVSS 2005-2013)}\n \\begin{tabular}{lcccc} '
 '\n \\toprule\\toprule \\vspace{5mm} \n'
 '& Mean & Std. Dev. & Min. & Max. \\\\ \\midrule \n'
-'\multicolumn{5}{l}{\\textbf{Panel A: IPUMS}} \\\\ \n')
+'\multicolumn{5}{l}{\\textbf{Panel A: Mother}} \\\\ \n')
 
-NV  = open(sumNVSS, 'r').readlines()
-IP  = open(sumIPUM, 'r').readlines()
+Mu  = open(MumNVSS, 'r').readlines()
+Ki  = open(KidNVSS, 'r').readlines()
 
-for i,line in enumerate(IP):
-    if i>8 and i<17:
+for i,line in enumerate(Mu):
+    if i>8 and i<15:
         line = line.replace('\\hline','\\midrule')
-        line = line.replace('Quarter','season of birth')
-        line = line.replace('Season','season of birth')
         line = line.replace('At least some college','Some College +')
         sumT.write(line)
 
-sumT.write('\\midrule \n \\multicolumn{5}{l}{\\textbf{Panel B: NVSS}}\\\\ \n ')
-for i,line in enumerate(NV):
+sumT.write('\\midrule \n \\multicolumn{5}{l}{\\textbf{Panel B: Child}}\\\\ \n ')
+for i,line in enumerate(Ki):
     if i>8 and i<19:
         line = line.replace('\\hline','\\midrule')
         line = line.replace('At least some college','Some College +')
+        line = line.replace('Quarter','season of birth')
         line = line.replace('Quarter','season of birth')
         sumT.write(line)
 
 sumT.write('\n'+mr+mc1+twid[1]+tcm[1]+mc3+
            "Each sample consists of all first-born children born to white, "
            "non-hispanic, US-born mothers. Good season refers to birth quarters"
-           " 2 and 3 (Apr-Jun and Jul-Sept). \n"
+           " 2 and 3 (Apr-Jun and Jul-Sept). Educational attainment (mother)\n"
+           " is unrecorded for 34.25\\% of the population."
            "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}\\end{center}"
            "\\end{table}")
 sumT.close()
@@ -172,15 +172,6 @@ final = open(TAB + "tables.tex", 'w')
 final.write("\\input{./../tables/sumStats.tex} \n")
 final.write("\\input{./../tables/sumsingle.tex} \n")
 final.write("\\input{./../tables/sumtwin.tex} \n")
-final.write("\\begin{landscape}")
-final.write("\\input{./../results/ipums/regressions/IPUMSBinary.tex} \n")
-final.write("\\end{landscape}")
-final.write("\\begin{landscape}")
-final.write("\\input{./../results/ipums/regressions/IPUMSBinaryM.tex} \n")
-final.write("\\end{landscape}")
-final.write("\\begin{landscape}")
-final.write("\\input{./../results/ipums/regressions/IPUMSBinarySingle.tex} \n")
-final.write("\\end{landscape}")
 final.write("\\input{./../results/nvss/regressions/NVSSBinary.tex} \n"
 "\\input{./../results/nvss/regressions/NVSSBinaryM.tex} \n"
 "\\input{./../results/nvss/regressions/NVSSBinarymarried.tex} \n"
