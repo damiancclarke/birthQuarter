@@ -66,7 +66,8 @@ replace education = 6 if meduc==7|meduc==8
 replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single fema
+*/ premature motherAge education fatherAge ageGroupMan married smoker single  /*
+*/ female birthMonth
 tempfile B2005
 save `B2005'
 
@@ -115,7 +116,8 @@ replace education = 6 if meduc==7|meduc==8
 replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single fema
+*/ premature motherAge education fatherAge ageGroupMan married smoker single  /*
+*/ female birthMonth
 tempfile B2006
 save `B2006'
 
@@ -164,7 +166,8 @@ replace education = 6 if meduc==7|meduc==8
 replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single fema
+*/ premature motherAge education fatherAge ageGroupMan married smoker single  /*
+*/ female birthMonth
 tempfile B2007
 save `B2007'
 
@@ -213,7 +216,8 @@ replace education = 6 if meduc==7|meduc==8
 replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single fema
+*/ premature motherAge education fatherAge ageGroupMan married smoker single  /*
+*/ female birthMonth
 tempfile B2008
 save `B2008'
 
@@ -262,7 +266,8 @@ replace education = 6 if meduc==7|meduc==8
 replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single fema
+*/ premature motherAge education fatherAge ageGroupMan married smoker single  /*
+*/ female birthMonth
 tempfile B2009
 save `B2009'
 
@@ -311,7 +316,8 @@ replace education = 6 if meduc==7|meduc==8
 replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single fema
+*/ premature motherAge education fatherAge ageGroupMan married smoker single  /*
+*/ female birthMonth
 tempfile B2010
 save `B2010'
 
@@ -360,7 +366,8 @@ replace education = 6 if meduc==7|meduc==8
 replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single fema
+*/ premature motherAge education fatherAge ageGroupMan married smoker single  /*
+*/ female birthMonth
 tempfile B2011
 save `B2011'
 
@@ -409,7 +416,8 @@ replace education = 6 if meduc==7|meduc==8
 replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single fema
+*/ premature motherAge education fatherAge ageGroupMan married smoker single  /*
+*/ female birthMonth
 tempfile B2012
 save `B2012'
 
@@ -458,7 +466,8 @@ replace education = 6 if meduc==7|meduc==8
 replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single fema
+*/ premature motherAge education fatherAge ageGroupMan married smoker single  /*
+*/ female birthMonth
 tempfile B2013
 save `B2013'
 
@@ -516,8 +525,9 @@ replace educLevel = . if dmeduc == 99
 
 gen education = dmeduc if dmeduc != 99
 
-keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestation /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single fema
+keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar        /*
+*/ premature motherAge education fatherAge ageGroupMan married smoker single  /*
+*/ female birthMonth gestation
 tempfile B1998
 save `B1998'
 
@@ -561,8 +571,9 @@ replace educLevel = . if dmeduc == 99
 
 gen education = dmeduc if dmeduc != 99
 
-keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestation /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single fema
+keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar        /*
+*/ premature motherAge education fatherAge ageGroupMan married smoker single  /*
+*/ female birthMonth gestation
 tempfile B1999
 save `B1999'
 
