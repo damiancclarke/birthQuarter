@@ -54,14 +54,14 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen ageGroupMan = fagerec11>6
 replace ageGroupMan = ageGroupMan + 1
 
-gen educLevel=dmeduc>=13
-replace educLevel=2 if dmeduc>=16
-replace educLeve=. if dmeduc==99
+gen educLevel=meduc>=4
+replace educLevel=2 if meduc>=5
+replace educLevel=. if meduc==9|meduc==.
 
 gen education = meduc if meduc <=5
 replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
-replace education = 0 if meduc==9
+replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single fema
@@ -102,14 +102,14 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen ageGroupMan = fagerec11>6
 replace ageGroupMan = ageGroupMan + 1
 
-gen educLevel=dmeduc>=13
-replace educLevel=2 if dmeduc>=16
-replace educLevel=. if dmeduc==99|dmeduc==.
+gen educLevel=meduc>=4
+replace educLevel=2 if meduc>=5
+replace educLevel=. if meduc==9|meduc==.
 
 gen education = meduc if meduc <=5
 replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
-replace education = 0 if meduc==9
+replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single fema
@@ -157,7 +157,7 @@ replace educLevel=. if meduc==9|meduc==.
 gen education = meduc if meduc <=5
 replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
-replace education = 0 if meduc==9
+replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single fema
@@ -205,7 +205,7 @@ replace educLevel=. if meduc==9|meduc==.
 gen education = meduc if meduc <=5
 replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
-replace education = 0 if meduc==9
+replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single fema
@@ -254,7 +254,7 @@ replace educLevel=. if meduc==9|meduc==.
 gen education = meduc if meduc <=5
 replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
-replace education = 0 if meduc==9
+replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single fema
@@ -303,7 +303,7 @@ replace educLevel=. if meduc==9|meduc==.
 gen education = meduc if meduc <=5
 replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
-replace education = 0 if meduc==9
+replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single fema
@@ -352,7 +352,7 @@ replace educLevel=. if meduc==9|meduc==.
 gen education = meduc if meduc <=5
 replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
-replace education = 0 if meduc==9
+replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single fema
@@ -401,7 +401,7 @@ replace educLevel=. if meduc==9|meduc==.
 gen education = meduc if meduc <=5
 replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
-replace education = 0 if meduc==9
+replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single fema
@@ -450,7 +450,7 @@ replace educLevel=. if meduc==9|meduc==.
 gen education = meduc if meduc <=5
 replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
-replace education = 0 if meduc==9
+replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single fema
