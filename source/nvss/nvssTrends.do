@@ -35,15 +35,40 @@ local note "Quarters represent the difference between percent of yearly births"
 if c(os)=="Unix" local e eps
 if c(os)!="Unix" local e pdf
 
+local data nvss2005_2013
 local stateFE 0
 local twins   0
 if `twins' == 1 local app twins
 
+********************************************************************************
+*** (1b) Define run type
+********************************************************************************
+local y9899 0
+local y1213 0
+local badDJ 0
+
+if `y9899'==1 {
+    local data nvss1998_1999 
+    global OUT "~/investigacion/2015/birthQuarter/results/1998/graphs" 
+    global SUM "~/investigacion/2015/birthQuarter/results/1998/sumStats"
+}
+if `y1213'==1 {
+    dis "Running only for 2012-2013 (see line 71)" 
+    global OUT "~/investigacion/2015/birthQuarter/results/2012/graphs" 
+    global SUM "~/investigacion/2015/birthQuarter/results/2012/sumStats"
+}
+if `badDJ'==1 {
+    dis "Running with December/January as bad season (see lines 160-161)" 
+    global OUT "~/investigacion/2015/birthQuarter/results/badDJ/graphs" 
+    global SUM "~/investigacion/2015/birthQuarter/results/badDJ/sumStats"
+}
+    
 
 ********************************************************************************
 *** (2a) Use, descriptive graph
 ********************************************************************************
-use $DAT/nvss2005_2013
+use $DAT/`data'
+if `y1213'==1 keep if year==2012|year==2013
 
 histogram motherAge, frac scheme(s1mono) xtitle("Mother's Age")
 graph export "$OUT/ageDescriptive.eps", as(eps) replace
@@ -130,8 +155,11 @@ replace educCat = 12 if education == 3
 replace educCat = 14 if education == 4
 replace educCat = 16 if education == 5
 replace educCat = 17 if education == 6
-gen goodQuarter = birthQuarter == 2 | birthQuarter == 3    
-count
+gen goodQuarter = birthQuarter == 2 | birthQuarter == 3
+
+if `badDJ'==1 drop goodQuarter
+if `badDJ'==1 gen goodQuarter = birthMonth < 11
+
 tab ageGroup
 
 lab var educCat     "Years of education"
@@ -147,20 +175,17 @@ lab var apgar       "APGAR (1-10)"
 lab var twin        "Twin"
 lab var female      "Female"
 
-local Mum motherAge married college educCat 
+local Mum motherAge married college
 local Kid goodQuarter birthweight lbw gestat premature apgar twin female
+local MumPart educCat smoker
 
-sum `Mum'
-estpost tabstat `Mum', statistics(mean sd min max) listwise columns(statistics)
-esttab using "$SUM/nvssMum.tex", title("Descriptive Statistics (NVSS)") /*
-*/ replace label cells("mean(fmt(2)) sd(fmt(2)) min(fmt(0)) max(fmt(0))")
-
-
-sum `Kid'
-estpost tabstat `Kid', statistics(mean sd min max) listwise columns(statistics)
-esttab using "$SUM/nvssKid.tex", title("Descriptive Statistics (NVSS)") /*
-*/ replace label cells("mean(fmt(2)) sd(fmt(2)) min(fmt(0)) max(fmt(0))")
-
+foreach stype of Mum Kid MumPart {
+    sum ``stype''
+    estpost tabstat ``stype'', statistics(mean sd min max) listwise /*
+    */ columns(statistics)
+    esttab using "$SUM/nvss`stype'.tex", title("Descriptive Statistics (NVSS)")/*
+    */ replace label cells("mean(fmt(2)) sd(fmt(2)) min(fmt(0)) max(fmt(0))")
+}
 
 ********************************************************************************
 *** (2b) Subset
@@ -197,6 +222,7 @@ lab var educLevel    "Level of education obtained by mother"
 ********************************************************************************
 *** (3) Collapse to bins counting births to make sumstats over time
 ********************************************************************************
+/*
 count
 preserve
 drop if educLevel==.
@@ -254,7 +280,7 @@ listtex using "$SUM/Proportion`app'.tex", rstyle(tabular) replace
         "\end{footnotesize}}\\ \bottomrule\end{tabular}\end{table}");
 #delimit cr
 restore
-
+*/
 ********************************************************************************
 *** (2e) Sumstats all periods together
 ********************************************************************************
@@ -403,6 +429,7 @@ restore
 ********************************************************************************
 *** (3c) Histogram by time period
 ********************************************************************************
+/*
 preserve
 collapse (sum) birth, by(goodQuarter ageGroup period)
 reshape wide birth, i(ageGroup period) j(goodQuarter)
@@ -417,7 +444,7 @@ bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0)) ylabel(, nogrid) yline(0);
 graph export "$OUT/totalPeriod`app'.eps", as(eps) replace;
 #delimit cr
 restore
-
+*/
 ********************************************************************************
 *** (3d) Histogram: All, educ
 ********************************************************************************

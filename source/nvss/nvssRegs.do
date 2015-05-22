@@ -33,13 +33,34 @@ local se    robust
 local cnd   if twin==1
 
 ********************************************************************************
+*** (1b) Define run type
+********************************************************************************
+local y9899 0 
+local y1213 0 
+local badDJ 0
+
+if `y9899'==1 local data nvss1998_1999
+if `y9899'==1 global OUT "~/investigacion/2015/birthQuarter/results/1998/regressions"
+if `y1213'==1 dis "Running only for 2012-2013 (see line 53)"
+if `y1213'==1 global OUT "~/investigacion/2015/birthQuarter/results/2012/regressions"
+if `badDJ'==1 dis "Redefining goodQuarter as D/J (see lines 59-63)"
+if `badDJ'==1 global OUT "~/investigacion/2015/birthQuarter/results/badDJ/regressions"
+
+********************************************************************************
 *** (2a) Open data, setup for regressions
 ********************************************************************************
 use "$DAT/`data'"
+if `y1213'==1 keep if year==2012|year==2013
 
 gen birth = 1
 gen goodQuarter = birthQuarter == 2 | birthQuarter == 3
 gen badQuarter = birthQuarter == 4  | birthQuarter == 1
+
+if `badDJ'==1 {
+    drop goodQuarter badQuarter
+    gen goodQuarter = birthMonth!=11&birthMonth!=12
+    gen badQuarter  = birthMonth==11|birthMonth==12
+}
 replace ageGroup  = ageGroup-1 if ageGroup>1
 
 gen highEd              = (educLevel == 1 | educLevel == 2) if educLevel!=.
@@ -89,7 +110,9 @@ gen educMissing  = educLevel == .
 reg goodQuarter young married educMissing smokeMissing `yFE', `se'
 
 gen propMissing = .
+gen propOldEduc = .
 gen yearMissing = .
+
 local ii = 1
 foreach y of numlist 2005(1)2013 {
     qui count if educLevel == . & year==`y'
@@ -100,13 +123,19 @@ foreach y of numlist 2005(1)2013 {
     
     replace propMissing = `prop' in `ii'
     replace yearMissing = `y'    in `ii'
+
+    sum oldEduc if year==`y'
+    if `y'<2009  replace propOldEduc = r(mean) in `ii'
+    if `y'>=2009 replace propOldEduc = 0       in `ii'
     local ++ii
 }
 
 #delimit;
-twoway bar propMissing yearMissing in 1/9, scheme(s1mono) xtitle("Data Year")
-ytitle("Proportion Missing Education") 
-note("Missing education measures occurr in states which use pre-2003 format.");
+twoway bar propMissing yearMissing in 1/9, color(white) lcolor(gs0)
+|| connect propOldEduc yearMissing in 1/9,
+scheme(s1mono) xtitle("Data Year") ytitle("Proportion Missing Education") 
+note("Missing education measures occurr in states which use pre-2003 format.")
+legend(label(1 "Missing (2003 coding)") label(2 "Old Variable Available"));
 graph export "$OUT/../graphs/missingEduc.eps", as(eps) replace;
 #delimit cr
 
@@ -235,7 +264,7 @@ esttab est1 est2 est3 est4 est5 est6 using "$OUT/NVSSQuality.tex",
 replace `estopt' title("Birth Quality by Age and Season (NVSS 2005-2013)")
 keep(_cons young badQuarter) style(tex) booktabs mlabels(, depvar)
 postfoot("\bottomrule"
-         "\multicolumn{7}{p{17cm}}{\begin{footnotesize}Sample consists of all"
+         "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of US-born, white, non-hispanic mothers"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
@@ -250,7 +279,7 @@ esttab est1 est2 est3 est4 est5 est6 using "$OUT/NVSSQualityM.tex",
 replace `estopt' title("Birth Quality by Age and Season M/F (NVSS 2005-2013)")
 keep(_cons young* badQuarter) style(tex) booktabs mlabels(, depvar)
 postfoot("\bottomrule"
-         "\multicolumn{7}{p{17cm}}{\begin{footnotesize}Sample consists of all"
+         "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of US-born, white, non-hispanic mothers with male"
          "partners. \end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
@@ -269,7 +298,7 @@ foreach e in 0 1 {
     replace `estopt' title("Birth Quality by Age and Season (NVSS 2005-2013)")
     keep(_cons young badQuarter) style(tex) booktabs mlabels(, depvar)
     postfoot("\bottomrule"
-             "\multicolumn{7}{p{17cm}}{\begin{footnotesize}Sample consists of all"
+             "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Sample consists of all"
              "first born children of US-born, white, non-hispanic mothers `educN'"
              "\end{footnotesize}}\end{tabular}\end{table}");
     #delimit cr
@@ -289,7 +318,7 @@ foreach s in 0 1 {
     replace `estopt' title("Birth Quality by Age and Season (Mothers `smokeN')")
     keep(_cons young badQuarter) style(tex) booktabs mlabels(, depvar)
     postfoot("\bottomrule"
-             "\multicolumn{7}{p{17cm}}{\begin{footnotesize}Sample consists of all"
+             "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Sample consists of all"
              "first born children of US-born, white, non-hispanic mothers `smokeN'"
              "\end{footnotesize}}\end{tabular}\end{table}");
     #delimit cr
@@ -306,7 +335,7 @@ esttab est1 est2 est3 est4 est5 est6 using "$OUT/NVSSQualityEduc.tex",
 replace `estopt' title("Birth Quality by Age and Season (NVSS 2005-2013)")
 keep(_cons young badQuarter highEd married smoker) style(tex) mlabels(, depvar)
 postfoot("\bottomrule"
-         "\multicolumn{7}{p{17cm}}{\begin{footnotesize}Sample consists of all"
+         "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of US-born, white, non-hispanic mothers"
          "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
 #delimit cr
