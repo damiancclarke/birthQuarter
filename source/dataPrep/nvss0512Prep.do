@@ -43,6 +43,7 @@ gen premature   = gestation < 37 if gestation != .
 gen smoker      = 1 if (cig_1>0&cig_1<99)|(cig_2>0&cig_2<99)|(cig_3>0&cig_3<99)
 replace smoker  = 0 if cig_1==0 & cig_2==0 & cig_3==0
 gen female      = sex=="F"
+gen oldEduc     = dmeduc != .
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -67,7 +68,7 @@ replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth
+*/ female birthMonth oldEduc
 tempfile B2005
 save `B2005'
 
@@ -93,6 +94,7 @@ gen premature   = gestation < 37 if gestation != .
 gen smoker      = 1 if (cig_1>0&cig_1<99)|(cig_2>0&cig_2<99)|(cig_3>0&cig_3<99)
 replace smoker  = 0 if cig_1==0 & cig_2==0 & cig_3==0
 gen female      = sex=="F"
+gen oldEduc     = dmeduc != .
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -117,7 +119,7 @@ replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth
+*/ female birthMonth oldEduc
 tempfile B2006
 save `B2006'
 
@@ -143,6 +145,7 @@ gen premature   = gestation < 37 if gestation != .
 gen smoker      = 1 if (cig_1>0&cig_1<99)|(cig_2>0&cig_2<99)|(cig_3>0&cig_3<99)
 replace smoker  = 0 if cig_1==0 & cig_2==0 & cig_3==0
 gen female      = sex=="F"
+gen oldEduc     = dmeduc != .
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -167,7 +170,7 @@ replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth
+*/ female birthMonth oldEduc
 tempfile B2007
 save `B2007'
 
@@ -193,6 +196,7 @@ gen premature   = gestation < 37 if gestation != .
 gen smoker      = 1 if (cig_1>0&cig_1<99)|(cig_2>0&cig_2<99)|(cig_3>0&cig_3<99)
 replace smoker  = 0 if cig_1==0 & cig_2==0 & cig_3==0
 gen female      = sex=="F"
+gen oldEduc     = dmeduc != .
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -217,7 +221,7 @@ replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth
+*/ female birthMonth oldEduc
 tempfile B2008
 save `B2008'
 
