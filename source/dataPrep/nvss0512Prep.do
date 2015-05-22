@@ -20,7 +20,6 @@ global LOG "~/investigacion/2015/birthQuarter/log"
 
 log using "$LOG/nvss0512Prep.txt", text replace
 
-
 ********************************************************************************
 *** (2a) 2005 File
 ********************************************************************************
@@ -44,6 +43,9 @@ gen smoker      = 1 if (cig_1>0&cig_1<99)|(cig_2>0&cig_2<99)|(cig_3>0&cig_3<99)
 replace smoker  = 0 if cig_1==0 & cig_2==0 & cig_3==0
 gen female      = sex=="F"
 gen oldEduc     = dmeduc != .
+gen numPrenatal = uprevis if uprevis != 99
+gen monthPrenat = mpcb
+replace monthPrenat = precare if monthPrenat == .
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -68,7 +70,7 @@ replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth oldEduc
+*/ female birthMonth oldEduc numPrenatal monthPrenat
 tempfile B2005
 save `B2005'
 
@@ -95,6 +97,9 @@ gen smoker      = 1 if (cig_1>0&cig_1<99)|(cig_2>0&cig_2<99)|(cig_3>0&cig_3<99)
 replace smoker  = 0 if cig_1==0 & cig_2==0 & cig_3==0
 gen female      = sex=="F"
 gen oldEduc     = dmeduc != .
+gen numPrenatal = uprevis if uprevis != 99
+gen monthPrenat = mpcb
+replace monthPrenat = precare if monthPrenat == .
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -119,7 +124,7 @@ replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth oldEduc
+*/ female birthMonth oldEduc numPrenatal monthPrenat
 tempfile B2006
 save `B2006'
 
@@ -146,6 +151,9 @@ gen smoker      = 1 if (cig_1>0&cig_1<99)|(cig_2>0&cig_2<99)|(cig_3>0&cig_3<99)
 replace smoker  = 0 if cig_1==0 & cig_2==0 & cig_3==0
 gen female      = sex=="F"
 gen oldEduc     = dmeduc != .
+gen numPrenatal = uprevis if uprevis != 99
+gen monthPrenat = mpcb
+replace monthPrenat = precare if monthPrenat == .
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -170,7 +178,7 @@ replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth oldEduc
+*/ female birthMonth oldEduc numPrenatal monthPrenat
 tempfile B2007
 save `B2007'
 
@@ -197,6 +205,9 @@ gen smoker      = 1 if (cig_1>0&cig_1<99)|(cig_2>0&cig_2<99)|(cig_3>0&cig_3<99)
 replace smoker  = 0 if cig_1==0 & cig_2==0 & cig_3==0
 gen female      = sex=="F"
 gen oldEduc     = dmeduc != .
+gen numPrenatal = uprevis if uprevis != 99
+gen monthPrenat = mpcb
+replace monthPrenat = precare if monthPrenat == .
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -221,7 +232,7 @@ replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth oldEduc
+*/ female birthMonth oldEduc numPrenatal monthPrenat
 tempfile B2008
 save `B2008'
 
@@ -247,6 +258,9 @@ gen premature   = gestation < 37 if gestation != .
 gen smoker      = 1 if cig_rec=="Y"
 replace smoker  = 0 if cig_rec=="N"
 gen female      = sex=="F"
+gen numPrenatal = uprevis if uprevis != 99
+gen monthPrenat = precare
+gen prePregBMI  = bmi
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -271,7 +285,7 @@ replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth
+*/ female birthMonth numPrenatal monthPrenat prePregBMI
 tempfile B2009
 save `B2009'
 
@@ -297,6 +311,9 @@ gen premature   = gestation < 37 if gestation != .
 gen smoker      = 1 if cig_rec=="Y"
 replace smoker  = 0 if cig_rec=="N"
 gen female      = sex=="F"
+gen numPrenatal = uprevis if uprevis != 99
+gen monthPrenat = precare
+gen prePregBMI  = bmi
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -321,7 +338,7 @@ replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth
+*/ female birthMonth numPrenatal monthPrenat prePregBMI
 tempfile B2010
 save `B2010'
 
@@ -347,6 +364,9 @@ gen premature   = gestation < 37 if gestation != .
 gen smoker      = 1 if cig_rec=="Y"
 replace smoker  = 0 if cig_rec=="N"
 gen female      = sex=="F"
+gen numPrenatal = uprevis if uprevis != 99
+gen monthPrenat = precare
+gen prePregBMI  = bmi
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -371,7 +391,7 @@ replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth
+*/ female birthMonth numPrenatal monthPrenat prePregBMI
 tempfile B2011
 save `B2011'
 
@@ -397,6 +417,9 @@ gen premature   = gestation < 37 if gestation != .
 gen smoker      = 1 if cig_rec=="Y"
 replace smoker  = 0 if cig_rec=="N"
 gen female      = sex=="F"
+gen numPrenatal = uprevis if uprevis != 99
+gen monthPrenat = precare
+gen prePregBMI  = bmi
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -421,7 +444,7 @@ replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth
+*/ female birthMonth numPrenatal monthPrenat prePregBMI
 tempfile B2012
 save `B2012'
 
@@ -447,6 +470,9 @@ gen premature   = gestation < 37 if gestation != .
 gen smoker      = 1 if cig_rec=="Y"
 replace smoker  = 0 if cig_rec=="N"
 gen female      = sex=="F"
+gen numPrenatal = uprevis if uprevis != 99
+gen monthPrenat = precare
+gen prePregBMI  = bmi
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -471,7 +497,7 @@ replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth
+*/ female birthMonth numPrenatal monthPrenat prePregBMI
 tempfile B2013
 save `B2013'
 
@@ -510,6 +536,8 @@ gen gestation   = dgestat if dgestat!=99
 gen premature   = gestation < 37 if gestation != .
 gen smoker      = cigar>0 if cigar < 99
 gen female      = csex==2
+gen numPrenatal = nprevis if nprevis != 99
+gen monthPrenat = monpre
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mrace == 1 & ormoth == 0
@@ -531,7 +559,7 @@ gen education = dmeduc if dmeduc != 99
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar        /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth gestation
+*/ female birthMonth gestation numPrenatal monthPrenat
 tempfile B1998
 save `B1998'
 
@@ -556,6 +584,8 @@ gen gestation   = dgestat if dgestat!=99
 gen premature   = gestation < 37 if gestation != .
 gen smoker      = cigar>0 if cigar < 99
 gen female      = csex==2
+gen numPrenatal = nprevis if nprevis != 99
+gen monthPrenat = monpre
 
 keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
 keep if mrace == 1 & ormoth == 0
@@ -577,7 +607,7 @@ gen education = dmeduc if dmeduc != 99
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar        /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth gestation
+*/ female birthMonth gestation numPrenatal monthPrenat
 tempfile B1999
 save `B1999'
 
