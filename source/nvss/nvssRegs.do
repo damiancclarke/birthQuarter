@@ -35,9 +35,10 @@ local cnd   if twin==1
 ********************************************************************************
 *** (1b) Define run type
 ********************************************************************************
-local y9899 0 
+local orign 0
+local y9899 0
 local y1213 0 
-local badDJ 0
+local badDJ 1
 
 if `y9899'==1 local data nvss1998_1999
 if `y9899'==1 global OUT "~/investigacion/2015/birthQuarter/results/1998/regressions"
@@ -104,41 +105,43 @@ lab var smoker             "Smoker"
 ********************************************************************************
 *** (3a) Examine missing covariates
 ********************************************************************************
-gen smokeMissing = smoker    == .
-gen educMissing  = educLevel == .
+if `orign'==1 {
+    gen smokeMissing = smoker    == .
+    gen educMissing  = educLevel == .
 
-reg goodQuarter young married educMissing smokeMissing `yFE', `se'
-
-gen propMissing = .
-gen propOldEduc = .
-gen yearMissing = .
-
-local ii = 1
-foreach y of numlist 2005(1)2013 {
-    qui count if educLevel == . & year==`y'
-    local mis = `=r(N)'
-    qui count if year==`y'
-    local all = `=r(N)'
-    local prop = `mis'/`all'
+    reg goodQuarter young married educMissing smokeMissing `yFE', `se'
     
-    replace propMissing = `prop' in `ii'
-    replace yearMissing = `y'    in `ii'
+    gen propMissing = .
+    gen propOldEduc = .
+    gen yearMissing = .
 
-    sum oldEduc if year==`y'
-    if `y'<2009  replace propOldEduc = r(mean) in `ii'
-    if `y'>=2009 replace propOldEduc = 0       in `ii'
-    local ++ii
+    local ii = 1
+    foreach y of numlist 2005(1)2013 {
+        qui count if educLevel == . & year==`y'
+        local mis = `=r(N)'
+        qui count if year==`y'
+        local all = `=r(N)'
+        local prop = `mis'/`all'
+    
+        replace propMissing = `prop' in `ii'
+        replace yearMissing = `y'    in `ii'
+
+        sum oldEduc if year==`y'
+        if `y'<2009  replace propOldEduc = r(mean) in `ii'
+        if `y'>=2009 replace propOldEduc = 0       in `ii'
+        local ++ii
+    }
+
+    #delimit;
+    twoway bar propMissing yearMissing in 1/9, color(white) lcolor(gs0)
+    || connect propOldEduc yearMissing in 1/9,
+    scheme(s1mono) xtitle("Data Year") ytitle("Proportion Missing Education") 
+    note("Missing education measures occurr in states which use pre-2003 format.")
+    legend(label(1 "Missing (2003 coding)") label(2 "Old Variable Available"));
+    graph export "$OUT/../graphs/missingEduc.eps", as(eps) replace;
+    #delimit cr
 }
-
-#delimit;
-twoway bar propMissing yearMissing in 1/9, color(white) lcolor(gs0)
-|| connect propOldEduc yearMissing in 1/9,
-scheme(s1mono) xtitle("Data Year") ytitle("Proportion Missing Education") 
-note("Missing education measures occurr in states which use pre-2003 format.")
-legend(label(1 "Missing (2003 coding)") label(2 "Old Variable Available"));
-graph export "$OUT/../graphs/missingEduc.eps", as(eps) replace;
-#delimit cr
-
+    
 ********************************************************************************
 *** (4a) Regressions (goodQuarter on Age)
 ********************************************************************************

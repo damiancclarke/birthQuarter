@@ -45,13 +45,13 @@ if `twins' == 1 local app twins
 ********************************************************************************
 local y9899 0
 local y1213 0
-local badDJ 0
+local badDJ 1
 
 if `y9899'==1 {
     local data nvss1998_1999 
     global OUT "~/investigacion/2015/birthQuarter/results/1998/graphs" 
     global SUM "~/investigacion/2015/birthQuarter/results/1998/sumStats"
-}
+    }
 if `y1213'==1 {
     dis "Running only for 2012-2013 (see line 71)" 
     global OUT "~/investigacion/2015/birthQuarter/results/2012/graphs" 
@@ -179,7 +179,7 @@ local Mum motherAge married college
 local Kid goodQuarter birthweight lbw gestat premature apgar twin female
 local MumPart educCat smoker
 
-foreach stype of Mum Kid MumPart {
+foreach stype in Mum Kid MumPart {
     sum ``stype''
     estpost tabstat ``stype'', statistics(mean sd min max) listwise /*
     */ columns(statistics)
@@ -201,7 +201,7 @@ replace period = 2 if year >=2008 & year<=2009
 replace period = 3 if year >=2010 & year<=2013
 
 ********************************************************************************
-*** (2b) Label for clarity
+*** (2c) Label for clarity
 ********************************************************************************
 lab def aG  1 "Young " 2  "Old "
 lab def pr  1 "Pre-crisis" 2 "Crisis" 3 "Post-crisis"
@@ -220,69 +220,7 @@ lab var educLevel    "Level of education obtained by mother"
 
 
 ********************************************************************************
-*** (3) Collapse to bins counting births to make sumstats over time
-********************************************************************************
-/*
-count
-preserve
-drop if educLevel==.
-collapse (sum) birth, by(goodQuarter educLevel period ageGroup)
-
-reshape wide birth, i(educLevel period ageGroup) j(goodQuarter)
-reshape wide birth0 birth1, i(educLevel ageGroup) j(period)
-
-sort educLevel ageGroup
-#delimit ;
-listtex using "$SUM/Count`app'.tex", rstyle(tabular) replace
-head("\begin{table}[htpb!]\centering"
-     "\caption{Number of Births per Cell}"
-     "\begin{tabular}{llcccccc}\toprule"
-     "&&\multicolumn{2}{c}{\textbf{Pre-Crisis}}&"
-     "\multicolumn{2}{c}{\textbf{Crisis}}&"
-     "\multicolumn{2}{c}{\textbf{Post-Crisis}}\\"
-     "\cmidrule(r){3-4}\cmidrule(r){5-6}"
-     "\cmidrule(r){7-8}" "&College& Bad Q&Good Q&Badd Q&Good Q&Bad Q&Good Q\\"
-     "\midrule")
-foot("\midrule\multicolumn{8}{p{13cm}}{\begin{footnotesize}\textsc{Notes:}"
-     "Pre-Crisis is 2005-2007, crisis is 2008-2009, and post-crisis is "
-     "2010-2013. Good Q refers to birth quarters 2 and 3, while Bad Q refers"
-     "to quarters 4 and 1. All numbers are calculated based on all recorded"
-     "births in the national vital statistics system (birth certificate) data"
-     "from 2005-2013.\end{footnotesize}}\\"
-     "\bottomrule\end{tabular}\end{table}");
-#delimit cr
-restore
-
-preserve
-drop if educLevel==.
-collapse (sum) birth, by(goodQuarter educLevel period ageGroup)
-reshape wide birth, i(educLevel period ageGroup) j(goodQuarter)
-gen totalbirths = birth0 + birth1
-replace birth0=round(1000*birth0/totalbirths)/10
-replace birth1=round(1000*birth1/totalbirths)/10
-drop totalbirths
-reshape wide birth0 birth1, i(educLevel ageGroup) j(period)
-
-#delimit ;
-listtex using "$SUM/Proportion`app'.tex", rstyle(tabular) replace
- head("\vspace{8mm}\begin{table}[htpb!]"
-        "\centering\caption{Percent of Births per Cell}"
-        "\begin{tabular}{llcccccc}\toprule"
-        "&&\multicolumn{2}{c}{\textbf{Pre-Crisis}}&"
-        "\multicolumn{2}{c}{\textbf{Crisis}}&"
-        "\multicolumn{2}{c}{\textbf{Post-Crisis}}\\ \cmidrule(r){3-4}\cmidrule(r){5-6}"
-        "\cmidrule(r){7-8}" "&College&Bad Q&Good Q&Bad Q&Good Q&Bad Q& Good Q\\ \midrule")
- foot("\midrule\multicolumn{8}{p{13cm}}{\begin{footnotesize}\textsc{Notes:}"
-        "Pre-Crisis is 2005-2007,"
-        "crisis is 2008-2009, and post-crisis is 2010-2013.  Good Q refers to birth "
-        "quarters 2 and 3, while Bad Q refers to quarters 4 and 1.  All values reflect"
-        "the percent of births for this time period, age group and education level."
-        "\end{footnotesize}}\\ \bottomrule\end{tabular}\end{table}");
-#delimit cr
-restore
-*/
-********************************************************************************
-*** (2e) Sumstats all periods together
+*** (3) Sumstats all periods together
 ********************************************************************************
 preserve
 drop if educLevel==.
@@ -386,7 +324,7 @@ restore
 
 
 ********************************************************************************
-*** (3a) Global histogram
+*** (4a) Global histogram
 ********************************************************************************
 tempfile all educ
 
@@ -406,7 +344,7 @@ save `all'
 restore
 
 ********************************************************************************
-*** (3b) Histogram by education level
+*** (4b) Histogram by education level
 ********************************************************************************
 preserve
 collapse (sum) birth, by(goodQuarter ageGroup educLevel)
@@ -427,26 +365,7 @@ save `educ'
 restore
 
 ********************************************************************************
-*** (3c) Histogram by time period
-********************************************************************************
-/*
-preserve
-collapse (sum) birth, by(goodQuarter ageGroup period)
-reshape wide birth, i(ageGroup period) j(goodQuarter)
-gen totalbirths = birth0 + birth1
-replace birth0=(round(10000*birth0/totalbirths)/100)-50
-replace birth1=(round(10000*birth1/totalbirths)/100)-50
-
-#delimit ;
-graph bar birth*, over(period, label(angle(45))) over(ageGroup)
-scheme(s1mono) legend(label(1 "Bad Quarter") label(2 "Good Quarter"))
-bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0)) ylabel(, nogrid) yline(0);
-graph export "$OUT/totalPeriod`app'.eps", as(eps) replace;
-#delimit cr
-restore
-*/
-********************************************************************************
-*** (3d) Histogram: All, educ
+*** (4c) Histogram: All, educ
 ********************************************************************************
 preserve
 use `all', replace
@@ -472,12 +391,13 @@ graph export "$OUT/birthQdiff`app'.eps", as(eps) replace;
 restore
 
 ********************************************************************************
-*** (4) Birth outcomes by groups
+*** (5) Birth outcomes by groups
 ********************************************************************************
 local hkbirth birthweight lbw gestation premature vlbw apgar  
 local axesN   3100[50]3350 0.04[0.02]0.14 38[0.2]39 0.06[0.02]0.18
-if `twins'==1 local axesN 2150[50]2450 0.4[0.05]0.7 34[0.5]36 0.5[0.05]0.8 0.06[0.02]0.14
-
+if `twins'==1 {
+    local axesN 2150[50]2450 0.4[0.05]0.7 34[0.5]36 0.5[0.05]0.8 0.06[0.02]0.14
+}
 
 tokenize `axesN'
 preserve

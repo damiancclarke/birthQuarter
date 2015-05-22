@@ -23,26 +23,29 @@ print('\n\n Producing tex files for output tables.\n\n')
 #==============================================================================
 RES   = "/home/damiancclarke/investigacion/2015/birthQuarter/results/"
 TAB   = "/home/damiancclarke/investigacion/2015/birthQuarter/tables/"
+ftype = 'badDJ'
+dloc  = './../'
 
 singleIPUM       = RES + 'ipums/sumStats/FullSample.txt'
-singleNVSS       = RES + 'nvss/sumStats/FullSample.txt'
+singleNVSS       = RES + ftype + '/sumStats/FullSample.txt'
 singleEducIPUM   = RES + 'ipums/sumStats/EducSample.txt'
-singleEducNVSS   = RES + 'nvss/sumStats/EducSample.txt'
+singleEducNVSS   = RES + ftype + '/sumStats/EducSample.txt'
 allEducIPUM      = RES + 'ipums/sumStats/JustEduc.txt'
-allEducNVSS      = RES + 'nvss/sumStats/JustEduc.txt'
+allEducNVSS      = RES + ftype + '/sumStats/JustEduc.txt'
 
 
 twinIPUM       = RES + 'ipums/sumStats/FullSampletwins.txt'
-twinNVSS       = RES + 'nvss/sumStats/FullSampletwins.txt'
+twinNVSS       = RES + ftype + '/sumStats/FullSampletwins.txt'
 twinEducIPUM   = RES + 'ipums/sumStats/EducSampletwins.txt'
-twinEducNVSS   = RES + 'nvss/sumStats/EducSampletwins.txt'
+twinEducNVSS   = RES + ftype + '/sumStats/EducSampletwins.txt'
 TallEducIPUM   = RES + 'ipums/sumStats/JustEductwins.txt'
-TallEducNVSS   = RES + 'nvss/sumStats/JustEductwins.txt'
+TallEducNVSS   = RES + ftype + '/sumStats/JustEductwins.txt'
 
 sumIPUM = RES + 'ipums/sumStats/ipumsSum.tex' 
-sumNVSS = RES + 'nvss/sumStats/nvssSum.tex'
-MumNVSS = RES + 'nvss/sumStats/nvssMum.tex'
-KidNVSS = RES + 'nvss/sumStats/nvssKid.tex'
+sumNVSS = RES + ftype + '/sumStats/nvssSum.tex'
+MumNVSS = RES + ftype + '/sumStats/nvssMum.tex'
+MumPNVSS= RES + ftype + '/sumStats/nvssMumPart.tex'
+KidNVSS = RES + ftype + '/sumStats/nvssKid.tex'
 
 #==============================================================================
 #== (1b) shortcuts
@@ -70,23 +73,17 @@ R2   = 'R$^2$'
 #== (2) Write sum stat tables
 #==============================================================================
 for parity in ['single', 'twin']:
-    sumT = open(TAB + 'sum'+parity+'.tex', 'w')
+    sumT = open(TAB + 'sum'+parity+ftype+'.tex', 'w')
 
     if parity=='twin':
         NV  = open(twinNVSS, 'r').readlines()
-        IP  = open(twinIPUM, 'r').readlines()
         NVe = open(twinEducNVSS, 'r').readlines()
-        IPe = open(twinEducIPUM, 'r').readlines()
         NVj = open(TallEducNVSS, 'r').readlines()
-        IPj = open(TallEducIPUM, 'r').readlines()
         headline = 'Twins'
     elif parity=='single':
         NV  = open(singleNVSS, 'r').readlines()
-        IP  = open(singleIPUM, 'r').readlines()
         NVe = open(singleEducNVSS, 'r').readlines()
-        IPe = open(singleEducIPUM, 'r').readlines()
         NVj = open(allEducNVSS, 'r').readlines()
-        IPj = open(allEducIPUM, 'r').readlines()
         headline = 'Singletons'
 
     sumT.write("\\begin{landscape}\\begin{table}[htpb!]"
@@ -117,12 +114,13 @@ for parity in ['single', 'twin']:
     
     
     sumT.write('\n'+mr+mc1+twid[0]+tcm[0]+mc3+
-               "Good season refers to birth quarters 2 and 3 (Apr-Jun and Jul-Sept).  Bad "
-               "season refers to quarters 1 and 4 (Jan-Mar and Oct-Dec).  Values reflect "
-               "the percent of yearly births each season from 2005-2013. `Young' refers to"
-               " 25-39 year olds, `Old' refers to 40-45 year olds. \n"
-               "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}\\end{center}"
-               "\\end{table}\\end{landscape}")
+               "Good season refers to birth quarters 2 and 3 (Apr-Jun and "
+               "Jul-Sept).  Bad season refers to quarters 1 and 4 (Jan-Mar "
+               "and Oct-Dec).  Values reflect the percent of yearly births "
+               "each season from 2005-2013. `Young' refers to 25-39 year olds,"
+               " `Old' refers to 40-45 year olds. \n"
+               "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}"
+               "\\end{center}\\end{table}\\end{landscape}")
     
     sumT.close()
 
@@ -130,30 +128,40 @@ for parity in ['single', 'twin']:
 #==============================================================================
 #== (3) Basic Sum stats (NVSS and IPUMS)
 #==============================================================================
-sumT = open(TAB + 'sumStats.tex', 'w')
+sumT = open(TAB + 'sumStats'+ftype+'.tex', 'w')
 sumT.write('\\begin{table}[htpb!] \n \\begin{center} \n' 
 '\\caption{Descriptive Statistics (NVSS 2005-2013)}\n \\begin{tabular}{lcccc} '
 '\n \\toprule\\toprule \\vspace{5mm} \n'
 '& Mean & Std. Dev. & Min. & Max. \\\\ \\midrule \n'
 '\multicolumn{5}{l}{\\textbf{Panel A: Mother}} \\\\ \n')
 
-Mu  = open(MumNVSS, 'r').readlines()
-Ki  = open(KidNVSS, 'r').readlines()
+Mu  = open(MumNVSS,  'r').readlines()
+MP  = open(MumPNVSS, 'r').readlines()
+Ki  = open(KidNVSS,  'r').readlines()
 
 for i,line in enumerate(Mu):
-    if i>8 and i<15:
+    if i>8 and i<13:
         line = line.replace('\\hline','\\midrule')
         line = line.replace('At least some college','Some College +')
         sumT.write(line)
 
-sumT.write('\\midrule \n \\multicolumn{5}{l}{\\textbf{Panel B: Child}}\\\\ \n ')
+sumT.write(' \n \\multicolumn{5}{l}{'
+'\\textbf{Panel B: Mother (2003 standard only)}}\\\\ \n ')
+for i,line in enumerate(MP):
+    if i>8 and i<12:
+        line = line.replace('\\hline','\\midrule')
+        sumT.write(line)
+    if i==12:
+        obs2 = line
+
+sumT.write(' \n \\multicolumn{5}{l}{\\textbf{Panel C: Child}}\\\\ \n ')
 for i,line in enumerate(Ki):
     if i>8 and i<19:
         line = line.replace('\\hline','\\midrule')
         line = line.replace('At least some college','Some College +')
         line = line.replace('Quarter','season of birth')
-        line = line.replace('Quarter','season of birth')
         sumT.write(line)
+sumT.write(obs2.replace('Observations', 'Observations (Panel B)'))
 
 sumT.write('\n'+mr+mc1+twid[1]+tcm[1]+mc3+
            "Each sample consists of all first-born children born to white, "
@@ -167,27 +175,26 @@ sumT.close()
 #==============================================================================
 #== (X) write tables.tex file
 #==============================================================================
-final = open(TAB + "tables.tex", 'w')
+final = open(TAB + "tables"+ ftype +".tex", 'w')
 
-final.write("\\input{./../tables/sumStats.tex} \n")
-final.write("\\input{./../tables/sumsingle.tex} \n")
-final.write("\\input{./../tables/sumtwin.tex} \n")
-final.write("\\input{./../results/nvss/regressions/NVSSBinary.tex} \n"
-"\\input{./../results/nvss/regressions/NVSSBinaryM.tex} \n"
-"\\input{./../results/nvss/regressions/NVSSBinarymarried.tex} \n"
-"\\input{./../results/nvss/regressions/NVSSBinaryunmarried.tex} \n"
-"\\input{./../results/nvss/regressions/NVSSBinarySingle.tex} \n"
-"\\input{./../results/nvss/regressions/NVSSBinarysmoking.tex} \n"
-"\\input{./../results/nvss/regressions/NVSSBinarynon-smoking.tex} \n"
-"\\begin{landscape}\\input{../results/nvss/regressions/NVSSQuality.tex} \n"
+final.write("\\input{./../tables/sumStats"+ftype+".tex} \n")
+final.write("\\input{./../tables/sumsingle"+ftype+".tex} \n")
+final.write("\\input{./../tables/sumtwin"+ftype+".tex} \n")
+
+final.write("\\input{./../results/"+ ftype +"/regressions/NVSSBinary.tex} \n"
+"\\input{./../results/"+ ftype +"/regressions/NVSSBinaryM.tex} \n"
+"\\input{./../results/"+ ftype +"/regressions/NVSSBinarymarried.tex} \n"
+"\\input{./../results/"+ ftype +"/regressions/NVSSBinaryunmarried.tex} \n"
+"\\input{./../results/"+ ftype +"/regressions/NVSSBinarySingle.tex} \n"
+"\\input{./../results/"+ ftype +"/regressions/NVSSBinarysmoking.tex} \n"
+"\\input{./../results/"+ ftype +"/regressions/NVSSBinarynon-smoking.tex} \n"
+"\\begin{landscape}\\input{./..//results/"+ ftype +"/regressions/NVSSQuality.tex} \n"
 "\\end{landscape}\\begin{landscape}\n"
-"\\input{../results/nvss/regressions/NVSSQualityM.tex} \n"
+"\\input{./../results/"+ ftype +"/regressions/NVSSQualityM.tex} \n"
+"\\end{landscape}\\begin{landscape}"
+"\\input{./../results/"+ ftype +"/regressions/NVSSQualitySmoke0.tex} \n"
 "\\end{landscape}\\begin{landscape}\n"
-"\\input{./../results/nvss/regressions/NVSSQualityTriple.tex}\\end{landscape}"
-"\\begin{landscape}"
-"\\input{../results/nvss/regressions/NVSSQualitySmoke0.tex} \n"
-"\\end{landscape}\\begin{landscape}\n"
-"\\input{../results/nvss/regressions/NVSSQualitySmoke1.tex} \n"
+"\\input{./../results/"+ ftype +"/regressions/NVSSQualitySmoke1.tex} \n"
 "\\end{landscape}"
 )
 
