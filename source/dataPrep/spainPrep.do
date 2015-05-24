@@ -38,8 +38,8 @@ gen twin          = multipli == 2
 gen premature     = intersem == 2
 gen gestation     = semanas
 gen birthweight   = peso if peso>=500 & peso<=5000
-gen lbw           = peso < 2500 if peso != .
-gen vlbw          = peso < 1500 if peso != .
+gen lbw           = peso < 2500 if birthweight != .
+gen vlbw          = peso < 1500 if birthweight != .
 gen married       = ecivm == 1
 gen single        = ecivm == 2
 gen cesarean      = cesarea == 1
@@ -83,8 +83,8 @@ foreach parent in Mother Father {
 #delimit ;
 lab def cs   1 "Married" 2 "Single" 3 "Seperated/Divorced" 4 "Widowed" ;
 lab def educ 1 "Illiterate" 2 "Less than 5 years" 3 "Incomplete EGB/ESO/Primary"
-             4 "Complete Primary" 5 "Secondary Bachelor" 6 "Tertiary?"
-             7 "Tertiary?" 8 "Tertiary?" 9 "Tertiary?" 10 "PhD";
+             4 "Complete Primary" 5 "Secondary Bachelor" 6 "Secondary"
+             7 "Tertiary 1" 8 "Tertiary 2" 9 "Tertiary3" 10 "PhD" 0 "N/A";
 lab def job  1 "Armed Forces" 2 "Public admin, business director" 3 "Intellectual"
              4 "Technician" 5 "Administrative offices" 6 "Restauration"
              7 "Agriculture" 8 "Construction (artesan)" 9 "Machine operators"
@@ -97,7 +97,8 @@ lab val profession* job;
 
 keep parity multipleBirth monthBirth singleton twin premature gestation lbw vlbw
 inscription* birthM birthP married single cesarean survived1day female motherSp*
-civilStatus education* profession* age* birthQuarter goodQuarter badQuarter yrs*;
+civilStatus education* profession* age* birthQuarter goodQuarter badQuarter yrs*
+birthweight;
 #delimit cr
 
 
@@ -105,4 +106,4 @@ civilStatus education* profession* age* birthQuarter goodQuarter badQuarter yrs*
 *--- (X) Save
 *-------------------------------------------------------------------------------
 lab data "Spain administrative births.  Imported and cleaned by damianclarke."
-save "$OUT/births2013"
+save "$OUT/births2013", replace

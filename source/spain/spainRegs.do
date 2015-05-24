@@ -36,6 +36,7 @@ local cnd   if twin==0
 ********************************************************************************
 use "$DAT/`data'"
 keep if parity == 1 & motherSpanish == 1 & ageMother>=25 & ageMother<= 45
+destring birthProvince, replace
 
 ********************************************************************************
 *** (2b) Generate variables
@@ -43,6 +44,7 @@ keep if parity == 1 & motherSpanish == 1 & ageMother>=25 & ageMother<= 45
 gen ageGroup = 1 if ageMother<40
 replace ageGroup = 2 if ageMother>=40
 
+gen professional        = professionM>=2&professionM<=5 if professionM!=. 
 gen highEd              = yrsEducMother > 12 & yrsEducMother != .
 gen young               = ageGroup  == 1
 gen youngXhighEd        = young*highEd
@@ -63,57 +65,61 @@ lab var highEdXbadQ        "College$\times$ Bad S"
 lab var youngXhighEdXbadQ  "Young$\times$ College$\times$ Bad S"
 lab var vhighEd            "Complete Degree"
 lab var youngXvhighEd      "Degree$\times$ Aged 25-39"
-
+lab var professional       "White Collar Job"
+lab var married            "Married"
 
 ********************************************************************************
 *** (3a) Regressions (goodQuarter on Age)
 ********************************************************************************
-eststo: reg goodQuarter young                     `cnd', `se'
-eststo: reg goodQuarter young                `FE' `cnd', `se'
-eststo: reg goodQuarter young highEd         `FE' `cnd', `se'
-eststo: reg goodQuarter young highEd married `FE' `cnd', `se'
+eststo: reg goodQuarter young                                  `cnd', `se'
+eststo: reg goodQuarter young                             `FE' `cnd', `se'
+eststo: reg goodQuarter young highEd                      `FE' `cnd', `se'
+eststo: reg goodQuarter young highEd professional         `FE' `cnd', `se'
+eststo: reg goodQuarter young highEd professional married `FE' `cnd', `se'
 
 
 #delimit ;
-esttab est1 est2 est3 est4 using "$OUT/spainBinary.tex",
+esttab est1 est2 est3 est4 est5 using "$OUT/spainBinary.tex",
 replace `estopt' title("Birth Season and Age (Spain 2013)") booktabs
-keep(_cons young highEd married) style(tex) mlabels(, depvar)
+keep(_cons young highEd professional married) style(tex) mlabels(, depvar)
 postfoot("Province FE&&Y&Y&Y&Y\\ \bottomrule"
-                  "\multicolumn{5}{p{13cm}}{\begin{footnotesize}Sample consists"
+                  "\multicolumn{6}{p{15cm}}{\begin{footnotesize}Sample consists"
                   "of all singleton first born children of Spanish mothers"
                   "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
 
-eststo: reg goodQuarter young                      `cnd', `se'
-eststo: reg goodQuarter young                 `FE' `cnd', `se'
-eststo: reg goodQuarter young vhighEd         `FE' `cnd', `se'
-eststo: reg goodQuarter young vhighEd married `FE' `cnd', `se'
+eststo: reg goodQuarter young                                   `cnd', `se'
+eststo: reg goodQuarter young                              `FE' `cnd', `se'
+eststo: reg goodQuarter young vhighEd                      `FE' `cnd', `se'
+eststo: reg goodQuarter young vhighEd professional         `FE' `cnd', `se'
+eststo: reg goodQuarter young vhighEd professional married `FE' `cnd', `se'
 
 
 #delimit ;
-esttab est1 est2 est3 est4 using "$OUT/spainBinaryHigh.tex",
+esttab est1 est2 est3 est4 est5 using "$OUT/spainBinaryHigh.tex",
 replace `estopt' title("Birth Season and Age (Spain 2013)") booktabs
-keep(_cons young highEd married) style(tex) mlabels(, depvar)
+keep(_cons young vhighEd married professional) style(tex) mlabels(, depvar)
 postfoot("Province FE&&Y&Y&Y&Y\\ \bottomrule"
-                  "\multicolumn{5}{p{13cm}}{\begin{footnotesize}Sample consists"
+                  "\multicolumn{6}{p{15cm}}{\begin{footnotesize}Sample consists"
                   "of all singleton first born children of Spanish mothers"
                   "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
 
 local cond if twin==1
-eststo: reg goodQuarter young                     `cond', `se'
-eststo: reg goodQuarter young                `FE' `cond', `se'
-eststo: reg goodQuarter young highEd         `FE' `cond', `se'
-eststo: reg goodQuarter young highEd married `FE' `cond', `se'
+eststo: reg goodQuarter young                                  `cond', `se'
+eststo: reg goodQuarter young                             `FE' `cond', `se'
+eststo: reg goodQuarter young highEd                      `FE' `cond', `se'
+eststo: reg goodQuarter young highEd professional         `FE' `cond', `se'
+eststo: reg goodQuarter young highEd professional married `FE' `cond', `se'
 
 #delimit ;
-esttab est1 est2 est3 est4 using "$OUT/spainBinaryTwin.tex",
+esttab est1 est2 est3 est4 est5 using "$OUT/spainBinaryTwin.tex",
 replace `estopt' title("Birth Season and Age (Spain, Twins Only)") booktabs
-keep(_cons young highEd married smoker `pre') style(tex) mlabels(, depvar)
+keep(_cons young highEd married professional) style(tex) mlabels(, depvar)
 postfoot("Province FE&&Y&Y&Y&Y\\ \bottomrule"
-         "\multicolumn{5}{p{13cm}}{\begin{footnotesize}Sample consists"
+         "\multicolumn{6}{p{15cm}}{\begin{footnotesize}Sample consists"
          "of all first born children of Spanish mothers (twins only)"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
@@ -121,17 +127,17 @@ estimates clear
 
 
 local cond `cnd' & single==1
-eststo: reg goodQuarter young             `cond', `se'
-eststo: reg goodQuarter young        `FE' `cond', `se'
-eststo: reg goodQuarter young highEd `FE' `cond', `se'
-
+eststo: reg goodQuarter young                          `cond', `se'
+eststo: reg goodQuarter young                     `FE' `cond', `se'
+eststo: reg goodQuarter young highEd              `FE' `cond', `se'
+eststo: reg goodQuarter young highEd professional `FE' `cond', `se'
 
 #delimit ;
-esttab est1 est2 est3 using "$OUT/spainBinarySingle.tex",
+esttab est1 est2 est3 est4 using "$OUT/spainBinarySingle.tex",
 replace `estopt' title("Birth Season and Age: Single Women (Spain 2013)")
-keep(_cons young highEd `pre') style(tex) booktabs mlabels(, depvar)
+keep(_cons young highEd professional) style(tex) booktabs mlabels(, depvar)
 postfoot("Province FE&&Y&Y&Y\\ \bottomrule"
-         "\multicolumn{3}{p{10cm}}{\begin{footnotesize}Sample consists of all"
+         "\multicolumn{5}{p{11cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of Spanish mothers"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
@@ -158,12 +164,12 @@ postfoot("\bottomrule"
 estimates clear
 
 foreach y of varlist `qual' {
-    eststo: reg `y' young badQuarter highEd married `FE' `cnd', `se'
+    eststo: reg `y' young badQua highEd professional married `FE' `cnd', `se'
 }
 #delimit ;
 esttab est1 est2 est3 est4 est5 est6 using "$OUT/spainQualityEduc.tex",
 replace `estopt' title("Birth Quality by Age and Season (Spain 2013)")
-keep(_cons young badQuarter high* marr*) style(tex) booktabs mlabels(, depvar)
+keep(_cons young badQ* high* marr* pro*) style(tex) booktabs mlabels(, depvar)
 postfoot("\bottomrule"
          "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of Spanish mothers. Gestation weeks and premature"
