@@ -26,7 +26,7 @@ local data "Anonimizado Nacimientos sin causa A2013.txt"
 *-------------------------------------------------------------------------------
 infile using "$DIC/spainNac.dct", using("$DAT/`data'")
 
-foreach var of varlist mes* estudiom cautom {
+foreach var of varlist mes* estudio* cauto* {
     destring `var', replace
 }
 
