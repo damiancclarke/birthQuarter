@@ -36,39 +36,49 @@ if c(os)=="Unix" local e eps
 if c(os)!="Unix" local e pdf
 
 local data nvss2005_2013
+local keepif  birthOrder == 1 & motherAge > 24
 local stateFE 0
 local twins   0
+local lyear   25
 if `twins' == 1 local app twins
 
 ********************************************************************************
 *** (1b) Define run type
 ********************************************************************************
-local y9899 0
-local y1213 0
-local badDJ 1
+local a2024  0
+local y1213  0
+local bord2  0
+local over30 1
 
-if `y9899'==1 {
-    local data nvss1998_1999 
-    global OUT "~/investigacion/2015/birthQuarter/results/1998/graphs" 
-    global SUM "~/investigacion/2015/birthQuarter/results/1998/sumStats"
-    }
+if `a2024'==1 {
+    global OUT "~/investigacion/2015/birthQuarter/results/2024/graphs" 
+    global SUM "~/investigacion/2015/birthQuarter/results/2024/sumStats"
+    local keepif  birthOrder == 1
+    local lyear   20
+}
 if `y1213'==1 {
     dis "Running only for 2012-2013 (see line 71)" 
     global OUT "~/investigacion/2015/birthQuarter/results/2012/graphs" 
     global SUM "~/investigacion/2015/birthQuarter/results/2012/sumStats"
-}
-if `badDJ'==1 {
-    dis "Running with December/January as bad season (see lines 160-161)" 
-    global OUT "~/investigacion/2015/birthQuarter/results/badDJ/graphs" 
-    global SUM "~/investigacion/2015/birthQuarter/results/badDJ/sumStats"
-}
-    
+    local keepif birthOrder == 1 & year==2012|year==2013
+}    
+if `bord2'==1 {
+    global OUT "~/investigacion/2015/birthQuarter/results/bord2/graphs" 
+    global SUM "~/investigacion/2015/birthQuarter/results/bord2/sumStats"
+    local keepif  birthOrder == 2 & motherAge > 24
+}    
+if `over30'==1 {
+    global OUT "~/investigacion/2015/birthQuarter/results/over30/graphs" 
+    global SUM "~/investigacion/2015/birthQuarter/results/over30/sumStats"
+    local keepif  birthOrder == 1 & motherAge > 24
+}    
 
 ********************************************************************************
 *** (2a) Use, descriptive graph
 ********************************************************************************
-use $DAT/`data'
-if `y1213'==1 keep if year==2012|year==2013
+use "$DAT/`data'"
+keep if `keepif'
+if `over30'==1 drop if motherAge<30 & education==6
 
 histogram motherAge, frac scheme(s1mono) xtitle("Mother's Age")
 graph export "$OUT/ageDescriptive.eps", as(eps) replace
@@ -82,8 +92,8 @@ lab val education e;
 #delimit cr
 lab var education "Completed Education"
 foreach g in all young old {
-    if `"`g'"'=="young" local cond if motherAge>=25&motherAge<=39
-    if `"`g'"'=="old"   local cond if motherAge>=40&motherAge<=45
+    if `"`g'"'=="young" local cond if motherAge>=`lyear' & motherAge<=39
+    if `"`g'"'=="old"   local cond if motherAge>=40      & motherAge<=45
 
     catplot education `cond', frac scheme(s1mono)
     graph export "$OUT/educDescriptive`g'.eps", as(eps) replace 
@@ -105,6 +115,7 @@ restore
 
 replace educLevel = educLevel + 1
 replace educLevel = 2 if educLevel == 3
+if `a2024'==1 replace ageGroup = 1 if ageGroup == 0
 replace ageGroup  = 1 if ageGroup  == 2
 replace ageGroup  = 2 if ageGroup  == 3
 
@@ -156,11 +167,6 @@ replace educCat = 14 if education == 4
 replace educCat = 16 if education == 5
 replace educCat = 17 if education == 6
 gen goodQuarter = birthQuarter == 2 | birthQuarter == 3
-
-if `badDJ'==1 drop goodQuarter
-if `badDJ'==1 gen goodQuarter = birthMonth < 11
-
-tab ageGroup
 
 lab var educCat     "Years of education"
 lab var motherAge   "Mother's Age"

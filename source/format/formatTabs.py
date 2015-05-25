@@ -23,7 +23,7 @@ print('\n\n Producing tex files for output tables.\n\n')
 #==============================================================================
 RES   = "/home/damiancclarke/investigacion/2015/birthQuarter/results/"
 TAB   = "/home/damiancclarke/investigacion/2015/birthQuarter/tables/"
-ftype = 'badDJ'
+ftype = 'over30'
 dloc  = './../'
 
 singleIPUM       = RES + 'ipums/sumStats/FullSample.txt'
@@ -181,8 +181,9 @@ final.write("\\input{./../tables/sumStats"+ftype+".tex} \n")
 final.write("\\input{./../tables/sumsingle"+ftype+".tex} \n")
 final.write("\\input{./../tables/sumtwin"+ftype+".tex} \n")
 
-final.write("\\input{./../results/"+ ftype +"/regressions/NVSSBinary.tex} \n"
-"\\input{./../results/"+ ftype +"/regressions/NVSSBinaryM.tex} \n"
+final.write("\\begin{landscape}\n"
+"\\input{./../results/"+ ftype +"/regressions/NVSSBinary.tex} \n"
+"\\end{landscape}\n"
 "\\input{./../results/"+ ftype +"/regressions/NVSSBinarymarried.tex} \n"
 "\\input{./../results/"+ ftype +"/regressions/NVSSBinaryunmarried.tex} \n"
 "\\input{./../results/"+ ftype +"/regressions/NVSSBinarySingle.tex} \n"
@@ -190,7 +191,7 @@ final.write("\\input{./../results/"+ ftype +"/regressions/NVSSBinary.tex} \n"
 "\\input{./../results/"+ ftype +"/regressions/NVSSBinarynon-smoking.tex} \n"
 "\\begin{landscape}\\input{./..//results/"+ ftype +"/regressions/NVSSQuality.tex} \n"
 "\\end{landscape}\\begin{landscape}\n"
-"\\input{./../results/"+ ftype +"/regressions/NVSSQualityM.tex} \n"
+"\\input{./../results/"+ ftype +"/regressions/NVSSQualityEducAll.tex} \n"
 "\\end{landscape}\\begin{landscape}"
 "\\input{./../results/"+ ftype +"/regressions/NVSSQualitySmoke0.tex} \n"
 "\\end{landscape}\\begin{landscape}\n"
