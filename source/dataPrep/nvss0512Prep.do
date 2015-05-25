@@ -47,7 +47,7 @@ gen numPrenatal = uprevis if uprevis != 99
 gen monthPrenat = mpcb
 replace monthPrenat = precare if monthPrenat == .
 
-keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
+keep if birthOrder<=2 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
 
 gen birthQuarter = ceil(birthMonth/3)
@@ -101,7 +101,7 @@ gen numPrenatal = uprevis if uprevis != 99
 gen monthPrenat = mpcb
 replace monthPrenat = precare if monthPrenat == .
 
-keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
+keep if birthOrder<=2 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
 
 gen birthQuarter = ceil(birthMonth/3)
@@ -209,7 +209,7 @@ gen numPrenatal = uprevis if uprevis != 99
 gen monthPrenat = mpcb
 replace monthPrenat = precare if monthPrenat == .
 
-keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
+keep if birthOrder<=2 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
 
 gen birthQuarter = ceil(birthMonth/3)
@@ -262,7 +262,7 @@ gen numPrenatal = uprevis if uprevis != 99
 gen monthPrenat = precare
 gen prePregBMI  = bmi
 
-keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
+keep if birthOrder<=2 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
 
 gen birthQuarter = ceil(birthMonth/3)
@@ -315,7 +315,7 @@ gen numPrenatal = uprevis if uprevis != 99
 gen monthPrenat = precare
 gen prePregBMI  = bmi
 
-keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
+keep if birthOrder<=2 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
 
 gen birthQuarter = ceil(birthMonth/3)
@@ -368,7 +368,7 @@ gen numPrenatal = uprevis if uprevis != 99
 gen monthPrenat = precare
 gen prePregBMI  = bmi
 
-keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
+keep if birthOrder<=2 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
 
 gen birthQuarter = ceil(birthMonth/3)
@@ -421,7 +421,7 @@ gen numPrenatal = uprevis if uprevis != 99
 gen monthPrenat = precare
 gen prePregBMI  = bmi
 
-keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
+keep if birthOrder<=2 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
 
 gen birthQuarter = ceil(birthMonth/3)
@@ -474,7 +474,7 @@ gen numPrenatal = uprevis if uprevis != 99
 gen monthPrenat = precare
 gen prePregBMI  = bmi
 
-keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
+keep if birthOrder<=2 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
 
 gen birthQuarter = ceil(birthMonth/3)
@@ -539,7 +539,7 @@ gen female      = csex==2
 gen numPrenatal = nprevis if nprevis != 99
 gen monthPrenat = monpre
 
-keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
+keep if birthOrder<=2 & (motherAge>=25 & motherAge<=45)
 keep if mrace == 1 & ormoth == 0
 
 gen birthQuarter = ceil(birthMonth/3)
@@ -587,7 +587,7 @@ gen female      = csex==2
 gen numPrenatal = nprevis if nprevis != 99
 gen monthPrenat = monpre
 
-keep if birthOrder==1 & (motherAge>=25 & motherAge<=45)
+keep if birthOrder<=2 & (motherAge>=25 & motherAge<=45)
 keep if mrace == 1 & ormoth == 0
 
 gen birthQuarter = ceil(birthMonth/3)
