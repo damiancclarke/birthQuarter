@@ -48,7 +48,7 @@ if `twins' == 1 local app twins
 local a2024  0
 local y1213  0
 local bord2  0
-local over30 1
+local over30 0
 
 if `a2024'==1 {
     global OUT "~/investigacion/2015/birthQuarter/results/2024/graphs" 
@@ -167,6 +167,7 @@ replace educCat = 14 if education == 4
 replace educCat = 16 if education == 5
 replace educCat = 17 if education == 6
 gen goodQuarter = birthQuarter == 2 | birthQuarter == 3
+replace twin    = twin - 1
 
 lab var educCat     "Years of education"
 lab var motherAge   "Mother's Age"
@@ -180,24 +181,26 @@ lab var premature   "Premature ($<$ 37 weeks)"
 lab var apgar       "APGAR (1-10)"
 lab var twin        "Twin"
 lab var female      "Female"
+lab var smoker      "Smoker"
 
-local Mum motherAge married college
-local Kid goodQuarter birthweight lbw gestat premature apgar twin female
-local MumPart educCat smoker
+local Mum     motherAge married
+local MumPart college educCat smoker
+local Kid     goodQuarter birthweight lbw gestat premature apgar twin female
 
 foreach stype in Mum Kid MumPart {
     sum ``stype''
-    estpost tabstat ``stype'', statistics(mean sd min max) listwise /*
+    estpost tabstat ``stype'', statistics(count mean sd min max)               /*
     */ columns(statistics)
     esttab using "$SUM/nvss`stype'.tex", title("Descriptive Statistics (NVSS)")/*
-    */ replace label cells("mean(fmt(2)) sd(fmt(2)) min(fmt(0)) max(fmt(0))")
+    */ cells("count(fmt(0)) mean(fmt(2)) sd(fmt(2)) min(fmt(0)) max(fmt(0))")  /*
+    */ replace label noobs
 }
 
 ********************************************************************************
 *** (2b) Subset
 ********************************************************************************
-if `twins'==1 keep if twin == 2
-if `twins'==0 keep if twin == 1
+if `twins'==1 keep if twin == 1
+if `twins'==0 keep if twin == 0
 
 gen birth = 1
 
