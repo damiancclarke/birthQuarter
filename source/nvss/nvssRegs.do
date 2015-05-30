@@ -71,7 +71,7 @@ if `over30'==1 drop if motherAge<30&education==6
 
 gen birth = 1
 gen goodQuarter = birthQuarter == 2 | birthQuarter == 3
-gen badQuarter = birthQuarter == 4  | birthQuarter == 1
+gen badQuarter  = birthQuarter == 4  | birthQuarter == 1
 replace ageGroup  = ageGroup-1 if ageGroup>1
 
 gen highEd              = (educLevel == 1 | educLevel == 2) if educLevel!=.
@@ -86,8 +86,15 @@ gen vhighEd             = educLevel == 2 if educLevel!=.
 gen youngXvhighEd       = young*vhighEd
 gen noPreVisit          = numPrenatal == 0 if numPrenatal<99
 gen prenate3months      = monthPrenat>0 & monthPrenat <= 3 if monthPrenat<99
+gen     prematurity     = gestation - 39
+gen     monthsPrem      = round(prematurity/4)*-1
+gen     expectedMonth   = birthMonth + monthsPrem
+replace expectedMonth   = expectedMonth - 12 if expectedMonth>12
+replace expectedMonth   = expectedMonth + 12 if expectedMonth<1
+gene    expectQuarter   = ceil(expectedMonth/3) 
+gene    badExpectGood   = badQuarter==1&(expectQuar==2|expectQuar==3) if gest!=.
+gene    badExpectBad    = badQuarter==1&(expectQuar==1|expectQuar==4) if gest!=.
 *replace prePregBMI      = . if prePregBMI == 99
-
 
 ********************************************************************************
 *** (2b) Label for clarity
@@ -118,7 +125,18 @@ lab var married            "Married"
 lab var smoker             "Smoker"
 lab var noPreVisit         "No Prenatal Visits"
 lab var prenate3months     "Prenatal 1\textsuperscript{st} Trimester"
+lab var apgar              "APGAR"
+lab var birthweight        "Birthweight"
+lab var gestation          "Gestation"
+lab var lbw                "LBW"
+lab var premature          "Premautre"
+lab var vlbw               "VLBW"
 *lab var prePregBMI         "Pre-pregnancy BMI"
+lab var prematurity        "Weeks premature"
+lab var monthsPrem         "Months Premature"
+lab var badExpectGood      "Bad Season (due in good)"
+lab var badExpectBad       "Bad Season (due in bad)"
+
 
 ********************************************************************************
 *** (3a) Examine missing covariates
@@ -382,9 +400,32 @@ postfoot("\bottomrule"
 #delimit cr
 estimates clear
 
+********************************************************************************
+*** (5) Redefine bad season as bad season due to short gestation, and bad season
+********************************************************************************
+local controls highEd married smoker
+foreach y of varlist apgar birthweight lbw vlbw {
+    eststo: reg `y' young badExpect* `controls' i.gestation `yFE' `cnd', `se'
+}
+#delimit ;
+esttab est1 est2 est3 est4 using "$OUT/NVSSQualityGestFix.tex", replace 
+`estopt' title("Birth Quality by Age and Season (Accounting for Gestation)")
+keep(_cons young badExpect* `controls') style(tex) mlabels(, depvar)
+postfoot("\bottomrule"
+         "\multicolumn{5}{p{13.2cm}}{\begin{footnotesize}Sample consists of all"
+         "first born children of US-born, white, non-hispanic mothers."
+         "Bad Season (due in bad) is a dummy for children expected and born in"
+         "quarters 1 or 4, while Bad Season (due in good) is a dummy for children"
+         "expected in quarters 2 or 3, but were born prematurely in quarters 1 or"
+         "4.  Fixed effects for weeks of gestation are included."
+         "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
+#delimit cr
+estimates clear
+
+
 exit
 ********************************************************************************
-*** (5) Appendix including fetal deaths
+*** (6) Appendix including fetal deaths
 ********************************************************************************
 append using "$DAT/nvssFD2005_2013"
 replace goodQuarter = 1 if liveBirth==0 & birthQuarter == 2 | birthQuarter == 3
