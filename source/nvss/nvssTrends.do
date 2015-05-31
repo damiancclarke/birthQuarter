@@ -49,6 +49,8 @@ local a2024  0
 local y1213  0
 local bord2  0
 local over30 0
+local fterm  0
+local pre4w  1
 
 if `a2024'==1 {
     global OUT "~/investigacion/2015/birthQuarter/results/2024/graphs" 
@@ -71,6 +73,16 @@ if `over30'==1 {
     global OUT "~/investigacion/2015/birthQuarter/results/over30/graphs" 
     global SUM "~/investigacion/2015/birthQuarter/results/over30/sumStats"
     local keepif  birthOrder == 1 & motherAge > 24
+}    
+if `fterm'==1 {
+    global OUT "~/investigacion/2015/birthQuarter/results/fullT/graphs" 
+    global SUM "~/investigacion/2015/birthQuarter/results/fullT/sumStats"
+    local keepif  birthOrder == 1 & gestation >=39
+}    
+if `pre4w'==1 {
+    global OUT "~/investigacion/2015/birthQuarter/results/pre4w/graphs" 
+    global SUM "~/investigacion/2015/birthQuarter/results/pre4w/sumStats"
+    local keepif  birthOrder == 1 & gestation <=35
 }    
 
 ********************************************************************************

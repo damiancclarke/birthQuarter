@@ -41,6 +41,8 @@ local a2024  0
 local y1213  0 
 local bord2  0
 local over30 0
+local fterm  0
+local pre4w  0
 
 if `a2024'==1 {
     global OUT "~/investigacion/2015/birthQuarter/results/2024/regressions"
@@ -51,14 +53,20 @@ if `over30'==1 {
     local keepif birthOrder==1 & motherAge>24
 }
 if `y1213'==1 {
-    dis "Running only for 2012-2013 (see line 53)"
     global OUT "~/investigacion/2015/birthQuarter/results/2012/regressions"
     local keepif birthOrder==1 & year==2012|year==2013
 }
 if `bord2'==1 {
-    dis "Running only for 2012-2013 (see line 53)"
     global OUT "~/investigacion/2015/birthQuarter/results/bord2/regressions"
     local keepif birthOrder==2 & motherAge>24
+}
+if `fterm'==1 {
+    global OUT "~/investigacion/2015/birthQuarter/results/fullT/regressions"
+    local keepif birthOrder==1 & gestation>=39
+}
+if `pre4w'==1 {
+    global OUT "~/investigacion/2015/birthQuarter/results/pre4w/regressions"
+    local keepif birthOrder==1 & gestation<=35
 }
 
 ********************************************************************************
@@ -218,14 +226,13 @@ eststo: reg goodQuarter young                                   `cnd', `se'
 eststo: reg goodQuarter young                             `yFE' `cnd', `se'
 eststo: reg goodQuarter young highEd                      `yFE' `cnd', `se'
 eststo: reg goodQuarter young highEd married smoker       `yFE' `cnd', `se'
-eststo: reg goodQuarter young highEd married smoker `pre' `yFE' `cnd', `se'
 
 #delimit ;
-esttab est1 est2 est3 est4 est5 using "$OUT/NVSSBinary.tex",
+esttab est1 est2 est3 est4 using "$OUT/NVSSBinary.tex",
 replace `estopt' title("Birth Season and Age (NVSS 2005-2013)") booktabs 
 keep(_cons young highEd married smoker `pre') style(tex) mlabels(, depvar)
-postfoot("Year FE&&Y&Y&Y&Y\\ \bottomrule"
-         "\multicolumn{6}{p{15cm}}{\begin{footnotesize}Sample consists of all"
+postfoot("Year FE&&Y&Y&Y\\ \bottomrule"
+         "\multicolumn{5}{p{12cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of US-born, white, non-hispanic mothers"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
@@ -235,14 +242,13 @@ eststo: reg goodQuarter young                                    `cnd', `se'
 eststo: reg goodQuarter young                              `yFE' `cnd', `se'
 eststo: reg goodQuarter young vhighEd                      `yFE' `cnd', `se'
 eststo: reg goodQuarter young vhighEd married smoker       `yFE' `cnd', `se'
-eststo: reg goodQuarter young vhighEd married smoker `pre' `yFE' `cnd', `se'
 
 #delimit ;
-esttab est1 est2 est3 est4 est5 using "$OUT/NVSSBinaryHigh.tex",
+esttab est1 est2 est3 est4 using "$OUT/NVSSBinaryHigh.tex",
 replace `estopt' title("Birth Season and Age (NVSS 2005-2013)") booktabs
 keep(_cons young vhighEd married smoker `pre') style(tex) mlabels(, depvar)
-postfoot("Year FE&&Y&Y&Y&Y\\ \bottomrule"
-         "\multicolumn{6}{p{15cm}}{\begin{footnotesize}Sample consists of all"
+postfoot("Year FE&&Y&Y&Y\\ \bottomrule"
+         "\multicolumn{5}{p{12cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of US-born, white, non-hispanic mothers"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
@@ -253,14 +259,13 @@ eststo: reg goodQuarter young                                   `cond', `se'
 eststo: reg goodQuarter young                             `yFE' `cond', `se'
 eststo: reg goodQuarter young highEd                      `yFE' `cond', `se'
 eststo: reg goodQuarter young highEd married smoker       `yFE' `cond', `se'
-eststo: reg goodQuarter young highEd married smoker `pre' `yFE' `cond', `se'
 
 #delimit ;
-esttab est1 est2 est3 est4 est5 using "$OUT/NVSSBinaryTwin.tex",
+esttab est1 est2 est3 est4 using "$OUT/NVSSBinaryTwin.tex",
 replace `estopt' title("Birth Season and Age (Twins Only)") booktabs
 keep(_cons young highEd married smoker `pre') style(tex) mlabels(, depvar)
-postfoot("Year FE&&Y&Y&Y&Y\\ \bottomrule"
-         "\multicolumn{6}{p{15cm}}{\begin{footnotesize}Sample consists of all"
+postfoot("Year FE&&Y&Y&Y\\ \bottomrule"
+         "\multicolumn{5}{p{12cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of US-born, white, non-hispanic mothers"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
@@ -282,14 +287,13 @@ foreach m of numlist 0 1 {
         eststo: reg goodQuarter young                    `cond', `se'
         eststo: reg goodQuarter young              `yFE' `cond', `se'
         eststo: reg goodQuarter young highEd       `yFE' `cond', `se'
-        eststo: reg goodQuarter young highEd `pre' `yFE' `cond', `se'
     
         #delimit ;
-        esttab est1 est2 est3 est4 using "$OUT/NVSSBinary`Title'.tex",
+        esttab est1 est2 est3  using "$OUT/NVSSBinary`Title'.tex",
         replace `estopt' title("Birth Season and Age (NVSS: `Title' women)")
         keep(_cons young highEd `pre') style(tex) booktabs mlabels(, depvar)
-        postfoot("Year FE&&Y&Y&Y\\ \bottomrule"
-         "\multicolumn{4}{p{12cm}}{\begin{footnotesize}Sample consists of all"
+        postfoot("Year FE&&Y&Y\\ \bottomrule"
+         "\multicolumn{4}{p{10.5cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of US-born, white, non-hispanic, `Title' mothers."
          "\end{footnotesize}}\end{tabular}\end{table}");
         #delimit cr
@@ -301,14 +305,13 @@ local cond `cnd' & single==1
 eststo: reg goodQuarter young                    `cond', `se'
 eststo: reg goodQuarter young              `yFE' `cond', `se'
 eststo: reg goodQuarter young highEd       `yFE' `cond', `se'
-eststo: reg goodQuarter young highEd `pre' `yFE' `cond', `se'
 
 #delimit ;
-esttab est1 est2 est3 est4 using "$OUT/NVSSBinarySingle.tex",
+esttab est1 est2 est3 using "$OUT/NVSSBinarySingle.tex",
 replace `estopt' title("Birth Season and Age: Single Women (NVSS 2005-2013)")
 keep(_cons young highEd `pre') style(tex) booktabs mlabels(, depvar)
-postfoot("Year FE&&Y&Y&Y\\ \bottomrule"
-         "\multicolumn{4}{p{11cm}}{\begin{footnotesize}Sample consists of all"
+postfoot("Year FE&&Y&Y\\ \bottomrule"
+         "\multicolumn{4}{p{10.5cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of US-born, white, non-hispanic single mothers"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
@@ -386,32 +389,19 @@ postfoot("\bottomrule"
 #delimit cr
 estimates clear
 
-foreach y of varlist `qual' {
-    eststo: reg `y' young badQuarter highEd married smoker `pre' `yFE'  `cnd', `se'
-}
-#delimit ;
-esttab est1 est2 est3 est4 est5 est6 using "$OUT/NVSSQualityEducAll.tex",
-replace `estopt' title("Birth Quality by Age and Season (NVSS 2005-2013)")
-keep(_cons young badQuarter highEd married smoker `pre') mlabels(, depvar)
-postfoot("\bottomrule"
-         "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Sample consists of all"
-         "first born children of US-born, white, non-hispanic mothers"
-         "\end{footnotesize}}\end{tabular}\end{table}") booktabs style(tex);
-#delimit cr
-estimates clear
-
 ********************************************************************************
 *** (5) Redefine bad season as bad season due to short gestation, and bad season
 ********************************************************************************
-local controls highEd married smoker
-foreach y of varlist apgar birthweight lbw vlbw {
-    eststo: reg `y' young badExpect* `controls' i.gestation `yFE' `cnd', `se'
-}
-#delimit ;
-esttab est1 est2 est3 est4 using "$OUT/NVSSQualityGestFix.tex", replace 
-`estopt' title("Birth Quality by Age and Season (Accounting for Gestation)")
-keep(_cons young badExpect* `controls') style(tex) mlabels(, depvar)
-postfoot("\bottomrule"
+if `orign'==1 {
+    local controls highEd married smoker
+    foreach y of varlist apgar birthweight lbw vlbw {
+        eststo: reg `y' young badExpect* `controls' i.gestation `yFE' `cnd', `se'
+    }
+    #delimit ;
+    esttab est1 est2 est3 est4 using "$OUT/NVSSQualityGestFix.tex", replace 
+    `estopt' title("Birth Quality by Age and Season (Accounting for Gestation)")
+    keep(_cons young badExpect* `controls') style(tex) mlabels(, depvar)
+    postfoot("\bottomrule"
          "\multicolumn{5}{p{13.2cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of US-born, white, non-hispanic mothers."
          "Bad Season (due in bad) is a dummy for children expected and born in"
@@ -419,10 +409,9 @@ postfoot("\bottomrule"
          "expected in quarters 2 or 3, but were born prematurely in quarters 1 or"
          "4.  Fixed effects for weeks of gestation are included."
          "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
-#delimit cr
-estimates clear
-
-
+    #delimit cr
+    estimates clear
+}
 exit
 ********************************************************************************
 *** (6) Appendix including fetal deaths
