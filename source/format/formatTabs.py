@@ -164,27 +164,33 @@ sumT.close()
 
 #==============================================================================
 #== (X) write tables.tex file
+#===== TABLE 1: Descriptive Statistics                 X
+#===== TABLE 2: Percent births by season [G]           X
+#===== TABLE 3: Birth by season                        X
+#===== TABLE 4: Heterogeneity birth season [G,l]
+#===== TABLE 5: Quality full [l]                       X
+#===== TABLE 6: Quality heterogeneity bwt [G,l]        
+#===== TABLE 7: Qualilty gestation correction          X
+#===== TABLE 8: Spain select  [l]                      X
+#===== TABLE 9: Spain quality [l]                      X
 #==============================================================================
+loc1  = './../tables/'
+loc2  = './../results/'+ftype+'/regressions/'
+loc3  = './../results/spain/regressions/'
 final = open(TAB + "tables"+ ftype +".tex", 'w')
 
-final.write("\\input{./../tables/sumStats"+ftype+".tex} \n")
-final.write("\\input{./../tables/sumBQ"+ftype+".tex} \n")
+TABLES = [loc1+'sumStats'+ftype+'.tex', loc1+'sumBQ'+ftype+'.tex',
+loc2+'NVSSBinary.tex',loc2+'NVSSQualityEduc.tex',loc2+'NVSSQualityGestFix.tex',
+loc3+'spainBinary.tex',loc3+'spainQualityEduc.tex']
 
-final.write("\\begin{landscape}\n"
-"\\input{./../results/"+ ftype +"/regressions/NVSSBinary.tex} \n"
-"\\end{landscape}\n"
-"\\input{./../results/"+ ftype +"/regressions/NVSSBinarysmoking.tex} \n"
-"\\input{./../results/"+ ftype +"/regressions/NVSSBinarynon-smoking.tex} \n"
-"\\begin{landscape}\\input{./..//results/"+ ftype +"/regressions/NVSSQuality.tex} \n"
-"\\end{landscape}\\begin{landscape}\n"
-"\\input{./../results/"+ ftype +"/regressions/NVSSQualityEducAll.tex} \n"
-"\\end{landscape}\\begin{landscape}"
-"\\input{./../results/"+ ftype +"/regressions/NVSSQualitySmoke0.tex} \n"
-"\\end{landscape}\\begin{landscape}\n"
-"\\input{./../results/"+ ftype +"/regressions/NVSSQualitySmoke1.tex} \n"
-"\\end{landscape}"
-)
+iter = 1
 
-
-
+for table in TABLES:
+    if iter<4 or iter==5:
+        final.write('\\input{'
+                    +table+'}\n')
+    if iter==4 or iter>5:
+        final.write('\\begin{landscape}\\input{'
+                    +table+'}\\end{landscape}\n')
+    iter = iter+1
 final.close()
