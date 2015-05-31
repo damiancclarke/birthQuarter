@@ -58,8 +58,8 @@ tr   = '\\toprule'
 br   = '\\bottomrule'
 mc1  = '\\multicolumn{'
 mc2  = '}}'
-twid = ['10','6','9','9']
-tcm  = ['}{p{16.6cm}}','}{p{14.0cm}}','}{p{21.0cm}}','}{p{23.2cm}}']
+twid = ['10','6','11','9']
+tcm  = ['}{p{16.6cm}}','}{p{14.0cm}}','}{p{23.7cm}}','}{p{23.2cm}}']
 mc3  = '{\\begin{footnotesize}\\textsc{Notes:} '
 lname = "Fertility$\\times$desire"
 tname = "Twin$\\times$desire"
@@ -174,14 +174,16 @@ table = [
 'Aged 25-39'    ,'',
 'Some College +','',
 'Married'       ,'',
-'Smoker'        ,'',
+'Smoked in Preg','',
 'Constant'      ,'',
 'Observations'
 ]
 samples = [loc+'nvss'+rt3,loc+'nvss/regressions/NVSSBinarynon-smoking.tex'  ,
 loc+'nvss/regressions/NVSSBinarysmoking.tex',loc+'fullT'+rt3,loc+'pre4w'+rt3,
 loc+'2012'+rt3,loc+'2012/regressions/NVSSBinaryInfert0.tex',
-loc+'2012/regressions/NVSSBinaryInfert1.tex']
+loc+'2012/regressions/NVSSBinaryInfert1.tex',
+loc+'nvss/regressions/NVSSBinaryfullT_IFT1.tex',
+loc+'nvss/regressions/NVSSBinarypreT_IFT0.tex']
 
 ii = 0
 for sample in samples:
@@ -211,13 +213,15 @@ for sample in samples:
 hetT.write('\\begin{table}[htpb!] \n ' 
 '\\caption{Birth Season and Age: Alternative Samples and Definitions}\n '
 '\\begin{center} \n'
-'\\begin{tabular}{lcccccccc} \\toprule\\toprule \n'
-'\\textsc{Indep Var:}&(1)&(2)&(3)&(4)&(5)&(6)&(7)&(8)\\\\'
-'Good Season&&\multicolumn{2}{c}{Smoked During Pregnancy}&'
-'\multicolumn{2}{c}{Gestation}&&\multicolumn{2}{c}{Infertility Treatment}\\\\ '
-'\cmidrule(r){3-4}\cmidrule(r){5-6} \cmidrule(r){8-9}\n'
-'&All&Non-  &Smoker&Full&$\geq$4 weeks&2012- &No&Yes \\\\'
-'&   &Smoker&      &Term&Premature    &2013\ &  &    \\\\ \\midrule\n')
+'\\begin{tabular}{lcccccccccc} \\toprule\\toprule \n'
+'\\textsc{Dep Var:}&(1)&(2)&(3)&(4)&(5)&(6)&(7)&(8)&(9)&(10)\\\\'
+'Good Season&&\multicolumn{2}{c}{Smoked During Preg}&'
+'\multicolumn{2}{c}{Gestation}&&\multicolumn{2}{c}{Infertility Treatment}'
+'&\multicolumn{2}{c}{IFT+Gestation}\\\\\cmidrule(r){3-4}\cmidrule(r){5-6}'
+' \cmidrule(r){8-9}\cmidrule(r){10-11}\n'
+'&All&Non-  &Smoker&Full&$\geq$4 weeks&2012- &No&Yes&Full & Pre  \\\\'
+'&   &Smoker&      &Term&Premature    &2013\ &  &   &IFT=1& IFT=0 \\\\ '
+'\\midrule\n')
 hetT.write(table[0]+'\\\\ \n'
 +table[1]+'\\\\ \n'
 +table[2]+'\\\\ \n'
@@ -237,7 +241,8 @@ hetT.write('\n'+mr+mc1+twid[2]+tcm[2]+mc3+
            'ith heteroscedasticity-robust standard errors. Full term in column '
            '(4) refers to any babies whose gestation was greater than or equal '
            'to 39 weeks. Infertility treatment regressions are only estimated f'
-           'or years 2012-2013.'
+           'or years 2012-2013.  Column (9) is the union of columns (8) and (4)'
+           ', column (10) is the union of (7) and (5).'
            '\\end{footnotesize}}\\\\ \\bottomrule \n\\end{tabular}\\end{center}'
            '\\end{table}'
 )
@@ -255,7 +260,7 @@ table = [
 'Bad Season    ','',
 'Some College +','',
 'Married'       ,'',
-'Smoker'        ,'',
+'Smoked in Preg','',
 'Constant'      ,'',
 'Observations'
 ]
@@ -292,7 +297,7 @@ hetT.write('\\begin{table}[htpb!] \n '
 '\\caption{Birth Quality and Age: Alternative Samples and Definitions}\n '
 '\\begin{center} \n'
 '\\begin{tabular}{lcccccccc} \\toprule\\toprule \n'
-'\\textsc{Indep Var:}&(1)&(2)&(3)&(4)&(5)&(6)&(7)&(8)\\\\'
+'\\textsc{Dep Var:}&(1)&(2)&(3)&(4)&(5)&(6)&(7)&(8)\\\\'
 'Birthweight&&\multicolumn{2}{c}{Smoked During Pregnancy}&'
 '\multicolumn{2}{c}{Gestation}&&\multicolumn{2}{c}{Infertility Treatment}\\\\ '
 '\cmidrule(r){3-4}\cmidrule(r){5-6} \cmidrule(r){8-9}\n'
@@ -331,6 +336,9 @@ hetT.close()
 #===== TABLE 1: Descriptive Statistics                                        X
 #===== TABLE 2: Percent births by season [G]                                  X
 #===== TABLE 3: Birth by season                                               X
+#===== TABLE 3: Birth by season EB                                            X
+#===== TABLE 3: Birth by season EG                                            X
+
 #===== TABLE 4: Heterogeneity birth season [G,l]                              X
 #===== TABLE 5: Quality full [l]                                              X
 #===== TABLE 6: Quality heterogeneity bwt [G,l]                               X        
@@ -344,7 +352,8 @@ loc3  = './../results/spain/regressions/'
 final = open(TAB + "tables"+ ftype +".tex", 'w')
 
 TABLES = [loc1+'sumStats'+ftype+'.tex', loc1+'sumBQ'+ftype+'.tex'      ,
-loc2+'NVSSBinary.tex'                 , loc1+'quarterHeterogeneity.tex',
+loc2+'NVSSBinary.tex'                 , loc2+'NVSSBinaryExpectBad.tex' ,
+loc2+'NVSSBinaryExpectGood.tex'       , loc1+'quarterHeterogeneity.tex',
 loc2+'NVSSQualityEduc.tex'            , loc1+'qualityHeterogeneity.tex', 
 loc2+'NVSSQualityGestFix.tex'         , loc3+'spainBinary.tex'         ,       
 loc3+'spainQualityEduc.tex'           ]
@@ -352,10 +361,10 @@ loc3+'spainQualityEduc.tex'           ]
 itera = 1
 
 for table in TABLES:
-    if itera<4 or itera==7:
+    if itera<6 or itera==9:
         final.write('\\input{'
                     +table+'}\n')
-    if itera==4 or itera==5 or itera==6 or itera>7:
+    if itera==6 or itera==7 or itera==8 or itera>9:
         final.write('\\begin{landscape}\\input{'
                     +table+'}\\end{landscape}\n')
     itera = itera+1

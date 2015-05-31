@@ -50,7 +50,7 @@ local y1213  0
 local bord2  0
 local over30 0
 local fterm  0
-local pre4w  1
+local pre4w  0
 
 if `a2024'==1 {
     global OUT "~/investigacion/2015/birthQuarter/results/2024/graphs" 
@@ -193,7 +193,7 @@ lab var premature   "Premature ($<$ 37 weeks)"
 lab var apgar       "APGAR (1-10)"
 lab var twin        "Twin"
 lab var female      "Female"
-lab var smoker      "Smoker"
+lab var smoker      "Smoked during Pregnancy"
 
 local Mum     motherAge married
 local MumPart college educCat smoker
