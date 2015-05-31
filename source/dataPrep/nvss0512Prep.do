@@ -49,6 +49,7 @@ replace monthPrenat = precare if monthPrenat == .
 
 keep if birthOrder<=2 & (motherAge>=20 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
+gen fatherWhiteNonHisp = fracerec==1 & ufhisp == 0
 
 gen birthQuarter = ceil(birthMonth/3)
 
@@ -63,14 +64,14 @@ gen educLevel=meduc>=4
 replace educLevel=2 if meduc>=5
 replace educLevel=. if meduc==9|meduc==.
 
-gen education = meduc if meduc <=5
+gen education = meduc if meduc<=5
 replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
 replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth oldEduc numPrenatal monthPrenat birthOrder
+*/ female birthMonth oldEduc numPrenatal monthPrenat birthOrder fatherWhiteNonH
 tempfile B2005
 save `B2005'
 
@@ -103,6 +104,7 @@ replace monthPrenat = precare if monthPrenat == .
 
 keep if birthOrder<=2 & (motherAge>=20 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
+gen fatherWhiteNonHisp = fracerec==1 & ufhisp == 0
 
 gen birthQuarter = ceil(birthMonth/3)
 
@@ -124,7 +126,7 @@ replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth oldEduc numPrenatal monthPrenat birthOrder
+*/ female birthMonth oldEduc numPrenatal monthPrenat birthOrder fatherWhiteNonH
 tempfile B2006
 save `B2006'
 
@@ -157,6 +159,7 @@ replace monthPrenat = precare if monthPrenat == .
 
 keep if birthOrder==1 & (motherAge>=20 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
+gen fatherWhiteNonHisp = fracerec==1 & ufhisp == 0
 
 gen birthQuarter = ceil(birthMonth/3)
 
@@ -178,7 +181,7 @@ replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth oldEduc numPrenatal monthPrenat birthOrder
+*/ female birthMonth oldEduc numPrenatal monthPrenat birthOrder fatherWhiteNonH
 tempfile B2007
 save `B2007'
 
@@ -211,6 +214,7 @@ replace monthPrenat = precare if monthPrenat == .
 
 keep if birthOrder<=2 & (motherAge>=20 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
+gen fatherWhiteNonHisp = fracerec==1 & ufhisp == 0
 
 gen birthQuarter = ceil(birthMonth/3)
 
@@ -232,7 +236,7 @@ replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth oldEduc numPrenatal monthPrenat birthOrder
+*/ female birthMonth oldEduc numPrenatal monthPrenat birthOrder fatherWhiteNonH
 tempfile B2008
 save `B2008'
 
@@ -264,6 +268,7 @@ gen prePregBMI  = bmi
 
 keep if birthOrder<=2 & (motherAge>=20 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
+gen fatherWhiteNonHisp = fracerec==1 & ufhisp == 0
 
 gen birthQuarter = ceil(birthMonth/3)
 
@@ -285,7 +290,7 @@ replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth numPrenatal monthPrenat prePregBMI birthOrder
+*/ female birthMonth numPrenatal monthPrenat prePregBMI birthOrder fatherWhiteNo
 tempfile B2009
 save `B2009'
 
@@ -317,6 +322,7 @@ gen prePregBMI  = bmi
 
 keep if birthOrder<=2 & (motherAge>=20 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
+gen fatherWhiteNonHisp = fracerec==1 & ufhisp == 0
 
 gen birthQuarter = ceil(birthMonth/3)
 
@@ -338,7 +344,7 @@ replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth numPrenatal monthPrenat prePregBMI birthOrder
+*/ female birthMonth numPrenatal monthPrenat prePregBMI birthOrder fatherWhiteNo
 tempfile B2010
 save `B2010'
 
@@ -370,6 +376,7 @@ gen prePregBMI  = bmi
 
 keep if birthOrder<=2 & (motherAge>=20 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
+gen fatherWhiteNonHisp = fracerec==1 & ufhisp == 0
 
 gen birthQuarter = ceil(birthMonth/3)
 
@@ -391,7 +398,7 @@ replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth numPrenatal monthPrenat prePregBMI birthOrder
+*/ female birthMonth numPrenatal monthPrenat prePregBMI birthOrder fatherWhiteNo
 tempfile B2011
 save `B2011'
 
@@ -420,9 +427,11 @@ gen female      = sex=="F"
 gen numPrenatal = uprevis if uprevis != 99
 gen monthPrenat = precare
 gen prePregBMI  = bmi
+gen infertTreat = rf_inftr=="Y" if rf_inftr!="U"&rf_inftr!=""
 
 keep if birthOrder<=2 & (motherAge>=20 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
+gen fatherWhiteNonHisp = fracerec==1 & ufhisp == 0
 
 gen birthQuarter = ceil(birthMonth/3)
 
@@ -444,7 +453,8 @@ replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth numPrenatal monthPrenat prePregBMI birthOrder
+*/ female birthMonth numPrenatal monthPrenat prePregBMI birthOrder infertTreat/*
+*/ fatherWhiteNonH
 tempfile B2012
 save `B2012'
 
@@ -473,9 +483,11 @@ gen female      = sex=="F"
 gen numPrenatal = uprevis if uprevis != 99
 gen monthPrenat = precare
 gen prePregBMI  = bmi
+gen infertTreat = rf_inftr=="Y" if rf_inftr!="U"&rf_inftr!=""
 
 keep if birthOrder<=2 & (motherAge>=20 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
+gen fatherWhiteNonHisp = fracerec==1 & ufhisp == 0
 
 gen birthQuarter = ceil(birthMonth/3)
 
@@ -497,7 +509,8 @@ replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth numPrenatal monthPrenat prePregBMI birthOrder
+*/ female birthMonth numPrenatal monthPrenat prePregBMI birthOrder infertTreat/*
+*/ fatherWhiteNonH
 tempfile B2013
 save `B2013'
 
