@@ -58,8 +58,8 @@ tr   = '\\toprule'
 br   = '\\bottomrule'
 mc1  = '\\multicolumn{'
 mc2  = '}}'
-twid = ['10','6']
-tcm  = ['}{p{16.6cm}}','}{p{14.0cm}}']
+twid = ['10','6','9']
+tcm  = ['}{p{16.6cm}}','}{p{14.0cm}}','}{p{21.0cm}}']
 mc3  = '{\\begin{footnotesize}\\textsc{Notes:} '
 lname = "Fertility$\\times$desire"
 tname = "Twin$\\times$desire"
@@ -162,12 +162,94 @@ sumT.write('\n'+mr+mc1+twid[1]+tcm[1]+mc3+
            "\\end{table}")
 sumT.close()
 
+
+#==============================================================================
+#== (4) Heterogeneity table (birth quarter)
+#==============================================================================
+hetT = open(TAB + 'quarterHeterogeneity.tex', 'w')
+loc  = './../../results/'
+rt3  = '/regressions/NVSSBinary.tex'
+
+table = [
+'Aged 25-39'    ,'',
+'Some College +','',
+'Married'       ,'',
+'Smoker'        ,'',
+'Constant'      ,'',
+'Observations'
+]
+samples = [loc+'nvss'+rt3,loc+'nvss/regressions/NVSSBinarynon-smoking.tex'  ,
+loc+'nvss/regressions/NVSSBinarysmoking.tex',loc+'2012'+rt3,loc+'over30'+rt3,
+loc+'2024'+rt3,loc+'fullT'+rt3,loc+'pre4w'+rt3]
+
+ii = 0
+for sample in samples:
+    if ii ==1 or ii==2:
+        jj = 0
+        work  = open(sample,  'r').readlines()
+        for i,line in enumerate(work):
+            if i>=8 and i<=13 or i==15:
+                while jj >= 4 and jj <=7 :
+                    print jj
+                    table[jj]+= '&'
+                    jj = jj+1
+
+                line = line.split('&')[-1]
+                line = line[:-3]
+                table[jj] += '&'+line
+                jj = jj+1
+    else:
+        jj = 0
+        work  = open(sample,  'r').readlines()
+        for i,line in enumerate(work):
+            if i>=8 and i<=17 or i==19:
+                line = line.split('&')[-1]
+                line = line[:-3]
+                table[jj] += '&'+line
+                jj = jj+1
+    ii = ii+1
+hetT.write('\\begin{table}[htpb!] \n ' 
+'\\caption{Birth Season Age: Alternative Samples and Definitions}\n '
+'\\begin{center} \n'
+'\\begin{tabular}{lcccccccc} \\toprule\\toprule \n'
+'\\textsc{Indep Var:}&(1)&(2)&(3)&(4)&(5)&(6)&(7)&(8)\\\\'
+'Good Season&&\multicolumn{2}{c}{Smoked During Pregnancy}&'
+'\multicolumn{5}{c}{Alternative Samples}\\\\ \cmidrule(r){3-4} \cmidrule(r){5-9}\n'
+'&All&Non-  &Smoker&2012-&No&Include&Full&$\geq$4 weeks \\\\'
+'           &   &Smoker&     &2013\ &PhD &20-24  &Term&premature\\\\ \\midrule\n')
+hetT.write(table[0]+'\\\\ \n'
++table[1]+'\\\\ \n'
++table[2]+'\\\\ \n'
++table[3]+'\\\\ \n'
++table[4]+'\\\\ \n'
++table[5]+'\\\\ \n'
++table[6]+'\\\\ \n'
++table[7]+'\\\\ \n'
++table[8]+'\\\\ \n'
++table[9]+'\\\\ \\midrule \n'
++table[10]+'\\\\ \n'
+)
+
+
+hetT.write('\n'+mr+mc1+twid[2]+tcm[2]+mc3+
+           'All specifications are linear probability models estimates by OLS w'
+           'ith heteroscedasticity-robust standard errors. Column (5) removes w'
+           'omen from the sample who are under 30 and studying a post-graduate '
+           'degree, as they may still studying at the time of childbirth. Colum'
+           'n (6) includes 20-24 years olds in the young age group.  Full term '
+           'in column (7) refers to any babies whose gestation was greater than'
+           ' or equal to 39 weeks.                                             '
+           '\\end{footnotesize}}\\\\ \\bottomrule \n\\end{tabular}\\end{center}'
+           '\\end{table}'
+)
+
 #==============================================================================
 #== (X) write tables.tex file
+#==============================================================================
 #===== TABLE 1: Descriptive Statistics                 X
 #===== TABLE 2: Percent births by season [G]           X
 #===== TABLE 3: Birth by season                        X
-#===== TABLE 4: Heterogeneity birth season [G,l]
+#===== TABLE 4: Heterogeneity birth season [G,l]       X
 #===== TABLE 5: Quality full [l]                       X
 #===== TABLE 6: Quality heterogeneity bwt [G,l]        
 #===== TABLE 7: Qualilty gestation correction          X
@@ -179,18 +261,19 @@ loc2  = './../results/'+ftype+'/regressions/'
 loc3  = './../results/spain/regressions/'
 final = open(TAB + "tables"+ ftype +".tex", 'w')
 
-TABLES = [loc1+'sumStats'+ftype+'.tex', loc1+'sumBQ'+ftype+'.tex',
-loc2+'NVSSBinary.tex',loc2+'NVSSQualityEduc.tex',loc2+'NVSSQualityGestFix.tex',
-loc3+'spainBinary.tex',loc3+'spainQualityEduc.tex']
+TABLES = [loc1+'sumStats'+ftype+'.tex', loc1+'sumBQ'+ftype+'.tex'      ,
+loc2+'NVSSBinary.tex'                 , loc1+'quarterHeterogeneity.tex',
+loc2+'NVSSQualityEduc.tex'            , loc2+'NVSSQualityGestFix.tex'  ,
+loc3+'spainBinary.tex'                , loc3+'spainQualityEduc.tex'    ]
 
-iter = 1
+itera = 1
 
 for table in TABLES:
-    if iter<4 or iter==5:
+    if itera<4 or itera==6:
         final.write('\\input{'
                     +table+'}\n')
-    if iter==4 or iter>5:
+    if itera==4 or itera==5 or itera>6:
         final.write('\\begin{landscape}\\input{'
                     +table+'}\\end{landscape}\n')
-    iter = iter+1
+    itera = itera+1
 final.close()
