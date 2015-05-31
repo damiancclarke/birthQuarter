@@ -23,7 +23,7 @@ print('\n\n Producing tex files for output tables.\n\n')
 #==============================================================================
 RES   = "/home/damiancclarke/investigacion/2015/birthQuarter/results/"
 TAB   = "/home/damiancclarke/investigacion/2015/birthQuarter/tables/"
-ftype = 'over30'
+ftype = 'nvss'
 dloc  = './../'
 
 singleIPUM       = RES + 'ipums/sumStats/FullSample.txt'
@@ -58,8 +58,8 @@ tr   = '\\toprule'
 br   = '\\bottomrule'
 mc1  = '\\multicolumn{'
 mc2  = '}}'
-twid = ['5','5']
-tcm  = ['}{p{9.8cm}}','}{p{12.0cm}}']
+twid = ['10','6']
+tcm  = ['}{p{16.6cm}}','}{p{14.0cm}}']
 mc3  = '{\\begin{footnotesize}\\textsc{Notes:} '
 lname = "Fertility$\\times$desire"
 tname = "Twin$\\times$desire"
@@ -72,57 +72,54 @@ R2   = 'R$^2$'
 #==============================================================================
 #== (2) Write sum stat tables
 #==============================================================================
-for parity in ['single', 'twin']:
-    sumT = open(TAB + 'sum'+parity+ftype+'.tex', 'w')
+sumT = open(TAB + 'sumBQ'+ftype+'.tex', 'w')
 
-    if parity=='twin':
-        NV  = open(twinNVSS, 'r').readlines()
-        NVe = open(twinEducNVSS, 'r').readlines()
-        NVj = open(TallEducNVSS, 'r').readlines()
-        headline = 'Twins'
-    elif parity=='single':
-        NV  = open(singleNVSS, 'r').readlines()
-        NVe = open(singleEducNVSS, 'r').readlines()
-        NVj = open(allEducNVSS, 'r').readlines()
-        headline = 'Singletons'
+tNV  = open(twinNVSS, 'r').readlines()
+tNVe = open(twinEducNVSS, 'r').readlines()
+tNVj = open(TallEducNVSS, 'r').readlines()
+sNV  = open(singleNVSS, 'r').readlines()
+sNVe = open(singleEducNVSS, 'r').readlines()
+sNVj = open(allEducNVSS, 'r').readlines()
 
-    sumT.write("\\begin{landscape}\\begin{table}[htpb!]"
-               "\\caption{Percent of Births, "+headline+"} \n"
-               "\\label{bqTab:"+parity+"Sum}\\begin{center}"
-               "\\begin{tabular}{lcccc}\n\\toprule \\toprule \n"
-               "& Bad    & Good   & Diff. & Ratio \\\\\n"
-               "& Season & Season &       &       \\\\\\midrule"
-               "\multicolumn{5}{l}{\\textsc{Panel A: By Age Groups}}\\\\"
-               "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
-               "\\begin{footnotesize}\\end{footnotesize}\\\\ \n")
+
+sumT.write("\\begin{landscape}\\begin{table}[htpb!]"
+           "\\caption{Percent of Births by Season} \n"
+           "\\label{bqTab:seasonSum}\\begin{center}"
+           "\\begin{tabular}{lccccp{1cm}cccc}\n\\toprule \\toprule \n"
+           "& \multicolumn{4}{c}{Singletons} && \multicolumn{4}{c}{Twins}"
+           "\\\\ \cmidrule(r){2-5} \cmidrule(r){7-10} \n"
+           "& Bad & Good & Diff.&Ratio&&Bad&Good & Diff. & Ratio \\\\\n"
+           "& Season & Season&&&&Season&Season& &      \\\\\\midrule \n"
+           "\multicolumn{10}{l}{\\textsc{Panel A: By Age Groups}}\\\\"
+           "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*9+
+           "\\begin{footnotesize}\\end{footnotesize}\\\\ \n")
     
-    sumT.write(NV[1]+'\\\\ \n'
-               +NV[2]+'\\\\ \n &&&& \\\\'
-               "\multicolumn{5}{l}{\\textsc{Panel B: By Education}}\\\\"
-               "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
-               "\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
-               NVj[1]+'\\\\ \n'+
-               NVj[2]+'\\\\ \n &&&& \\\\'
-               "\multicolumn{5}{l}{\\textsc{Panel C: By Age and Education}}\\\\"
-               "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
-               "\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
-               NVe[1]+'\\\\ \n'+
-               NVe[2]+'\\\\ \n'+
-               NVe[3]+'\\\\ \n'+
-               NVe[4]+'\\\\ \n &&&& \\\\'
-               )
+sumT.write( sNV[1]+'&&'+tNV[1].split('&',1)[-1]+'\\\\ \n'
+           +sNV[2]+'&&'+tNV[2].split('&',1)[-1]+'\\\\ \n &&&&&&&& \\\\'
+            "\multicolumn{10}{l}{\\textsc{Panel B: By Education}}\\\\"
+            "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*9+
+            "\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
+            sNVj[1]+'&&'+tNVj[1].split('&',1)[-1]+'\\\\ \n'+
+            sNVj[2]+'&&'+tNVj[2].split('&',1)[-1]+'\\\\ \n &&&&&&&& \\\\'
+            "\multicolumn{10}{l}{\\textsc{Panel C: By Age and Education}}\\\\"
+            "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*9+
+            "\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
+            sNVe[1]+'&&'+tNVe[1].split('&',1)[-1]+'\\\\ \n'+
+            sNVe[2]+'&&'+tNVe[2].split('&',1)[-1]+'\\\\ \n'+
+            sNVe[3]+'&&'+tNVe[3].split('&',1)[-1]+'\\\\ \n'+
+            sNVe[4]+'&&'+tNVe[4].split('&',1)[-1]+'\\\\ \n &&&&&&&& \\\\'
+            )
     
-    
-    sumT.write('\n'+mr+mc1+twid[0]+tcm[0]+mc3+
-               "Good season refers to birth quarters 2 and 3 (Apr-Jun and "
-               "Jul-Sept).  Bad season refers to quarters 1 and 4 (Jan-Mar "
-               "and Oct-Dec).  Values reflect the percent of yearly births "
-               "each season from 2005-2013. `Young' refers to 25-39 year olds,"
-               " `Old' refers to 40-45 year olds. \n"
-               "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}"
-               "\\end{center}\\end{table}\\end{landscape}")
-    
-    sumT.close()
+
+sumT.write('\n'+mr+mc1+twid[0]+tcm[0]+mc3+
+           "Good season refers to birth quarters 2 and 3 (Apr-Jun and "
+           "Jul-Sept).  Bad season refers to quarters 1 and 4 (Jan-Mar "
+           "and Oct-Dec).  Values reflect the percent of yearly births "
+           "each season from 2005-2013. `Young' refers to 25-39 year olds,"
+           " `Old' refers to 40-45 year olds. \n"
+           "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}"
+           "\\end{center}\\end{table}\\end{landscape}")    
+sumT.close()
 
 
 #==============================================================================
@@ -130,44 +127,37 @@ for parity in ['single', 'twin']:
 #==============================================================================
 sumT = open(TAB + 'sumStats'+ftype+'.tex', 'w')
 sumT.write('\\begin{table}[htpb!] \n \\begin{center} \n' 
-'\\caption{Descriptive Statistics (NVSS 2005-2013)}\n \\begin{tabular}{lcccc} '
+'\\caption{Descriptive Statistics (NVSS 2005-2013)}\n \\begin{tabular}{lccccc} '
 '\n \\toprule\\toprule \\vspace{5mm} \n'
-'& Mean & Std. Dev. & Min. & Max. \\\\ \\midrule \n'
-'\multicolumn{5}{l}{\\textbf{Panel A: Mother}} \\\\ \n')
+'& N & Mean & Std. Dev. & Min. & Max. \\\\ \\midrule \n'
+'\multicolumn{6}{l}{\\textbf{Panel A: Mother}} \\\\ \n')
 
 Mu  = open(MumNVSS,  'r').readlines()
 MP  = open(MumPNVSS, 'r').readlines()
 Ki  = open(KidNVSS,  'r').readlines()
 
 for i,line in enumerate(Mu):
-    if i>8 and i<13:
+    if i>8 and i<11:
+        line = line.replace('\\hline','\\midrule')
+        sumT.write(line)
+for i,line in enumerate(MP):
+    if i>8 and i<12:
         line = line.replace('\\hline','\\midrule')
         line = line.replace('At least some college','Some College +')
         sumT.write(line)
 
-sumT.write(' \n \\multicolumn{5}{l}{'
-'\\textbf{Panel B: Mother (2003 standard only)}}\\\\ \n ')
-for i,line in enumerate(MP):
-    if i>8 and i<12:
-        line = line.replace('\\hline','\\midrule')
-        sumT.write(line)
-    if i==12:
-        obs2 = line
-
-sumT.write(' \n \\multicolumn{5}{l}{\\textbf{Panel C: Child}}\\\\ \n ')
+sumT.write(' \n \\multicolumn{6}{l}{\\textbf{Panel B: Child}}\\\\ \n ')
 for i,line in enumerate(Ki):
-    if i>8 and i<19:
+    if i>8 and i<17:
         line = line.replace('\\hline','\\midrule')
         line = line.replace('At least some college','Some College +')
         line = line.replace('Quarter','season of birth')
         sumT.write(line)
-sumT.write(obs2.replace('Observations', 'Observations (Panel B)'))
 
 sumT.write('\n'+mr+mc1+twid[1]+tcm[1]+mc3+
            "Each sample consists of all first-born children born to white, "
            "non-hispanic, US-born mothers. Good season refers to birth quarters"
-           " 2 and 3 (Apr-Jun and Jul-Sept). Educational attainment (mother)\n"
-           " is unrecorded for 34.25\\% of the population."
+           " 2 and 3 (Apr-Jun and Jul-Sept)."
            "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}\\end{center}"
            "\\end{table}")
 sumT.close()
@@ -178,15 +168,11 @@ sumT.close()
 final = open(TAB + "tables"+ ftype +".tex", 'w')
 
 final.write("\\input{./../tables/sumStats"+ftype+".tex} \n")
-final.write("\\input{./../tables/sumsingle"+ftype+".tex} \n")
-final.write("\\input{./../tables/sumtwin"+ftype+".tex} \n")
+final.write("\\input{./../tables/sumBQ"+ftype+".tex} \n")
 
 final.write("\\begin{landscape}\n"
 "\\input{./../results/"+ ftype +"/regressions/NVSSBinary.tex} \n"
 "\\end{landscape}\n"
-"\\input{./../results/"+ ftype +"/regressions/NVSSBinarymarried.tex} \n"
-"\\input{./../results/"+ ftype +"/regressions/NVSSBinaryunmarried.tex} \n"
-"\\input{./../results/"+ ftype +"/regressions/NVSSBinarySingle.tex} \n"
 "\\input{./../results/"+ ftype +"/regressions/NVSSBinarysmoking.tex} \n"
 "\\input{./../results/"+ ftype +"/regressions/NVSSBinarynon-smoking.tex} \n"
 "\\begin{landscape}\\input{./..//results/"+ ftype +"/regressions/NVSSQuality.tex} \n"

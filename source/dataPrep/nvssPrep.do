@@ -94,7 +94,7 @@ foreach yy of numlist 2003(1)2008 {
 
     
     keep if birthOrder==1 & (motherAge>=15 & motherAge<=49)
-    if `yy'<=2004 keep if mracerec == 1 & umhisp == 0 & mpstate_rec == 1
+    if `yy'<=2004 keep if mracerec == 1 & umhisp == 0 & mbstate_rec == 1
     if `yy'>=2005 keep if mracerec == 1 & umhisp == 0
     
     gen birthQuarter = ceil(birthMonth/3)
@@ -115,17 +115,16 @@ foreach yy of numlist 2003(1)2008 {
 
     preserve 
     collapse year (count) birth, by(birthQuarter ageGroup college)
-    drop if college = .
+    drop if college == .
     save `c`yy''
     restore
 
     preserve 
     collapse year (count) birth, by(birthQuarter ageGroup highschool)
-    drop if highschool = .
+    drop if highschool == .
     save `h`yy''
     restore
 
-    preserve 
     collapse year (count) birth, by(birthQuarter ageGroup all)
     save `a`yy''
 

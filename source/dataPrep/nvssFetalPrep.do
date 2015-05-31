@@ -42,11 +42,14 @@ gen vlbw        = birthweight < 1500 if birthweight != .
 gen lbw         = birthweight < 2500 if birthweight != .
 gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37 if gestation != .
+foreach var of varlist cig_1 cig_2 cig_3 {
+    destring `var', replace
+}
 gen smoker      = 1 if (cig_1>0&cig_1<99)|(cig_2>0&cig_2<99)|(cig_3>0&cig_3<99)
 replace smoker  = 0 if cig_1==0 & cig_2==0 & cig_3==0
 gen female      = sex=="F"
 replace female  = . if sex == "U"
-gen oldEduc     = dmeduc != .
+gen oldEduc     = umeduc != .
 gen numPrenatal = uprevis if uprevis != 99
 gen monthPrenat = mpcb if mpcb != 99
 replace monthPrenat = precare if monthPrenat == . & precare != 99
@@ -73,8 +76,8 @@ replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
 replace education = . if meduc==9
 
-keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single  /*
+keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw gestation   /*
+*/ premature motherAge education fatherAge ageGroupMan married smoker single /*
 */ female birthMonth oldEduc numPrenatal monthPrenat liveBirth
 tempfile B2005
 save `B2005'
@@ -82,7 +85,7 @@ save `B2005'
 ********************************************************************************
 *** (2b) 2006 File
 ********************************************************************************
-use "$DAT/natl2006"
+use "$DAT/fetl2006"
 
 gen liveBirth   = 0
 gen married     = mar==1
@@ -96,13 +99,16 @@ gen twin        = dplural
 gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
 gen vlbw        = birthweight < 1500 if birthweight != .
 gen lbw         = birthweight < 2500 if birthweight != .
-gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37 if gestation != .
+foreach var of varlist cig_1 cig_2 cig_3 {
+    destring `var', replace
+}
 gen smoker      = 1 if (cig_1>0&cig_1<99)|(cig_2>0&cig_2<99)|(cig_3>0&cig_3<99)
 replace smoker  = 0 if cig_1==0 & cig_2==0 & cig_3==0
 gen female      = sex=="F"
-gen oldEduc     = dmeduc != .
+replace female  = . if sex == "U"
+gen oldEduc     = umeduc != .
 gen numPrenatal = uprevis if uprevis != 99
 gen monthPrenat = mpcb if mpcb != 99
 replace monthPrenat = precare if monthPrenat == . & precare != 99
@@ -129,8 +135,8 @@ replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
 replace education = . if meduc==9
 
-keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single  /*
+keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw gestation   /*
+*/ premature motherAge education fatherAge ageGroupMan married smoker single /*
 */ female birthMonth oldEduc numPrenatal monthPrenat liveBirth
 tempfile B2006
 save `B2006'
@@ -138,7 +144,7 @@ save `B2006'
 ********************************************************************************
 *** (2c) 2007 File
 ********************************************************************************
-use "$DAT/natl2007"
+use "$DAT/fetl2007"
 
 gen liveBirth   = 0
 gen married     = mar==1
@@ -152,16 +158,10 @@ gen twin       = dplural
 gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
 gen vlbw        = birthweight < 1500 if birthweight != .
 gen lbw         = birthweight < 2500 if birthweight != .
-gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37 if gestation != .
-gen smoker      = 1 if (cig_1>0&cig_1<99)|(cig_2>0&cig_2<99)|(cig_3>0&cig_3<99)
-replace smoker  = 0 if cig_1==0 & cig_2==0 & cig_3==0
 gen female      = sex=="F"
-gen oldEduc     = dmeduc != .
-gen numPrenatal = uprevis if uprevis != 99
-gen monthPrenat = mpcb if mpcb != 99
-replace monthPrenat = precare if monthPrenat == . & precare != 99
+replace female  = . if sex == "U"
 
 keep if birthOrder==0 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -176,25 +176,15 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen ageGroupMan = fagerec11>6 & fagerec11 != 11
 replace ageGroupMan = ageGroupMan + 1
 
-gen educLevel=meduc>=4
-replace educLevel=2 if meduc>=5
-replace educLevel=. if meduc==9|meduc==.
-
-gen education = meduc if meduc <=5
-replace education = 5 if meduc==6
-replace education = 6 if meduc==7|meduc==8
-replace education = . if meduc==9
-
-keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth oldEduc numPrenatal monthPrenat liveBirth
+keep birthQuarter ageGroup twin year birthweight vlbw lbw gestation premature /*
+*/ motherAge fatherAge ageGroupMan married single female birthMonth liveBirth
 tempfile B2007
 save `B2007'
 
 ********************************************************************************
 *** (2d) 2008 File
 ********************************************************************************
-use "$DAT/natl2008"
+use "$DAT/fetl2008"
 
 gen liveBirth   = 0
 gen married     = mar==1
@@ -208,16 +198,10 @@ gen twin        = dplural
 gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
 gen vlbw        = birthweight < 1500 if birthweight != .
 gen lbw         = birthweight < 2500 if birthweight != .
-gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37 if gestation != .
-gen smoker      = 1 if (cig_1>0&cig_1<99)|(cig_2>0&cig_2<99)|(cig_3>0&cig_3<99)
-replace smoker  = 0 if cig_1==0 & cig_2==0 & cig_3==0
 gen female      = sex=="F"
-gen oldEduc     = dmeduc != .
-gen numPrenatal = uprevis if uprevis != 99
-gen monthPrenat = mpcb if mpcb != 99
-replace monthPrenat = precare if monthPrenat == . & precare != 99
+replace female  = . if sex == "U"
 
 keep if birthOrder==0 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -232,25 +216,15 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen ageGroupMan = fagerec11>6 & fagerec11 != 11
 replace ageGroupMan = ageGroupMan + 1
 
-gen educLevel=meduc>=4
-replace educLevel=2 if meduc>=5
-replace educLevel=. if meduc==9|meduc==.
-
-gen education = meduc if meduc <=5
-replace education = 5 if meduc==6
-replace education = 6 if meduc==7|meduc==8
-replace education = . if meduc==9
-
-keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth oldEduc numPrenatal monthPrenat liveBirth
+keep birthQuarter ageGroup twin year birthwei vlbw lbw gestation liveBirth  /*
+*/ premature motherAge fatherAge ageGroupMan married single female birthMonth 
 tempfile B2008
 save `B2008'
 
 ********************************************************************************
 *** (2e) 2009 File
 ********************************************************************************
-use "$DAT/natl2009"
+use "$DAT/fetl2009"
 
 gen liveBirth   = 0
 gen married     = mar==1
@@ -264,15 +238,10 @@ gen twin        = dplural
 gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
 gen vlbw        = birthweight < 1500 if birthweight != .
 gen lbw         = birthweight < 2500 if birthweight != .
-gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37 if gestation != .
-gen smoker      = 1 if cig_rec=="Y"
-replace smoker  = 0 if cig_rec=="N"
 gen female      = sex=="F"
-gen numPrenatal = uprevis if uprevis != 99
-gen monthPrenat = mpcb if mpcb != 99
-replace monthPrenat = precare if monthPrenat == . & precare != 99
+replace female  = . if sex == "U"
 
 keep if birthOrder==0 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -287,25 +256,15 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen ageGroupMan = fagerec11>6 & fagerec11 != 11
 replace ageGroupMan = ageGroupMan + 1
 
-gen educLevel=meduc>=4
-replace educLevel=2 if meduc>=5
-replace educLevel=. if meduc==9|meduc==.
-
-gen education = meduc if meduc <=5
-replace education = 5 if meduc==6
-replace education = 6 if meduc==7|meduc==8
-replace education = . if meduc==9
-
-keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth numPrenatal monthPrenat prePregBMI liveBirth
+keep birthQuarter ageGroup twin year birthwei vlbw lbw gestation premature /*
+*/ motherAge fatherAge ageGroupMan married female birthMonth liveBirth single 
 tempfile B2009
 save `B2009'
 
 ********************************************************************************
 *** (2f) 2010 File
 ********************************************************************************
-use "$DAT/natl2010"
+use "$DAT/fetl2010"
 
 gen liveBirth   = 0
 gen married     = mar==1
@@ -319,15 +278,10 @@ gen twin        = dplural
 gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
 gen vlbw        = birthweight < 1500 if birthweight != .
 gen lbw         = birthweight < 2500 if birthweight != .
-gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37 if gestation != .
-gen smoker      = 1 if cig_rec=="Y"
-replace smoker  = 0 if cig_rec=="N"
 gen female      = sex=="F"
-gen numPrenatal = uprevis if uprevis != 99
-gen monthPrenat = mpcb if mpcb != 99
-replace monthPrenat = precare if monthPrenat == . & precare != 99
+replace female  = . if sex == "U"
 
 keep if birthOrder==0 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -342,25 +296,15 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen ageGroupMan = fagerec11>6 & fagerec11 != 11
 replace ageGroupMan = ageGroupMan + 1
 
-gen educLevel=meduc>=4
-replace educLevel=2 if meduc>=5
-replace educLevel=. if meduc==9|meduc==.
-
-gen education = meduc if meduc <=5
-replace education = 5 if meduc==6
-replace education = 6 if meduc==7|meduc==8
-replace education = . if meduc==9
-
-keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth numPrenatal monthPrenat prePregBMI liveBirth
+keep birthQuarter ageGroup twin year birthwei vlbw lbw gestation premature  /*
+*/ motherAge fatherAge ageGroupMan married single female birthMonth liveBirth
 tempfile B2010
 save `B2010'
 
 ********************************************************************************
 *** (2g) 2011 File
 ********************************************************************************
-use "$DAT/natl2011"
+use "$DAT/fetl2011"
 
 gen liveBirth   = 0
 gen married     = mar==1
@@ -374,15 +318,10 @@ gen twin        = dplural
 gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
 gen vlbw        = birthweight < 1500 if birthweight != .
 gen lbw         = birthweight < 2500 if birthweight != .
-gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37 if gestation != .
-gen smoker      = 1 if cig_rec=="Y"
-replace smoker  = 0 if cig_rec=="N"
 gen female      = sex=="F"
-gen numPrenatal = uprevis if uprevis != 99
-gen monthPrenat = mpcb if mpcb != 99
-replace monthPrenat = precare if monthPrenat == . & precare != 99
+replace female  = . if sex == "U"
 
 keep if birthOrder==0 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -397,25 +336,15 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen ageGroupMan = fagerec11>6 & fagerec11 != 11
 replace ageGroupMan = ageGroupMan + 1
 
-gen educLevel=meduc>=4
-replace educLevel=2 if meduc>=5
-replace educLevel=. if meduc==9|meduc==.
-
-gen education = meduc if meduc <=5
-replace education = 5 if meduc==6
-replace education = 6 if meduc==7|meduc==8
-replace education = . if meduc==9
-
-keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth numPrenatal monthPrenat prePregBMI liveBirth
+keep birthQuarter ageGroup twin year birthwei vlbw lbw gestation premature /*
+*/ motherAge fatherAge ageGroupMan married single female birthMonth liveBirth
 tempfile B2011
 save `B2011'
 
 ********************************************************************************
 *** (2h) 2012 File
 ********************************************************************************
-use "$DAT/natl2012"
+use "$DAT/fetl2012"
 
 gen liveBirth   = 0
 gen married     = mar==1
@@ -429,15 +358,10 @@ gen twin        = dplural
 gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
 gen vlbw        = birthweight < 1500 if birthweight != .
 gen lbw         = birthweight < 2500 if birthweight != .
-gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37 if gestation != .
-gen smoker      = 1 if cig_rec=="Y"
-replace smoker  = 0 if cig_rec=="N"
 gen female      = sex=="F"
-gen numPrenatal = uprevis if uprevis != 99
-gen monthPrenat = mpcb if mpcb != 99
-replace monthPrenat = precare if monthPrenat == . & precare != 99
+replace female  = . if sex == "U"
 
 keep if birthOrder==0 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -452,25 +376,15 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen ageGroupMan = fagerec11>6 & fagerec11 != 11
 replace ageGroupMan = ageGroupMan + 1
 
-gen educLevel=meduc>=4
-replace educLevel=2 if meduc>=5
-replace educLevel=. if meduc==9|meduc==.
-
-gen education = meduc if meduc <=5
-replace education = 5 if meduc==6
-replace education = 6 if meduc==7|meduc==8
-replace education = . if meduc==9
-
-keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth numPrenatal monthPrenat prePregBMI liveBirth
+keep birthQuarter ageGroup twin year birthwei vlbw lbw gestation motherAge /*
+*/ fatherAge ageGroupMan married single female birthMonth liveBirth
 tempfile B2012
 save `B2012'
 
 ********************************************************************************
 *** (2i) 2013 File
 ********************************************************************************
-use "$DAT/natl2013"
+use "$DAT/fetl2013"
 
 gen liveBirth   = 0
 gen married     = mar==1
@@ -484,15 +398,10 @@ gen twin        = dplural
 gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
 gen vlbw        = birthweight < 1500 if birthweight != .
 gen lbw         = birthweight < 2500 if birthweight != .
-gen apgar       = apgar5 if apgar5>=0 & apgar5 <=10
 gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37 if gestation != .
-gen smoker      = 1 if cig_rec=="Y"
-replace smoker  = 0 if cig_rec=="N"
 gen female      = sex=="F"
-gen numPrenatal = uprevis if uprevis != 99
-gen monthPrenat = mpcb if mpcb != 99
-replace monthPrenat = precare if monthPrenat == . & precare != 99
+replace female  = . if sex == "U"
 
 keep if birthOrder==0 & (motherAge>=25 & motherAge<=45)
 keep if mracerec == 1 & umhisp == 0
@@ -507,18 +416,8 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen ageGroupMan = fagerec11>6 & fagerec11 != 11
 replace ageGroupMan = ageGroupMan + 1
 
-gen educLevel=meduc>=4
-replace educLevel=2 if meduc>=5
-replace educLevel=. if meduc==9|meduc==.
-
-gen education = meduc if meduc <=5
-replace education = 5 if meduc==6
-replace education = 6 if meduc==7|meduc==8
-replace education = . if meduc==9
-
-keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth numPrenatal monthPrenat prePregBMI liveBirth
+keep birthQuarter ageGroup twin year birthwei vlbw lbw gestation motherAge  /*
+*/ fatherAge ageGroupMan married single female birthMonth liveBirth
 tempfile B2013
 save `B2013'
 
