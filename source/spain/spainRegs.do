@@ -53,6 +53,15 @@ gen highEdXbadQ         = highEd*(1-goodQuarter)
 gen youngXhighEdXbadQ   = young*highEd*(1-goodQuarter)
 gen vhighEd             = yrsEducMother >= 15 & yrsEducMother != .
 gen youngXvhighEd       = young*vhighEd
+gen     prematurity     = gestation - 39
+gen     monthsPrem      = round(prematurity/4)*-1
+gen     expectedMonth   = monthBirth + monthsPrem
+replace expectedMonth   = expectedMonth - 12 if expectedMonth>12
+replace expectedMonth   = expectedMonth + 12 if expectedMonth<1
+gen     expectQuarter   = ceil(expectedMonth/3)
+gene    badExpectGood   = badQuarter==1&(expectQuar==2|expectQuar==3) if gest!=.
+gene    badExpectBad    = badQuarter==1&(expectQuar==1|expectQuar==4) if gest!=.
+
 
 lab var goodQuarter        "Good Season"
 lab var badQuarter         "Bad Season"
@@ -67,6 +76,17 @@ lab var vhighEd            "Complete Degree"
 lab var youngXvhighEd      "Degree$\times$ Aged 25-39"
 lab var professional       "White Collar Job"
 lab var married            "Married"
+lab var birthweight        "Birthweight"
+lab var gestation          "Gestation"
+lab var lbw                "LBW"
+lab var premature          "Premature"
+lab var vlbw               "VLBW"
+lab var prematurity        "Weeks premature"
+lab var monthsPrem         "Months Premature"
+lab var badExpectGood      "Bad Season (due in good)"
+lab var badExpectBad       "Bad Season (due in bad)"
+
+
 
 ********************************************************************************
 *** (3a) Regressions (goodQuarter on Age)
@@ -179,6 +199,29 @@ postfoot("\bottomrule"
 #delimit cr
 estimates clear
 
+
+********************************************************************************
+*** (5) Redefine bad season as bad season due to short gestation, and bad season
+********************************************************************************
+local controls highEd professional married
+foreach y of varlist birthweight lbw vlbw cesarean {
+    eststo: areg `y' young badExpect* `controls' `FE' `cnd', `se' abs(gestation)
+}
+#delimit ;
+esttab est1 est2 est3 est4 using "$OUT/NVSSQualityGestFix.tex", replace
+`estopt' title("Birth Quality by Age and Season (Accounting for Gestation)")
+keep(_cons young badExpect* `controls') style(tex) mlabels(, depvar)
+postfoot("\bottomrule"
+         "\multicolumn{5}{p{13.2cm}}{\begin{footnotesize}Sample consists of all"
+         "first born children of Spanish mothers. Bad Season (due in bad) is a "
+         "dummy for children expected and born in quarters 1 or 4, while Bad   "
+         "Season (due in good) is a dummy for children expected in quarters 2  "
+         "or 3, but were born prematurely in quarters 1 or 4. Fixed effects for"
+         "weeks of gestation are included."
+         "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
+#delimit cr
+estimates clear
+            
 
 ********************************************************************************
 *** (X) Close
