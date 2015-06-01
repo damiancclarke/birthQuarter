@@ -370,6 +370,11 @@ local names fullT_IFT1  preT_IFT0 preBMInonObese preBMIObese
 tokenize `names'
 
 foreach num of numlist 1(1)4 {
+    if `num'==1 local par "Full Term, IFT=1"
+    if `num'==2 local par "Pre Term,  IFT=0"
+    if `num'==3 local par "non-Obese pre-Pregnancy"
+    if `num'==4 local par "Obese pre-Pregnancy"
+
     count `cd`num''
     eststo: reg goodQuarter young                                    `cd`num'', `se'
     eststo: reg goodQuarter young                              `yFE' `cd`num'', `se'
@@ -378,7 +383,7 @@ foreach num of numlist 1(1)4 {
 
     #delimit ;
     esttab est1 est2 est3 est4 using "$OUT/NVSSBinary``num''.tex",
-    replace `estopt' title("Birth Season and Age (NVSS 2005-2013)") booktabs
+    replace `estopt' title("Birth Season and Age (`par')") booktabs
     keep(_cons young vhighEd married smoker) style(tex) mlabels(, depvar)
     postfoot("Year FE&&Y&Y&Y\\ \bottomrule"
          "\multicolumn{5}{p{12cm}}{\begin{footnotesize}Sample consists of all"
@@ -523,6 +528,27 @@ if `orign'==1 {
          "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
     #delimit cr
     estimates clear
+
+    foreach num of numlist 0 1 {
+        local cond `cnd'&young==`num'
+        foreach y of varlist apgar birthweight lbw vlbw {
+            eststo: areg `y' badExpect* `controls' `yFE' `cond', `se' abs(gestation)
+        }
+        #delimit ;
+        esttab est1 est2 est3 est4 using "$OUT/NVSSQualityGFYoung`num'.tex", replace 
+        `estopt' title("Birth Quality (Accounting for Gestation, Young = `num')")
+        keep(_cons badExpect* `controls') style(tex) mlabels(, depvar)
+        postfoot("\bottomrule"
+         "\multicolumn{5}{p{13.2cm}}{\begin{footnotesize}Sample consists of all"
+         "first born children of US-born, white, non-hispanic mothers."
+         "Bad Season (due in bad) is a dummy for children expected and born in"
+         "quarters 1 or 4, while Bad Season (due in good) is a dummy for children"
+         "expected in quarters 2 or 3, but were born prematurely in quarters 1 or"
+         "4.  Fixed effects for weeks of gestation are included."
+         "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
+        #delimit cr
+        estimates clear
+    }
 }
 exit
 ********************************************************************************

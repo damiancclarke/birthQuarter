@@ -47,6 +47,9 @@ MumNVSS = RES + ftype + '/sumStats/nvssMum.tex'
 MumPNVSS= RES + ftype + '/sumStats/nvssMumPart.tex'
 KidNVSS = RES + ftype + '/sumStats/nvssKid.tex'
 
+NVSSGoodE =  RES + ftype + '/regressions/NVSSBinaryExpectGood.tex'
+NVSSBadE  =  RES + ftype + '/regressions/NVSSBinaryExpectBad.tex'
+
 #==============================================================================
 #== (1b) shortcuts
 #==============================================================================
@@ -331,6 +334,31 @@ hetT.write('\n'+mr+mc1+twid[3]+tcm[3]+mc3+
 hetT.close()
 
 #==============================================================================
+#== (5) Fix labelling of gestation correction table
+#==============================================================================
+goodT = open(NVSSGoodE, 'r').readlines()
+badT  = open(NVSSBadE , 'r').readlines()
+
+outG = open(TAB + 'NVSSBinaryExpectGood.tex', 'w')
+outB = open(TAB + 'NVSSBinaryExpectBad.tex' , 'w')
+
+for line in goodT:
+    line = line.replace('(due in good)','')
+    line = line.replace('\\midrule'    ,'')
+    line = line.replace('Aged','&(due in good)'*4+'\\\\ \\midrule\n Aged')
+    line = line.replace('Observations','\\midrule\n Observations')
+    outG.write(line)
+for line in badT:
+    line = line.replace('(due in bad)','')
+    line = line.replace('\\midrule'    ,'')
+    line = line.replace('Aged','&(due in bad)'*4+'\\\\ \\midrule\n Aged')
+    line = line.replace('Observations','\\midrule\n Observations')
+    outB.write(line)
+
+outG.close
+outB.close
+
+#==============================================================================
 #== (X) write tables.tex file
 #==============================================================================
 #===== TABLE 1: Descriptive Statistics                                        X
@@ -345,6 +373,7 @@ hetT.close()
 #===== TABLE 7: Qualilty gestation correction                                 X
 #===== TABLE 8: Spain select  [l]                                             X
 #===== TABLE 9: Spain quality [l]                                             X
+#===== TABLE 10: Spain quality gestation correction                           X
 #==============================================================================
 loc1  = './../tables/'
 loc2  = './../results/'+ftype+'/regressions/'
@@ -352,19 +381,20 @@ loc3  = './../results/spain/regressions/'
 final = open(TAB + "tables"+ ftype +".tex", 'w')
 
 TABLES = [loc1+'sumStats'+ftype+'.tex', loc1+'sumBQ'+ftype+'.tex'      ,
-loc2+'NVSSBinary.tex'                 , loc2+'NVSSBinaryExpectBad.tex' ,
-loc2+'NVSSBinaryExpectGood.tex'       , loc1+'quarterHeterogeneity.tex',
+loc2+'NVSSBinary.tex'                 , loc1+'NVSSBinaryExpectBad.tex' ,
+loc1+'NVSSBinaryExpectGood.tex'       , loc1+'quarterHeterogeneity.tex',
 loc2+'NVSSQualityEduc.tex'            , loc1+'qualityHeterogeneity.tex', 
-loc2+'NVSSQualityGestFix.tex'         , loc3+'spainBinary.tex'         ,       
-loc3+'spainQualityEduc.tex'           ]
+loc2+'NVSSQualityGestFix.tex'         , loc2+'NVSSQualityGFYoung1.tex' ,
+loc2+'NVSSQualityGFYoung0.tex'        , loc3+'spainBinary.tex'         ,       
+loc3+'spainQualityEduc.tex'           , loc3+'spainQualityGestFix.tex' ]
 
 itera = 1
 
 for table in TABLES:
-    if itera<6 or itera==9:
+    if itera<6 or itera==9 or itera==10 or itera==11 or itera==14:
         final.write('\\input{'
                     +table+'}\n')
-    if itera==6 or itera==7 or itera==8 or itera>9:
+    if itera==6 or itera==7 or itera==8 or itera==12 or itera==13:
         final.write('\\begin{landscape}\\input{'
                     +table+'}\\end{landscape}\n')
     itera = itera+1
