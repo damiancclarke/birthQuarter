@@ -26,7 +26,7 @@ cap mkdir "$OUT"
 local qual apgar birthweight gestation lbw premature vlbw
 local data nvss2005_2013
 local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats      /*
-*/           (N, fmt(%9.0g) label(Observations))                       /*
+*/           (r2 N, fmt(%9.2f %9.0g) label(R-squared Observations))          /*
 */           starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(none) label
 local yFE    i.year
 local se     robust
@@ -79,7 +79,7 @@ if `pre4w'==1 {
 ********************************************************************************
 use "$DAT/`data'"
 keep if `keepif'
-if `a2024'==1 replace ageGroup = 1 if ageGroup == 0
+if `a2024' ==1 replace ageGroup = 1 if ageGroup == 0
 if `over30'==1 drop if motherAge<30&education==6
 
 gen birth = 1
@@ -107,7 +107,18 @@ replace expectedMonth   = expectedMonth + 12 if expectedMonth<1
 gene    expectQuarter   = ceil(expectedMonth/3) 
 gene    badExpectGood   = badQuarter==1&(expectQuar==2|expectQuar==3) if gest!=.
 gene    badExpectBad    = badQuarter==1&(expectQuar==1|expectQuar==4) if gest!=.
-*replace prePregBMI      = . if prePregBMI == 99
+gen     expectGoodQ     = expectQuarter == 2 | expectQuarter == 3 if gest!=.
+gen     expectBadQ      = expectQuarter == 4 | expectQuarter == 1 if gest!=.
+
+gen     Qgoodgood       = expectGoodQ==1 & goodQuarter==1 if gest!=.
+gen     Qgoodbad        = expectGoodQ==1 & badQuarter ==1 if gest!=.
+gen     Qbadgood        = expectBadQ==1  & goodQuarter==1 if gest!=.
+gen     Qbadbad         = expectBadQ==1  & badQuarter ==1 if gest!=.
+
+sum expectGoodQ expectBadQ
+sum Qgoodgood Qgoodbad Qbadgood Qbadbad
+
+
 
 ********************************************************************************
 *** (2b) Label for clarity
@@ -144,13 +155,14 @@ lab var gestation          "Gestation"
 lab var lbw                "LBW"
 lab var premature          "Premature"
 lab var vlbw               "VLBW"
-*lab var prePregBMI         "Pre-pregnancy BMI"
 lab var prematurity        "Weeks premature"
 lab var monthsPrem         "Months Premature"
 lab var badExpectGood      "Bad Season (due in good)"
 lab var badExpectBad       "Bad Season (due in bad)"
-
-
+lab var Qgoodbad           "Bad Season (due in good)"
+lab var Qbadbad            "Bad Season (due in bad)"
+lab var Qbadgood           "Good Season (due in bad)"
+/*
 ********************************************************************************
 *** (3a) Examine missing covariates
 ********************************************************************************
@@ -505,26 +517,29 @@ foreach num of numlist 1 2 {
     #delimit cr
     estimates clear
 }
-
+*/
 ********************************************************************************
 *** (5) Redefine bad season as bad season due to short gestation, and bad season
 ********************************************************************************
 if `orign'==1 {
     local controls highEd married smoker
+    local seasons Qgoodbad Qbadgood Qbadbad
     foreach y of varlist apgar birthweight lbw vlbw {
-        eststo: reg `y' young badExpect* `controls' i.gestation `yFE' `cnd', `se'
+        eststo: reg `y' young `seasons' `controls' `yFE' `cnd', `se'
+        eststo: reg `y' young `seasons' `controls' i.gestation `yFE' `cnd', `se'
     }
     #delimit ;
-    esttab est1 est2 est3 est4 using "$OUT/NVSSQualityGestFix.tex", replace 
+    esttab est1 est2 est3 est4 est5 est6 est7 est8 using "$OUT/QualityAllComb.tex", 
     `estopt' title("Birth Quality by Age and Season (Accounting for Gestation)")
-    keep(_cons young badExpect* `controls') style(tex) mlabels(, depvar)
+    keep(_cons young `seasons' `controls') style(tex) mlabels(, depvar) replace 
     postfoot("\bottomrule"
          "\multicolumn{5}{p{13.2cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of US-born, white, non-hispanic mothers."
          "Bad Season (due in bad) is a dummy for children expected and born in"
          "quarters 1 or 4, while Bad Season (due in good) is a dummy for children"
          "expected in quarters 2 or 3, but were born prematurely in quarters 1 or"
-         "4.  Fixed effects for weeks of gestation are included."
+         "4.  For each outcome, the first column is unconditional on gestation wh"
+         "ile the second column includes fixed effects for weeks of gestation."
          "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
     #delimit cr
     estimates clear
@@ -532,19 +547,21 @@ if `orign'==1 {
     foreach num of numlist 0 1 {
         local cond `cnd'&young==`num'
         foreach y of varlist apgar birthweight lbw vlbw {
-            eststo: areg `y' badExpect* `controls' `yFE' `cond', `se' abs(gestation)
+            eststo: reg `y' `seasons' `controls' `yFE' `cond', `se'
+            eststo: areg `y' `seasons' `controls' `yFE' `cond', `se' abs(gestation)
         }
         #delimit ;
-        esttab est1 est2 est3 est4 using "$OUT/NVSSQualityGFYoung`num'.tex", replace 
+        esttab est1 est2 est3 est4 est5 est6 est7 est8 using "$OUT/QAllYoung`num'.tex", 
         `estopt' title("Birth Quality (Accounting for Gestation, Young = `num')")
-        keep(_cons badExpect* `controls') style(tex) mlabels(, depvar)
+        keep(_cons `seasons' `controls') style(tex) mlabels(, depvar) replace 
         postfoot("\bottomrule"
          "\multicolumn{5}{p{13.2cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of US-born, white, non-hispanic mothers."
          "Bad Season (due in bad) is a dummy for children expected and born in"
          "quarters 1 or 4, while Bad Season (due in good) is a dummy for children"
          "expected in quarters 2 or 3, but were born prematurely in quarters 1 or"
-         "4.  Fixed effects for weeks of gestation are included."
+         "4.  For each outcome, the first column is unconditional on gestation wh"
+         "ile the second column includes fixed effects for weeks of gestation."
          "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
         #delimit cr
         estimates clear
