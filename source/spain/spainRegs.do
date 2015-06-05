@@ -61,6 +61,16 @@ replace expectedMonth   = expectedMonth + 12 if expectedMonth<1
 gen     expectQuarter   = ceil(expectedMonth/3)
 gene    badExpectGood   = badQuarter==1&(expectQuar==2|expectQuar==3) if gest!=.
 gene    badExpectBad    = badQuarter==1&(expectQuar==1|expectQuar==4) if gest!=.
+gen     expectGoodQ     = expectQuarter == 2 | expectQuarter == 3 if gest!=.
+gen     expectBadQ      = expectQuarter == 4 | expectQuarter == 1 if gest!=.
+
+gen     Qgoodgood       = expectGoodQ==1 & goodQuarter==1 if gest!=.
+gen     Qgoodbad        = expectGoodQ==1 & badQuarter ==1 if gest!=.
+gen     Qbadgood        = expectBadQ==1  & goodQuarter==1 if gest!=.
+gen     Qbadbad         = expectBadQ==1  & badQuarter ==1 if gest!=.
+
+sum expectGoodQ expectBadQ if young==0
+sum Qgoodgood Qgoodbad Qbadgood Qbadbad if young==0
 
 
 lab var goodQuarter        "Good Season"
@@ -85,6 +95,9 @@ lab var prematurity        "Weeks premature"
 lab var monthsPrem         "Months Premature"
 lab var badExpectGood      "Bad Season (due in good)"
 lab var badExpectBad       "Bad Season (due in bad)"
+lab var Qgoodbad           "Bad Season (due in good)"
+lab var Qbadbad            "Bad Season (due in bad)"
+lab var Qbadgood           "Good Season (due in bad)"
 
 
 
@@ -204,13 +217,14 @@ estimates clear
 *** (5) Redefine bad season as bad season due to short gestation, and bad season
 ********************************************************************************
 local controls highEd professional married
+local seasons  Qgoodbad Qbadgood Qbadbad
 foreach y of varlist birthweight lbw vlbw cesarean {
-    eststo: areg `y' young badExpect* `controls' `FE' `cnd', `se' abs(gestation)
+    eststo: areg `y' young `seasons' `controls' `FE' `cnd', `se' abs(gestation)
 }
 #delimit ;
-esttab est1 est2 est3 est4 using "$OUT/NVSSQualityGestFix.tex", replace
+esttab est1 est2 est3 est4 using "$OUT/spainQualityGestFix.tex", replace
 `estopt' title("Birth Quality by Age and Season (Accounting for Gestation)")
-keep(_cons young badExpect* `controls') style(tex) mlabels(, depvar)
+keep(_cons young `seasons' `controls') style(tex) mlabels(, depvar)
 postfoot("\bottomrule"
          "\multicolumn{5}{p{13.2cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of Spanish mothers. Bad Season (due in bad) is a "
