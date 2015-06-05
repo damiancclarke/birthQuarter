@@ -61,8 +61,8 @@ tr   = '\\toprule'
 br   = '\\bottomrule'
 mc1  = '\\multicolumn{'
 mc2  = '}}'
-twid = ['10','6','7','9']
-tcm  = ['}{p{16.6cm}}','}{p{14.0cm}}','}{p{14.7cm}}','}{p{23.2cm}}']
+twid = ['10','6','7','7']
+tcm  = ['}{p{16.6cm}}','}{p{14.0cm}}','}{p{14.7cm}}','}{p{15.2cm}}']
 mc3  = '{\\begin{footnotesize}\\textsc{Notes:} '
 lname = "Fertility$\\times$desire"
 tname = "Twin$\\times$desire"
@@ -124,6 +124,59 @@ sumT.write('\n'+mr+mc1+twid[0]+tcm[0]+mc3+
            "\\end{center}\\end{table}\\end{landscape}")    
 sumT.close()
 
+
+
+for parity in ['single', 'twin']:
+    sumT = open(TAB + 'sum'+parity+ftype+'.tex', 'w')
+
+    if parity=='twin':
+        NV  = open(twinNVSS, 'r').readlines()
+        NVe = open(twinEducNVSS, 'r').readlines()
+        NVj = open(TallEducNVSS, 'r').readlines()
+        headline = 'Twins'
+    elif parity=='single':
+        NV  = open(singleNVSS, 'r').readlines()
+        NVe = open(singleEducNVSS, 'r').readlines()
+        NVj = open(allEducNVSS, 'r').readlines()
+        headline = 'Singletons'
+
+    sumT.write("\\begin{landscape}\\begin{table}[htpb!]"
+               "\\caption{Percent of Births, "+headline+"} \n"
+               "\\label{bqTab:"+parity+"Sum}\\begin{center}"
+               "\\begin{tabular}{lcccc}\n\\toprule \\toprule \n"
+               "& Bad    & Good   & Diff. & Ratio \\\\\n"
+               "& Season & Season &       &       \\\\\\midrule"
+               "\multicolumn{5}{l}{\\textsc{Panel A: By Age Groups}}\\\\"
+               "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
+               "\\begin{footnotesize}\\end{footnotesize}\\\\ \n")
+    
+    sumT.write(NV[1]+'\\\\ \n'
+               +NV[2]+'\\\\ \n &&&& \\\\'
+               "\multicolumn{5}{l}{\\textsc{Panel B: By Education}}\\\\"
+               "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
+               "\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
+               NVj[1]+'\\\\ \n'+
+               NVj[2]+'\\\\ \n &&&& \\\\'
+               "\multicolumn{5}{l}{\\textsc{Panel C: By Age and Education}}\\\\"
+               "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
+               "\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
+               NVe[1]+'\\\\ \n'+
+               NVe[2]+'\\\\ \n'+
+               NVe[3]+'\\\\ \n'+
+               NVe[4]+'\\\\ \n &&&& \\\\'
+               )
+    
+    
+    sumT.write('\n'+mr+mc1+twid[0]+tcm[0]+mc3+
+               "Good season refers to birth quarters 2 and 3 (Apr-Jun and "
+               "Jul-Sept).  Bad season refers to quarters 1 and 4 (Jan-Mar "
+               "and Oct-Dec).  Values reflect the percent of yearly births "
+               "each season from 2005-2013. `Young' refers to 25-39 year olds,"
+               " `Old' refers to 40-45 year olds. \n"
+               "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}"
+               "\\end{center}\\end{table}\\end{landscape}")
+    
+    sumT.close()
 
 #==============================================================================
 #== (3) Basic Sum stats (NVSS and IPUMS)
@@ -275,6 +328,10 @@ samples = [loc+'nvss'+rt3,loc+'nvss/regressions/NVSSQualitySmoke0.tex'      ,
 loc+'nvss/regressions/NVSSQualitySmoke1.tex',loc+'fullT'+rt3,loc+'pre4w'+rt3,
 loc+'2012'+rt3,loc+'2012/regressions/NVSSQualityInfert0.tex',
 loc+'2012/regressions/NVSSQualityInfert1.tex']
+samples = [loc+'nvss'+rt3,loc+'nvss/regressions/NVSSQualitySmoke0.tex'      ,
+loc+'nvss/regressions/NVSSQualitySmoke1.tex',
+loc+'2012'+rt3,loc+'2012/regressions/NVSSQualityInfert0.tex',
+loc+'2012/regressions/NVSSQualityInfert1.tex']
 
 ii = 0
 for sample in samples:
@@ -303,13 +360,13 @@ for sample in samples:
 hetT.write('\\begin{table}[htpb!] \n '
 '\\caption{Birth Quality and Age: Alternative Samples and Definitions}\n '
 '\\begin{center} \n'
-'\\begin{tabular}{lcccccccc} \\toprule\\toprule \n'
-'\\textsc{Dep Var:}&(1)&(2)&(3)&(4)&(5)&(6)&(7)&(8)\\\\'
+'\\begin{tabular}{lcccccc} \\toprule\\toprule \n'
+'\\textsc{Dep Var:}&(1)&(2)&(3)&(4)&(5)&(6)\\\\'
 'Birthweight&&\multicolumn{2}{c}{Smoked During Pregnancy}&'
-'\multicolumn{2}{c}{Gestation}&&\multicolumn{2}{c}{Infertility Treatment}\\\\ '
-'\cmidrule(r){3-4}\cmidrule(r){5-6} \cmidrule(r){8-9}\n'
-'&All&Non-  &Smoker&Full&$\geq$4 weeks&2012- &No&Yes \\\\'
-'&   &Smoker&      &Term&Premature    &2013\ &  &    \\\\ \\midrule\n')
+'&\multicolumn{2}{c}{Infertility Treatment}\\\\ '
+'\cmidrule(r){3-4}\cmidrule(r){6-7}\n'
+'&All&Non-  &Smoker&2012- &No&Yes \\\\'
+'&   &Smoker&      &2013\ &  &    \\\\ \\midrule\n')
 hetT.write(table[0]+'\\\\ \n'
 +table[1 ] + '\\\\ \n'
 +table[2 ] + '\\\\ \n'
