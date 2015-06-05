@@ -61,8 +61,8 @@ tr   = '\\toprule'
 br   = '\\bottomrule'
 mc1  = '\\multicolumn{'
 mc2  = '}}'
-twid = ['10','6','11','9']
-tcm  = ['}{p{16.6cm}}','}{p{14.0cm}}','}{p{23.7cm}}','}{p{23.2cm}}']
+twid = ['10','6','7','9']
+tcm  = ['}{p{16.6cm}}','}{p{14.0cm}}','}{p{14.7cm}}','}{p{23.2cm}}']
 mc3  = '{\\begin{footnotesize}\\textsc{Notes:} '
 lname = "Fertility$\\times$desire"
 tname = "Twin$\\times$desire"
@@ -144,7 +144,7 @@ for i,line in enumerate(Mu):
         line = line.replace('\\hline','\\midrule')
         sumT.write(line)
 for i,line in enumerate(MP):
-    if i>8 and i<12:
+    if i>8 and i<13:
         line = line.replace('\\hline','\\midrule')
         line = line.replace('At least some college','Some College +')
         sumT.write(line)
@@ -188,6 +188,11 @@ loc+'2012/regressions/NVSSBinaryInfert1.tex',
 loc+'nvss/regressions/NVSSBinaryfullT_IFT1.tex',
 loc+'nvss/regressions/NVSSBinarypreT_IFT0.tex']
 
+samples = [loc+'nvss'+rt3,loc+'nvss/regressions/NVSSBinarynon-smoking.tex'  ,
+loc+'nvss/regressions/NVSSBinarysmoking.tex',loc+'2012'+rt3,
+loc+'2012/regressions/NVSSBinaryInfert0.tex',
+loc+'2012/regressions/NVSSBinaryInfert1.tex']
+
 ii = 0
 for sample in samples:
     if ii ==1 or ii==2:
@@ -216,14 +221,13 @@ for sample in samples:
 hetT.write('\\begin{table}[htpb!] \n ' 
 '\\caption{Birth Season and Age: Alternative Samples and Definitions}\n '
 '\\begin{center} \n'
-'\\begin{tabular}{lcccccccccc} \\toprule\\toprule \n'
-'\\textsc{Dep Var:}&(1)&(2)&(3)&(4)&(5)&(6)&(7)&(8)&(9)&(10)\\\\'
+'\\begin{tabular}{lcccccc} \\toprule\\toprule \n'
+'\\textsc{Dep Var:}&(1)&(2)&(3)&(4)&(5)&(6)\\\\'
 'Good Season&&\multicolumn{2}{c}{Smoked During Preg}&'
-'\multicolumn{2}{c}{Gestation}&&\multicolumn{2}{c}{Infertility Treatment}'
-'&\multicolumn{2}{c}{IFT+Gestation}\\\\\cmidrule(r){3-4}\cmidrule(r){5-6}'
-' \cmidrule(r){8-9}\cmidrule(r){10-11}\n'
-'&All&Non-  &Smoker&Full&$\geq$4 weeks&2012- &No&Yes&Full & Pre  \\\\'
-'&   &Smoker&      &Term&Premature    &2013\ &  &   &IFT=1& IFT=0 \\\\ '
+'&\multicolumn{2}{c}{Infertility Treatment}'
+'\\\\\cmidrule(r){3-4}\cmidrule(r){6-7}\n'
+'&All&Non-  &Smoker&2012- &No&Yes \\\\'
+'&   &Smoker&       &2013\ &  &  \\\\ '
 '\\midrule\n')
 hetT.write(table[0]+'\\\\ \n'
 +table[1]+'\\\\ \n'
