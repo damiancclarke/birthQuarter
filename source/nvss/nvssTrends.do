@@ -272,6 +272,7 @@ reshape wide birth, i(educLevel ageGroup) j(goodQuarter)
 gen totalbirths = birth0 + birth1
 replace birth0=round(10000*birth0/totalbirths)/100
 replace birth1=round(10000*birth1/totalbirths)/100
+
 gen diff            = birth1 - birth0
 gen rati            = birth1 / birth0
 gen str5 b0         = string(birth0, "%05.2f")
@@ -280,7 +281,7 @@ gen str4 difference = string(diff, "%04.2f")
 gen str4 ratio      = string(rati, "%04.2f")
 
 drop totalbirths diff rati birth*
-
+    
 #delimit ;
 listtex using "$SUM/PropNoTime`app'.tex", rstyle(tabular) replace
  head("\vspace{8mm}\begin{table}[htpb!]"
@@ -309,6 +310,7 @@ reshape wide birth, i(educLevel) j(goodQuarter)
 gen totalbirths = birth0 + birth1
 replace birth0=round(10000*birth0/totalbirths)/100
 replace birth1=round(10000*birth1/totalbirths)/100
+
 gen diff            = birth1 - birth0
 gen rati            = birth1 / birth0
 gen str5 b0         = string(birth0, "%05.2f")
@@ -317,7 +319,7 @@ gen str4 difference = string(diff, "%04.2f")
 gen str4 ratio      = string(rati, "%04.2f")
 
 drop totalbirths diff rati birth*
-
+    
 #delimit ;
 listtex using "$SUM/PropNoTimeEduc`app'.tex", rstyle(tabular) replace
  head("\vspace{8mm}\begin{table}[htpb!]"
@@ -365,7 +367,23 @@ listtex using "$SUM/PropNoTime2`app'.tex", rstyle(tabular) replace
 outsheet using "$SUM/FullSample`app'.txt", delimiter("&") replace noquote
 restore
 
-
+foreach var of varlist premature infertTreat {
+    gen _`var'young = `var'       if ageGroup  == 1
+    gen _`var'old = `var'         if ageGroup  == 2
+    gen _`var'lowEd = `var'       if educLevel == 1
+    gen _`var'highEd = `var'      if educLevel == 2
+    gen _`var'younglowEd = `var'  if educLevel == 1 & ageGroup == 1
+    gen _`var'younghighEd = `var' if educLevel == 2 & ageGroup == 1
+    gen _`var'oldlowEd = `var'    if educLevel == 1 & ageGroup == 2
+    gen _`var'oldhighEd = `var'   if educLevel == 2 & ageGroup == 2
+}
+sum _p* _i*
+estpost tabstat _p* _i*, statistics(mean sd) columns(statistics)
+esttab using "$SUM/nvssARTPrem.tex", title("ART and Premature")/*
+    */ cells("mean(fmt(2)) sd(fmt(2))") replace label noobs
+drop _p* _i*
+exit
+    
 ********************************************************************************
 *** (4a) Global histogram
 ********************************************************************************
@@ -449,12 +467,12 @@ replace educLevel = 2 if educLevel == 3
 gen goodQuarter = birthQuarter == 2 | birthQuarter == 3
 gen birth = 1
 
-collapse (sum) birth, by(goodQuarter ageG2 educLevel)
-reshape wide birth, i(ageG2 educLevel) j(goodQuarter)
+collapse (sum) birth, by(goodQuarter ageG2)
+reshape wide birth, i(ageG2) j(goodQuarter)
 gen totalbirths = birth0 + birth1
 replace birth0=(round(10000*birth0/totalbirths)/100)-50
 replace birth1=(round(10000*birth1/totalbirths)/100)-50
-keep birth1 educLevel ageG2
+keep birth1 ageG2
 replace birth1=birth1*2
 list
 lab def       aG2 1 "20-24" 2 "25-34" 3 "35-39" 4 "40-45"
@@ -462,14 +480,13 @@ lab val ageG2 aG2
 
 
 #delimit ;
-graph bar birth1, over(ageG2) over(educLevel,relabel(1 "No College" 2 "1-5 yrs")
-                       label(angle(45))) ylabel(, nogrid) yline(0, lpattern("_")) 
+graph bar birth1, over(ageG2)  ylabel(, nogrid) yline(0, lpattern("_")) 
 bar(1, bcolor(ltblue)) bar(2, bcolor(ltblue)) bar(3, bcolor(ltblue))
 bar(4, bcolor(ltblue)) scheme(s1mono) ytitle("% Good Season - % Bad Season");
 graph export "$OUT/birthQdiff_4Ages`app'.eps", as(eps) replace;
 #delimit cr
 restore
-
+exit
 
 ********************************************************************************
 *** (5) Birth outcomes by groups

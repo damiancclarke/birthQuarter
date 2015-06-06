@@ -162,7 +162,7 @@ lab var badExpectBad       "Bad Season (due in bad)"
 lab var Qgoodbad           "Bad Season (due in good)"
 lab var Qbadbad            "Bad Season (due in bad)"
 lab var Qbadgood           "Good Season (due in bad)"
-
+/*
 ********************************************************************************
 *** (3a) Examine missing covariates
 ********************************************************************************
@@ -438,10 +438,11 @@ foreach num of numlist 1(1)4 {
     #delimit cr
     estimates clear
 }
-/*
+
 ********************************************************************************
 *** (4ai) Multinomial logit
 ********************************************************************************
+*/
 gen     seasonType = 1 if Qgoodgood  == 1
 replace seasonType = 2 if Qgoodbad   == 1
 replace seasonType = 3 if Qbadgood   == 1
@@ -475,7 +476,7 @@ postfoot("\bottomrule"
 #delimit cr
 estimates clear
 exit
-*/
+
 ********************************************************************************
 *** (4b) Regressions (Quality on Age, season)
 ********************************************************************************
@@ -642,7 +643,7 @@ if `orign'==1 {
             eststo: areg `y' `seasons' `controls' `yFE' `cond', `se' abs(gestation)
         }
         #delimit ;
-        esttab est1 est2 est3 est4 using "$OUT/QAllYoung`num'.tex", 
+        esttab est1 est2 est3 est4 est5 using "$OUT/QAllYoung`num'.tex", 
         `estopt' title("Birth Quality (Accounting for Gestation, Young = `num')")
         keep(_cons `seasons' `controls') style(tex) mlabels(, depvar) replace 
         postfoot("\bottomrule"
@@ -659,6 +660,8 @@ if `orign'==1 {
     }
 }
 exit
+
+
 ********************************************************************************
 *** (6) Appendix including fetal deaths
 ********************************************************************************
@@ -676,6 +679,26 @@ eststo: reg goodQuarter young highEd married smoker       `yFE' `cnd', `se'
 #delimit ;
 esttab est1 est2 est3 est4 using "$OUT/NVSSBinaryFDeaths.tex",
 replace `estopt' title("Birth Season and Age (Including Fetal Deaths)") 
+keep(_cons young highEd married smoker) style(tex) mlabels(, depvar)
+postfoot("Year FE&&Y&Y&Y\\ \bottomrule"
+         "\multicolumn{5}{p{13cm}}{\begin{footnotesize}Sample consists of all"
+         "firsts (live births and fetal deaths) of US-born, white, non-hispanic"
+         "mothers.  Fetal deaths are included if occurring between 25 and 44"
+         "weeks of gestation.  Education is recorded for fetal deaths only "
+         "prior to 2008."
+         "\end{footnotesize}}\end{tabular}\end{table}") booktabs ;
+#delimit cr
+estimates clear
+
+local `cnd'&liveBirth==0
+eststo: reg goodQuarter young                                   `cond', `se'
+eststo: reg goodQuarter young                             `yFE' `cond', `se'
+eststo: reg goodQuarter young highEd                      `yFE' `cond', `se'
+eststo: reg goodQuarter young highEd married smoker       `yFE' `cond', `se'
+
+#delimit ;
+esttab est1 est2 est3 est4 using "$OUT/NVSSBinaryFDeathsOnly.tex",
+replace `estopt' title("Birth Season and Age (Fetal Deaths Only)") 
 keep(_cons young highEd married smoker) style(tex) mlabels(, depvar)
 postfoot("Year FE&&Y&Y&Y\\ \bottomrule"
          "\multicolumn{5}{p{13cm}}{\begin{footnotesize}Sample consists of all"
