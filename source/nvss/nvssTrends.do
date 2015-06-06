@@ -72,7 +72,7 @@ if `bord2'==1 {
 if `over30'==1 {
     global OUT "~/investigacion/2015/birthQuarter/results/over30/graphs" 
     global SUM "~/investigacion/2015/birthQuarter/results/over30/sumStats"
-    local keepif  birthOrder == 1 & motherAge > 24
+    local keepif  birthOrder == 1 & motherAge > 24 & (education!=6|motherAge>30)
 }    
 if `fterm'==1 {
     global OUT "~/investigacion/2015/birthQuarter/results/fullT/graphs" 
@@ -90,7 +90,6 @@ if `pre4w'==1 {
 ********************************************************************************
 use "$DAT/`data'"
 keep if `keepif'
-if `over30'==1 drop if motherAge<30 & education==6
 
 histogram motherAge, frac scheme(s1mono) xtitle("Mother's Age")
 graph export "$OUT/ageDescriptive.eps", as(eps) replace
@@ -168,6 +167,28 @@ twoway line birth motherAge if twin==1, || line birth motherAge if twin==2,/*
 graph export "$OUT/ageDescriptiveParityDegree.eps", as(eps) replace
 restore
 
+preserve
+collapse infertTreat, by(motherAge)
+#delimit ;
+twoway line infertTreat motherAge, xtitle("Mother's Age") scheme(s1mono)
+ytitle("Assisted Reproductive Technology");
+#delimit cr
+graph export "$OUT/ART.eps", as(eps) replace
+restore
+
+preserve
+replace twin = twin - 1
+keep twin motherAge educLevel
+drop if educLevel==.
+collapse twin, by(motherAge educLevel) 
+reshape wide twin, i(motherAge) j(educLevel)
+twoway line twin1 motherAge, || line twin2 motherAge, lpattern(dash) lcolor(gs0)/*
+*/ scheme(s1mono) xtitle("Mother's Age") ytitle("Proportion Twins")             /*
+*/ legend(label(1 "No College") label(2 "Some College +")) 
+graph export "$OUT/twinPrevalence.eps", as(eps) replace
+restore
+
+
 ********************************************************************************
 *** (2aii) Summary stats table
 ********************************************************************************
@@ -194,9 +215,10 @@ lab var apgar       "APGAR (1-10)"
 lab var twin        "Twin"
 lab var female      "Female"
 lab var smoker      "Smoked during Pregnancy"
+lab var infertTreat "Used ART (2012-2013 only)"
 
-local Mum     motherAge married
-local MumPart college educCat smoker
+local Mum     motherAge married 
+local MumPart college educCat smoker infertTreat
 local Kid     goodQuarter birthweight lbw gestat premature apgar twin female
 
 foreach stype in Mum Kid MumPart {
@@ -401,7 +423,6 @@ lab val educLevel   eL2
 list
 reshape wide birth1, i(educLevel) j(ageGroup)
 
-
 #delimit ;
 graph bar birth*, over(educLevel, relabel(1 "All" 2 "No College" 3 "1-5 yrs")
                        label(angle(45))) yline(0)
@@ -410,6 +431,45 @@ scheme(s1mono) bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0));
 graph export "$OUT/birthQdiff`app'.eps", as(eps) replace;
 #delimit cr
 restore
+
+********************************************************************************
+*** (4d) Histogram for more age groups
+********************************************************************************
+preserve
+use "$DAT/`data'"
+keep if birthOrder==1&educLevel!=.
+
+gen ageG2 = motherAge>=20 & motherAge<25
+replace ageG2 = 2 if motherAge>=25 & motherAge<35
+replace ageG2 = 3 if motherAge>=35 & motherAge<40
+replace ageG2 = 4 if motherAge>=40 & motherAge<46
+
+replace educLevel = educLevel + 1
+replace educLevel = 2 if educLevel == 3
+gen goodQuarter = birthQuarter == 2 | birthQuarter == 3
+gen birth = 1
+
+collapse (sum) birth, by(goodQuarter ageG2 educLevel)
+reshape wide birth, i(ageG2 educLevel) j(goodQuarter)
+gen totalbirths = birth0 + birth1
+replace birth0=(round(10000*birth0/totalbirths)/100)-50
+replace birth1=(round(10000*birth1/totalbirths)/100)-50
+keep birth1 educLevel ageG2
+replace birth1=birth1*2
+list
+lab def       aG2 1 "20-24" 2 "25-34" 3 "35-39" 4 "40-45"
+lab val ageG2 aG2
+
+
+#delimit ;
+graph bar birth1, over(ageG2) over(educLevel,relabel(1 "No College" 2 "1-5 yrs")
+                       label(angle(45))) ylabel(, nogrid) yline(0, lpattern("_")) 
+bar(1, bcolor(ltblue)) bar(2, bcolor(ltblue)) bar(3, bcolor(ltblue))
+bar(4, bcolor(ltblue)) scheme(s1mono) ytitle("% Good Season - % Bad Season");
+graph export "$OUT/birthQdiff_4Ages`app'.eps", as(eps) replace;
+#delimit cr
+restore
+
 
 ********************************************************************************
 *** (5) Birth outcomes by groups
