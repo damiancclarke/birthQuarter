@@ -23,7 +23,7 @@ global LOG "~/investigacion/2015/birthQuarter/log"
 log using "$LOG/nvssRegs.txt", text replace
 cap mkdir "$OUT"
 
-local qual apgar birthweight gestation lbw premature vlbw
+local qual birthweight lbw vlbw gestation premature apgar 
 local data nvss2005_2013
 local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats      /*
 */           (r2 N, fmt(%9.2f %9.0g) label(R-squared Observations))          /*
@@ -246,7 +246,7 @@ eststo: reg goodQuarter young highEd married smoker       `yFE' `cnd', `se'
 
 #delimit ;
 esttab est1 est2 est3 est4 using "$OUT/NVSSBinary.tex",
-replace `estopt' title("Birth Season and Age (NVSS 2005-2013)") booktabs 
+replace `estopt' title("Birth Season and Age") booktabs 
 keep(_cons young highEd married smoker) style(tex) mlabels(, depvar)
 postfoot("Year FE&&Y&Y&Y\\ \bottomrule"
          "\multicolumn{5}{p{12cm}}{\begin{footnotesize}Sample consists of all"
@@ -279,7 +279,7 @@ eststo: reg goodQuarter young highEd youngXhighEd married smoker `yFE' `cnd', `s
 
 #delimit ;
 esttab est1 est2 est3 est4 using "$OUT/NVSSBinaryEdInteract.tex",
-replace `estopt' title("Birth Season and Age (NVSS 2005-2013)") booktabs 
+replace `estopt' title("Birth Season and Age") booktabs 
 keep(_cons young* highEd married smoker) style(tex) mlabels(, depvar)
 postfoot("Year FE&Y&Y&Y&Y\\ \bottomrule"
          "\multicolumn{5}{p{12cm}}{\begin{footnotesize}Sample consists of all"
@@ -314,7 +314,7 @@ eststo: reg goodQuarter young vhighEd married smoker       `yFE' `cnd', `se'
 
 #delimit ;
 esttab est1 est2 est3 est4 using "$OUT/NVSSBinaryHigh.tex",
-replace `estopt' title("Birth Season and Age (NVSS 2005-2013)") booktabs
+replace `estopt' title("Birth Season and Age") booktabs
 keep(_cons young vhighEd married smoker) style(tex) mlabels(, depvar)
 postfoot("Year FE&&Y&Y&Y\\ \bottomrule"
          "\multicolumn{5}{p{12cm}}{\begin{footnotesize}Sample consists of all"
@@ -377,7 +377,7 @@ eststo: reg goodQuarter young highEd       `yFE' `cond', `se'
 
 #delimit ;
 esttab est1 est2 est3 using "$OUT/NVSSBinarySingle.tex",
-replace `estopt' title("Birth Season and Age: Single Women (NVSS 2005-2013)")
+replace `estopt' title("Birth Season and Age: Single Women")
 keep(_cons young highEd) style(tex) booktabs mlabels(, depvar)
 postfoot("Year FE&&Y&Y\\ \bottomrule"
          "\multicolumn{4}{p{10.5cm}}{\begin{footnotesize}Sample consists of all"
@@ -442,7 +442,6 @@ foreach num of numlist 1(1)4 {
 ********************************************************************************
 *** (4ai) Multinomial logit
 ********************************************************************************
-*/
 gen     seasonType = 1 if Qgoodgood  == 1
 replace seasonType = 2 if Qgoodbad   == 1
 replace seasonType = 3 if Qbadgood   == 1
@@ -463,11 +462,10 @@ foreach o in 2 3 4 {
     estimates restore mlogit
 }
 eststo drop mlogit
-esttab, noobs se nostar mtitles nonumbers title(Average Marginal Effects)
 #delimit ;
-esttab using using "$OUT/NVSSseasonMLogit.tex",
-replace `estopt' title("Birth Season Predictors (Multinomial Logit)") 
-keep(_cons young highEd married smoker) style(tex) mlabels(, depvar)
+esttab using "$OUT/NVSSseasonMLogit.tex", replace `estopt'
+title("Birth Season Predictors (Multinomial Logit)") 
+keep(young highEd married smoker) style(tex) mlabels(, depvar)
 postfoot("\bottomrule"
          "\multicolumn{4}{p{12cm}}{\begin{footnotesize} Year fixed effects"
          "included.  Robust standard errors estimated.  Expected in good and"
@@ -475,7 +473,7 @@ postfoot("\bottomrule"
          "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
 #delimit cr
 estimates clear
-exit
+*/
 
 ********************************************************************************
 *** (4b) Regressions (Quality on Age, season)
@@ -485,7 +483,7 @@ foreach y of varlist `qual' {
 }
 #delimit ;
 esttab est1 est2 est3 est4 est5 est6 using "$OUT/NVSSQuality.tex",
-replace `estopt' title("Birth Quality by Age and Season (NVSS 2005-2013)")
+replace `estopt' title("Birth Quality by Age and Season")
 keep(_cons young badQuarter) style(tex) booktabs mlabels(, depvar)
 postfoot("\bottomrule"
          "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Sample consists of all"
@@ -503,7 +501,7 @@ foreach e in 0 1 {
     }
     #delimit ;
     esttab est1 est2 est3 est4 est5 est6 using "$OUT/NVSSQuality`e'.tex",
-    replace `estopt' title("Birth Quality by Age and Season (NVSS 2005-2013)")
+    replace `estopt' title("Birth Quality by Age and Season")
     keep(_cons young badQuarter) style(tex) booktabs mlabels(, depvar)
     postfoot("\bottomrule"
              "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Sample consists of all"
@@ -540,7 +538,7 @@ foreach y of varlist `qual' {
 }
 #delimit ;
 esttab est1 est2 est3 est4 est5 est6 using "$OUT/NVSSQualityEduc.tex",
-replace `estopt' title("Birth Quality by Age and Season (NVSS 2005-2013)")
+replace `estopt' title("Birth Quality by Age and Season")
 keep(_cons young badQuarter highEd married smoker) style(tex) mlabels(, depvar)
 postfoot("\bottomrule"
          "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Sample consists of all"
@@ -610,20 +608,23 @@ foreach num of numlist 1 2 {
 *** (5) Redefine bad season as bad season due to short gestation, and bad season
 ********************************************************************************
 if `orign'==1 {
-    local controls highEd married smoker
+    local cont highEd married smoker
     local seasons Qgoodbad Qbadgood Qbadbad
-    foreach y of varlist apgar birthweight lbw vlbw {
-        if `"`y'"'=="birthweight" {
-            eststo: reg `y' young `seasons' `controls' `yFE' `cnd', `se'
-        }
-        eststo: reg `y' young `seasons' `controls' i.gestation `yFE' `cnd', `se'
-    }
+    local aa abs(gestation)
+    
+    eststo: reg  birthweight young `seasons' `cont' `yFE' `cnd', `se'
+    eststo: areg birthweight young `seasons' `cont' `yFE' `cnd', `se'    `aa'
+    eststo: reg  birthweight `seasons' `cont' `yFE' `cnd'&young==1, `se'
+    eststo: areg birthweight `seasons' `cont' `yFE' `cnd'&young==1, `se' `aa'
+    eststo: reg  birthweight `seasons' `cont' `yFE' `cnd'&young==0, `se'
+    eststo: areg birthweight `seasons' `cont' `yFE' `cnd'&young==0, `se' `aa'
+
     #delimit ;
-    esttab est1 est2 est3 est4 est5 using "$OUT/QualityAllComb.tex", 
-    `estopt' title("Birth Quality by Age and Season (Accounting for Gestation)")
-    keep(_cons young `seasons' `controls') style(tex) mlabels(, depvar) replace 
-    postfoot("\bottomrule"
-         "\multicolumn{5}{p{13.2cm}}{\begin{footnotesize}Sample consists of all"
+    esttab est1 est2 est3 est4 est5 est6 using "$OUT/QualityAllComb.tex", 
+    `estopt' title("Birth Quality by Age and Season")
+    keep(_cons young `seasons' `cont') style(tex) mlabels(, depvar) replace 
+    postfoot("Age &All&All&Young&Young&Old&Old \\ \bottomrule"
+         "\multicolumn{7}{p{10cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of US-born, white, non-hispanic mothers."
          "Bad Season (due in bad) is a dummy for children expected and born in"
          "quarters 1 or 4, while Bad Season (due in good) is a dummy for children"
@@ -633,31 +634,6 @@ if `orign'==1 {
          "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
     #delimit cr
     estimates clear
-
-    foreach num of numlist 0 1 {
-        local cond `cnd'&young==`num'
-        foreach y of varlist apgar birthweight lbw vlbw {
-        if `"`y'"'=="birthweight" {
-            eststo: reg  `y' `seasons' `controls' `yFE' `cond', `se'
-        }
-            eststo: areg `y' `seasons' `controls' `yFE' `cond', `se' abs(gestation)
-        }
-        #delimit ;
-        esttab est1 est2 est3 est4 est5 using "$OUT/QAllYoung`num'.tex", 
-        `estopt' title("Birth Quality (Accounting for Gestation, Young = `num')")
-        keep(_cons `seasons' `controls') style(tex) mlabels(, depvar) replace 
-        postfoot("\bottomrule"
-         "\multicolumn{5}{p{13.2cm}}{\begin{footnotesize}Sample consists of all"
-         "first born children of US-born, white, non-hispanic mothers."
-         "Bad Season (due in bad) is a dummy for children expected and born in"
-         "quarters 1 or 4, while Bad Season (due in good) is a dummy for children"
-         "expected in quarters 2 or 3, but were born prematurely in quarters 1 or"
-         "4.  For each outcome, the first column is unconditional on gestation wh"
-         "ile the second column includes fixed effects for weeks of gestation."
-         "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
-        #delimit cr
-        estimates clear
-    }
 }
 exit
 
