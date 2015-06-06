@@ -25,23 +25,28 @@
 \usepackage{subfloat}
 \setbeamertemplate{caption}[numbered]
 \usepackage{wrapfig}
+\usepackage{tikz}
+
+\definecolor{cadmiumgreen}{rgb}{0.0, 0.42, 0.24}
+\usetikzlibrary{trees}
+\usetikzlibrary{decorations.markings}
+
 
 %================================================================================
 %== TITLE, NAMES, DATE
 %================================================================================
-\title{Fertility Timing and Season of Birth: The Role of Biological and Economic 
-Constraints}
+\title{The Value of Season of Birth and Fertility Timing}
 
 \author{Damian Clarke\inst{\dag} 
    \and Sonia Oreffice\inst{\ddag} 
    \and Climent Quintana-Domeque\inst{*}}
 
-\institute{\inst{\dag} U. of Oxford
-      \and \inst{\ddag} U. of Surrey and IZA 
-      \and \inst{*} U. of Oxford and IZA}
+\institute{\inst{\dag}  University of Oxford
+      \and \inst{\ddag} University of Surrey and IZA 
+      \and \inst{*}     University of Oxford and IZA}
 
-\date{May 2015}
-
+\date{June 2015}
+%********************************************************************************
 \begin{document}
 
 
@@ -49,66 +54,105 @@ Constraints}
 \titlepage
 \end{frame}
 
+%********************************************************************************
+
 \begin{frame}[label=sum]
-\input{./tables/sumStats.tex}
+\input{./tables/sumStatsnvss.tex}
+\end{frame}
+
+\begin{frame}[label=BQs]
+\input{./tables/sumsinglenvss.tex}
+\end{frame}
+
+
+\begin{frame}[label=births]
+\frametitle{Maternal Age at Birth: USA}
+\begin{figure}[htpb!]
+\begin{center}
+  \centering
+  \caption{Mother's Age at First Birth, 25-45 (NVSS)}
+  \includegraphics[scale=0.6]{./../results/nvss/graphs/ageDescriptive.eps}
+  \label{fig:NVSSbirths}
+\end{center}
+\end{figure}
+\vspace{-5mm}
 \end{frame}
 
 \begin{frame}[label=births]
 \frametitle{Maternal Age at Birth: USA}
 \begin{figure}[htpb!]
 \begin{center}
-\begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[scale=0.37]{./../results/nvss/graphs/ageDescriptiveParity.eps}
-  \caption{Birth certificate data (NVSS)}
+  \caption{Difference in Births (\% Good Season - \% Bad Season)}
+  \includegraphics[scale=0.6]{./../results/nvss/graphs/birthQdiff.eps}
   \label{fig:NVSSbirths}
-\end{subfigure}%
-\begin{subfigure}{.5\textwidth}
-  \centering
-  \includegraphics[scale=0.37]{./../results/ipums/graphs/ageDescriptiveParity.eps}
-  \caption{IPUMS (ACS) survey}
-  \label{fig:IPUMSbirths}
-\end{subfigure}
-\caption{Age at first birth in USA}
-\label{fig:births}
 \end{center}
 \end{figure}
-\footnotesize{Note to figures: Cohorts are made up of all individuals 
-from the DHS who are over 35 years (for fertility), and over 15 years (for education).  
-In each case the sample is restricted to those who have approximately completed fertility 
-and education respectively.}
+\vspace{-5mm}
+\footnotesize{Note: `Young' refers to 25-39.  `Old' refers to 40-45.}
 \end{frame}
 
-
-\begin{frame}[label=birthsCollege]
-\frametitle{Maternal Age at Birth (College Education and Above)}
+\begin{frame}[label=births]
+\frametitle{Maternal Age at Birth: USA}
 \begin{figure}[htpb!]
 \begin{center}
-\begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[scale=0.37]{./../results/nvss/graphs/ageDescriptiveParitySomeCollege.eps}
-  \caption{Birth certificate data (NVSS)}
-  \label{fig:NVSSbirths}
-\end{subfigure}%
-\begin{subfigure}{.5\textwidth}
-  \centering
-  \includegraphics[scale=0.37]{./../results/ipums/graphs/ageDescriptiveParitySomeCollege.eps}
-  \caption{IPUMS (ACS) survey}
-  \label{fig:IPUMSbirths}
-\end{subfigure}
-\caption{Age at first birth in USA (College Educated Women)}
-\label{fig:births}
+  \caption{Difference in Births (\% Good Season - \% Bad Season)}
+  \includegraphics[scale=0.6]{./../results/nvss/graphs/birthQdiff_4Ages.eps}
+  \label{fig:NVSSbirthsAges}
 \end{center}
 \end{figure}
-\footnotesize{Note to figures: Cohorts are made up of all individuals 
-from the DHS who are over 35 years (for fertility), and over 15 years (for education).  
-In each case the sample is restricted to those who have approximately completed fertility 
-and education respectively.}
+\vspace{-5mm}
 \end{frame}
 
-\begin{frame}[label=single]
-\input{./tables/sumsingle.tex}
-\hyperlink{twin}{\beamergotobutton{For Twins}}
+\begin{frame}[label=twins]
+\frametitle{Twin Prevalance and Age}
+\begin{figure}[htpb!]
+\begin{center}
+  \centering
+  \caption{Proportion of Twins Born by Age}
+  \includegraphics[scale=0.6]{./../results/nvss/graphs/twinPrevalence.eps}
+  \label{fig:NVSSTwins}
+\end{center}
+\end{figure}
+\vspace{-5mm}
+\end{frame}
+
+
+\begin{frame}[label=ART]
+\frametitle{Assisted Reproductive Technology and Age}
+\begin{figure}[htpb!]
+\begin{center}
+  \centering
+  \caption{Proportion of Mothers Reporting any ART}
+  \includegraphics[scale=0.6]{./../results/nvss/graphs/ART.eps}
+  \label{fig:NVSSART}
+\end{center}
+\end{figure}
+\vspace{-5mm}
+\footnotesize{Notes: Questions on ART use are only included in 2012-2013 
+birth certificate data.}
+\end{frame}
+
+
+\begin{frame}[label=QBw]
+\frametitle{Birth Quality by Season}
+\begin{figure}[htpb!]
+\centering
+\caption{Child quality: Birthweight (grams)}
+\label{QBwt}
+\includegraphics[scale=0.6]{../results/nvss/graphs/AllQuality_birthweight_.eps}
+\end{figure}
+\end{frame}
+
+\begin{frame}[label=QBwEd]
+\frametitle{Birth Quality by Season}
+\begin{figure}[htpb!]
+\centering
+\caption{Child quality: Birthweight by Education}
+\label{QBwtEd}
+\includegraphics[scale=0.6]{../results/nvss/graphs/Quality_birthweight_.eps}
+\end{figure}
 \end{frame}
 
 \begin{frame}[label=NVSSseason]
@@ -116,73 +160,288 @@ and education respectively.}
 \input{./tables/NVSSBinary.tex}
 \end{frame}
 
-\begin{frame}[label=IPUMSseason]
-%\frametitle{Season of Birth, Age and Education}
-\input{./tables/IPUMSBinary.tex}
+\begin{frame}[label=NVSSseasonQ]
+\frametitle{Season of Birth, Age and Education}
+\input{./tables/quarterHeterogeneity.tex}
 \end{frame}
 
-\begin{frame}[label=IPUMSseasonSingle]
-%\frametitle{Season of Birth, Age and Education}
-\input{./tables/IPUMSBinarySingle.tex}
+\begin{frame}[label=NVSSseasonQ]
+\frametitle{Season of Birth, Age and Education (Multinomial Logit)}
+INSERT MULTINOMIAL LOGIT RESULTS ONCE MARGINS HAVE RUN.
 \end{frame}
-
-\begin{frame}[label=Bwt]
-\frametitle{Child Health and Season of Birth}
-\begin{figure}
-  \includegraphics[scale=0.68]{./../results/nvss/graphs/AllQuality_birthweight_.eps}
-  \caption{Child Quality: Birthweight (grams)}
-  \label{fig:Bwt}
-\end{figure}
-\end{frame}
-
-\begin{frame}[label=Bwt]
-\frametitle{Child Health and Season of Birth (By Education)}
-\begin{figure}
-  \includegraphics[scale=0.68]{./../results/nvss/graphs/Quality_birthweight_.eps}
-  \caption{Child Quality: Birthweight (grams)}
-  \label{fig:BwtEduc}
-\end{figure}
-\end{frame}
-
-
-\begin{frame}[label=Quality]
-\frametitle{Child Quality and Season of Birth}
-\input{./tables/NVSSQuality.tex}
-\end{frame}
-
-\begin{frame}[label=Quality]
-\frametitle{Child Quality and Season of Birth with Education}
-\input{./tables/NVSSQualityEduc.tex}
-\end{frame}
-
-
 
 
 \begin{frame}
+\frametitle{Conception and Births: YOUNG}
+\begin{figure}
+\hspace{6.0cm}{\footnotesize \textbf{Realized Season}} \vspace{4mm}\\
+\begin{tikzpicture}[scale=0.6,thick,
+    level/.style={level distance=3cm},
+    level 2/.style={sibling distance=6cm},
+    level 3/.style={sibling distance=4cm}
+]
+\coordinate
+child[grow=right, level distance=0pt] {
+        child  {
+            child {
+                node {{\footnotesize \textcolor{red}{Bad Season = 0.457}}}
+                edge from parent 
+            }
+            child {
+                node {{\footnotesize \textcolor{cadmiumgreen}{Good Season = 0.026}}}
+                edge from parent
+            }
+            edge from parent
+            node [left] {{\footnotesize Bad Season = 0.483 \ }}
+        }
+        child {
+            child {
+                node {{\footnotesize \textcolor{red}{Bad Season=0.027}}}
+                edge from parent
+            }
+            child {
+                node {{\footnotesize \textcolor{cadmiumgreen}{Good Season=0.489}}}
+                edge from parent  
+            }
+            edge from parent 
+            node [left] {{\footnotesize Good Season = 0.517 \ }}
+        }
+        node [left] {{\footnotesize \textbf{Expected Season\ \ }}}
+    };
+\end{tikzpicture}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Conception and Births: OLD}
+\begin{figure}
+\hspace{6.0cm}{\footnotesize \textbf{Realized Season}} \vspace{4mm}\\
+\begin{tikzpicture}[scale=0.6,thick,
+    level/.style={level distance=3cm},
+    level 2/.style={sibling distance=6cm},
+    level 3/.style={sibling distance=4cm}
+]
+\coordinate
+child[grow=right, level distance=0pt] {
+        child  {
+            child {
+                node {{\footnotesize \textcolor{red}{Bad Season = 0.473}}}
+                edge from parent 
+            }
+            child {
+                node {{\footnotesize \textcolor{cadmiumgreen}{Good Season = 0.029}}}
+                edge from parent
+            }
+            edge from parent
+            node [left] {{\footnotesize Bad Season = 0.502 \ }}
+        }
+        child {
+            child {
+                node {{\footnotesize \textcolor{red}{Bad Season=0.031}}}
+                edge from parent
+            }
+            child {
+                node {{\footnotesize \textcolor{cadmiumgreen}{Good Season=0.467}}}
+                edge from parent  
+            }
+            edge from parent 
+            node [left] {{\footnotesize Good Season = 0.497 \ }}
+        }
+        node [left] {{\footnotesize \textbf{Expected Season\ \ }}}
+    };
+\end{tikzpicture}
+\end{figure}
+\end{frame}
+
+\begin{frame}[label=EdInteract]
+\frametitle{Season of Birth, Age and Education}
+\input{./tables/NVSSBinaryEdInteract.tex}
+\end{frame}
+
+\begin{frame}[label=birthSeasonYoung34]
+\frametitle{Season of Birth, Age and Education}
+\input{./tables/NVSSBinaryYoung34.tex}
+\end{frame}
+
+\begin{frame}
+\frametitle{First Birth Rates by Mother's Age: 35-39 vs. 40-44}
 \begin{center}
-\large \textcolor{blue}{Appendix Tables}
+\includegraphics[scale=0.3]{./tables/Figure_1.png}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{First Birth for Mother's Age 40-44 by Race and Ethnicity}
+\begin{center}
+\includegraphics[scale=0.3]{./tables/Figure_3.png}
 \end{center}
 \end{frame}
 
 
-\begin{frame}[label=twin]
-\input{./tables/sumtwin.tex}
-\hyperlink{single}{\beamergotobutton{Back}}
+
+\begin{frame}[label=NVSSQuality]
+\frametitle{Birth Quality}
+\input{./tables/NVSSQualityEduc.tex}
 \end{frame}
+
+\begin{frame}[label=NVSSQuality]
+\frametitle{Birth Quality}
+\input{./tables/qualityHeterogeneity.tex}
+\end{frame}
+
+\begin{frame}[label=NVSSQuality]
+\frametitle{Birth Quality}
+\input{./tables/QualityAllComb.tex}
+\end{frame}
+
+\begin{frame}[label=NVSSQuality]
+\frametitle{Birth Quality}
+\input{./tables/QAllYoung1.tex}
+\end{frame}
+
+\begin{frame}[label=NVSSQuality]
+\frametitle{Birth Quality}
+\input{./tables/QAllYoung0.tex}
+\end{frame}
+
+
+\begin{frame}[label=Spainseason]
+\frametitle{Season of Birth, Age and Education (Spain)}
+\input{./tables/spainBinary.tex}
+\end{frame}
+
+\begin{frame}[label=SpainQuality]
+\frametitle{Birth Quality (Spain)}
+\input{./tables/spainQualityEduc.tex}
+\end{frame}
+
+\begin{frame}[label=SpainQuality]
+\frametitle{Birth Quality (Spain)}
+\input{./tables/spainQualityGestFix.tex}
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{Conception and Births: YOUNG (Spain)}
+\begin{figure}
+\hspace{6.0cm}{\footnotesize \textbf{Realized Season}} \vspace{4mm}\\
+\begin{tikzpicture}[scale=0.6,thick,
+    level/.style={level distance=3cm},
+    level 2/.style={sibling distance=6cm},
+    level 3/.style={sibling distance=4cm}
+]
+\coordinate
+child[grow=right, level distance=0pt] {
+        child  {
+            child {
+                node {{\footnotesize \textcolor{red}{Bad Season = 0.471}}}
+                edge from parent 
+            }
+            child {
+                node {{\footnotesize \textcolor{cadmiumgreen}{Good Season = 0.023}}}
+                edge from parent
+            }
+            edge from parent
+            node [left] {{\footnotesize Bad Season = 0.494 \ }}
+        }
+        child {
+            child {
+                node {{\footnotesize \textcolor{red}{Bad Season=0.026}}}
+                edge from parent
+            }
+            child {
+                node {{\footnotesize \textcolor{cadmiumgreen}{Good Season=0.480}}}
+                edge from parent  
+            }
+            edge from parent 
+            node [left] {{\footnotesize Good Season = 0.506 \ }}
+        }
+        node [left] {{\footnotesize \textbf{Expected Season\ \ }}}
+    };
+\end{tikzpicture}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Conception and Births: OLD (Spain)}
+\begin{figure}
+\hspace{6.0cm}{\footnotesize \textbf{Realized Season}} \vspace{4mm}\\
+\begin{tikzpicture}[scale=0.6,thick,
+    level/.style={level distance=3cm},
+    level 2/.style={sibling distance=6cm},
+    level 3/.style={sibling distance=4cm}
+]
+\coordinate
+child[grow=right, level distance=0pt] {
+        child  {
+            child {
+                node {{\footnotesize \textcolor{red}{Bad Season = 0.490}}}
+                edge from parent 
+            }
+            child {
+                node {{\footnotesize \textcolor{cadmiumgreen}{Good Season = 0.024}}}
+                edge from parent
+            }
+            edge from parent
+            node [left] {{\footnotesize Bad Season = 0.514 \ }}
+        }
+        child {
+            child {
+                node {{\footnotesize \textcolor{red}{Bad Season=0.026}}}
+                edge from parent
+            }
+            child {
+                node {{\footnotesize \textcolor{cadmiumgreen}{Good Season=0.460}}}
+                edge from parent  
+            }
+            edge from parent 
+            node [left] {{\footnotesize Good Season = 0.486 \ }}
+        }
+        node [left] {{\footnotesize \textbf{Expected Season\ \ }}}
+    };
+\end{tikzpicture}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\begin{center}
+{\Large Appendix}
+\end{center}
+\end{frame}
+
+
+\begin{frame}[label=NVSSseason2]
+\frametitle{Season of Birth, Age and Education (Birth Order=2)}
+\input{./tables/bord2/NVSSBinary.tex}
+\end{frame}
+
+\begin{frame}[label=NVSSQuality2]
+\frametitle{Birth Quality (Birth Order=2)}
+\input{./tables/bord2/NVSSQualityEduc.tex}
+\end{frame}
+
+
+\begin{frame}[label=NVSStwin]
+\frametitle{Season of Birth, Age and Education (Twins)}
+\input{./tables/NVSSBinaryTwin.tex}
+\end{frame}
+
+\begin{frame}[label=NVSSQualitytwin]
+\frametitle{Birth Quality (Twins)}
+\input{./tables/NVSSQualityTwin.tex}
+\end{frame}
+
+\begin{frame}[label=NVSSFD]
+\frametitle{Season of Birth, Age and Education (Fetal Deaths)}
+\input{./tables/NVSSBinaryFDeathsOnly.tex}
+\end{frame}
+
+
 
 
 \end{document}
+%********************************************************************************
 
-%********************************************************************************
-%********************************************************************************
-%********************************************************************************
-%********************************************************************************
-%********************************************************************************
-%********************************************************************************
-%********************************************************************************
-%********************************************************************************
-%********************************************************************************
-%********************************************************************************
-\begin{frame}[label=aa]
-\hyperlink{bb}{\beamergotobutton{Back}}
-\end{frame}
+
+
