@@ -22,7 +22,7 @@ global LOG "~/investigacion/2015/birthQuarter/log"
 log using "$LOG/spainRegs.txt", text replace
 cap mkdir "$OUT"
 
-local qual birthweight gestation lbw premature vlbw cesarean
+local qual birthweight lbw vlbw gestation premature cesarean
 local data births2013
 local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats /*
 */           (r2 N, fmt(%9.2f %9.0g) label(R-squared Observations))     /*
@@ -88,6 +88,7 @@ lab var professional       "White Collar Job"
 lab var married            "Married"
 lab var birthweight        "Birthweight"
 lab var gestation          "Gestation"
+lab var cesarean           "Cesarean"
 lab var lbw                "LBW"
 lab var premature          "Premature"
 lab var vlbw               "VLBW"
@@ -216,17 +217,23 @@ estimates clear
 ********************************************************************************
 *** (5) Redefine bad season as bad season due to short gestation, and bad season
 ********************************************************************************
-local controls highEd professional married
+local cont     highEd professional married
 local seasons  Qgoodbad Qbadgood Qbadbad
-foreach y of varlist birthweight lbw vlbw cesarean {
-    eststo: areg `y' young `seasons' `controls' `FE' `cnd', `se' abs(gestation)
-}
+local aa       abs(gestation)
+
+eststo: reg  birthweight young `seasons' `cont' `cnd', `se'
+eststo: areg birthweight young `seasons' `cont' `cnd', `se' `aa'
+eststo: reg  birthweight `seasons' `cont' `cnd'&young==0, `se'
+eststo: areg birthweight `seasons' `cont' `cnd'&young==0, `se' `aa'
+eststo: reg  birthweight `seasons' `cont' `cnd'&young==1, `se'
+eststo: areg birthweight `seasons' `cont' `cnd'&young==1, `se' `aa'
+
 #delimit ;
-esttab est1 est2 est3 est4 using "$OUT/spainQualityGestFix.tex", replace
-`estopt' title("Birth Quality by Age and Season (Accounting for Gestation)")
-keep(_cons young `seasons' `controls') style(tex) mlabels(, depvar)
-postfoot("\bottomrule"
-         "\multicolumn{5}{p{13.2cm}}{\begin{footnotesize}Sample consists of all"
+esttab est1 est2 est3 est4 est5 est6 using "$OUT/spainQualityGestFix.tex", 
+replace `estopt' title("Birth Quality by Age and Season")
+keep(_cons young `seasons' `cont') style(tex) mlabels(, depvar)
+postfoot("Age & All & All & Young & Young & Old & Old \\ \bottomrule"
+         "\multicolumn{7}{p{11.2cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of Spanish mothers. Bad Season (due in bad) is a "
          "dummy for children expected and born in quarters 1 or 4, while Bad   "
          "Season (due in good) is a dummy for children expected in quarters 2  "
