@@ -26,12 +26,13 @@ TAB   = "/home/damiancclarke/investigacion/2015/birthQuarter/tables/"
 ftype = 'nvss'
 dloc  = './../'
 
-singleIPUM       = RES + 'ipums/sumStats/FullSample.txt'
 singleNVSS       = RES + ftype + '/sumStats/FullSample.txt'
-singleEducIPUM   = RES + 'ipums/sumStats/EducSample.txt'
 singleEducNVSS   = RES + ftype + '/sumStats/EducSample.txt'
-allEducIPUM      = RES + 'ipums/sumStats/JustEduc.txt'
 allEducNVSS      = RES + ftype + '/sumStats/JustEduc.txt'
+premART          = RES + ftype + '/sumStats/nvssARTPrem.tex'
+singleSpain      = RES + 'spain/sumStats/FullSample.txt'
+singleEducSpain  = RES + 'spain/sumStats/EducSample.txt'
+allEducSpain     = RES + 'spain/sumStats/JustEduc.txt'
 
 
 twinIPUM       = RES + 'ipums/sumStats/FullSampletwins.txt'
@@ -47,6 +48,9 @@ MumNVSS = RES + ftype + '/sumStats/nvssMum.tex'
 MumPNVSS= RES + ftype + '/sumStats/nvssMumPart.tex'
 KidNVSS = RES + ftype + '/sumStats/nvssKid.tex'
 
+MumSpain = RES + 'spain' + '/sumStats/SpainsumM.tex'
+KidSpain = RES + 'spain' + '/sumStats/SpainsumK.tex'
+
 NVSSGoodE =  RES + ftype + '/regressions/NVSSBinaryExpectGood.tex'
 NVSSBadE  =  RES + ftype + '/regressions/NVSSBinaryExpectBad.tex'
 
@@ -61,8 +65,8 @@ tr   = '\\toprule'
 br   = '\\bottomrule'
 mc1  = '\\multicolumn{'
 mc2  = '}}'
-twid = ['10','6','7','7']
-tcm  = ['}{p{16.6cm}}','}{p{14.0cm}}','}{p{14.7cm}}','}{p{15.2cm}}']
+twid = ['10','6','7','7','5']
+tcm  = ['}{p{16.6cm}}','}{p{14.0cm}}','}{p{14.7cm}}','}{p{15.2cm}}','}{p{9cm}}']
 mc3  = '{\\begin{footnotesize}\\textsc{Notes:} '
 lname = "Fertility$\\times$desire"
 tname = "Twin$\\times$desire"
@@ -73,7 +77,7 @@ R2   = 'R$^2$'
 
 
 #==============================================================================
-#== (2) Write sum stat tables
+#== (2a) Write birth quarter summary tables NVSS
 #==============================================================================
 sumT = open(TAB + 'sumBQ'+ftype+'.tex', 'w')
 
@@ -125,8 +129,16 @@ sumT.write('\n'+mr+mc1+twid[0]+tcm[0]+mc3+
 sumT.close()
 
 
+ART = open(premART,'r').readlines()
+for ii,line in enumerate(ART):
+    if ii>8 and ii<25:
+        #print line
+        line = line.replace('        ','')
+        line = line.replace('\\\\\n','')
+        line = line.split('&')[1:3]
 
-for parity in ['single', 'twin']:
+
+for parity in ['single']:
     sumT = open(TAB + 'sum'+parity+ftype+'.tex', 'w')
 
     if parity=='twin':
@@ -167,7 +179,7 @@ for parity in ['single', 'twin']:
                )
     
     
-    sumT.write('\n'+mr+mc1+twid[0]+tcm[0]+mc3+
+    sumT.write('\n'+mr+mc1+twid[4]+tcm[4]+mc3+
                "Good season refers to birth quarters 2 and 3 (Apr-Jun and "
                "Jul-Sept).  Bad season refers to quarters 1 and 4 (Jan-Mar "
                "and Oct-Dec).  Values reflect the percent of yearly births "
@@ -179,7 +191,89 @@ for parity in ['single', 'twin']:
     sumT.close()
 
 #==============================================================================
-#== (3) Basic Sum stats (NVSS and IPUMS)
+#== (2b) Write birth quarter summary table Spain
+#==============================================================================
+sumT = open(TAB + 'sumSpain.tex', 'w')
+
+NV  = open(singleSpain,     'r').readlines()
+NVe = open(singleEducSpain, 'r').readlines()
+NVj = open(allEducSpain,    'r').readlines()
+
+
+sumT.write("\\begin{landscape}\\begin{table}[htpb!]"
+           "\\caption{Percent of Births, Singletons} \n"
+           "\\label{bqTab:SpainSum}\\begin{center}"
+           "\\begin{tabular}{lcccc}\n\\toprule \\toprule \n"
+           "& Bad    & Good   & Diff. & Ratio \\\\\n"
+           "& Season & Season &       &       \\\\\\midrule"
+           "\multicolumn{5}{l}{\\textsc{Panel A: By Age Groups}}\\\\"
+           "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
+           "\\begin{footnotesize}\\end{footnotesize}\\\\ \n")
+    
+sumT.write(NV[1]+'\\\\ \n'
+           +NV[2]+'\\\\ \n &&&& \\\\'
+           "\multicolumn{5}{l}{\\textsc{Panel B: By Education}}\\\\"
+           "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
+           "\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
+           NVj[1]+'\\\\ \n'+
+           NVj[2]+'\\\\ \n &&&& \\\\'
+           "\multicolumn{5}{l}{\\textsc{Panel C: By Age and Education}}\\\\"
+           "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
+           "\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
+           NVe[1]+'\\\\ \n'+
+           NVe[2]+'\\\\ \n'+
+           NVe[3]+'\\\\ \n'+
+           NVe[4]+'\\\\ \n &&&& \\\\'
+           )
+    
+    
+sumT.write('\n'+mr+mc1+twid[4]+tcm[4]+mc3+
+           "Good season refers to birth quarters 2 and 3 (Apr-Jun and "
+           "Jul-Sept).  Bad season refers to quarters 1 and 4 (Jan-Mar "
+           "and Oct-Dec).  Values reflect the percent of yearly births from "
+           "each season in 2013. `Young' refers to 25-39 year olds,"
+           " `Old' refers to 40-45 year olds. \n"
+           "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}"
+           "\\end{center}\\end{table}\\end{landscape}")
+    
+sumT.close()
+
+
+#==============================================================================
+#== (3a) Basic Sum stats (NVSS and IPUMS)
+#==============================================================================
+sumT = open(TAB + 'sumStatsSpain.tex', 'w')
+sumT.write('\\begin{table}[htpb!] \n \\begin{center} \n' 
+'\\caption{Descriptive Statistics (Spain 2013)}\n \\begin{tabular}{lccccc} '
+'\n \\toprule\\toprule \\vspace{5mm} \n'
+'& N & Mean & Std. Dev. & Min. & Max. \\\\ \\midrule \n'
+'\multicolumn{6}{l}{\\textbf{Panel A: Mother}} \\\\ \n')
+
+Mu  = open(MumSpain,  'r').readlines()
+Ki  = open(KidSpain,  'r').readlines()
+
+for i,line in enumerate(Mu):
+    if i>8 and i<14:
+        line = line.replace('\\hline','\\midrule')
+        sumT.write(line)
+
+sumT.write(' \n \\multicolumn{6}{l}{\\textbf{Panel B: Child}}\\\\ \n ')
+for i,line in enumerate(Ki):
+    if i>8 and i<16:
+        line = line.replace('\\hline','\\midrule')
+        line = line.replace('Quarter','season of birth')
+        sumT.write(line)
+
+sumT.write('\n'+mr+mc1+twid[1]+tcm[1]+mc3+
+           "Sample consists of all singleton first-born children of Spanish   "
+           "mothers. Good season refers to birth quarters 2 and 3 (Apr-Jun and"
+           " Jul-Sept)."
+           "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}\\end{center}"
+           "\\end{table}")
+sumT.close()
+
+#==============================================================================
+#== (3) Basic Sum stats (Spain)
 #==============================================================================
 sumT = open(TAB + 'sumStats'+ftype+'.tex', 'w')
 sumT.write('\\begin{table}[htpb!] \n \\begin{center} \n' 
@@ -217,6 +311,7 @@ sumT.write('\n'+mr+mc1+twid[1]+tcm[1]+mc3+
            "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}\\end{center}"
            "\\end{table}")
 sumT.close()
+
 
 
 #==============================================================================
