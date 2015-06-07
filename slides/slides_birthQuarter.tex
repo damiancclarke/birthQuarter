@@ -53,8 +53,106 @@
 \begin{frame}
 \titlepage
 \end{frame}
-
 %********************************************************************************
+
+\begin{frame}[label=Motivation]
+\frametitle{Motivation}
+
+\begin{itemize}
+\item Season of birth relevant for birth quality and long-term outcomes:
+      \begin{itemize}
+        \item child health, educational attainment, labor market
+        \item Buckles and Hungerman (2013)
+        \item Crawford et al.\ (2014)
+        \item Currie and Schwandt (2013)
+      \end{itemize}
+\item Although no consensus yet on the main driving force: 
+      \begin{itemize}
+        \item selection (of mothers), school entry rules, weather in last term (winter)
+      \end{itemize}
+\item The \emph{effects} of the season of birth are clear: there are ``good'' 
+and ``bad'' seasons
+\end{itemize}
+\end{frame}
+
+%-------------------------------------------------------------------------------
+\begin{frame}[label=Motivation2]
+\frametitle{Motivation}
+Winter months are bad: quarters 1 and 4, Spring and Summer are good (quarters 2 
+and 3), at least in the US \\ \vspace{4mm}
+However,
+\begin{itemize}
+  \item No analysis of the \emph{determinants} of the season of birth of a child
+  \item[$\rightarrow$] We consider the choice of season of birth
+\end{itemize}
+\vspace{6mm}
+Fertility planning and season of first birth: 
+\begin{itemize}
+  \item When to have the first child and in which season?
+  \item Focus on SOB decision, take age of mother as given
+\end{itemize}
+\end{frame}
+
+
+%-------------------------------------------------------------------------------
+\begin{frame}[label=map]
+\frametitle{What do we do?}
+
+\begin{enumerate}
+\item Correlates of season of birth with mothers' attributes
+\item Correlates of season of birth with child quality
+\item Use gestation weeks to further disentangle the expected from the realized good and bad seasons
+\item Age is the most important determinant of SOB
+\item Why? Preferences and/or biological constraints?
+\item Estimate value of SOB in terms of birth quality 
+\item Value of SOB and postponing fertility, trade-off:
+      \begin{itemize}
+       \item Postpone: earnings increase but less good season
+       \item Not postpone: earnings decrease but good season
+      \end{itemize}
+\end{enumerate}
+\end{frame}
+
+%-------------------------------------------------------------------------------
+
+
+\begin{frame}[label=how]
+\frametitle{How do we do it?}
+
+\begin{itemize}
+\item US and Spain: birth certificates
+\item Reduced-form estimates of season of birth, also by smoking during pregnancy and ART use
+\item Reduced-form estimates of birth quality, season of birth, also by mother's attributes
+\item Bare-bones model:
+      \begin{itemize}
+        \item two types of women, young and old
+        \item SOB is choice variable
+      \end{itemize}
+\item Structural model: work in progress, to assess the value of SOB, importance of 
+biological and economic constraints
+      \begin{itemize}
+        \item Two endogenous variables: age and SOB 
+      \end{itemize}
+\end{itemize}
+\end{frame}
+%-------------------------------------------------------------------------------
+
+\begin{frame}[label=datades]
+\frametitle{Data Description}
+\begin{itemize}
+\item US National Vital Statistics System: all birth certificates
+\item Detailed information on ``birth quality'' and mothers' characteristics
+\item We focus on:
+      \begin{itemize}
+        \item White and non-Hispanic women who had their first-born child
+        \item Singletons (we also look at twins)
+        \item Mothers aged 25-45
+        \item 2005-2013
+      \end{itemize}
+\end{itemize}
+\end{frame}
+
+
 
 \begin{frame}[label=sum]
 \input{./tables/sumStatsnvss.tex}
@@ -70,7 +168,7 @@
 \begin{figure}[htpb!]
 \begin{center}
   \centering
-  \caption{Mother's Age at First Birth, 25-45 (NVSS)}
+  \caption{Mother's Age at First Birth, 25-45}
   \includegraphics[scale=0.6]{./../results/nvss/graphs/ageDescriptive.eps}
   \label{fig:NVSSbirths}
 \end{center}
@@ -167,9 +265,29 @@ birth certificate data.}
 
 \begin{frame}[label=NVSSseasonQ]
 \frametitle{Season of Birth, Age and Education (Multinomial Logit)}
-INSERT MULTINOMIAL LOGIT RESULTS ONCE MARGINS HAVE RUN.
+\input{./tables/NVSSseasonMLogit.tex}
 \end{frame}
 
+
+\begin{frame}[label=how]
+\frametitle{Misclassification of good season choice?}
+\begin{itemize}
+\item Choose the expected season of birth, but then there is the realized one:
+      \begin{itemize}
+        \item If pre-term, birth may end up in the ``wrong'' season 
+      \end{itemize}
+\item Using gestation weeks, construct 4 dummies of good and bad seasons: 
+\begin{enumerate}
+\item good-\textcolor{cadmiumgreen}{good}
+\item good-\textcolor{red}{bad}
+\item bad-\textcolor{cadmiumgreen}{good}
+\item bad-\textcolor{red}{bad}
+\end{enumerate}
+\item Observed difference between young and old: is it different choice, or 
+olders' SOB are driven by pre-term unexpected quarter?
+\end{itemize}
+
+\end{frame}
 
 \begin{frame}
 \frametitle{Conception and Births: YOUNG}
@@ -263,22 +381,6 @@ child[grow=right, level distance=0pt] {
 \input{./tables/NVSSBinaryYoung34.tex}
 \end{frame}
 
-\begin{frame}
-\frametitle{First Birth Rates by Mother's Age: 35-39 vs. 40-44}
-\begin{center}
-\includegraphics[scale=0.3]{./tables/Figure_1.png}
-\end{center}
-\end{frame}
-
-\begin{frame}
-\frametitle{First Birth for Mother's Age 40-44 by Race and Ethnicity}
-\begin{center}
-\includegraphics[scale=0.3]{./tables/Figure_3.png}
-\end{center}
-\end{frame}
-
-
-
 \begin{frame}[label=NVSSQuality]
 \frametitle{Birth Quality}
 \input{./tables/NVSSQualityEduc.tex}
@@ -289,21 +391,18 @@ child[grow=right, level distance=0pt] {
 \input{./tables/qualityHeterogeneity.tex}
 \end{frame}
 
-\begin{frame}[label=NVSSQuality]
+\begin{frame}[label=NVSSQualitySeasons]
 \frametitle{Birth Quality}
-\input{./tables/QualityAllComb.tex}
+\input{./tables/QualityAllSeasons.tex}
 \end{frame}
 
-\begin{frame}[label=NVSSQuality]
-\frametitle{Birth Quality}
-\input{./tables/QAllYoung1.tex}
+\begin{frame}[label=sumSpain]
+\input{./tables/sumStatsSpain.tex}
 \end{frame}
 
-\begin{frame}[label=NVSSQuality]
-\frametitle{Birth Quality}
-\input{./tables/QAllYoung0.tex}
+\begin{frame}[label=sumSpainBQ]
+\input{./tables/sumSpain.tex}
 \end{frame}
-
 
 \begin{frame}[label=Spainseason]
 \frametitle{Season of Birth, Age and Education (Spain)}
@@ -404,12 +503,79 @@ child[grow=right, level distance=0pt] {
 \end{figure}
 \end{frame}
 
+\begin{frame}[label=conclusions]
+\frametitle{Directions}
+\begin{itemize}
+\item Estimation of payoffs of season of birth
+\item Value of season of birth measured by birth weight, for young and old women
+\item Value of SOB and postponing fertility
+\item Structural model
+\end{itemize}
+
+\end{frame}
+
 \begin{frame}
 \begin{center}
 {\Large Appendix}
 \end{center}
 \end{frame}
 
+\begin{frame}[label=model]
+\frametitle{Bare-bones model}
+%\vspace{10mm}
+
+\begin{itemize}
+\item There are two seasons of birth (and two periods):
+\begin{itemize}
+\item First, Bad Season: $Q4(t-1)\;,\;Q1(t)$
+\item Second, Good Season: $Q2(t)\;,\;Q(3)t$
+\end{itemize}
+\vspace{5mm}
+  \begin{picture}(0.0,0.0)
+     \put(90,0){\scalebox{0.7}{\includegraphics{./tables/time-line.png}}}
+  \end{picture}
+\item There are two types of women: \emph{Y}oung (25-39) and \emph{O}ld (40-45)
+\item The probability of having a child is higher for young than old women: $p^{Y} > p^{O}$
+\item The \emph{biological} (average) quality of the child is higher in the good season than in the bad season: $\mu_{BAD}^{\tau} \leq \mu_{GOOD}^{\tau}$ (e.g., birth weight), where $\tau =\{Y,O\}$.
+\item There are \emph{no unwanted pregnancies}
+\item Women want to maximize the expected biological quality of their child
+\item \emph{Both} types of women are \emph{risk neutral}
+\item Each type of woman can play two lotteries: Bad Season or Good Season.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[label=model]
+\frametitle{Bare-bones model}
+%\vspace{10mm}
+
+\begin{itemize}
+\item If a woman goes for the first season, and she is unsuccessful, she has a second chance in the good season.
+\item If a woman goes for the second season, and she is unsuccessful, she has no second chance!
+\item The expected payoff for a young woman when going for the \textcolor[rgb]{1.00,0.00,0.00}{bad season} is
+    $$\displaystyle \textcolor[rgb]{1.00,0.00,0.00}{p^Y\mu_{BAD}^Y + (1-p^Y)p^Y\mu_{GOOD}^Y}   $$
+\item The expected payoff for a young woman when going for the \textcolor[rgb]{0.00,0.07,1.00}{good season} is
+    $$\displaystyle \textcolor[rgb]{0.00,0.07,1.00}{p^Y\mu_{GOOD}^Y} $$
+\item A young woman goes for the good season if and only if
+    $$\displaystyle p^Y\mu_{GOOD}^Y \geq \mu_{BAD}^Y $$
+\item By the same token, an old woman goes for the bad season if and only if
+    $$\displaystyle p^O\mu_{GOOD}^O \geq \mu_{BAD}^O $$
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{First Birth Rates by Mother's Age: 35-39 vs. 40-44}
+\begin{center}
+\includegraphics[scale=0.3]{./tables/Figure_1.png}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{First Birth for Mother's Age 40-44 by Race and Ethnicity}
+\begin{center}
+\includegraphics[scale=0.3]{./tables/Figure_3.png}
+\end{center}
+\end{frame}
 
 \begin{frame}[label=NVSSseason2]
 \frametitle{Season of Birth, Age and Education (Birth Order=2)}
