@@ -263,11 +263,15 @@ birth certificate data.}
 \input{./tables/quarterHeterogeneity.tex}
 \end{frame}
 
-\begin{frame}[label=NVSSseasonQ]
-\frametitle{Season of Birth, Age and Education (Multinomial Logit)}
-\input{./tables/NVSSseasonMLogit.tex}
+\begin{frame}[label=EdInteract]
+\frametitle{Season of Birth, Age and Education}
+\input{./tables/NVSSBinaryEdInteract.tex}
 \end{frame}
 
+\begin{frame}[label=birthSeasonYoung34]
+\frametitle{Season of Birth, Age and Education}
+\input{./tables/NVSSBinaryYoung34.tex}
+\end{frame}
 
 \begin{frame}[label=how]
 \frametitle{Misclassification of good season choice?}
@@ -288,6 +292,12 @@ olders' SOB are driven by pre-term unexpected quarter?
 \end{itemize}
 
 \end{frame}
+
+\begin{frame}[label=NVSSseasonQ]
+\frametitle{Season of Birth, Age and Education (Multinomial Logit)}
+\input{./tables/NVSSseasonMLogit.tex}
+\end{frame}
+
 
 \begin{frame}
 \frametitle{Conception and Births: YOUNG}
@@ -371,16 +381,6 @@ child[grow=right, level distance=0pt] {
 \end{figure}
 \end{frame}
 
-\begin{frame}[label=EdInteract]
-\frametitle{Season of Birth, Age and Education}
-\input{./tables/NVSSBinaryEdInteract.tex}
-\end{frame}
-
-\begin{frame}[label=birthSeasonYoung34]
-\frametitle{Season of Birth, Age and Education}
-\input{./tables/NVSSBinaryYoung34.tex}
-\end{frame}
-
 \begin{frame}[label=NVSSQuality]
 \frametitle{Birth Quality}
 \input{./tables/NVSSQualityEduc.tex}
@@ -413,12 +413,6 @@ child[grow=right, level distance=0pt] {
 \frametitle{Birth Quality (Spain)}
 \input{./tables/spainQualityEduc.tex}
 \end{frame}
-
-\begin{frame}[label=SpainQuality]
-\frametitle{Birth Quality (Spain)}
-\input{./tables/spainQualityGestFix.tex}
-\end{frame}
-
 
 
 \begin{frame}
@@ -501,6 +495,12 @@ child[grow=right, level distance=0pt] {
     };
 \end{tikzpicture}
 \end{figure}
+\end{frame}
+
+
+\begin{frame}[label=SpainQuality]
+\frametitle{Birth Quality (Spain)}
+\input{./tables/spainQualityGestFix.tex}
 \end{frame}
 
 \begin{frame}[label=conclusions]
