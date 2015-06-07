@@ -17,6 +17,7 @@ cap log close
 ********************************************************************************
 global DAT "~/investigacion/2015/birthQuarter/data/spain"
 global OUT "~/investigacion/2015/birthQuarter/results/spain/regressions"
+global SUM "~/investigacion/2015/birthQuarter/results/spain/sumStats"
 global LOG "~/investigacion/2015/birthQuarter/log"
 
 log using "$LOG/spainRegs.txt", text replace
@@ -55,6 +56,7 @@ gen vhighEd             = yrsEducMother >= 15 & yrsEducMother != .
 gen youngXvhighEd       = young*vhighEd
 gen     prematurity     = gestation - 39
 gen     monthsPrem      = round(prematurity/4)*-1
+gen     college         = highEd
 gen     expectedMonth   = monthBirth + monthsPrem
 replace expectedMonth   = expectedMonth - 12 if expectedMonth>12
 replace expectedMonth   = expectedMonth + 12 if expectedMonth<1
@@ -89,8 +91,8 @@ lab var married            "Married"
 lab var birthweight        "Birthweight"
 lab var gestation          "Gestation"
 lab var cesarean           "Cesarean"
-lab var lbw                "LBW"
-lab var premature          "Premature"
+lab var lbw                "Low Birth Weight ($<$2500 g)"
+lab var premature          "Premature ($<$37 weeks)"
 lab var vlbw               "VLBW"
 lab var prematurity        "Weeks premature"
 lab var monthsPrem         "Months Premature"
@@ -99,11 +101,158 @@ lab var badExpectBad       "Bad Season (due in bad)"
 lab var Qgoodbad           "Bad Season (due in good)"
 lab var Qbadbad            "Bad Season (due in bad)"
 lab var Qbadgood           "Good Season (due in bad)"
-
-
+lab var college            "Some College +"
+lab var ageMother          "Mother's Age"
+lab var yrsEducMother      "Years of education"
+lab var female             "Female"
 
 ********************************************************************************
-*** (3a) Regressions (goodQuarter on Age)
+*** (3) Summary stats
+********************************************************************************
+local sumM ageMother married college yrsEducMother professional 
+local sumK goodQuarter birthweight lbw gestat premature female cesarean
+
+foreach sumS in sumM sumK {
+    sum ``sumS''
+    estpost tabstat ``sumS'', statistics(count mean sd min max) columns(statistics)
+    esttab using "$SUM/Spain`sumS'.tex", title("Descriptive Statistics (NVSS)")/*
+    */ cells("count(fmt(0)) mean(fmt(2)) sd(fmt(2)) min(fmt(0)) max(fmt(0))")  /*
+    */ replace label noobs
+}
+lab var lbw       "LBW"
+lab var premature "Premature" 
+
+gen birth         = 1
+gen educLevel     = 1 if highEd==0
+replace educLevel = 2 if highEd==1
+
+lab def aG  1 "Young " 2  "Old "
+lab def eL  1 "No College" 2 "Some College +"
+lab val ageGroup    aG
+lab val educLevel   eL
+
+
+preserve
+collapse (sum) birth, by(goodQuarter educLevel ageGroup)
+reshape wide birth, i(educLevel ageGroup) j(goodQuarter)
+gen totalbirths = birth0 + birth1
+replace birth0=round(10000*birth0/totalbirths)/100
+replace birth1=round(10000*birth1/totalbirths)/100
+
+gen diff            = birth1 - birth0
+gen rati            = birth1 / birth0
+gen str5 b0         = string(birth0, "%05.2f")
+gen str5 b1         = string(birth1, "%05.2f")
+gen str4 difference = string(diff, "%04.2f")
+gen str4 ratio      = string(rati, "%04.2f")
+
+drop totalbirths diff rati birth*
+
+#delimit ;
+listtex using "$SUM/PropNoTime.tex", rstyle(tabular) replace
+head("\vspace{8mm}\begin{table}[htpb!]"
+     "\centering\caption{Percent of Births per Cell (All Years)}"
+     "\begin{tabular}{llcccc}\toprule"
+     "Age Group &College&Bad Quarters&Good Quarters&Difference&Ratio \\ \midrule")
+foot("\midrule\multicolumn{6}{p{9cm}}{\begin{footnotesize}\textsc{Notes:}"
+     "Good Quarters refer to birth quarters 2 and 3, while Bad Quarters refer"
+     "to quarters 4 and 1. All values reflect the percent of births for this"
+     "age group and education level."
+     "\end{footnotesize}}\\ \bottomrule\end{tabular}\end{table}");
+#delimit cr
+decode ageGroup, gen(ag)
+decode educLevel, gen(el)
+egen group=concat(ag el)
+order group
+sort ageGroup educLevel
+drop ageGroup educLevel ag el
+outsheet using "$SUM/EducSample.txt", delimiter("&") replace noquote
+restore
+
+preserve
+collapse (sum) birth, by(goodQuarter educLevel)
+reshape wide birth, i(educLevel) j(goodQuarter)
+gen totalbirths = birth0 + birth1
+replace birth0=round(10000*birth0/totalbirths)/100
+replace birth1=round(10000*birth1/totalbirths)/100
+
+gen diff            = birth1 - birth0
+gen rati            = birth1 / birth0
+gen str5 b0         = string(birth0, "%05.2f")
+gen str5 b1         = string(birth1, "%05.2f")
+gen str4 difference = string(diff, "%04.2f")
+gen str4 ratio      = string(rati, "%04.2f")
+
+drop totalbirths diff rati birth*
+
+#delimit ;
+listtex using "$SUM/PropNoTimeEduc`app'.tex", rstyle(tabular) replace
+head("\vspace{8mm}\begin{table}[htpb!]"
+     "\centering\caption{Percent of Births per Cell (All Years)}"
+     "\begin{tabular}{lcccc}\toprule"
+     "College&Bad Quarters&Good Quarters&Difference&Ratio \\ \midrule")
+foot("\midrule\multicolumn{5}{p{9cm}}{\begin{footnotesize}\textsc{Notes:}"
+     "Good Quarters refer to birth quarters 2 and 3, while Bad Quarters refer"
+     "to quarters 4 and 1. All values reflect the percent of births for this"
+     "age group and education level."
+     "\end{footnotesize}}\\ \bottomrule\end{tabular}\end{table}");
+#delimit cr
+decode educLevel, gen(el)
+order el
+drop educLevel
+outsheet using "$SUM/JustEduc`app'.txt", delimiter("&") replace noquote
+restore
+
+
+preserve
+drop if educLevel==.
+collapse (sum) birth, by(goodQuarter ageGroup)
+reshape wide birth, i( ageGroup) j(goodQuarter)
+gen totalbirths = birth0 + birth1
+replace birth0=round(10000*birth0/totalbirths)/100
+replace birth1=round(10000*birth1/totalbirths)/100
+gen diff            = birth1 - birth0
+gen rati            = birth1 / birth0
+gen str4 difference = string(diff, "%04.2f")
+gen str4 ratio      = string(rati, "%04.2f")
+drop totalbirths diff rati
+
+#delimit ;
+listtex using "$SUM/PropNoTime2`app'.tex", rstyle(tabular) replace
+head("\vspace{8mm}\begin{table}[htpb!]"
+     "\centering\caption{Percent of Births per Cell (All Years)}"
+     "\begin{tabular}{lcccc}\toprule"
+     "Age Group &Bad Season&Good Season&Difference&Ratio \\ \midrule")
+foot("\midrule\multicolumn{5}{p{9.5cm}}{\begin{footnotesize}\textsc{Notes:}"
+     "Good Quarters refer to birth quarters 2 and 3, while Bad Quarters refer"
+     "to quarters 4 and 1. All values reflect the percent of births for this"
+     "age group and education level."
+     "\end{footnotesize}}\\ \bottomrule\end{tabular}\end{table}");
+#delimit cr
+outsheet using "$SUM/FullSample`app'.txt", delimiter("&") replace noquote
+restore
+
+foreach var of varlist premature {
+    gen _`var'young = `var'       if ageGroup  == 1
+    gen _`var'old = `var'         if ageGroup  == 2
+    gen _`var'lowEd = `var'       if educLevel == 1
+    gen _`var'highEd = `var'      if educLevel == 2
+    gen _`var'younglowEd = `var'  if educLevel == 1 & ageGroup == 1
+    gen _`var'younghighEd = `var' if educLevel == 2 & ageGroup == 1
+    gen _`var'oldlowEd = `var'    if educLevel == 1 & ageGroup == 2
+    gen _`var'oldhighEd = `var'   if educLevel == 2 & ageGroup == 2
+}
+sum _p*
+estpost tabstat _p*, statistics(mean sd) columns(statistics)
+esttab using "$SUM/spainPrem.tex", title("Premature")/*
+*/ cells("mean(fmt(2)) sd(fmt(2))") replace label noobs
+drop _p*
+    
+
+
+exit
+********************************************************************************
+*** (4a) Regressions (goodQuarter on Age)
 ********************************************************************************
 eststo: reg goodQuarter young                                  `cnd', `se'
 eststo: reg goodQuarter young                             `FE' `cnd', `se'
@@ -179,7 +328,7 @@ estimates clear
 
 
 ********************************************************************************
-*** (3b) Regressions (Quality on Age, season)
+*** (4b) Regressions (Quality on Age, season)
 ********************************************************************************
 foreach y of varlist `qual' {
     eststo: reg `y' young badQuarter `FE' `cnd', `se'
