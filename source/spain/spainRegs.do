@@ -78,7 +78,7 @@ sum Qgoodgood Qgoodbad Qbadgood Qbadbad if young==0
 lab var goodQuarter        "Good Season"
 lab var badQuarter         "Bad Season"
 lab var highEd             "Some College +"
-lab var young              "Aged 25-39"
+lab var young              "Young (aged 25-39)"
 lab var youngXhighEd       "College$\times$ Aged 25-39"
 lab var ageGroup           "Categorical age group"
 lab var youngXbadQ         "Young$\times$ Bad S"
@@ -121,6 +121,7 @@ foreach sumS in sumM sumK {
 }
 lab var lbw       "LBW"
 lab var premature "Premature" 
+lab var young     "Aged 25-39"
 
 gen birth         = 1
 gen educLevel     = 1 if highEd==0
@@ -249,8 +250,6 @@ esttab using "$SUM/spainPrem.tex", title("Premature")/*
 drop _p*
     
 
-
-exit
 ********************************************************************************
 *** (4a) Regressions (goodQuarter on Age)
 ********************************************************************************
@@ -372,10 +371,10 @@ local aa       abs(gestation)
 
 eststo: reg  birthweight young `seasons' `cont' `cnd', `se'
 eststo: areg birthweight young `seasons' `cont' `cnd', `se' `aa'
-eststo: reg  birthweight `seasons' `cont' `cnd'&young==0, `se'
-eststo: areg birthweight `seasons' `cont' `cnd'&young==0, `se' `aa'
 eststo: reg  birthweight `seasons' `cont' `cnd'&young==1, `se'
 eststo: areg birthweight `seasons' `cont' `cnd'&young==1, `se' `aa'
+eststo: reg  birthweight `seasons' `cont' `cnd'&young==0, `se'
+eststo: areg birthweight `seasons' `cont' `cnd'&young==0, `se' `aa'
 
 #delimit ;
 esttab est1 est2 est3 est4 est5 est6 using "$OUT/spainQualityGestFix.tex", 

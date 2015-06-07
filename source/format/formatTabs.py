@@ -240,40 +240,7 @@ sumT.close()
 
 
 #==============================================================================
-#== (3a) Basic Sum stats (NVSS and IPUMS)
-#==============================================================================
-sumT = open(TAB + 'sumStatsSpain.tex', 'w')
-sumT.write('\\begin{table}[htpb!] \n \\begin{center} \n' 
-'\\caption{Descriptive Statistics (Spain 2013)}\n \\begin{tabular}{lccccc} '
-'\n \\toprule\\toprule \\vspace{5mm} \n'
-'& N & Mean & Std. Dev. & Min. & Max. \\\\ \\midrule \n'
-'\multicolumn{6}{l}{\\textbf{Panel A: Mother}} \\\\ \n')
-
-Mu  = open(MumSpain,  'r').readlines()
-Ki  = open(KidSpain,  'r').readlines()
-
-for i,line in enumerate(Mu):
-    if i>8 and i<14:
-        line = line.replace('\\hline','\\midrule')
-        sumT.write(line)
-
-sumT.write(' \n \\multicolumn{6}{l}{\\textbf{Panel B: Child}}\\\\ \n ')
-for i,line in enumerate(Ki):
-    if i>8 and i<16:
-        line = line.replace('\\hline','\\midrule')
-        line = line.replace('Quarter','season of birth')
-        sumT.write(line)
-
-sumT.write('\n'+mr+mc1+twid[1]+tcm[1]+mc3+
-           "Sample consists of all singleton first-born children of Spanish   "
-           "mothers. Good season refers to birth quarters 2 and 3 (Apr-Jun and"
-           " Jul-Sept)."
-           "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}\\end{center}"
-           "\\end{table}")
-sumT.close()
-
-#==============================================================================
-#== (3) Basic Sum stats (Spain)
+#== (3) Basic Sum stats (NVSS)
 #==============================================================================
 sumT = open(TAB + 'sumStats'+ftype+'.tex', 'w')
 sumT.write('\\begin{table}[htpb!] \n \\begin{center} \n' 
@@ -287,7 +254,7 @@ MP  = open(MumPNVSS, 'r').readlines()
 Ki  = open(KidNVSS,  'r').readlines()
 
 for i,line in enumerate(Mu):
-    if i>8 and i<11:
+    if i>8 and i<12:
         line = line.replace('\\hline','\\midrule')
         sumT.write(line)
 for i,line in enumerate(MP):
@@ -313,6 +280,38 @@ sumT.write('\n'+mr+mc1+twid[1]+tcm[1]+mc3+
 sumT.close()
 
 
+#==============================================================================
+#== (3b) Basic Sum stats (Spain)
+#==============================================================================
+sumT = open(TAB + 'sumStatsSpain.tex', 'w')
+sumT.write('\\begin{table}[htpb!] \n \\begin{center} \n' 
+'\\caption{Descriptive Statistics (Spain 2013)}\n \\begin{tabular}{lccccc} '
+'\n \\toprule\\toprule \\vspace{5mm} \n'
+'& N & Mean & Std. Dev. & Min. & Max. \\\\ \\midrule \n'
+'\multicolumn{6}{l}{\\textbf{Panel A: Mother}} \\\\ \n')
+
+Mu  = open(MumSpain,  'r').readlines()
+Ki  = open(KidSpain,  'r').readlines()
+
+for i,line in enumerate(Mu):
+    if i>8 and i<15:
+        line = line.replace('\\hline','\\midrule')
+        sumT.write(line)
+
+sumT.write(' \n \\multicolumn{6}{l}{\\textbf{Panel B: Child}}\\\\ \n ')
+for i,line in enumerate(Ki):
+    if i>8 and i<16:
+        line = line.replace('\\hline','\\midrule')
+        line = line.replace('Quarter','season of birth')
+        sumT.write(line)
+
+sumT.write('\n'+mr+mc1+twid[1]+tcm[1]+mc3+
+           "Sample consists of all singleton first-born children of Spanish   "
+           "mothers. Good season refers to birth quarters 2 and 3 (Apr-Jun and"
+           " Jul-Sept)."
+           "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}\\end{center}"
+           "\\end{table}")
+sumT.close()
 
 #==============================================================================
 #== (4a) Heterogeneity table (birth quarter)

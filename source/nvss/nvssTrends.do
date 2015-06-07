@@ -192,6 +192,7 @@ restore
 ********************************************************************************
 *** (2aii) Summary stats table
 ********************************************************************************
+gen young   = ageGroup == 1
 gen college = educLevel - 1
 gen educCat = 4 if education==1
 replace educCat = 10 if education == 2
@@ -216,8 +217,9 @@ lab var twin        "Twin"
 lab var female      "Female"
 lab var smoker      "Smoked during Pregnancy"
 lab var infertTreat "Used ART (2012-2013 only)"
+lab var young       "Young (aged 25-39)"
 
-local Mum     motherAge married 
+local Mum     motherAge married young 
 local MumPart college educCat smoker infertTreat
 local Kid     goodQuarter birthweight lbw gestat premature apgar twin female
 
@@ -382,7 +384,7 @@ estpost tabstat _p* _i*, statistics(mean sd) columns(statistics)
 esttab using "$SUM/nvssARTPrem.tex", title("ART and Premature")/*
     */ cells("mean(fmt(2)) sd(fmt(2))") replace label noobs
 drop _p* _i*
-exit
+
     
 ********************************************************************************
 *** (4a) Global histogram
@@ -415,7 +417,7 @@ replace birth0=(round(10000*birth0/totalbirths)/100)-50
 replace birth1=(round(10000*birth1/totalbirths)/100)-50
 
 #delimit ;
-graph bar birth*, over(educLevel, relabel(1 "No College" 2 "1-5 yrs")
+graph bar birth*, over(educLevel, relabel(1 "No College" 2 "Some College +")
                                               label(angle(45))) over(ageGroup)
 scheme(s1mono) legend(label(1 "Bad Quarter") label(2 "Good Quarter"))
 bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0)) ylabel(, nogrid) yline(0);
@@ -442,7 +444,8 @@ list
 reshape wide birth1, i(educLevel) j(ageGroup)
 
 #delimit ;
-graph bar birth*, over(educLevel, relabel(1 "All" 2 "No College" 3 "1-5 yrs")
+graph bar birth*, over(educLevel, relabel(1 "All" 2 "No College" 3
+                                          "Some College +")
                        label(angle(45))) yline(0)
 legend(label(1 "Young") label(2 "Old")) ylabel(, nogrid)
 scheme(s1mono) bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0));
@@ -454,7 +457,7 @@ restore
 *** (4d) Histogram for more age groups
 ********************************************************************************
 preserve
-use "$DAT/`data'"
+use "$DAT/`data'", clear
 keep if birthOrder==1&educLevel!=.
 
 gen ageG2 = motherAge>=20 & motherAge<25
@@ -486,7 +489,7 @@ bar(4, bcolor(ltblue)) scheme(s1mono) ytitle("% Good Season - % Bad Season");
 graph export "$OUT/birthQdiff_4Ages`app'.eps", as(eps) replace;
 #delimit cr
 restore
-exit
+
 
 ********************************************************************************
 *** (5) Birth outcomes by groups
@@ -505,7 +508,7 @@ drop if educLevel == .
 
 foreach outcome in `hkbirth' {
     #delimit ;
-    graph bar `outcome'*, over(educLevel, relabel(1 "No College" 2 "1-5 years")
+    graph bar `outcome'*, over(educLevel, relabel(1 "No College" 2 "Some College +")
                                               label(angle(45))) over(ageGroup)
       scheme(s1mono) legend(label(1 "Bad Season") label(2 "Good Season"))
       bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0)) ylabel(, nogrid)
