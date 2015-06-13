@@ -572,7 +572,8 @@ gen education = dmeduc if dmeduc != 99
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar        /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth gestation numPrenatal monthPrenat birthOrder
+*/ female birthMonth gestation numPrenatal monthPrenat birthOrder statenat    /*
+*/ stoccfip stresfip stateres
 tempfile B1998
 save `B1998'
 
@@ -620,7 +621,8 @@ gen education = dmeduc if dmeduc != 99
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar        /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth gestation numPrenatal monthPrenat birthOrder
+*/ female birthMonth gestation numPrenatal monthPrenat birthOrder statenat    /*
+*/ stoccfip stresfip stateres
 tempfile B1999
 save `B1999'
 
