@@ -541,6 +541,32 @@ foreach outcome in `hkbirth' {
 }
 restore
 
+********************************************************************************
+*** (6) Examine by geographic variation (hot/cold)
+********************************************************************************
+cap mkdir "$OUT/maps"
+    
+use "$DAT/nvss1998_1999"
+keep if birthOrder == 1 & motherAge > 24
+gen goodSeason = birthQuarter == 2 | birthQuarter == 3
+gen young = motherAge < 40    
+collapse goodSeason, by(young stoccfip)
+
+rename stoccfip FIPS
+tostring FIPS, replace
+foreach num in 1 2 4 5 6 8 9 {
+    replace FIPS = "0`num'" if FIPS=="`num'"
+}
+merge m:1 FIPS using "$DAT/../maps/USdata"
+drop if _merge==2
+drop _merge
+
+spmap goodSeason if young==1 using "$DAT/../maps/UScoords", id(_ID) fcolor(Reds2)
+graph export "$OUT/maps/youngGoodSeason.eps", replace as(eps)
+
+spmap goodSeason if young==0 using "$DAT/../maps/UScoords", id(_ID) fcolor(Reds2)
+graph export "$OUT/maps/oldGoodSeason.eps", replace as(eps)
+
 
 ************************************************************************************
 *** (X) Close
