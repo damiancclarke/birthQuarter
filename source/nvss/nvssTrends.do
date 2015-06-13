@@ -90,7 +90,7 @@ if `pre4w'==1 {
 ********************************************************************************
 use "$DAT/`data'"
 keep if `keepif'
-
+/*
 histogram motherAge, frac scheme(s1mono) xtitle("Mother's Age")
 graph export "$OUT/ageDescriptive.eps", as(eps) replace
 
@@ -187,7 +187,7 @@ twoway line twin1 motherAge, || line twin2 motherAge, lpattern(dash) lcolor(gs0)
 */ legend(label(1 "No College") label(2 "Some College +")) 
 graph export "$OUT/twinPrevalence.eps", as(eps) replace
 restore
-
+*/
 
 ********************************************************************************
 *** (2aii) Summary stats table
@@ -263,6 +263,58 @@ lab var ageGroup     "Categorical age group"
 lab var period       "Period of time considered (pre/crisis/post)"
 lab var educLevel    "Level of education obtained by mother"
 
+
+********************************************************************************
+*** (3) Descriptives by month
+********************************************************************************
+preserve
+collapse (sum) birth, by(birthMonth young)
+
+bys young: egen totalBirths = sum(birth)
+replace birth = birth/totalBirths
+
+gen days = 31 if birthMonth==1|birthMonth==3|birthMonth==5|birthMonth==7|/*
+*/ birthMonth==8|birthMonth==10|birthMonth==12
+replace days = 30 if birthMonth==4|birthMonth==6|birthMonth==9|birthMonth==11 
+replace days = 28.25 if birthMonth==2
+gen expectedProp = days / 365.25
+gen excessBirths = birth - expectedProp
+
+lab var birth        "Proportion of Births"
+lab var expectedProp "Expected Births (days/365.25)"
+lab var excessBirths "Proportion of Excess Births (Actual-Expected)"
+lab def months 1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug" /*
+*/ 9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec"
+lab val birthMonth months
+
+sort young birthMonth 
+#delimit ;
+twoway bar birth birthMonth if young==1, bcolor(ltblue) ||
+    line expectedProp birthM if young==1, scheme(s1mono) lpattern(dash)
+    lcolor(black) xlabel(1(1)12, valuelabels) ytitle("Proportion")
+    xtitle("Month of Birth");
+graph export "$OUT/birthsPerMonthYoung.eps", as(eps) replace;
+
+twoway bar birth birthMonth if young==0, bcolor(ltblue) ||
+    line expectedProp birthM if young==0, scheme(s1mono) lpattern(dash)
+    lcolor(black) xlabel(1(1)12, valuelabels) ytitle("Proportion")
+    xtitle("Month of Birth");
+graph export "$OUT/birthsPerMonthOld.eps", as(eps) replace;
+
+twoway bar excessBirths birthMonth if young==1, bcolor(ltblue)
+xlabel(1(1)12, valuelabels) ytitle("Proportion") xtitle("Month of Birth")
+ytitle("Proportion Excess Births (Actual-Expected)") scheme(s1mono)
+yline(0, lpattern(dash) lcolor(black)) ylabel(-0.01 -0.005 0 0.005);
+graph export "$OUT/excessBirthsYoung.eps", as(eps) replace;
+
+twoway bar excessBirths birthMonth if young==0, bcolor(ltblue) 
+xlabel(1(1)12, valuelabels) xtitle("Month of Birth")
+ytitle("Proportion Excess Births (Actual-Expected)") scheme(s1mono)
+yline(0, lpattern(dash) lcolor(black)) ylabel(-0.01 -0.005 0 0.005);
+graph export "$OUT/excessBirthsOld.eps", as(eps) replace;
+#delimit cr
+
+restore
 
 ********************************************************************************
 *** (3) Sumstats all periods together
