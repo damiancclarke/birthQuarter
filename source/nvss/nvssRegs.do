@@ -73,7 +73,7 @@ if `pre4w'==1 {
     global OUT "~/investigacion/2015/birthQuarter/results/pre4w/regressions"
     local keepif birthOrder==1 & motherAge>24 & gestation<=35
 }
-
+/*
 ********************************************************************************
 *** (2a) Open data, setup for regressions
 ********************************************************************************
@@ -162,7 +162,7 @@ lab var badExpectBad       "Bad Season (due in bad)"
 lab var Qgoodbad           "Bad Season (due in good)"
 lab var Qbadbad            "Bad Season (due in bad)"
 lab var Qbadgood           "Good Season (due in bad)"
-/*
+
 ********************************************************************************
 *** (3a) Examine missing covariates
 ********************************************************************************
@@ -473,7 +473,7 @@ postfoot("\bottomrule"
          "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
 #delimit cr
 estimates clear
-*/
+
 
 ********************************************************************************
 *** (4b) Regressions (Quality on Age, season)
@@ -635,17 +635,20 @@ if `orign'==1 {
     #delimit cr
     estimates clear
 }
+
+
 exit
-
-
 ********************************************************************************
 *** (6) Appendix including fetal deaths
 ********************************************************************************
 append using "$DAT/nvssFD2005_2013"
 replace goodQuarter = 1 if liveBirth==0 & birthQuarter == 2 | birthQuarter == 3
-replace badQuarter  = 1 if liveBirth==0 & birthQuarter == 1 | birthQuarter == 4
+replace goodQuarter = 0 if liveBirth==0 & birthQuarter == 1 | birthQuarter == 4
 replace highEd      = 1 if liveBirth==0 & (educLevel == 1 | educLevel == 2)
+replace highEd      = 0 if liveBirth==0 & educLevel == 0
 replace young       = 1 if liveBirth==0 & motherAge>=24 & motherAge<=39
+replace young       = 0 if liveBirth==0 & motherAge>=40
+
 
 eststo: reg goodQuarter young                                   `cnd', `se'
 eststo: reg goodQuarter young                             `yFE' `cnd', `se'
@@ -666,18 +669,18 @@ postfoot("Year FE&&Y&Y&Y\\ \bottomrule"
 #delimit cr
 estimates clear
 
-local `cnd'&liveBirth==0
+    
+local cond `cnd'&liveBirth==0
 eststo: reg goodQuarter young                                   `cond', `se'
 eststo: reg goodQuarter young                             `yFE' `cond', `se'
 eststo: reg goodQuarter young highEd                      `yFE' `cond', `se'
-eststo: reg goodQuarter young highEd married smoker       `yFE' `cond', `se'
 
 #delimit ;
-esttab est1 est2 est3 est4 using "$OUT/NVSSBinaryFDeathsOnly.tex",
+esttab est1 est2 est3 using "$OUT/NVSSBinaryFDeathsOnly.tex",
 replace `estopt' title("Birth Season and Age (Fetal Deaths Only)") 
-keep(_cons young highEd married smoker) style(tex) mlabels(, depvar)
-postfoot("Year FE&&Y&Y&Y\\ \bottomrule"
-         "\multicolumn{5}{p{13cm}}{\begin{footnotesize}Sample consists of all"
+keep(_cons young highEd ) style(tex) mlabels(, depvar)
+postfoot("Year FE&&Y&Y\\ \bottomrule"
+         "\multicolumn{4}{p{9cm}}{\begin{footnotesize}Sample consists of all"
          "firsts (live births and fetal deaths) of US-born, white, non-hispanic"
          "mothers.  Fetal deaths are included if occurring between 25 and 44"
          "weeks of gestation.  Education is recorded for fetal deaths only "
@@ -685,7 +688,192 @@ postfoot("Year FE&&Y&Y&Y\\ \bottomrule"
          "\end{footnotesize}}\end{tabular}\end{table}") booktabs ;
 #delimit cr
 estimates clear
+*/
 
+********************************************************************************
+*** (7) 1970, 1990 regs
+********************************************************************************
+foreach syear of numlist 1970 1990 {
+    use "$DAT/nvss`syear's", clear
+    keep if birthOrder==1 & motherAge>24
+    global OUT "~/investigacion/2015/birthQuarter/results/`syear's/regressions"
+
+    gen birth = 1
+    gen goodQuarter = birthQuarter == 2 | birthQuarter == 3
+    gen badQuarter  = birthQuarter == 4  | birthQuarter == 1
+    replace ageGroup  = ageGroup-1 if ageGroup>1
+
+    gen highEd              = (educLevel == 1 | educLevel == 2) if educLevel!=.
+    gen young               = ageGroup  == 1
+    gen youngXhighEd        = young*highEd
+    gen youngXbadQ          = young*(1-goodQuarter)
+    gen highEdXbadQ         = highEd*(1-goodQuarter)
+    gen youngXhighEdXbadQ   = young*highEd*(1-goodQuarter)
+    gen youngMan            = ageGroupMan == 1
+    gen youngManXbadQ       = youngMan*(1-goodQuarter)
+    gen vhighEd             = educLevel == 2 if educLevel!=.
+    gen youngXvhighEd       = young*vhighEd
+    gen     prematurity     = gestation - 39
+    gen     monthsPrem      = round(prematurity/4)*-1
+    gen     expectedMonth   = birthMonth + monthsPrem
+    replace expectedMonth   = expectedMonth - 12 if expectedMonth>12
+    replace expectedMonth   = expectedMonth + 12 if expectedMonth<1
+    gene    expectQuarter   = ceil(expectedMonth/3) 
+    gene    badExpectGood   = badQuarter==1&(expectQuar==2|expectQuar==3) if gest!=.
+    gene    badExpectBad    = badQuarter==1&(expectQuar==1|expectQuar==4) if gest!=.
+    gen     expectGoodQ     = expectQuarter == 2 | expectQuarter == 3 if gest!=.
+    gen     expectBadQ      = expectQuarter == 4 | expectQuarter == 1 if gest!=.
+
+    gen     Qgoodgood       = expectGoodQ==1 & goodQuarter==1 if gest!=.
+    gen     Qgoodbad        = expectGoodQ==1 & badQuarter ==1 if gest!=.
+    gen     Qbadgood        = expectBadQ==1  & goodQuarter==1 if gest!=.
+    gen     Qbadbad         = expectBadQ==1  & badQuarter ==1 if gest!=.
+    
+    sum expectGoodQ expectBadQ
+    sum Qgoodgood Qgoodbad Qbadgood Qbadbad
+
+    lab def aG  1 "25-39" 2 "40-45"
+    lab def gQ  0 "quarter 4(t) or quarter 1(t+1)" 1 "quarter 2(t) or quarter 3(t)"
+    lab def eL  1 "No College" 2 "1-5 years" 
+    lab val ageGroup    aG
+    lab val goodQuarter gQ
+    
+    lab var goodQuarter        "Good Season"
+    lab var badQuarter         "Bad Season"
+    lab var highEd             "Some College +"
+    lab var young              "Aged 25-39"
+    lab var youngXhighEd       "College$\times$ Aged 25-39"
+    lab var ageGroup           "Categorical age group"
+    lab var youngXbadQ         "Young$\times$ Bad S"
+    lab var highEdXbadQ        "College$\times$ Bad S"
+    lab var youngXhighEdXbadQ  "Young$\times$ College$\times$ Bad S"
+    lab var youngManXbadQ      "Young Man$\times$ Bad S"
+    lab var vhighEd            "Complete Degree"
+    lab var youngXvhighEd      "Degree$\times$ Aged 25-39"
+    lab var married            "Married"
+    lab var birthweight        "Birthweight"
+    lab var gestation          "Gestation"
+    lab var lbw                "LBW"
+    lab var premature          "Premature"
+    lab var vlbw               "VLBW"
+    lab var prematurity        "Weeks premature"
+    lab var monthsPrem         "Months Premature"
+    lab var badExpectGood      "Bad Season (due in good)"
+    lab var badExpectBad       "Bad Season (due in bad)"
+    lab var Qgoodbad           "Bad Season (due in good)"
+    lab var Qbadbad            "Bad Season (due in bad)"
+    lab var Qbadgood           "Good Season (due in bad)"
+    if `syear'==1990 lab var smoker             "Smoked in Preg"
+    if `syear'==1990 lab var apgar              "APGAR"
+
+
+    ****************************************************************************
+    *** (7a) Good season predictors
+    ****************************************************************************
+    encode statenat, gen(statecode)
+    local abs abs(statecode)
+    local smoke
+    if `syear'==1990 local smoke smoker
+    
+    eststo:  reg goodQuarter young                              `cnd', `se'
+    eststo:  reg goodQuarter young                        `yFE' `cnd', `se'
+    eststo:  reg goodQuarter young highEd                 `yFE' `cnd', `se'
+    eststo:  reg goodQuarter young highEd married `smoke' `yFE' `cnd', `se' 
+    eststo: areg goodQuarter young highEd married `smoke' `yFE' `cnd', `se' `abs'
+
+    #delimit ;
+    esttab est1 est2 est3 est4 est5 using "$OUT/NVSSBinary.tex",
+    replace `estopt' title("Birth Season and Age") booktabs 
+    keep(_cons young highEd married) style(tex) mlabels(, depvar)
+    postfoot("Year FE&&Y&Y&Y&Y\\ State FE&&&&&Y\\ \bottomrule"
+         "\multicolumn{6}{p{12cm}}{\begin{footnotesize}Sample consists of all"
+         "first born children of US-born, white, non-hispanic mothers in the "
+         "`syear'. \end{footnotesize}}\end{tabular}\end{table}");
+    #delimit cr
+    estimates clear
+
+    ****************************************************************************
+    *** (7b) Mlogit
+    ****************************************************************************
+    gen     seasonType = 1 if Qgoodgood  == 1
+    replace seasonType = 2 if Qgoodbad   == 1
+    replace seasonType = 3 if Qbadgood   == 1
+    replace seasonType = 4 if Qbadbad    == 1
+    replace seasonType = . if seasonType == 0
+    local cnew `cnd'&seasonType>1
+    local sFE  i.statecode
+
+    mlogit seasonType young highEd married `yFE' `cnd', vce(robust)
+    eststo mlogit
+
+    foreach o in 2 3 4 {
+        dis "MFX for `o'"
+        estpost margins, dydx(young highEd married) predict(outcome(`o'))
+        estimates store sm`o'
+        estimates restore mlogit
+    }
+    
+    mlogit seasonType young highEd married `yFE' `sFE' `cnd', vce(robust)
+    eststo mlogit
+
+    foreach o in 2 3 4 {
+        dis "MFX for `o'"
+        estpost margins, dydx(young highEd married) predict(outcome(`o'))
+        estimates store sm`o'
+        estimates restore mlogit
+    }
+
+    #delimit ;
+    esttab sm2 sm3 sm4 smFE2 smFE3 smFE4 using "$OUT/NVSSseasonMLogit.tex",
+    replace `estopt' style(tex) keep(young highEd married)
+    mtitles("Good,Bad" "Bad,Good" "Bad,Bad" "Good,Bad" "Bad,Good" "Bad,Bad")
+    mgroups("No State FE" "State FE", pattern(1 0 0 1 0 0)
+    prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
+    title("Birth Season Predictors (Multinomial Logit)") 
+    postfoot("\bottomrule"
+         "\multicolumn{4}{p{12cm}}{\begin{footnotesize} Year fixed effects"
+         "included.  Robust standard errors estimated.  Good, Bad refers to"
+         "expected in good season and born in bad season. Expected in good and"
+         "born in good is the omitted base outcome."
+         "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
+    #delimit cr
+    estimates clear
+
+    ****************************************************************************
+    *** (7c) Quality regs
+    ****************************************************************************
+    foreach method in FE noFE {
+        local cont highEd married
+        local seasons Qgoodbad Qbadgood Qbadbad
+        local aa abs(gestation)
+        local FEs `yFE'
+
+        if `"`method'"'=="FE" local FEs `yFE' i.statecode
+
+        eststo: reg  birthweight young `seasons' `cont' `FEs' `cnd', `se'
+        eststo: areg birthweight young `seasons' `cont' `FEs' `cnd', `se'    `aa'
+        eststo: reg  birthweight `seasons' `cont' `FEs' `cnd'&young==1, `se'
+        eststo: areg birthweight `seasons' `cont' `FEs' `cnd'&young==1, `se' `aa'
+        eststo: reg  birthweight `seasons' `cont' `FEs' `cnd'&young==0, `se'
+        eststo: areg birthweight `seasons' `cont' `FEs' `cnd'&young==0, `se' `aa'
+
+        #delimit ;
+        esttab est1 est2 est3 est4 est5 est6 using "$OUT/QualityAllComb`method'.tex", 
+        `estopt' title("Birth Quality by Age and Season")
+        keep(_cons young `seasons' `cont') style(tex) mlabels(, depvar) replace 
+        postfoot("Age &All&All&Young&Young&Old&Old \\ \bottomrule"
+         "\multicolumn{7}{p{10cm}}{\begin{footnotesize}Sample consists of all"
+         "first born children of US-born, white, non-hispanic mothers."
+         "Bad Season (due in bad) is a dummy for children expected and born in"
+         "quarters 1 or 4, while Bad Season (due in good) is a dummy for children"
+         "expected in quarters 2 or 3, but were born prematurely in quarters 1 or"
+         "4.  For each outcome, the first column is unconditional on gestation wh"
+         "ile the second column includes fixed effects for weeks of gestation."
+         "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
+        #delimit cr
+        estimates clear
+    }
+}
 
 ********************************************************************************
 *** (X) Clear
