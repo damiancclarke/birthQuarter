@@ -819,7 +819,7 @@ foreach syear of numlist 1970 1990 {
     foreach o in 2 3 4 {
         dis "MFX for `o'"
         estpost margins, dydx(young highEd married) predict(outcome(`o'))
-        estimates store sm`o'
+        estimates store smFE`o'
         estimates restore mlogit
     }
 
