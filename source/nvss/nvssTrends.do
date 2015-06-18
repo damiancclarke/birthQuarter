@@ -90,7 +90,7 @@ if `pre4w'==1 {
 ********************************************************************************
 use "$DAT/`data'"
 keep if `keepif'
-/*
+
 histogram motherAge, frac scheme(s1mono) xtitle("Mother's Age")
 graph export "$OUT/ageDescriptive.eps", as(eps) replace
 
@@ -187,13 +187,13 @@ twoway line twin1 motherAge, || line twin2 motherAge, lpattern(dash) lcolor(gs0)
 */ legend(label(1 "No College") label(2 "Some College +")) 
 graph export "$OUT/twinPrevalence.eps", as(eps) replace
 restore
-*/
+
 
 ********************************************************************************
 *** (2aii) Summary stats table
 ********************************************************************************
-gen young   = ageGroup == 1
-gen college = educLevel - 1
+gen young   = ageGroup==1 | ageGroup==2
+gen college = educLevel==1|educLevel==2 if educLevel!=.
 gen educCat = 4 if education==1
 replace educCat = 10 if education == 2
 replace educCat = 12 if education == 3
@@ -287,37 +287,39 @@ lab def months 1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug" /
 */ 9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec"
 lab val birthMonth months
 
-sort young birthMonth 
-#delimit ;
-twoway bar birth birthMonth if young==1, bcolor(ltblue) ||
-    line expectedProp birthM if young==1, scheme(s1mono) lpattern(dash)
+sort young birthMonth
+foreach num of numlist 0 1 {
+    local name Old
+    if `num'==1 local name Young
+    #delimit ;
+    twoway bar birth birthMonth if young==`num', bcolor(ltblue) ||
+        line expectedProp birthM if young==`num', scheme(s1mono) lpattern(dash)
     lcolor(black) xlabel(1(1)12, valuelabels) ytitle("Proportion")
     xtitle("Month of Birth");
-graph export "$OUT/birthsPerMonthYoung.eps", as(eps) replace;
+    graph export "$OUT/birthsPerMonth`name'.eps", as(eps) replace;
 
-twoway bar birth birthMonth if young==0, bcolor(ltblue) ||
-    line expectedProp birthM if young==0, scheme(s1mono) lpattern(dash)
-    lcolor(black) xlabel(1(1)12, valuelabels) ytitle("Proportion")
-    xtitle("Month of Birth");
-graph export "$OUT/birthsPerMonthOld.eps", as(eps) replace;
-
-twoway bar excessBirths birthMonth if young==1, bcolor(ltblue)
-xlabel(1(1)12, valuelabels) ytitle("Proportion") xtitle("Month of Birth")
-ytitle("Proportion Excess Births (Actual-Expected)") scheme(s1mono)
-yline(0, lpattern(dash) lcolor(black)) ylabel(-0.01 -0.005 0 0.005);
-graph export "$OUT/excessBirthsYoung.eps", as(eps) replace;
-
-twoway bar excessBirths birthMonth if young==0, bcolor(ltblue) 
-xlabel(1(1)12, valuelabels) xtitle("Month of Birth")
-ytitle("Proportion Excess Births (Actual-Expected)") scheme(s1mono)
-yline(0, lpattern(dash) lcolor(black)) ylabel(-0.01 -0.005 0 0.005);
-graph export "$OUT/excessBirthsOld.eps", as(eps) replace;
-#delimit cr
-
+    twoway bar excessBirths birthMonth if young==`num', bcolor(ltblue)
+    xlabel(1(1)12, valuelabels) ytitle("Proportion") xtitle("Month of Birth")
+    ytitle("Proportion Excess Births (Actual-Expected)") scheme(s1mono)
+    yline(0, lpattern(dash) lcolor(black)) ylabel(-0.01 -0.005 0 0.005);
+    graph export "$OUT/excessBirths`name'.eps", as(eps) replace;
+    #delimit cr
+}
 restore
 
+preserve
+collapse premature, by(birthQuarter)
+#delimit ;
+graph bar premature, ylabel(0.09(0.01)0.11, nogrid) exclude0
+over(birthQuar, relabel(1 "Jan-Mar" 2 "Apr-Jun" 3 "Jul-Sep" 4 "Oct-Dec"))
+bar(1, bcolor(gs0)) bar(2, bcolor(gs0)) bar(3, bcolor(gs0))bar(4, bcolor(gs0))
+scheme(s1mono) ytitle("% Premature");
+graph export "$OUT/prematureQOB.eps", as(eps) replace;
+#delimit cr
+restore
+exit
 ********************************************************************************
-*** (3) Sumstats all periods together
+*** (4) Sumstats all periods together
 ********************************************************************************
 preserve
 drop if educLevel==.
@@ -336,18 +338,6 @@ gen str4 ratio      = string(rati, "%04.2f")
 
 drop totalbirths diff rati birth*
     
-#delimit ;
-listtex using "$SUM/PropNoTime`app'.tex", rstyle(tabular) replace
- head("\vspace{8mm}\begin{table}[htpb!]"
-        "\centering\caption{Percent of Births per Cell (All Years)}"
-        "\begin{tabular}{llcccc}\toprule"
-        "Age Group &College&Bad Quarters&Good Quarters&Difference&Ratio \\ \midrule")
- foot("\midrule\multicolumn{6}{p{9cm}}{\begin{footnotesize}\textsc{Notes:}"
-            "Good Quarters refer to birth quarters 2 and 3, while Bad Quarters refer"
-            "to quarters 4 and 1. All values reflect the percent of births for this"
-            "age group and education level."
-            "\end{footnotesize}}\\ \bottomrule\end{tabular}\end{table}");
-#delimit cr
 decode ageGroup, gen(ag)
 decode educLevel, gen(el)
 egen group=concat(ag el)
@@ -374,18 +364,6 @@ gen str4 ratio      = string(rati, "%04.2f")
 
 drop totalbirths diff rati birth*
     
-#delimit ;
-listtex using "$SUM/PropNoTimeEduc`app'.tex", rstyle(tabular) replace
- head("\vspace{8mm}\begin{table}[htpb!]"
-        "\centering\caption{Percent of Births per Cell (All Years)}"
-        "\begin{tabular}{lcccc}\toprule"
-        "College&Bad Quarters&Good Quarters&Difference&Ratio \\ \midrule")
- foot("\midrule\multicolumn{5}{p{9cm}}{\begin{footnotesize}\textsc{Notes:}"
-            "Good Quarters refer to birth quarters 2 and 3, while Bad Quarters refer"
-            "to quarters 4 and 1. All values reflect the percent of births for this"
-            "age group and education level."
-            "\end{footnotesize}}\\ \bottomrule\end{tabular}\end{table}");
-#delimit cr
 decode educLevel, gen(el)
 order el
 drop educLevel
@@ -406,18 +384,6 @@ gen str4 difference = string(diff, "%04.2f")
 gen str4 ratio      = string(rati, "%04.2f")
 drop totalbirths diff rati
 
-#delimit ;
-listtex using "$SUM/PropNoTime2`app'.tex", rstyle(tabular) replace
- head("\vspace{8mm}\begin{table}[htpb!]"
-        "\centering\caption{Percent of Births per Cell (All Years)}"
-        "\begin{tabular}{lcccc}\toprule"
-        "Age Group &Bad Season&Good Season&Difference&Ratio \\ \midrule")
- foot("\midrule\multicolumn{5}{p{9.5cm}}{\begin{footnotesize}\textsc{Notes:}"
-            "Good Quarters refer to birth quarters 2 and 3, while Bad Quarters refer"
-            "to quarters 4 and 1. All values reflect the percent of births for this"
-            "age group and education level."
-            "\end{footnotesize}}\\ \bottomrule\end{tabular}\end{table}");
-#delimit cr
 outsheet using "$SUM/FullSample`app'.txt", delimiter("&") replace noquote
 restore
 
@@ -439,7 +405,7 @@ drop _p* _i*
 
     
 ********************************************************************************
-*** (4a) Global histogram
+*** (5a) Global histogram
 ********************************************************************************
 tempfile all educ
 
@@ -459,7 +425,7 @@ save `all'
 restore
 
 ********************************************************************************
-*** (4b) Histogram by education level
+*** (5b) Histogram by education level
 ********************************************************************************
 preserve
 collapse (sum) birth, by(goodQuarter ageGroup educLevel)
@@ -480,7 +446,7 @@ save `educ'
 restore
 
 ********************************************************************************
-*** (4c) Histogram: All, educ
+*** (5c) Histogram: All, educ
 ********************************************************************************
 preserve
 use `all', replace
@@ -506,7 +472,7 @@ graph export "$OUT/birthQdiff`app'.eps", as(eps) replace;
 restore
 
 ********************************************************************************
-*** (4d) Histogram for more age groups
+*** (5d) Histogram for more age groups
 ********************************************************************************
 preserve
 use "$DAT/`data'", clear
@@ -544,7 +510,7 @@ restore
 
 
 ********************************************************************************
-*** (5) Birth outcomes by groups
+*** (6) Birth outcomes by groups
 ********************************************************************************
 local hkbirth birthweight lbw gestation premature vlbw apgar  
 local axesN   3100[50]3350 0.04[0.02]0.14 38[0.2]39 0.06[0.02]0.18
@@ -594,8 +560,9 @@ foreach outcome in `hkbirth' {
 restore
 
 ********************************************************************************
-*** (6) Examine by geographic variation (hot/cold)
+*** (7) Examine by geographic variation (hot/cold)
 ********************************************************************************
+exit
 cap mkdir "$OUT/maps"
     
 use "$DAT/nvss1998_1999"
@@ -613,10 +580,12 @@ merge m:1 FIPS using "$DAT/../maps/USdata"
 drop if _merge==2
 drop _merge
 
-spmap goodSeason if young==1 using "$DAT/../maps/UScoords", id(_ID) fcolor(Reds2)
+spmap goodSeason if young==1&(FIPS!="02"&FIPS!="15") using "$DAT/../maps/UScoords",/*
+*/ id(_ID) fcolor(YlOrRd) legend(symy(*2) symx(*2) size(*2.1))
 graph export "$OUT/maps/youngGoodSeason.eps", replace as(eps)
 
-spmap goodSeason if young==0 using "$DAT/../maps/UScoords", id(_ID) fcolor(Reds2)
+spmap goodSeason if young==0&(FIPS!="02"&FIPS!="15") using "$DAT/../maps/UScoords", /*
+*/ id(_ID) fcolor(YlOrRd) legend(symy(*2) symx(*2) size(*2.1))
 graph export "$OUT/maps/oldGoodSeason.eps", replace as(eps)
 
 
