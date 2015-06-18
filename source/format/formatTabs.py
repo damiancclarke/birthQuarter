@@ -29,20 +29,15 @@ dloc  = './../'
 singleNVSS       = RES + ftype + '/sumStats/FullSample.txt'
 singleEducNVSS   = RES + ftype + '/sumStats/EducSample.txt'
 allEducNVSS      = RES + ftype + '/sumStats/JustEduc.txt'
-premART          = RES + ftype + '/sumStats/nvssARTPrem.tex'
 singleSpain      = RES + 'spain/sumStats/FullSample.txt'
 singleEducSpain  = RES + 'spain/sumStats/EducSample.txt'
 allEducSpain     = RES + 'spain/sumStats/JustEduc.txt'
 
 
-twinIPUM       = RES + 'ipums/sumStats/FullSampletwins.txt'
 twinNVSS       = RES + ftype + '/sumStats/FullSampletwins.txt'
-twinEducIPUM   = RES + 'ipums/sumStats/EducSampletwins.txt'
 twinEducNVSS   = RES + ftype + '/sumStats/EducSampletwins.txt'
-TallEducIPUM   = RES + 'ipums/sumStats/JustEductwins.txt'
 TallEducNVSS   = RES + ftype + '/sumStats/JustEductwins.txt'
 
-sumIPUM = RES + 'ipums/sumStats/ipumsSum.tex' 
 sumNVSS = RES + ftype + '/sumStats/nvssSum.tex'
 MumNVSS = RES + ftype + '/sumStats/nvssMum.tex'
 MumPNVSS= RES + ftype + '/sumStats/nvssMumPart.tex'
@@ -79,64 +74,12 @@ R2   = 'R$^2$'
 #==============================================================================
 #== (2a) Write birth quarter summary tables NVSS
 #==============================================================================
-sumT = open(TAB + 'sumBQ'+ftype+'.tex', 'w')
-
 tNV  = open(twinNVSS, 'r').readlines()
 tNVe = open(twinEducNVSS, 'r').readlines()
 tNVj = open(TallEducNVSS, 'r').readlines()
 sNV  = open(singleNVSS, 'r').readlines()
 sNVe = open(singleEducNVSS, 'r').readlines()
 sNVj = open(allEducNVSS, 'r').readlines()
-
-
-sumT.write("\\begin{landscape}\\begin{table}[htpb!]"
-           "\\caption{Percent of Births by Season} \n"
-           "\\label{bqTab:seasonSum}\\begin{center}"
-           "\\begin{tabular}{lccccp{1cm}cccc}\n\\toprule \\toprule \n"
-           "& \multicolumn{4}{c}{Singletons} && \multicolumn{4}{c}{Twins}"
-           "\\\\ \cmidrule(r){2-5} \cmidrule(r){7-10} \n"
-           "& Bad & Good & Diff.&Ratio&&Bad&Good & Diff. & Ratio \\\\\n"
-           "& Season & Season&&&&Season&Season& &      \\\\\\midrule \n"
-           "\multicolumn{10}{l}{\\textsc{Panel A: By Age Groups}}\\\\"
-           "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*9+
-           "\\begin{footnotesize}\\end{footnotesize}\\\\ \n")
-    
-sumT.write( sNV[1]+'&&'+tNV[1].split('&',1)[-1]+'\\\\ \n'
-           +sNV[2]+'&&'+tNV[2].split('&',1)[-1]+'\\\\ \n &&&&&&&& \\\\'
-            "\multicolumn{10}{l}{\\textsc{Panel B: By Education}}\\\\"
-            "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*9+
-            "\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
-            sNVj[1]+'&&'+tNVj[1].split('&',1)[-1]+'\\\\ \n'+
-            sNVj[2]+'&&'+tNVj[2].split('&',1)[-1]+'\\\\ \n &&&&&&&& \\\\'
-            "\multicolumn{10}{l}{\\textsc{Panel C: By Age and Education}}\\\\"
-            "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*9+
-            "\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
-            sNVe[1]+'&&'+tNVe[1].split('&',1)[-1]+'\\\\ \n'+
-            sNVe[2]+'&&'+tNVe[2].split('&',1)[-1]+'\\\\ \n'+
-            sNVe[3]+'&&'+tNVe[3].split('&',1)[-1]+'\\\\ \n'+
-            sNVe[4]+'&&'+tNVe[4].split('&',1)[-1]+'\\\\ \n &&&&&&&& \\\\'
-            )
-    
-
-sumT.write('\n'+mr+mc1+twid[0]+tcm[0]+mc3+
-           "Good season refers to birth quarters 2 and 3 (Apr-Jun and "
-           "Jul-Sept).  Bad season refers to quarters 1 and 4 (Jan-Mar "
-           "and Oct-Dec).  Values reflect the percent of yearly births "
-           "each season from 2005-2013. `Young' refers to 25-39 year olds,"
-           " `Old' refers to 40-45 year olds. \n"
-           "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}"
-           "\\end{center}\\end{table}\\end{landscape}")    
-sumT.close()
-
-
-ART = open(premART,'r').readlines()
-for ii,line in enumerate(ART):
-    if ii>8 and ii<25:
-        #print line
-        line = line.replace('        ','')
-        line = line.replace('\\\\\n','')
-        line = line.split('&')[1:3]
-
 
 for parity in ['single']:
     sumT = open(TAB + 'sum'+parity+ftype+'.tex', 'w')
@@ -155,9 +98,12 @@ for parity in ['single']:
     sumT.write("\\begin{landscape}\\begin{table}[htpb!]"
                "\\caption{Percent of Births, "+headline+"} \n"
                "\\label{bqTab:"+parity+"Sum}\\begin{center}"
-               "\\begin{tabular}{lcccc}\n\\toprule \\toprule \n"
-               "& Bad    & Good   & Diff. & Ratio \\\\\n"
-               "& Season & Season &       &       \\\\\\midrule"
+               "\\begin{tabular}{lcccccc}\n\\toprule \\toprule \n"
+               "& \\multicolumn{l}{c}{Seasons} & "
+               "\\multicolumn{l}{c}{Characteristics} \\\\ "
+               "\cmidrule(r){2-5} \cmidrule(r){6-7} \n"
+               "& Bad    & Good   & Diff. & Ratio & $< $37 & ART \\\\\n"
+               "& Season & Season &       &       & Weeks  &     \\\\\\midrule"
                "\multicolumn{5}{l}{\\textsc{Panel A: By Age Groups}}\\\\"
                "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
                "\\begin{footnotesize}\\end{footnotesize}\\\\ \n")
