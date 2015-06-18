@@ -237,22 +237,23 @@ if `orign'==1 {
 *** (4) Good Quarter Regressions
 ********************************************************************************
 gen young2 = motherAge<35
-
+lab var young2 "Aged 25-34"
 
 ********************************************************************************
 *** (4a) Different sets of explanatory variables
 ********************************************************************************
 local add `" "" "(Young=25-34)" "(Education Interaction)" "(Complete College)" "'
-tokenize add
+local nam Main Young34 EdInteract High
+tokenize `nam'c
 
-foreach type in Main Young34 EdInteract High {
+foreach type of local add {
 
     local age young
     local edu highEd
     local con married smoker
-    if `"`type'"' == "Young34"    local age young2
-    if `"`type'"' == "EdInteract" local edu highEd youngXhighEd
-    if `"`type'"' == "High"       local edu vhighEd 
+    if `"`1'"' == "Young34"    local age young2
+    if `"`1'"' == "EdInteract" local edu highEd youngXhighEd
+    if `"`1'"' == "High"       local edu vhighEd 
 
     eststo: reg goodQuarter `age'                   `cnd', `se'
     eststo: reg goodQuarter `age'             `yFE' `cnd', `se'
@@ -260,8 +261,8 @@ foreach type in Main Young34 EdInteract High {
     eststo: reg goodQuarter `age' `edu' `con' `yFE' `cnd', `se'
 
     #delimit ;
-    esttab est1 est2 est3 est4 using "$OUT/NVSSBinary`type'.tex",
-    replace `estopt' title("Birth Season and Age `1'") booktabs 
+    esttab est1 est2 est3 est4 using "$OUT/NVSSBinary`1'.tex",
+    replace `estopt' title("Birth Season and Age `type'") booktabs 
     keep(_cons `age' `edu' `con') style(tex) mlabels(, depvar)
     postfoot("Year FE&&Y&Y&Y\\ \bottomrule"
              "\multicolumn{5}{p{12.8cm}}{\begin{footnotesize}Sample consists "
@@ -277,25 +278,25 @@ foreach type in Main Young34 EdInteract High {
 *** (4b) Conditions
 ********************************************************************************
 local c1    twin==2 smoker==0&twin==1 smoker==1&twin==1 year>=2012&twin==1  /*
-            */ married==0&twin==1 married==1&twin==1 infertTreat==0&twin==1 /*
-            */ infertTreat==1&twin==1
-local names Twin non-smoking smoking 2012-2013 unmarried married non-ART ART
-tokenize names
+            */ infertTreat==0&twin==1 infertTreat==1&twin==1
+local names Twin non-smoking smoking 2012-2013 non-ART ART
+tokenize `names'
 
 foreach cond of local c1 {
-
-    eststo: reg goodQuarter young                               `cond', `se'
-    eststo: reg goodQuarter young                         `yFE' `cond', `se'
-    eststo: reg goodQuarter young highEd                  `yFE' `cond', `se'
-    eststo: reg goodQuarter young highEd married smoker   `yFE' `cond', `se'
+    dis "`1'"
+    
+    eststo: reg goodQuarter young                              if `cond', `se'
+    eststo: reg goodQuarter young                        `yFE' if `cond', `se'
+    eststo: reg goodQuarter young highEd                 `yFE' if `cond', `se'
+    eststo: reg goodQuarter young highEd married smoker  `yFE' if `cond', `se'
 
     local ests est1 est2 est3 est4 
-    local vars _cons young highEd
+    local vars _cons young highEd married smoker
     if `"`1'"'=="non-smoking"|`"`1'"'=="smoking" local ests est1 est2 est3 
-    if `"`1'"'=="non-smoking"|`"`1'"'=="smoking" local vars `vars' marr* smo*    
+    if `"`1'"'=="non-smoking"|`"`1'"'=="smoking" local vars _cons young highEd    
     
     #delimit ;
-    esttab `ests' using "$OUT/NVSSBinary`1'.tex". replace `estopt' booktabs 
+    esttab `ests' using "$OUT/NVSSBinary`1'.tex", replace `estopt' booktabs 
     title("Birth Season and Age (`1' sample)") keep(`vars') mlabels(, depvar)
     postfoot("Year FE&&Y&Y&Y\\ \bottomrule"
              "\multicolumn{5}{p{12.8cm}}{\begin{footnotesize}Sample consists "
@@ -303,6 +304,7 @@ foreach cond of local c1 {
              "mothers. \end{footnotesize}}\end{tabular}\end{table}") style(tex);
     #delimit cr
     estimates clear
+    macro shift
 }
 
 
@@ -321,7 +323,7 @@ eststo mlogit
 
 foreach o in 2 3 4 {
     dis "MFX for `o'"
-    estpost margins, dydx(young highEd marr* smo*) predict(outcome(`o'))
+    estpost margins, dydx(young highEd married smoker) predict(outcome(`o'))
     estimates store sm`o'
     estimates restore mlogit
 }
@@ -345,163 +347,62 @@ exit
 ********************************************************************************
 *** (4b) Regressions (Quality on Age, season)
 ********************************************************************************
-foreach y of varlist `qual' {
-    eststo: reg `y' young badQuarter `yFE' `cnd', `se'
-}
-#delimit ;
-esttab est1 est2 est3 est4 est5 est6 using "$OUT/NVSSQuality.tex",
-replace `estopt' title("Birth Quality by Age and Season")
-keep(_cons young badQuarter) style(tex) booktabs mlabels(, depvar)
-postfoot("\bottomrule"
-         "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Sample consists of all"
-         "first born children of US-born, white, non-hispanic mothers"
-         "\end{footnotesize}}\end{tabular}\end{table}");
-#delimit cr
-estimates clear
-
-foreach e in 0 1 {
-    if `e'==0 local educN "with no college education"
-    if `e'==1 local educN "with college education"
-    
-    foreach y of varlist `qual' {
-        eststo: reg `y' young badQuarter `yFE' `cnd' & highEd==`e', `se'
-    }
-    #delimit ;
-    esttab est1 est2 est3 est4 est5 est6 using "$OUT/NVSSQuality`e'.tex",
-    replace `estopt' title("Birth Quality by Age and Season")
-    keep(_cons young badQuarter) style(tex) booktabs mlabels(, depvar)
-    postfoot("\bottomrule"
-             "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Sample consists of all"
-             "first born children of US-born, white, non-hispanic mothers `educN'"
-             "\end{footnotesize}}\end{tabular}\end{table}");
-    #delimit cr
-    estimates clear
-}
-estimates clear
-
-foreach s in 0 1 {
-    if `s'==0 local smokeN "who do not smoke"
-    if `s'==1 local smokeN "who smoke"
-    
-    foreach y of varlist `qual' {
-        eststo: reg `y' young badQuarter `yFE' `cnd' & smoker==`s', `se'
-    }
-    #delimit ;
-    esttab est1 est2 est3 est4 est5 est6 using "$OUT/NVSSQualitySmoke`s'.tex",
-    replace `estopt' title("Birth Quality by Age and Season (Mothers `smokeN')")
-    keep(_cons young badQuarter) style(tex) booktabs mlabels(, depvar)
-    postfoot("\bottomrule"
-             "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Sample consists of all"
-             "first born children of US-born, white, non-hispanic mothers `smokeN'"
-             "\end{footnotesize}}\end{tabular}\end{table}");
-    #delimit cr
-    estimates clear
-}
-estimates clear
-
-
-foreach y of varlist `qual' {
-    eststo: reg `y' young badQuarter highEd married smoker `yFE' `cnd', `se'
-}
-#delimit ;
-esttab est1 est2 est3 est4 est5 est6 using "$OUT/NVSSQualityEduc.tex",
-replace `estopt' title("Birth Quality by Age and Season")
-keep(_cons young badQuarter highEd married smoker) style(tex) mlabels(, depvar)
-postfoot("\bottomrule"
-         "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Sample consists of all"
-         "first born children of US-born, white, non-hispanic mothers"
-         "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
-#delimit cr
-estimates clear
-
-local cond if twin==2
-foreach y of varlist `qual' {
-    eststo: reg `y' young badQuarter highEd married smoker `yFE' `cond', `se'
-}
-#delimit ;
-esttab est1 est2 est3 est4 est5 est6 using "$OUT/NVSSQualityTwin.tex",
-replace `estopt' title("Birth Quality by Age and Season (Twins Only)")
-keep(_cons young badQuarter highEd married smoker) style(tex) mlabels(, depvar)
-postfoot("\bottomrule"
-         "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Sample consists of all"
-         "first born twins of US-born, white, non-hispanic mothers"
-         "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
-#delimit cr
-estimates clear
-
-if `y1213'==1 {
-    foreach m of numlist 0 1 {
-        local cond `cnd'&infertTreat==`m'
-        foreach y of varlist `qual' {
-            eststo: reg `y' young badQuarter highEd mar smo `yFE' `cond', `se'
-        }
-        #delimit ;
-        esttab est1 est2 est3 est4 est5 est6 using
-        "$OUT/NVSSQualityInfert`m'.tex", replace `estopt' mlabels(, depvar)
-        title("Birth Quality by Age and Season (Infertility=`m')")
-        keep(_cons young badQuarter highEd married smoker) style(tex) 
-        postfoot("\bottomrule"
-         "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Sample consists of all"
-         "first born children of US-born, white, non-hispanic mothers"
-         "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
-        #delimit cr
-        estimates clear
-    }
-}
-
-local cd1 `cnd'&prePregBMI<30
-local cd2 `cnd'&prePregBMI>=30&prePregBMI<99
-local names non-Obese Obese
+local c1    twin==1 smoker==0&twin==1 smoker==1&twin==1 year>=2012&twin==1    /*
+            */ infertTreat==0&twin==1 infertTreat==0&twin==1 twin==2
+local vars  young badQuarter highEd married smoker
+local names Main non-smoker smoker 2012-2013 non-ART ART Twin
 tokenize `names'
 
-foreach num of numlist 1 2 {
+
+foreach cond of local c1 {
+    dis "`1'"
     foreach y of varlist `qual' {
-        eststo: reg `y' young badQuarter highEd mar smoker `yFE' `cd`num'', `se'
+        eststo: reg `y' `vars' `yFE' `cond', `se'
     }
     #delimit ;
-    esttab est1 est2 est3 est4 est5 est6 using "$OUT/NVSSQuality``num''.tex",
-    replace `estopt' title("Birth Quality by Age and Season (``num'')")
-    keep(_cons young badQuarter highEd married smoker) style(tex) mlabels(, depvar)
+    esttab est1 est2 est3 est4 est5 est6 using "$OUT/NVSSQuality`1'.tex",
+    replace `estopt' title("Birth Quality by Age and Season (`1' sample)")
+    keep(_cons `vars') style(tex) mlabels(, depvar) booktabs
     postfoot("\bottomrule"
-         "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Sample consists of all"
-         "first born children of US-born, white, non-hispanic mothers"
-         "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
+             "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Sample consists of "
+             "all first born children of US-born, white, non-hispanic mothers."
+             "\end{footnotesize}}\end{tabular}\end{table}");
     #delimit cr
     estimates clear
-}
 
+    macro shift
+}
 
 ********************************************************************************
 *** (5) Redefine bad season as bad season due to short gestation, and bad season
 ********************************************************************************
-if `orign'==1 {
-    local cont highEd married smoker
-    local seasons Qgoodbad Qbadgood Qbadbad
-    local aa abs(gestation)
+local cont highEd married smoker
+local seasons Qgoodbad Qbadgood Qbadbad
+local aa abs(gestation)
     
-    eststo: reg  birthweight young `seasons' `cont' `yFE' `cnd', `se'
-    eststo: areg birthweight young `seasons' `cont' `yFE' `cnd', `se'    `aa'
-    eststo: reg  birthweight `seasons' `cont' `yFE' `cnd'&young==1, `se'
-    eststo: areg birthweight `seasons' `cont' `yFE' `cnd'&young==1, `se' `aa'
-    eststo: reg  birthweight `seasons' `cont' `yFE' `cnd'&young==0, `se'
-    eststo: areg birthweight `seasons' `cont' `yFE' `cnd'&young==0, `se' `aa'
+eststo: reg  birthweight young `seasons' `cont' `yFE' `cnd', `se'
+eststo: areg birthweight young `seasons' `cont' `yFE' `cnd', `se'    `aa'
+eststo: reg  birthweight `seasons' `cont' `yFE' `cnd'&young==1, `se'
+eststo: areg birthweight `seasons' `cont' `yFE' `cnd'&young==1, `se' `aa'
+eststo: reg  birthweight `seasons' `cont' `yFE' `cnd'&young==0, `se'
+eststo: areg birthweight `seasons' `cont' `yFE' `cnd'&young==0, `se' `aa'
 
-    #delimit ;
-    esttab est1 est2 est3 est4 est5 est6 using "$OUT/QualityAllComb.tex", 
-    `estopt' title("Birth Quality by Age and Season")
-    keep(_cons young `seasons' `cont') style(tex) mlabels(, depvar) replace 
-    postfoot("Age &All&All&Young&Young&Old&Old \\ \bottomrule"
+#delimit ;
+esttab est1 est2 est3 est4 est5 est6 using "$OUT/QualityAllComb.tex", 
+`estopt' title("Birth Quality by Age and Season") booktabs
+keep(_cons young `seasons' `cont') style(tex) mlabels(, depvar) replace 
+postfoot("Age &All&All&Young&Young&Old&Old \\ \bottomrule"
          "\multicolumn{7}{p{10cm}}{\begin{footnotesize}Sample consists of all"
-         "first born children of US-born, white, non-hispanic mothers."
-         "Bad Season (due in bad) is a dummy for children expected and born in"
-         "quarters 1 or 4, while Bad Season (due in good) is a dummy for children"
-         "expected in quarters 2 or 3, but were born prematurely in quarters 1 or"
-         "4.  For each outcome, the first column is unconditional on gestation wh"
-         "ile the second column includes fixed effects for weeks of gestation."
-         "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
-    #delimit cr
-    estimates clear
-}
+         "first born children of US-born, white, non-hispanic mothers. Bad "
+         "Season (due in bad) is a dummy for children expected and born in"
+         "quarters 1 or 4, while Bad Season (due in good) is a dummy for "
+         "children expected in quarters 2 or 3, but were born prematurely in "
+         "quarters 1 or 4.  For each outcome, the first column is unconditional"
+         "on gestation while the second column includes fixed effects for weeks"
+         " of gestation.\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+
 
 
 exit
