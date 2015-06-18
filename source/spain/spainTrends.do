@@ -73,8 +73,10 @@ gen     Qgoodgood       = expectGoodQ==1 & goodQuarter==1 if gest!=.
 gen     Qgoodbad        = expectGoodQ==1 & badQuarter ==1 if gest!=.
 gen     Qbadgood        = expectBadQ==1  & goodQuarter==1 if gest!=.
 gen     Qbadbad         = expectBadQ==1  & badQuarter ==1 if gest!=.
-egen    cold            = min(enero-diciembre)
-egen    hot             = max(enero-diciembre)
+egen    cold            = rowmin(enero-diciembre)
+egen    hot             = rowmax(enero-diciembre)
+egen    meanTemp        = rowmean(enero-diciembre)
+
 
 
 sum expectGoodQ expectBadQ if young==0
@@ -116,16 +118,26 @@ lab var female             "Female"
 *** (3) Summary stats
 ********************************************************************************
 preserve
-collapse goodQuarter cold hot,  by(id name young)
+collapse goodQuarter cold hot meanTemp,  by(id name young)
 lab var goodQuarter "Proportion good season"
 lab var cold        "Coldest monthly average"
-lab var cold        "Warmest monthly average"
+lab var hot         "Warmest monthly average"
+lab var meanT       "Mean monthly temperature"
 
-scatter goodQuarter cold if young==1, scheme(s1mono)
-graph export "$OUT/youngTempCold.eps", as(eps) replace
+foreach num of numlist 0 1 {
+    local age young
+    if `num'==0 local age old
+    
+    scatter goodQuarter cold if young==`num', scheme(s1mono) mlabel(name)
+    graph export "$OUT/`age'TempCold.eps", as(eps) replace
+    scatter goodQuarter hot if young==`num', scheme(s1mono) mlabel(name)
+    graph export "$OUT/`age'TempWarm.eps", as(eps) replace
+    scatter goodQuarter meanT if young==`num', scheme(s1mono) mlabel(name)
+    graph export "$OUT/`age'TempMean.eps", as(eps) replace
+}
 restore
+    
 
-exit
 local sumM ageMother young married college yrsEducMother professional 
 local sumK goodQuarter birthweight lbw gestat premature female cesarean
 
