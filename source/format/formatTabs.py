@@ -60,8 +60,9 @@ tr   = '\\toprule'
 br   = '\\bottomrule'
 mc1  = '\\multicolumn{'
 mc2  = '}}'
-twid = ['10','6','7','7','5']
-tcm  = ['}{p{16.6cm}}','}{p{14.0cm}}','}{p{14.7cm}}','}{p{15.2cm}}','}{p{9cm}}']
+twid = ['10','6','7','7','7','5']
+tcm  = ['}{p{16.6cm}}','}{p{14.2cm}}','}{p{16.4cm}}','}{p{16.7cm}}'
+        ,'}{p{12.8cm}}','}{p{9.8cm}}']
 mc3  = '{\\begin{footnotesize}\\textsc{Notes:} '
 lname = "Fertility$\\times$desire"
 tname = "Twin$\\times$desire"
@@ -99,8 +100,8 @@ for parity in ['single']:
                "\\caption{Percent of Births, "+headline+"} \n"
                "\\label{bqTab:"+parity+"Sum}\\begin{center}"
                "\\begin{tabular}{lcccccc}\n\\toprule \\toprule \n"
-               "& \\multicolumn{l}{c}{Seasons} & "
-               "\\multicolumn{l}{c}{Characteristics} \\\\ "
+               "& \\multicolumn{4}{c}{Seasons} & "
+               "\\multicolumn{2}{c}{Characteristics} \\\\ "
                "\cmidrule(r){2-5} \cmidrule(r){6-7} \n"
                "& Bad    & Good   & Diff. & Ratio & $< $37 & ART \\\\\n"
                "& Season & Season &       &       & Weeks  &     \\\\\\midrule"
@@ -110,12 +111,12 @@ for parity in ['single']:
     
     sumT.write(NV[1]+'\\\\ \n'
                +NV[2]+'\\\\ \n &&&& \\\\'
-               "\multicolumn{5}{l}{\\textsc{Panel B: By Education}}\\\\"
+               "\multicolumn{7}{l}{\\textsc{Panel B: By Education}}\\\\"
                "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
                "\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
                NVj[1]+'\\\\ \n'+
                NVj[2]+'\\\\ \n &&&& \\\\'
-               "\multicolumn{5}{l}{\\textsc{Panel C: By Age and Education}}\\\\"
+               "\multicolumn{7}{l}{\\textsc{Panel C: By Age and Education}}\\\\"
                "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
                "\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
                NVe[1]+'\\\\ \n'+
@@ -173,7 +174,7 @@ sumT.write(NV[1]+'\\\\ \n'
            )
     
     
-sumT.write('\n'+mr+mc1+twid[4]+tcm[4]+mc3+
+sumT.write('\n'+mr+mc1+twid[5]+tcm[5]+mc3+
            "Good season refers to birth quarters 2 and 3 (Apr-Jun and "
            "Jul-Sept).  Bad season refers to quarters 1 and 4 (Jan-Mar "
            "and Oct-Dec).  Values reflect the percent of yearly births from "
@@ -263,8 +264,8 @@ sumT.close()
 #== (4a) Heterogeneity table (birth quarter)
 #==============================================================================
 hetT = open(TAB + 'quarterHeterogeneity.tex', 'w')
-loc  = './../../results/'
-rt3  = '/regressions/NVSSBinary.tex'
+loc  = './../../results/nvss/regressions/'
+rt3  = '/regressions/NVSSBinaryMain.tex'
 
 table = [
 'Aged 25-39'    ,'',
@@ -274,17 +275,10 @@ table = [
 'Constant'      ,'',
 'Observations'
 ]
-samples = [loc+'nvss'+rt3,loc+'nvss/regressions/NVSSBinarynon-smoking.tex'  ,
-loc+'nvss/regressions/NVSSBinarysmoking.tex',loc+'fullT'+rt3,loc+'pre4w'+rt3,
-loc+'2012'+rt3,loc+'2012/regressions/NVSSBinaryInfert0.tex',
-loc+'2012/regressions/NVSSBinaryInfert1.tex',
-loc+'nvss/regressions/NVSSBinaryfullT_IFT1.tex',
-loc+'nvss/regressions/NVSSBinarypreT_IFT0.tex']
+samples = [loc+'NVSSBinaryMain.tex'   ,loc+'NVSSBinarynon-smoking.tex',
+           loc+'NVSSBinarysmoking.tex',loc+'NVSSBinary2012-2013.tex'  ,
+           loc+'NVSSBinarynon-ART.tex',loc+'NVSSBinaryART.tex'        ]
 
-samples = [loc+'nvss'+rt3,loc+'nvss/regressions/NVSSBinarynon-smoking.tex'  ,
-loc+'nvss/regressions/NVSSBinarysmoking.tex',loc+'2012'+rt3,
-loc+'2012/regressions/NVSSBinaryInfert0.tex',
-loc+'2012/regressions/NVSSBinaryInfert1.tex']
 
 ii = 0
 for sample in samples:
@@ -316,8 +310,10 @@ hetT.write('\\begin{table}[htpb!] \n '
 '\\begin{center} \n'
 '\\begin{tabular}{lcccccc} \\toprule\\toprule \n'
 '\\textsc{Dep Var:}&(1)&(2)&(3)&(4)&(5)&(6)\\\\'
-'Good Season&&\multicolumn{2}{c}{Smoked During Preg}&'
-'&\multicolumn{2}{c}{Assisted Reproductive Tech.}'
+'Good Season\ \ \ \ \ \ \ \ \ \ \  &&\multicolumn{2}{c}{Smoked During}&'
+'&\multicolumn{2}{c}{Assisted Reproductive}\\\\'
+'&&\multicolumn{2}{c}{Pregnancy}&'
+'&\multicolumn{2}{c}{Technology}'
 '\\\\\cmidrule(r){3-4}\cmidrule(r){6-7}\n'
 '&All&Non-  &Smoker&2012- &No&Yes \\\\'
 '&   &Smoker&       &2013\ &  &  \\\\ '
@@ -339,12 +335,9 @@ hetT.write(table[0]+'\\\\ \n'
 hetT.write('\n'+mr+mc1+twid[2]+tcm[2]+mc3+
            'All specifications are linear probability models estimates by OLS w'
            'ith heteroscedasticity-robust standard errors. Full term in column '
-           '(4) refers to any babies whose gestation was greater than or equal '
-           'to 39 weeks. Infertility treatment regressions are only estimated f'
-           'or years 2012-2013.  Column (9) is the union of columns (8) and (4)'
-           ', column (10) is the union of (7) and (5).'
-           '\\end{footnotesize}}\\\\ \\bottomrule \n\\end{tabular}\\end{center}'
-           '\\end{table}'
+           'Infertility treatment regressions are only estimated for years 2012'
+           '-2013.\\end{footnotesize}}\\\\ \n \\bottomrule '
+           '\n\\end{tabular}\\end{center}\\end{table}'
 )
 hetT.close()
 
@@ -352,8 +345,7 @@ hetT.close()
 #== (4b) Heterogeneity table (quality)
 #==============================================================================
 hetT = open(TAB + 'qualityHeterogeneity.tex', 'w')
-loc  = './../../results/'
-rt3  = '/regressions/NVSSQualityEduc.tex'
+loc  = './../../results/nvss/regressions/'
 
 table = [
 'Aged 25-39'    ,'',
@@ -364,14 +356,10 @@ table = [
 'Constant'      ,'',
 'Observations'
 ]
-samples = [loc+'nvss'+rt3,loc+'nvss/regressions/NVSSQualitySmoke0.tex'      ,
-loc+'nvss/regressions/NVSSQualitySmoke1.tex',loc+'fullT'+rt3,loc+'pre4w'+rt3,
-loc+'2012'+rt3,loc+'2012/regressions/NVSSQualityInfert0.tex',
-loc+'2012/regressions/NVSSQualityInfert1.tex']
-samples = [loc+'nvss'+rt3,loc+'nvss/regressions/NVSSQualitySmoke0.tex'      ,
-loc+'nvss/regressions/NVSSQualitySmoke1.tex',
-loc+'2012'+rt3,loc+'2012/regressions/NVSSQualityInfert0.tex',
-loc+'2012/regressions/NVSSQualityInfert1.tex']
+
+samples = [loc+'NVSSQualityMain.tex'   ,loc+'NVSSQualitynon-smoking.tex',
+           loc+'NVSSQualitysmoking.tex',loc+'NVSSQuality2012-2013.tex'  ,
+           loc+'NVSSWualitynon-ART.tex',loc+'NVSSQualityART.tex'        ]
 
 ii = 0
 for sample in samples:
@@ -402,9 +390,11 @@ hetT.write('\\begin{table}[htpb!] \n '
 '\\begin{center} \n'
 '\\begin{tabular}{lcccccc} \\toprule\\toprule \n'
 '\\textsc{Dep Var:}&(1)&(2)&(3)&(4)&(5)&(6)\\\\'
-'Birthweight&&\multicolumn{2}{c}{Smoked During Pregnancy}&'
-'&\multicolumn{2}{c}{Assisted Reproductive Tech.}\\\\ '
-'\cmidrule(r){3-4}\cmidrule(r){6-7}\n'
+'Birthweight&&\multicolumn{2}{c}{Smoked During}&'
+'&\multicolumn{2}{c}{Assisted Reproductive}\\\\'
+'&&\multicolumn{2}{c}{Pregnancy}&'
+'&\multicolumn{2}{c}{Technology}'
+'\\\\\cmidrule(r){3-4}\cmidrule(r){6-7}\n'
 '&All&Non-  &Smoker&2012- &No&Yes \\\\'
 '&   &Smoker&      &2013\ &  &    \\\\ \\midrule\n')
 hetT.write(table[0]+'\\\\ \n'
@@ -465,38 +455,41 @@ outB.close
 #===== TABLE 1: Descriptive Statistics                                        X
 #===== TABLE 2: Percent births by season [G]                                  X
 #===== TABLE 3: Birth by season                                               X
-#===== TABLE 3: Birth by season EB                                            X
-#===== TABLE 3: Birth by season EG                                            X
-
 #===== TABLE 4: Heterogeneity birth season [G,l]                              X
-#===== TABLE 5: Quality full [l]                                              X
-#===== TABLE 6: Quality heterogeneity bwt [G,l]                               X        
-#===== TABLE 7: Qualilty gestation correction                                 X
-#===== TABLE 8: Spain select  [l]                                             X
-#===== TABLE 9: Spain quality [l]                                             X
-#===== TABLE 10: Spain quality gestation correction                           X
+#===== TABLE 5: Birth by season (interaction)                                 X
+#===== TABLE 6: Birth by season (young)                                       X
+#===== TABLE 7: Multinomial logit of expected and actual                       
+#===== TABLE 8: Quality full [l]                                               
+#===== TABLE 9: Quality heterogeneity bwt [G,l]                                
+#===== TABLE 10: Qualilty gestation correction [l]                             
+#===== TABLE 11: Spain DS1                                                     
+#===== TABLE 12: Spain DS2                                                     
+#===== TABLE 13: Spain quality [l]                                             
+#===== TABLE 14: Spain quality gestation correction                            
+#===== TABLE 15: Spain Qualilty gestation correction [l]                       
 #==============================================================================
 loc1  = './../tables/'
 loc2  = './../results/'+ftype+'/regressions/'
 loc3  = './../results/spain/regressions/'
 final = open(TAB + "tables"+ ftype +".tex", 'w')
 
-TABLES = [loc1+'sumStats'+ftype+'.tex', loc1+'sumBQ'+ftype+'.tex'      ,
-loc2+'NVSSBinary.tex'                 , loc1+'NVSSBinaryExpectBad.tex' ,
-loc1+'NVSSBinaryExpectGood.tex'       , loc1+'quarterHeterogeneity.tex',
-loc2+'NVSSQualityEduc.tex'            , loc1+'qualityHeterogeneity.tex', 
-loc2+'NVSSQualityGestFix.tex'         , loc2+'NVSSQualityGFYoung1.tex' ,
-loc2+'NVSSQualityGFYoung0.tex'        , loc3+'spainBinary.tex'         ,       
-loc3+'spainQualityEduc.tex'           , loc3+'spainQualityGestFix.tex' ]
+TABLES = [loc1+'sumStats'+ftype+'.tex', loc1+'sumsingle'+ftype+'.tex'  ,
+loc2+'NVSSBinaryMain.tex'             , loc1+'quarterHeterogeneity.tex',
+loc2+'NVSSBinaryEdInteract.tex'       , loc2+'NVSSBinaryYoung34.tex'   ]
+
+#loc2+'NVSSQualityEduc.tex'            , loc1+'qualityHeterogeneity.tex', 
+#loc2+'NVSSQualityGestFix.tex'         , loc2+'NVSSQualityGFYoung1.tex' ,
+#loc2+'NVSSQualityGFYoung0.tex'        , loc3+'spainBinary.tex'         ,       
+#loc3+'spainQualityEduc.tex'           , loc3+'spainQualityGestFix.tex' ]
 
 itera = 1
 
 for table in TABLES:
-    if itera<6 or itera==9 or itera==10 or itera==11 or itera==14:
+    if itera<4 or itera==5 or itera==6:
         final.write('\\input{'
                     +table+'}\n')
-    if itera==6 or itera==7 or itera==8 or itera==12 or itera==13:
-        final.write('\\begin{landscape}\\input{'
-                    +table+'}\\end{landscape}\n')
+    if itera==4:
+        final.write('\\begin{landscape}\n\\input{'
+                    +table+'}\n\\end{landscape}\n')
     itera = itera+1
 final.close()
