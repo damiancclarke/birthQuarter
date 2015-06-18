@@ -707,12 +707,12 @@ foreach year of numlist 1971(1)1979 {
     gen motherAge   = dmage
     gen fatherAge   = fage11
     gen birthMonth  = birmon
-    gen year        = `year' if datayear == 0
+    gen year        = `year'
     gen twin        = dplural
     gen birthweight = dbirwt if dbirwt>=500 & dbirwt <= 5000
     gen vlbw        = birthweight < 1500 if birthweight != .
     gen lbw         = birthweight < 2500 if birthweight != .
-    gen gestation   = dgestat if dgestat!=99|dgestat!=0
+    gen gestation   = dgestat if dgestat!=99&dgestat!=0
     gen premature   = gestation < 37 if gestation != .
     *gen smoker      = cigar>0 if cigar < 99
     gen female      = csex==2
