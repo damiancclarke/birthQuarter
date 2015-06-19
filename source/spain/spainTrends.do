@@ -163,7 +163,9 @@ lab val educLevel   eL
 
 
 preserve
-collapse (sum) birth, by(goodQuarter educLevel ageGroup)
+collapse premature (sum) birth, by(goodQuarter educLevel ageGroup)
+bys educLevel ageGroup: egen avePrem = mean(premature)
+drop premature
 reshape wide birth, i(educLevel ageGroup) j(goodQuarter)
 gen totalbirths = birth0 + birth1
 replace birth0=round(10000*birth0/totalbirths)/100
@@ -175,21 +177,10 @@ gen str5 b0         = string(birth0, "%05.2f")
 gen str5 b1         = string(birth1, "%05.2f")
 gen str4 difference = string(diff, "%04.2f")
 gen str4 ratio      = string(rati, "%04.2f")
+gen str4 prem       = string(aveP, "%04.2f")
 
-drop totalbirths diff rati birth*
+drop totalbirths diff rati birth* avePrem
 
-#delimit ;
-listtex using "$SUM/PropNoTime.tex", rstyle(tabular) replace
-head("\vspace{8mm}\begin{table}[htpb!]"
-     "\centering\caption{Percent of Births per Cell (All Years)}"
-     "\begin{tabular}{llcccc}\toprule"
-     "Age Group &College&Bad Quarters&Good Quarters&Difference&Ratio \\ \midrule")
-foot("\midrule\multicolumn{6}{p{9cm}}{\begin{footnotesize}\textsc{Notes:}"
-     "Good Quarters refer to birth quarters 2 and 3, while Bad Quarters refer"
-     "to quarters 4 and 1. All values reflect the percent of births for this"
-     "age group and education level."
-     "\end{footnotesize}}\\ \bottomrule\end{tabular}\end{table}");
-#delimit cr
 decode ageGroup, gen(ag)
 decode educLevel, gen(el)
 egen group=concat(ag el)
@@ -200,7 +191,9 @@ outsheet using "$SUM/EducSample.txt", delimiter("&") replace noquote
 restore
 
 preserve
-collapse (sum) birth, by(goodQuarter educLevel)
+collapse premature (sum) birth, by(goodQuarter educLevel)
+bys educLevel: egen avePrem = mean(premature)
+drop premature
 reshape wide birth, i(educLevel) j(goodQuarter)
 gen totalbirths = birth0 + birth1
 replace birth0=round(10000*birth0/totalbirths)/100
@@ -212,21 +205,10 @@ gen str5 b0         = string(birth0, "%05.2f")
 gen str5 b1         = string(birth1, "%05.2f")
 gen str4 difference = string(diff, "%04.2f")
 gen str4 ratio      = string(rati, "%04.2f")
+gen str4 prem       = string(aveP, "%04.2f")
 
-drop totalbirths diff rati birth*
+drop totalbirths diff rati birth* avePrem
 
-#delimit ;
-listtex using "$SUM/PropNoTimeEduc`app'.tex", rstyle(tabular) replace
-head("\vspace{8mm}\begin{table}[htpb!]"
-     "\centering\caption{Percent of Births per Cell (All Years)}"
-     "\begin{tabular}{lcccc}\toprule"
-     "College&Bad Quarters&Good Quarters&Difference&Ratio \\ \midrule")
-foot("\midrule\multicolumn{5}{p{9cm}}{\begin{footnotesize}\textsc{Notes:}"
-     "Good Quarters refer to birth quarters 2 and 3, while Bad Quarters refer"
-     "to quarters 4 and 1. All values reflect the percent of births for this"
-     "age group and education level."
-     "\end{footnotesize}}\\ \bottomrule\end{tabular}\end{table}");
-#delimit cr
 decode educLevel, gen(el)
 order el
 drop educLevel
@@ -236,7 +218,10 @@ restore
 
 preserve
 drop if educLevel==.
-collapse (sum) birth, by(goodQuarter ageGroup)
+collapse premature (sum) birth, by(goodQuarter ageGroup)
+bys ageGroup: egen avePrem = mean(premature)
+drop premature
+
 reshape wide birth, i( ageGroup) j(goodQuarter)
 gen totalbirths = birth0 + birth1
 replace birth0=round(10000*birth0/totalbirths)/100
@@ -245,20 +230,9 @@ gen diff            = birth1 - birth0
 gen rati            = birth1 / birth0
 gen str4 difference = string(diff, "%04.2f")
 gen str4 ratio      = string(rati, "%04.2f")
-drop totalbirths diff rati
+gen str4 prem       = string(aveP, "%04.2f")
+drop totalbirths diff rati avePrem
 
-#delimit ;
-listtex using "$SUM/PropNoTime2`app'.tex", rstyle(tabular) replace
-head("\vspace{8mm}\begin{table}[htpb!]"
-     "\centering\caption{Percent of Births per Cell (All Years)}"
-     "\begin{tabular}{lcccc}\toprule"
-     "Age Group &Bad Season&Good Season&Difference&Ratio \\ \midrule")
-foot("\midrule\multicolumn{5}{p{9.5cm}}{\begin{footnotesize}\textsc{Notes:}"
-     "Good Quarters refer to birth quarters 2 and 3, while Bad Quarters refer"
-     "to quarters 4 and 1. All values reflect the percent of births for this"
-     "age group and education level."
-     "\end{footnotesize}}\\ \bottomrule\end{tabular}\end{table}");
-#delimit cr
 outsheet using "$SUM/FullSample`app'.txt", delimiter("&") replace noquote
 restore
 
