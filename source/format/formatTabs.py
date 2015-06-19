@@ -494,3 +494,30 @@ for table in TABLES:
                     +table+'}\n\\end{landscape}\n')
     i = i+1
 final.close()
+
+
+#==============================================================================
+#== (X) write appendixTables.tex file
+#==============================================================================
+loc70 = './../results/1970s/regressions/'
+loc90 = './../results/1990s/regressions/'
+locB2 = './../results/bord2/regressions/'
+final = open(TAB + 'appendixTables.tex', 'w')
+
+TABLES = [loc2 + 'NVSSBinaryFDeaths.tex' , locB2+'NVSSBinary.tex'        ,
+          locB2+ 'NVSSQualityEducAll.tex',
+          loc70+'NVSSBinary.tex'         , loc90+'NVSSBinary.tex'        ,  
+          loc70+'NVSSseasonMLogit.tex'   , loc90+'NVSSseasonMLogit.tex'  ,
+          loc70+'QualityAllCombnoFE.tex' , loc90+'QualityAllCombnoFE.tex'
+]
+
+i = 1
+for table in TABLES:
+    if i==1 or i==2 or i==6 or i==7:
+        final.write('\\input{'
+                    +table+'}\n')
+    if i==3 or i==4 or i==5 or i>=8:
+        final.write('\\begin{landscape}\n\\input{'
+                    +table+'}\n\\end{landscape}\n')
+    i = i+1
+final.close()

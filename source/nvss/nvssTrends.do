@@ -192,8 +192,8 @@ restore
 ********************************************************************************
 *** (2aii) Summary stats table
 ********************************************************************************
-gen young   = ageGroup==1 | ageGroup==2
-gen college = educLevel==1|educLevel==2 if educLevel!=.
+gen young   = ageGroup==1 
+gen college = educLevel==2 if educLevel!=.
 gen educCat = 4 if education==1
 replace educCat = 10 if education == 2
 replace educCat = 12 if education == 3
@@ -263,10 +263,10 @@ lab var ageGroup     "Categorical age group"
 lab var period       "Period of time considered (pre/crisis/post)"
 lab var educLevel    "Level of education obtained by mother"
 
-
 ********************************************************************************
 *** (3) Descriptives by month
 ********************************************************************************
+tab young
 preserve
 collapse (sum) birth, by(birthMonth young)
 
@@ -317,14 +317,18 @@ scheme(s1mono) ytitle("% Premature");
 graph export "$OUT/prematureQOB.eps", as(eps) replace;
 #delimit cr
 restore
-exit
+
 ********************************************************************************
 *** (4) Sumstats all periods together
 ********************************************************************************
 preserve
 drop if educLevel==.
-collapse (sum) birth, by(goodQuarter educLevel ageGroup)
+collapse premature infertTreat (sum) birth, by(goodQuarter educLevel ageGroup)
+bys ageGroup educLevel: egen aveprem = mean(premature)
+bys ageGroup educLevel: egen aveART = mean(infertTreat)
+drop premature infertTreat
 reshape wide birth, i(educLevel ageGroup) j(goodQuarter)
+
 gen totalbirths = birth0 + birth1
 replace birth0=round(10000*birth0/totalbirths)/100
 replace birth1=round(10000*birth1/totalbirths)/100
@@ -335,8 +339,9 @@ gen str5 b0         = string(birth0, "%05.2f")
 gen str5 b1         = string(birth1, "%05.2f")
 gen str4 difference = string(diff, "%04.2f")
 gen str4 ratio      = string(rati, "%04.2f")
-
-drop totalbirths diff rati birth*
+gen str4 prem       = string(aveprem, "%04.2f")
+gen str4 ART        = string(aveART, "%04.2f")
+drop totalbirths diff rati birth* ave*
     
 decode ageGroup, gen(ag)
 decode educLevel, gen(el)
@@ -349,7 +354,10 @@ restore
 
 preserve
 drop if educLevel==.
-collapse (sum) birth, by(goodQuarter educLevel)
+collapse premature infertTreat (sum) birth, by(goodQuarter educLevel)
+bys educLevel: egen aveprem = mean(premature)
+bys educLevel: egen aveART = mean(infertTreat)
+drop premature infertTreat
 reshape wide birth, i(educLevel) j(goodQuarter)
 gen totalbirths = birth0 + birth1
 replace birth0=round(10000*birth0/totalbirths)/100
@@ -361,8 +369,9 @@ gen str5 b0         = string(birth0, "%05.2f")
 gen str5 b1         = string(birth1, "%05.2f")
 gen str4 difference = string(diff, "%04.2f")
 gen str4 ratio      = string(rati, "%04.2f")
-
-drop totalbirths diff rati birth*
+gen str4 prem       = string(aveprem, "%04.2f")
+gen str4 ART        = string(aveART, "%04.2f")
+drop totalbirths diff rati birth* ave*
     
 decode educLevel, gen(el)
 order el
@@ -373,8 +382,11 @@ restore
 
 preserve
 drop if educLevel==.
-collapse (sum) birth, by(goodQuarter ageGroup)
-reshape wide birth, i( ageGroup) j(goodQuarter)
+collapse premature infertTreat (sum) birth, by(goodQuarter ageGroup)
+bys ageGroup: egen aveprem = mean(premature)
+bys ageGroup: egen aveART = mean(infertTreat)
+drop premature infertTreat
+reshape wide birth, i(ageGroup) j(goodQuarter)
 gen totalbirths = birth0 + birth1
 replace birth0=round(10000*birth0/totalbirths)/100
 replace birth1=round(10000*birth1/totalbirths)/100
@@ -382,7 +394,9 @@ gen diff            = birth1 - birth0
 gen rati            = birth1 / birth0
 gen str4 difference = string(diff, "%04.2f")
 gen str4 ratio      = string(rati, "%04.2f")
-drop totalbirths diff rati
+gen str4 prem       = string(aveprem, "%04.2f")
+gen str4 ART        = string(aveART, "%04.2f")
+drop totalbirths diff rati ave*
 
 outsheet using "$SUM/FullSample`app'.txt", delimiter("&") replace noquote
 restore
@@ -403,7 +417,7 @@ esttab using "$SUM/nvssARTPrem.tex", title("ART and Premature")/*
     */ cells("mean(fmt(2)) sd(fmt(2))") replace label noobs
 drop _p* _i*
 
-    
+
 ********************************************************************************
 *** (5a) Global histogram
 ********************************************************************************

@@ -162,7 +162,7 @@ lab var badExpectBad       "Bad Season (due in bad)"
 lab var Qgoodbad           "Bad Season (due in good)"
 lab var Qbadbad            "Bad Season (due in bad)"
 lab var Qbadgood           "Good Season (due in bad)"
-/*
+
 ********************************************************************************
 *** (3a) Examine missing covariates
 ********************************************************************************
@@ -317,6 +317,7 @@ replace seasonType = 3 if Qbadgood   == 1
 replace seasonType = 4 if Qbadbad    == 1
 replace seasonType = . if seasonType == 0
 local cnew `cnd'&seasonType>1
+lab var smoker "Smoked during pregnancy"
 
 mlogit seasonType young highEd married smoker `yFE' `cnd', vce(robust)
 eststo mlogit
@@ -334,7 +335,7 @@ replace `estopt' style(tex) keep(young highEd married smoker)
 mtitles("Good,Bad" "Bad,Good" "Bad,Bad")
 title("Birth Season Predictors (Multinomial Logit)") 
 postfoot("\bottomrule"
-         "\multicolumn{4}{p{10.2cm}}{\begin{footnotesize} Estimated average   "
+         "\multicolumn{4}{p{11.2cm}}{\begin{footnotesize} Estimated average   "
          "marginal effects are reported. Standard errors for marginal effects "
          "are calculated using the delta method. Year fixed effects included  "
          "(not reported). `Good,Bad' refers to expected in good, born in bad, "
@@ -343,7 +344,6 @@ postfoot("\bottomrule"
          "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
 #delimit cr
 estimates clear
-*/
 
 
 ********************************************************************************
@@ -398,18 +398,18 @@ eststo: areg birthweight `seasons' `cont' `yFE' `cnd'&young==0, `se' `aa'
 #delimit ;
 esttab est1 est2 est3 est4 est5 est6 using "$OUT/QualityAllComb.tex", replace
 cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) collabels(none) label
-stats (r2 N, fmt(%9.4f %9.0g) label(R-squared Observations)) booktabs            
-starlevel ("*" 0.10 "**" 0.05 "***" 0.01) style(tex) mlabels(, depvar)
+stats (r2 N, fmt(%9.2f %9.0g) label(R-squared Observations)) booktabs            
+starlevel ("*" 0.10 "**" 0.05 "***" 0.01) style(tex)
 title("Birth Quality by Age and Season") keep(_cons young `seasons' `cont')  
 mtitles("No Gest" "Gestation" "No Gest" "Gestation" "No Gest" "Gestation")
 mgroups("All" "Young" "Old", pattern(1 0 1 0 1 0)
 prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(r){@span}))
-postfoot("Age &All&All&Young&Young&Old&Old \\ \bottomrule"
-         "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Sample consists of all"
-         "first born children of US-born, white, non-hispanic mothers. Bad "
-         "Season (due in bad) is a dummy for children expected and born in"
-         "quarters 1 or 4, while Bad Season (due in good) is a dummy for "
-         "children expected in quarters 2 or 3, but were born prematurely in "
+postfoot("\bottomrule"
+         "\multicolumn{7}{p{20.2cm}}{\begin{footnotesize}Sample consists of all"
+         "first born children of US-born, white, non-hispanic mothers. Bad     "
+         "Season (due in bad) is a dummy for children expected and born in     "
+         "quarters 1 or 4, while Bad Season (due in good) is a dummy for       "
+         "children expected in quarters 2 or 3, but were born prematurely in   "
          "quarters 1 or 4.  For each outcome, the first column is unconditional"
          "on gestation while the second column includes fixed effects for weeks"
          " of gestation.\end{footnotesize}}\end{tabular}\end{table}");
@@ -417,8 +417,6 @@ postfoot("Age &All&All&Young&Young&Old&Old \\ \bottomrule"
 estimates clear
 
 
-
-exit
 ********************************************************************************
 *** (6) Appendix including fetal deaths
 ********************************************************************************
@@ -474,7 +472,7 @@ estimates clear
 ********************************************************************************
 *** (7) 1970, 1990 regs
 ********************************************************************************
-foreach syear of numlist 1970 {
+foreach syear of numlist 1990 1970 {
     use "$DAT/nvss`syear's", clear
     keep if birthOrder==1 & motherAge>24
     global OUT "~/investigacion/2015/birthQuarter/results/`syear's/regressions"
@@ -564,11 +562,11 @@ foreach syear of numlist 1970 {
 
     #delimit ;
     esttab est1 est2 est3 est4 est5 using "$OUT/NVSSBinary.tex",
-    replace `estopt' title("Birth Season and Age") booktabs 
+    replace `estopt' title("Birth Season and Age: `syear'") booktabs 
     keep(_cons young highEd married) style(tex) mlabels(, depvar)
     postfoot("Year FE&&Y&Y&Y&Y\\ State FE&&&&&Y\\ \bottomrule"
-         "\multicolumn{6}{p{12cm}}{\begin{footnotesize}Sample consists of all"
-         "first born children of US-born, white, non-hispanic mothers in the "
+         "\multicolumn{6}{p{15.6cm}}{\begin{footnotesize}Sample consists of all"
+         "first born children of US-born, white, non-hispanic mothers in the   "
          "`syear'. \end{footnotesize}}\end{tabular}\end{table}");
     #delimit cr
     estimates clear
@@ -576,6 +574,7 @@ foreach syear of numlist 1970 {
     ****************************************************************************
     *** (7b) Mlogit
     ****************************************************************************
+    /*
     gen     seasonType = 1 if Qgoodgood  == 1
     replace seasonType = 2 if Qgoodbad   == 1
     replace seasonType = 3 if Qbadgood   == 1
@@ -610,16 +609,18 @@ foreach syear of numlist 1970 {
     mtitles("Good,Bad" "Bad,Good" "Bad,Bad" "Good,Bad" "Bad,Good" "Bad,Bad")
     mgroups("No State FE" "State FE", pattern(1 0 0 1 0 0)
     prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
-    title("Birth Season Predictors (Multinomial Logit)") 
+    title("Birth Season Predictors (Multinomial Logit): `syear'") 
     postfoot("\bottomrule"
-         "\multicolumn{4}{p{12cm}}{\begin{footnotesize} Year fixed effects"
-         "included.  Robust standard errors estimated.  Good, Bad refers to"
-         "expected in good season and born in bad season. Expected in good and"
-         "born in good is the omitted base outcome."
+         "\multicolumn{7}{p{16cm}}{\begin{footnotesize} Estimated average   "
+         "marginal effects are reported. Standard errors for marginal effects "
+         "are calculated using the delta method. Year fixed effects included  "
+         "(not reported). `Good,Bad' refers to expected in good, born in bad, "
+         "and similar for other columns. Expected in good and born in good is "
+         "the omitted base outcome."
          "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
     #delimit cr
     estimates clear
-
+    */
     ****************************************************************************
     *** (7c) Quality regs
     ****************************************************************************
@@ -639,18 +640,24 @@ foreach syear of numlist 1970 {
         eststo: areg birthweight `seasons' `cont' `FEs' `cnd'&young==0, `se' `aa'
 
         #delimit ;
-        esttab est1 est2 est3 est4 est5 est6 using "$OUT/QualityAllComb`method'.tex", 
-        `estopt' title("Birth Quality by Age and Season")
-        keep(_cons young `seasons' `cont') style(tex) mlabels(, depvar) replace 
-        postfoot("Age &All&All&Young&Young&Old&Old \\ \bottomrule"
-         "\multicolumn{7}{p{10cm}}{\begin{footnotesize}Sample consists of all"
-         "first born children of US-born, white, non-hispanic mothers."
-         "Bad Season (due in bad) is a dummy for children expected and born in"
-         "quarters 1 or 4, while Bad Season (due in good) is a dummy for children"
-         "expected in quarters 2 or 3, but were born prematurely in quarters 1 or"
-         "4.  For each outcome, the first column is unconditional on gestation wh"
-         "ile the second column includes fixed effects for weeks of gestation."
-         "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
+        esttab est1 est2 est3 est4 est5 est6 using "$OUT/QualityAllComb`method'.tex",
+        replace cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) collabels(none)
+        label stats (r2 N, fmt(%9.2f %9.0g) label(R-squared Observations)) booktabs            
+        starlevel ("*" 0.10 "**" 0.05 "***" 0.01) style(tex)
+        title("Birth Quality by Age and Season: `syear'")
+        keep(_cons young `seasons' `cont')
+        mtitles("No Gest" "Gestation" "No Gest" "Gestation" "No Gest" "Gestation")
+        mgroups("All" "Young" "Old", pattern(1 0 1 0 1 0)
+        prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(r){@span}))
+        postfoot("\bottomrule"
+         "\multicolumn{7}{p{20.2cm}}{\begin{footnotesize}Sample consists of all"
+         "first born children of US-born, white, non-hispanic mothers. Bad     "
+         "Season (due in bad) is a dummy for children expected and born in     "
+         "quarters 1 or 4, while Bad Season (due in good) is a dummy for       "
+         "children expected in quarters 2 or 3, but were born prematurely in   "
+         "quarters 1 or 4.  For each outcome, the first column is unconditional"
+         "on gestation while the second column includes fixed effects for weeks"
+         " of gestation.\end{footnotesize}}\end{tabular}\end{table}");
         #delimit cr
         estimates clear
     }
