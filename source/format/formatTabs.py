@@ -60,9 +60,9 @@ tr   = '\\toprule'
 br   = '\\bottomrule'
 mc1  = '\\multicolumn{'
 mc2  = '}}'
-twid = ['10','6','7','7','7','5']
+twid = ['10','6','7','7','7','6']
 tcm  = ['}{p{16.6cm}}','}{p{14.2cm}}','}{p{16.4cm}}','}{p{17.6cm}}'
-        ,'}{p{12.8cm}}','}{p{9.8cm}}']
+        ,'}{p{12.8cm}}','}{p{12.8cm}}']
 mc3  = '{\\begin{footnotesize}\\textsc{Notes:} '
 lname = "Fertility$\\times$desire"
 tname = "Twin$\\times$desire"
@@ -147,30 +147,30 @@ NVe = open(singleEducSpain, 'r').readlines()
 NVj = open(allEducSpain,    'r').readlines()
 
 
-sumT.write("\\begin{landscape}\\begin{table}[htpb!]"
+sumT.write("\\begin{table}[htpb!]"
            "\\caption{Percent of Births, Singletons} \n"
            "\\label{bqTab:SpainSum}\\begin{center}"
-           "\\begin{tabular}{lcccc}\n\\toprule \\toprule \n"
-           "& Bad    & Good   & Diff. & Ratio \\\\\n"
-           "& Season & Season &       &       \\\\\\midrule"
-           "\multicolumn{5}{l}{\\textsc{Panel A: By Age Groups}}\\\\"
-           "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
+           "\\begin{tabular}{lccccc}\n\\toprule \\toprule \n"
+           "& Bad    & Good   & Diff. & Ratio & Premature \\\\\n"
+           "& Season & Season &       &       & ($<$ 37 weeks)\\\\\\midrule"
+           "\multicolumn{6}{l}{\\textsc{Panel A: By Age Groups}}\\\\"
+           "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*5+
            "\\begin{footnotesize}\\end{footnotesize}\\\\ \n")
     
 sumT.write(NV[1]+'\\\\ \n'
-           +NV[2]+'\\\\ \n &&&& \\\\'
-           "\multicolumn{5}{l}{\\textsc{Panel B: By Education}}\\\\"
-           "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
+           +NV[2]+'\\\\ \n &&&&& \\\\'
+           "\multicolumn{6}{l}{\\textsc{Panel B: By Education}}\\\\"
+           "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*5+
            "\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
            NVj[1]+'\\\\ \n'+
-           NVj[2]+'\\\\ \n &&&& \\\\'
-           "\multicolumn{5}{l}{\\textsc{Panel C: By Age and Education}}\\\\"
-           "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
+           NVj[2]+'\\\\ \n &&&&& \\\\'
+           "\multicolumn{6}{l}{\\textsc{Panel C: By Age and Education}}\\\\"
+           "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*5+
            "\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
            NVe[1]+'\\\\ \n'+
            NVe[2]+'\\\\ \n'+
            NVe[3]+'\\\\ \n'+
-           NVe[4]+'\\\\ \n &&&& \\\\'
+           NVe[4]+'\\\\ \n &&&&& \\\\'
            )
     
     
@@ -181,7 +181,7 @@ sumT.write('\n'+mr+mc1+twid[5]+tcm[5]+mc3+
            "each season in 2013. `Young' refers to 25-39 year olds,"
            " `Old' refers to 40-45 year olds. \n"
            "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}"
-           "\\end{center}\\end{table}\\end{landscape}")
+           "\\end{center}\\end{table}")
     
 sumT.close()
 
@@ -477,22 +477,20 @@ TABLES = [loc1+'sumStats'+ftype+'.tex', loc1+'sumsingle'+ftype+'.tex'  ,
 loc2+'NVSSBinaryMain.tex'             , loc1+'quarterHeterogeneity.tex',
 loc2+'NVSSBinaryEdInteract.tex'       , loc2+'NVSSBinaryYoung34.tex'   , 
 loc2+'NVSSseasonMLogit.tex'           , loc2+'NVSSQualityEduc.tex'     ,
-loc1+'qualityHeterogeneity.tex'       , loc2+'QualityAllComb.tex'
+loc1+'qualityHeterogeneity.tex'       , loc2+'QualityAllComb.tex'      ,
+loc1+'sumStatsSpain.tex'              , loc1+'sumSpain.tex'            ,
+loc3+'spainBinary.tex'                , loc3+'spainQualityEduc.tex'    ,
+loc3+'spainQualityGestFix.tex'
 ]
 
-#            , 
-#         , loc2+'NVSSQualityGFYoung1.tex' ,
-#loc2+'NVSSQualityGFYoung0.tex'        , loc3+'spainBinary.tex'         ,       
-#loc3+'spainQualityEduc.tex'           , loc3+'spainQualityGestFix.tex' ]
-
-itera = 1
+i = 1
 
 for table in TABLES:
-    if itera<4 or itera==5 or itera==6 or itera==7:
+    if i<4 or i==5 or i==6 or i==7 or i==11 or i==12:
         final.write('\\input{'
                     +table+'}\n')
-    if itera==4 or itera==8 or itera==9 or itera==10:
+    if i==4 or i==8 or i==9 or i==10 or i==13 or i==14 or i==15:
         final.write('\\begin{landscape}\n\\input{'
                     +table+'}\n\\end{landscape}\n')
-    itera = itera+1
+    i = i+1
 final.close()
