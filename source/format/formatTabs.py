@@ -61,7 +61,7 @@ br   = '\\bottomrule'
 mc1  = '\\multicolumn{'
 mc2  = '}}'
 twid = ['10','6','7','7','7','5']
-tcm  = ['}{p{16.6cm}}','}{p{14.2cm}}','}{p{16.4cm}}','}{p{16.7cm}}'
+tcm  = ['}{p{16.6cm}}','}{p{14.2cm}}','}{p{16.4cm}}','}{p{17.6cm}}'
         ,'}{p{12.8cm}}','}{p{9.8cm}}']
 mc3  = '{\\begin{footnotesize}\\textsc{Notes:} '
 lname = "Fertility$\\times$desire"
@@ -359,7 +359,7 @@ table = [
 
 samples = [loc+'NVSSQualityMain.tex'   ,loc+'NVSSQualitynon-smoking.tex',
            loc+'NVSSQualitysmoking.tex',loc+'NVSSQuality2012-2013.tex'  ,
-           loc+'NVSSWualitynon-ART.tex',loc+'NVSSQualityART.tex'        ]
+           loc+'NVSSQualitynon-ART.tex',loc+'NVSSQualityART.tex'        ]
 
 ii = 0
 for sample in samples:
@@ -475,20 +475,23 @@ final = open(TAB + "tables"+ ftype +".tex", 'w')
 
 TABLES = [loc1+'sumStats'+ftype+'.tex', loc1+'sumsingle'+ftype+'.tex'  ,
 loc2+'NVSSBinaryMain.tex'             , loc1+'quarterHeterogeneity.tex',
-loc2+'NVSSBinaryEdInteract.tex'       , loc2+'NVSSBinaryYoung34.tex'   ]
+loc2+'NVSSBinaryEdInteract.tex'       , loc2+'NVSSBinaryYoung34.tex'   , 
+loc2+'NVSSseasonMLogit.tex'           , loc2+'NVSSQualityEduc.tex'     ,
+loc1+'qualityHeterogeneity.tex'       , loc2+'QualityAllComb.tex'
+]
 
-#loc2+'NVSSQualityEduc.tex'            , loc1+'qualityHeterogeneity.tex', 
-#loc2+'NVSSQualityGestFix.tex'         , loc2+'NVSSQualityGFYoung1.tex' ,
+#            , 
+#         , loc2+'NVSSQualityGFYoung1.tex' ,
 #loc2+'NVSSQualityGFYoung0.tex'        , loc3+'spainBinary.tex'         ,       
 #loc3+'spainQualityEduc.tex'           , loc3+'spainQualityGestFix.tex' ]
 
 itera = 1
 
 for table in TABLES:
-    if itera<4 or itera==5 or itera==6:
+    if itera<4 or itera==5 or itera==6 or itera==7:
         final.write('\\input{'
                     +table+'}\n')
-    if itera==4:
+    if itera==4 or itera==8 or itera==9 or itera==10:
         final.write('\\begin{landscape}\n\\input{'
                     +table+'}\n\\end{landscape}\n')
     itera = itera+1
