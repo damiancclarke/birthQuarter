@@ -26,7 +26,7 @@ cap mkdir "$OUT"
 local qual birthweight lbw vlbw gestation premature cesarean
 local data births2013
 local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats /*
-*/           (r2 N, fmt(%9.2f %9.0g) label(R-squared Observations))     /*
+*/           (N, fmt(%9.0g) label(R-squared Observations))              /*
 */           starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(none) label
 local FE    i.birthProvince
 local se    robust
@@ -109,7 +109,7 @@ lab var female             "Female"
 ********************************************************************************
 *** (3) Summary stats
 ********************************************************************************
-local sumM ageMother married college yrsEducMother professional 
+local sumM ageMother young married college yrsEducMother professional 
 local sumK goodQuarter birthweight lbw gestat premature female cesarean
 
 foreach sumS in sumM sumK {
@@ -377,11 +377,16 @@ eststo: reg  birthweight `seasons' `cont' `cnd'&young==0, `se'
 eststo: areg birthweight `seasons' `cont' `cnd'&young==0, `se' `aa'
 
 #delimit ;
-esttab est1 est2 est3 est4 est5 est6 using "$OUT/spainQualityGestFix.tex", 
-replace `estopt' title("Birth Quality by Age and Season")
-keep(_cons young `seasons' `cont') style(tex) mlabels(, depvar)
-postfoot("Age & All & All & Young & Young & Old & Old \\ \bottomrule"
-         "\multicolumn{7}{p{11.2cm}}{\begin{footnotesize}Sample consists of all"
+esttab est1 est2 est3 est4 est5 est6 using "$OUT/spainQualityGestFix.tex",
+replace  title("Birth Quality by Age and Season") collabels(none) label
+cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) style(tex)
+stats (r2 N, fmt(%9.2f %9.0g) label(R-squared Observations))
+mtitles("No Gest" "Gestation" "No Gest" "Gestation" "No Gest" "Gestation")
+keep(_cons young `seasons' `cont') starlevel ("*" 0.10 "**" 0.05 "***" 0.01)
+mgroups("All" "Young" "Old", pattern(1 0 1 0 1 0)
+prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(r){@span}))
+postfoot("\bottomrule"
+         "\multicolumn{7}{p{20cm}}{\begin{footnotesize}Sample consists of all  "
          "first born children of Spanish mothers. Bad Season (due in bad) is a "
          "dummy for children expected and born in quarters 1 or 4, while Bad   "
          "Season (due in good) is a dummy for children expected in quarters 2  "
