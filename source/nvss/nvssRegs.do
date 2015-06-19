@@ -20,7 +20,7 @@ global DAT "~/investigacion/2015/birthQuarter/data/nvss"
 global OUT "~/investigacion/2015/birthQuarter/results/nvss/regressions"
 global LOG "~/investigacion/2015/birthQuarter/log"
 
-log using "$LOG/nvssRegs.txt", text replace
+log using "$LOG/nvssRegs2.txt", text replace
 cap mkdir "$OUT"
 
 local qual birthweight lbw vlbw gestation premature apgar 
@@ -307,7 +307,7 @@ foreach cond of local c1 {
     macro shift
 }
 
-
+/*
 ********************************************************************************
 *** (4c) Multinomial logit for expected/realised
 ********************************************************************************
@@ -341,28 +341,32 @@ postfoot("\bottomrule"
          "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
 #delimit cr
 estimates clear
+*/
 
-exit
 
 ********************************************************************************
-*** (4b) Regressions (Quality on Age, season)
+*** (5) Regressions (Quality on Age, season)
 ********************************************************************************
 local c1    twin==1 smoker==0&twin==1 smoker==1&twin==1 year>=2012&twin==1    /*
             */ infertTreat==0&twin==1 infertTreat==0&twin==1 twin==2
 local vars  young badQuarter highEd married smoker
-local names Main non-smoker smoker 2012-2013 non-ART ART Twin
+local names Main non-smoking smoking 2012-2013 non-ART ART Twin
 tokenize `names'
 
 
 foreach cond of local c1 {
     dis "`1'"
     foreach y of varlist `qual' {
-        eststo: reg `y' `vars' `yFE' `cond', `se'
+        eststo: reg `y' `vars' `yFE' if `cond', `se'
     }
+
+    local Ovars _cons young highEd married smoker
+    if `"`1'"'=="non-smoking"|`"`1'"'=="smoking" local Ovars _cons young highEd    
+    
     #delimit ;
     esttab est1 est2 est3 est4 est5 est6 using "$OUT/NVSSQuality`1'.tex",
     replace `estopt' title("Birth Quality by Age and Season (`1' sample)")
-    keep(_cons `vars') style(tex) mlabels(, depvar) booktabs
+    keep(_cons `Ovars') style(tex) mlabels(, depvar) booktabs
     postfoot("\bottomrule"
              "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Sample consists of "
              "all first born children of US-born, white, non-hispanic mothers."
@@ -374,7 +378,7 @@ foreach cond of local c1 {
 }
 
 ********************************************************************************
-*** (5) Redefine bad season as bad season due to short gestation, and bad season
+*** (5a) Redefine bad season as bad season due to short gest, and bad season
 ********************************************************************************
 local cont highEd married smoker
 local seasons Qgoodbad Qbadgood Qbadbad
@@ -388,11 +392,16 @@ eststo: reg  birthweight `seasons' `cont' `yFE' `cnd'&young==0, `se'
 eststo: areg birthweight `seasons' `cont' `yFE' `cnd'&young==0, `se' `aa'
 
 #delimit ;
-esttab est1 est2 est3 est4 est5 est6 using "$OUT/QualityAllComb.tex", 
-`estopt' title("Birth Quality by Age and Season") booktabs
-keep(_cons young `seasons' `cont') style(tex) mlabels(, depvar) replace 
+esttab est1 est2 est3 est4 est5 est6 using "$OUT/QualityAllComb.tex", replace
+cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) collabels(none) label
+stats (r2 N, fmt(%9.4f %9.0g) label(R-squared Observations)) booktabs            
+starlevel ("*" 0.10 "**" 0.05 "***" 0.01) style(tex) mlabels(, depvar)
+title("Birth Quality by Age and Season") keep(_cons young `seasons' `cont')  
+mtitles("No Gest" "Gestation" "No Gest" "Gestation" "No Gest" "Gestation")
+mgroups("All" "Young" "Old", pattern(1 0 1 0 1 0)
+prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(r){@span}))
 postfoot("Age &All&All&Young&Young&Old&Old \\ \bottomrule"
-         "\multicolumn{7}{p{10cm}}{\begin{footnotesize}Sample consists of all"
+         "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of US-born, white, non-hispanic mothers. Bad "
          "Season (due in bad) is a dummy for children expected and born in"
          "quarters 1 or 4, while Bad Season (due in good) is a dummy for "
