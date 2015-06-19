@@ -162,7 +162,7 @@ lab var badExpectBad       "Bad Season (due in bad)"
 lab var Qgoodbad           "Bad Season (due in good)"
 lab var Qbadbad            "Bad Season (due in bad)"
 lab var Qbadgood           "Good Season (due in bad)"
-
+/*
 ********************************************************************************
 *** (3a) Examine missing covariates
 ********************************************************************************
@@ -307,7 +307,7 @@ foreach cond of local c1 {
     macro shift
 }
 
-/*
+
 ********************************************************************************
 *** (4c) Multinomial logit for expected/realised
 ********************************************************************************
@@ -330,14 +330,16 @@ foreach o in 2 3 4 {
     
 #delimit ;
 esttab sm2 sm3 sm4 using "$OUT/NVSSseasonMLogit.tex",
-replace `estopt' style(tex) keep(young highEd married)
+replace `estopt' style(tex) keep(young highEd married smoker)
 mtitles("Good,Bad" "Bad,Good" "Bad,Bad")
 title("Birth Season Predictors (Multinomial Logit)") 
 postfoot("\bottomrule"
-         "\multicolumn{4}{p{12cm}}{\begin{footnotesize} Year fixed effects"
-         "included.  Robust standard errors estimated.  Good, Bad refers to"
-         "expected in good season and born in bad season. Expected in good and"
-         "born in good is the omitted base outcome."
+         "\multicolumn{4}{p{10.2cm}}{\begin{footnotesize} Estimated average   "
+         "marginal effects are reported. Standard errors for marginal effects "
+         "are calculated using the delta method. Year fixed effects included  "
+         "(not reported). `Good,Bad' refers to expected in good, born in bad, "
+         "and similar for other columns. Expected in good and born in good is "
+         "the omitted base outcome."
          "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
 #delimit cr
 estimates clear
@@ -360,8 +362,10 @@ foreach cond of local c1 {
         eststo: reg `y' `vars' `yFE' if `cond', `se'
     }
 
-    local Ovars _cons young highEd married smoker
-    if `"`1'"'=="non-smoking"|`"`1'"'=="smoking" local Ovars _cons young highEd    
+    local Ovars _cons young badQuarter highEd married smoker
+    if `"`1'"'=="non-smoking"|`"`1'"'=="smoking" {
+        local Ovars _cons young badQuarter highEd
+    }
     
     #delimit ;
     esttab est1 est2 est3 est4 est5 est6 using "$OUT/NVSSQuality`1'.tex",
