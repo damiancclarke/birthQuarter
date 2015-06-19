@@ -39,7 +39,6 @@ local datMEX MexNacimientos_2000-2005
 *** (2) Chile
 ********************************************************************************
 use "$CHI/`datCHI'"
-keep if ano_nac>2004
 keep if edad_m>24&edad_m<46 & tipo_parto==1
 gen young = edad_m<40
 gen birthMonth   = mes_nac
@@ -86,8 +85,14 @@ save `USA'
 
 
 ********************************************************************************
-*** (7) Make individual graphs
+*** (6) Make individual graphs
 ********************************************************************************
+*data from WB climate change portal (amazing data with temps of all lat/long)
+local Chileweather  12.4 11.9 10.8 8.4 6.1 4.3 3.9 4.7 6.1 7.9 9.7 11.4
+local Spainweather  7 8.2 10.7 12.2 15.8 20.1 22.9 23.1 19.6 15.2 10.5 7.6
+local Mexicoweather 16.1 17.5 19.5 22.1 24.4 25.9 25.9 25.7 24.6 22.2 18.7 16.2
+local USAweather    -4.8 -2.8 0.8 6.5 12.5 17.4 20 19.1 14.9 8 1 -3.6 
+
 foreach cc in Spain USA Chile Mexico {
     use ``cc''
 
@@ -97,7 +102,16 @@ foreach cc in Spain USA Chile Mexico {
     
         preserve
         collapse (sum) birth, by(birth`period' young)
-
+        if `"`period'"'=="Month" {
+            gen temperature = .
+            local i = 1
+            foreach t of local `cc'weather {
+                replace temperature = `t' if birthMonth == `i'
+                local ++i
+            }
+            lab var temperature "Temperature (C)"
+            tab temperature
+        }
 
         bys young: egen totalBirths = sum(birth)
         replace birth = birth/totalBirths
@@ -142,18 +156,32 @@ foreach cc in Spain USA Chile Mexico {
             local name Old
             if `num'==1 local name Young
             #delimit ;
-            twoway bar birth birth`period' if young==`num', bcolor(ltblue) ||
+            twoway bar birth birth`period' if young==`num', bcolor(black) ||
                 line expectedProp birth`period' if young==`num', scheme(s1mono) 
             lcolor(black) xlabel(1(1)`Nn', valuelabels) ytitle("Proportion")
             xtitle("`period' of Birth") lpattern(dash) ylabel(`sc1');
             graph export "$OUT/births`period'`cc'`name'.eps", as(eps) replace;
 
-            twoway bar excessBirths birth`period' if young==`num', bcolor(ltblue)
-            xlabel(1(1)`Nn', valuelabels) ytitle("Proportion") scheme(s1mono)
-            xtitle("`period' of Birth") yline(0, lpattern(dash) lcolor(black)) 
-            ytitle("Proportion Excess Births (Actual-Expected)") ylabel(`sc2');
+            twoway bar excessBirths birth`period' if young==`num', bcolor(black)
+            xlabel(1(1)`Nn', valuelabels angle(90)) ytitle("Proportion") 
+            xtitle("") yline(0, lpattern(dash) lcolor(black)) title(`cc')
+            ytitle("Proportion Excess Births") ylabel(`sc2') scheme(s1mono)
+            saving($OUT/`cc'`period'Excess`num', replace);
             graph export "$OUT/excess`period'`cc'`name'.eps", as(eps) replace;
             #delimit cr
+            if `"`period'"'=="Month" {
+                #delimit ;
+                twoway bar excessB birth`period' if young==`num', bcolor(black)
+                yaxis(1) || line temper birth`period' if young==`num', yaxis(2)
+                legend(off) title(`cc') lpattern(dash) lcolor(black)
+                xlabel(1(1)`Nn', valuelabels angle(90)) ytitle("Proportion") 
+                xtitle("") yline(0, lpattern(dash) lcolor(black)) 
+                ytitle("Proportion Excess Births") ylabel(`sc2') scheme(s1mono)
+                saving($OUT/`cc'`period'Excess`num'T, replace);
+                graph export "$OUT/excess`period'`cc'`name'Temp.eps", as(eps)
+                replace;
+                #delimit cr
+            }
         }
         gen country = "`cc'"
         tempfile `period'`cc'
@@ -161,11 +189,42 @@ foreach cc in Spain USA Chile Mexico {
         restore
     }
 }
-exit
 
-    
+graph combine "$OUT/ChileMonthExcess1" "$OUT/SpainMonthExcess1"/*
+*/ "$OUT/MexicoMonthExcess1" "$OUT/USAMonthExcess1", scheme(s1mono)
+graph export "$OUT/combinedMonthExcess.eps", as(eps) replace
 
-*gen birthQuarter = ceil(birthMonth/3)
+graph combine "$OUT/ChileMonthExcess1T" "$OUT/SpainMonthExcess1T"/*
+*/ "$OUT/MexicoMonthExcess1T" "$OUT/USAMonthExcess1T", scheme(s1mono)
+graph export "$OUT/combinedMonthExcessTemp.eps", as(eps) replace
+
+********************************************************************************
+*** (7a) Combine all countries (Months)
+********************************************************************************
+clear
+append using `MonthChile' `MonthMexico' `MonthSpain' `MonthUSA'
+#delimit ;
+line excessBirths birthMonth if country=="Chile" &young==1, lpattern(longdash)  ||
+line excessBirths birthMonth if country=="Mexico"&young==1, lpattern(shortdash) ||
+line excessBirths birthMonth if country=="Spain" &young==1, lpattern(dot)       ||
+line excessBirths birthMonth if country=="USA"   &young==1, 
+ytitle("Excess Births") yline(0, lpattern(dash) lcolor(black)) scheme(s1mono)
+legend(lab(1 "Chile") lab(2 "Mexico") lab(3 "Spain") lab(4 "USA"))
+xtitle("Month of Birth") xlabel(1(1)12, valuelabel);
+graph export "$OUT/excessMonthCountriesYoung.eps", replace as(eps);
+#delimit cr
+
+
+
+********************************************************************************
+*** (7b) Combine all countries (Quarters)
+********************************************************************************
+clear
+append using `QuarterChile' `QuarterMexico' `QuarterSpain' `QuarterUSA'
+graph bar excessBir if young==1, over(birthQuarter) over(country) scheme(s1mono)
+graph export "$OUT/excessQuarterCountriesYoung.eps", replace as(eps)
+
+
 ********************************************************************************
 *** (X) Clean up
 ********************************************************************************
