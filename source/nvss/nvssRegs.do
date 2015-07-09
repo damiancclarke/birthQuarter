@@ -162,7 +162,7 @@ lab var badExpectBad       "Bad Season (due in bad)"
 lab var Qgoodbad           "Bad Season (due in good)"
 lab var Qbadbad            "Bad Season (due in bad)"
 lab var Qbadgood           "Good Season (due in bad)"
-
+/*
 ********************************************************************************
 *** (3a) Examine missing covariates
 ********************************************************************************
@@ -345,12 +345,12 @@ postfoot("\bottomrule"
 #delimit cr
 estimates clear
 
-
+*/
 ********************************************************************************
 *** (5) Regressions (Quality on Age, season)
 ********************************************************************************
 local c1    twin==1 smoker==0&twin==1 smoker==1&twin==1 year>=2012&twin==1    /*
-            */ infertTreat==0&twin==1 infertTreat==0&twin==1 twin==2
+*/ infertTreat==0&twin==1 infertTreat==1&twin==1 twin==2
 local vars  young badQuarter highEd married smoker
 local names Main non-smoking smoking 2012-2013 non-ART ART Twin
 tokenize `names'
@@ -380,7 +380,7 @@ foreach cond of local c1 {
 
     macro shift
 }
-
+exit
 ********************************************************************************
 *** (5a) Redefine bad season as bad season due to short gest, and bad season
 ********************************************************************************
