@@ -61,7 +61,7 @@ br   = '\\bottomrule'
 mc1  = '\\multicolumn{'
 mc2  = '}}'
 twid = ['10','6','7','7','7','6']
-tcm  = ['}{p{16.6cm}}','}{p{14.2cm}}','}{p{16.4cm}}','}{p{17.6cm}}'
+tcm  = ['}{p{16.6cm}}','}{p{14.2cm}}','}{p{16.4cm}}','}{p{18.4cm}}'
         ,'}{p{12.8cm}}','}{p{12.8cm}}']
 mc3  = '{\\begin{footnotesize}\\textsc{Notes:} '
 lname = "Fertility$\\times$desire"
@@ -367,13 +367,13 @@ for sample in samples:
         jj = 0
         work  = open(sample,  'r').readlines()
         for i,line in enumerate(work):
-            if i>=8 and i<=13 or i==15:
-                while jj >= 4 and jj <=9:
+            if i>=8 and i<=15 or i==17:
+                while jj >= 6 and jj <= 9:
                     print jj
                     table[jj]+= '&'
                     jj = jj+1
 
-                line = line.split('&')[2]
+                line = line.split('&')[1]
                 table[jj] += '&'+line
                 jj = jj+1
     else:
@@ -381,7 +381,7 @@ for sample in samples:
         work  = open(sample,  'r').readlines()
         for i,line in enumerate(work):
             if i>=8 and i<=19 or i==21:
-                line = line.split('&')[2]
+                line = line.split('&')[1]
                 table[jj] += '&'+line
                 jj = jj+1
     ii = ii+1
