@@ -127,12 +127,18 @@ lab var meanT       "Mean monthly temperature"
 foreach num of numlist 0 1 {
     local age young
     if `num'==0 local age old
-    
-    scatter goodQuarter cold if young==`num', scheme(s1mono) mlabel(name)
+
+    twoway scatter goodQuarter cold if young==`num', mlabel(name)  ||      ///
+        lfit goodQuarter cold if young==`num', scheme(s1mono) lcolor(gs0)  ///
+        legend(off) lpattern(dash)
     graph export "$OUT/`age'TempCold.eps", as(eps) replace
-    scatter goodQuarter hot if young==`num', scheme(s1mono) mlabel(name)
+    twoway scatter goodQuarter hot if young==`num', mlabel(name)   ||      ///
+        lfit goodQuarter hot if young==`num', scheme(s1mono) lcolor(gs0)   ///
+        legend(off) lpattern(dash)
     graph export "$OUT/`age'TempWarm.eps", as(eps) replace
-    scatter goodQuarter meanT if young==`num', scheme(s1mono) mlabel(name)
+    twoway scatter goodQuarter meanT if young==`num', mlabel(name) ||      ///
+        lfit goodQuarter meanT if young==`num', scheme(s1mono) lcolor(gs0) ///
+        legend(off) lpattern(dash)
     graph export "$OUT/`age'TempMean.eps", as(eps) replace
 }
 restore
