@@ -25,6 +25,7 @@ global DAT "~/investigacion/2015/birthQuarter/data/nvss"
 global OUT "~/investigacion/2015/birthQuarter/results/nvss/graphs"
 global SUM "~/investigacion/2015/birthQuarter/results/nvss/sumStats"
 global LOG "~/investigacion/2015/birthQuarter/log"
+global USW "~/investigacion/2015/birthQuarter/data/weather"
 
 log using "$LOG/nvssTrends.txt", text replace
 cap mkdir "$SUM"
@@ -84,7 +85,7 @@ if `pre4w'==1 {
     global SUM "~/investigacion/2015/birthQuarter/results/pre4w/sumStats"
     local keepif  birthOrder == 1 & gestation <=35
 }    
-
+/*
 ********************************************************************************
 *** (2a) Use, descriptive graph
 ********************************************************************************
@@ -572,12 +573,32 @@ foreach outcome in `hkbirth' {
     macro shift
 }
 restore
-
+*/
 ********************************************************************************
 *** (7) Examine by geographic variation (hot/cold)
 ********************************************************************************
-exit
-cap mkdir "$OUT/maps"
+insheet using "$USW/usaWeather.txt", delim(";") names
+rename fips FIPS
+destring temp, replace
+
+reshape wide temp, i(state FIPS year month) j(type) string
+keep if year>1997&year<=1999
+
+collapse temptmpcst (min) temptminst (max) temptmaxst, by(state FIPS)
+tostring FIPS, replace
+foreach num in 1 2 4 5 6 8 9 {
+    replace FIPS = "0`num'" if FIPS=="`num'"
+}
+expand 2 if FIPS == "24", gen(expanded)
+replace FIPS = "11" if expanded==1
+drop expanded
+rename temptmpcst meanT
+rename temptminst cold
+rename temptmaxst hot
+
+tempfile weather
+save `weather'
+
     
 use "$DAT/nvss1998_1999"
 keep if birthOrder == 1 & motherAge > 24
@@ -590,6 +611,34 @@ tostring FIPS, replace
 foreach num in 1 2 4 5 6 8 9 {
     replace FIPS = "0`num'" if FIPS=="`num'"
 }
+merge m:1 FIPS using `weather'
+drop _merge
+
+lab var goodSeason  "Proportion good season"
+lab var cold        "Coldest monthly average (degree F)"
+lab var hot         "Warmest monthly average (degree F)"
+lab var meanT       "Mean monthly temperature (degree F)"
+
+foreach num of numlist 0 1 {
+    local age young
+    if `num'==0 local age old
+    
+    twoway scatter goodSeason cold if young==`num', mlabel(state) ||      ///
+        lfit goodSeason cold if young==`num', scheme(s1mono) lcolor(gs0)  ///
+            legend(off) lpattern(dash)
+    graph export "$OUT/`age'TempCold.eps", as(eps) replace
+    twoway scatter goodSeason hot if young==`num', mlabel(state)  ||      ///
+        lfit goodSeason hot if young==`num', scheme(s1mono) lcolor(gs0)   ///
+            legend(off) lpattern(dash)
+    graph export "$OUT/`age'TempWarm.eps", as(eps) replace
+    twoway scatter goodSeason meanT if young==`num', mlabel(state)||      ///
+        lfit goodSeason meanT if young==`num', scheme(s1mono) lcolor(gs0) ///
+            legend(off) lpattern(dash)
+    graph export "$OUT/`age'TempMean.eps", as(eps) replace
+}
+exit
+
+
 merge m:1 FIPS using "$DAT/../maps/USdata"
 drop if _merge==2
 drop _merge
