@@ -1,4 +1,4 @@
-# unemployScrape.py              damiancclarke             yyyy-mm-dd:2015-06-14
+# weatherScrape.py               damiancclarke             yyyy-mm-dd:2015-07-16
 #---|----1----|----2----|----3----|----4----|----5----|----6----|----7----|----8
 #
 # This file scrapes USA weather data from the web, where it is stored as text f-
@@ -75,8 +75,6 @@ states = ['01 001 Alabama',
           '02 050 Alaska',
           '99 110 National']
 
-Sfiles  = ['climdiv-tmpcst-v1.0.0-20150706','climdiv-tminst-v1.0.0-20150706',
-           'climdiv-tmaxst-v1.0.0-20150706']
 outdat  = open(DAT + 'usaWeather.txt','w')
 outdat.write('state;FIPS;year;month;type;temp\n')
 
@@ -85,10 +83,10 @@ outdat.write('state;FIPS;year;month;type;temp\n')
 #-------------------------------------------------------------------------------
 for f in ['tmpcst','tminst','tmaxst']:
     print f
-    #data = urllib2.urlopen(WEB+'climdiv-'+f+datVer).read()
-    #outfile  = open(OUT + f, 'w')
-    #outfile.write(data)
-    #outfile.close()
+    data = urllib2.urlopen(WEB+'climdiv-'+f+datVer).read()
+    outfile  = open(OUT + f, 'w')
+    outfile.write(data)
+    outfile.close()
 
 
 #-------------------------------------------------------------------------------
