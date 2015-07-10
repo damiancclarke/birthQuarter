@@ -108,7 +108,7 @@ for s in states:
                     dyear = line[6:10]
                     if str(year) == dyear:
                         temps = line[12:-3]
-                        temp = temps.split('  ')
+                        temp = temps.split()
                         for mn,t in enumerate(temp):
                             mn = mn+1
                             
