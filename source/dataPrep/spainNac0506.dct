@@ -1,0 +1,49 @@
+infile dictionary {  
+*This file reads in Spain nacimiento data from 2013 
+*damiancclarke  
+*yyyy-mm-dd:2015-07-13 
+*damian.clarke@economics.ox.ac.uk  
+
+
+_column(1  )  munp        %3f "Municipio donde ocurrio el parto"
+_column(4  )  provp       %2f "Provincia donde ocurrio el parto"
+_column(6  )  mes         %2f "Mes del parto"
+_column(8  )  anyo        %4f "Anyo del parto"
+_column(12 ) semgest     %2f "Semanas de gestacion"
+_column(14 ) lugar       %1f "Lugar donde ocurrio el parto"
+_column(15 ) asist       %1f "Asistencia sanitaria"
+_column(16 ) multi       %1f "Multiplicidad"
+_column(17 ) maturi      %1f "Maturidad"
+_column(18 ) normal      %1f "Normalidad"
+_column(19 ) mesnm       %2f "Mes nacimiento de la madre"
+_column(21 ) anyonm      %4f "Anyo nacimiento de la madre"
+_column(25 ) profm       %2f "Profesion de la madre"
+_column(27 ) munresm     %3f "Municipio de residencia de la madre"
+_column(30 ) provresm    %2f "Provincia de residencia de la madre"
+_column(32 ) numhiv      %2f "Numero de hijos nacidos vivos"
+_column(34 ) mespant     %2f "Mes del parto anterior"
+_column(36 ) anyopant    %4f "Anyo del parto anterior"
+_column(40 ) casada      %1f "Casada"
+_column(41 ) casadapv    %1f "Casada primera vez"
+_column(42 ) mesmac      %2f "Mes matrimonio actual"
+_column(44 ) anyomac     %4f "Anyo matrimonio actual"
+_column(48 ) mesnp       %2f "Mes nacimiento del padre"
+_column(50 ) anyonp      %4f "Anyo nacimiento del padre"
+_column(54 ) profp       %2f "Profesion del padre"
+_column(56 ) tmuninc     %1f "Tamanyo municipio inscripcion"
+_column(57 ) tmunresm    %1f "Tamanyo municipio de residencia madre"
+_column(58 ) edadm       %2f "Edad madre"
+_column(60 ) edadmcm     %2f "Edad madre al contraer matrimonio"
+_column(62 ) anyoscas    %2f "Anyos de casada"
+_column(64 ) interg      %3f "Intervalo intergenesico"
+_column(67 ) edadp       %2f "Edad padre"  
+_column(69 ) sexo        %1f "Sexo"
+_column(70 ) vivomu      %1f "Vivo o muerto"
+_column(71 ) horavid     %1f "Horas de vida"
+_column(72 ) peso        %4f "Peso en gramos"
+_column(76 ) codcn       %3f "Codigo causa nacimiento"
+_column(79 ) codnac      %1f "4 D Cod Nac"
+_column(80 ) nacmad      %3f "Codigo nacionalidad madre"
+_column(83 ) nacpad      %3f "Codigo nacionalidad padre"
+ 
+ }                                     
