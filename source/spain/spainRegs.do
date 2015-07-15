@@ -24,7 +24,7 @@ log using "$LOG/spainRegs.txt", text replace
 cap mkdir "$OUT"
 
 local qual birthweight lbw vlbw gestation premature cesarean
-local data births2013
+local data births2007-2013
 local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats /*
 */           (N, fmt(%9.0g) label(R-squared Observations))              /*
 */           starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(none) label
@@ -32,10 +32,13 @@ local FE    i.birthProvince
 local se    robust
 local cnd   if twin==0
 
+local JulNov 0
+
 ********************************************************************************
 *** (2a) Open and subset
 ********************************************************************************
 use "$DAT/`data'"
+keep if survived1day == 1
 keep if parity == 1 & motherSpanish == 1 & ageMother>=25 & ageMother<= 45
 destring birthProvince, replace
 
@@ -61,8 +64,6 @@ gen     expectedMonth   = monthBirth + monthsPrem
 replace expectedMonth   = expectedMonth - 12 if expectedMonth>12
 replace expectedMonth   = expectedMonth + 12 if expectedMonth<1
 gen     expectQuarter   = ceil(expectedMonth/3)
-gene    badExpectGood   = badQuarter==1&(expectQuar==2|expectQuar==3) if gest!=.
-gene    badExpectBad    = badQuarter==1&(expectQuar==1|expectQuar==4) if gest!=.
 gen     expectGoodQ     = expectQuarter == 2 | expectQuarter == 3 if gest!=.
 gen     expectBadQ      = expectQuarter == 4 | expectQuarter == 1 if gest!=.
 
@@ -70,6 +71,24 @@ gen     Qgoodgood       = expectGoodQ==1 & goodQuarter==1 if gest!=.
 gen     Qgoodbad        = expectGoodQ==1 & badQuarter ==1 if gest!=.
 gen     Qbadgood        = expectBadQ==1  & goodQuarter==1 if gest!=.
 gen     Qbadbad         = expectBadQ==1  & badQuarter ==1 if gest!=.
+
+
+if `JulNov'==1 {
+    drop goodQuarter badQuarter expectG* expectB* Qgood* Qbad* *XbadQ
+
+    gen goodQuarter         = monthBirth>=7 & monthBirth<=11
+    gen badQuarter          = monthBirth< 7 | monthBirth> 11
+    gen expectGoodQ         = expectMonth >= 7 & expectMonth<=11 if gest!=.
+    gen expectBadQ          = expectMonth <  7 | expectMonth> 11 if gest!=.
+    gen Qgoodgood           = expectGoodQ==1 & goodQuarter==1 if gest!=.
+    gen Qgoodbad            = expectGoodQ==1 & badQuarter ==1 if gest!=.
+    gen Qbadgood            = expectBadQ==1  & goodQuarter==1 if gest!=.
+    gen Qbadbad             = expectBadQ==1  & badQuarter ==1 if gest!=.
+
+    gen youngXbadQ          = young*(1-goodQuarter)
+    gen highEdXbadQ         = highEd*(1-goodQuarter)
+    gen youngXhighEdXbadQ   = young*highEd*(1-goodQuarter)
+}
 
 sum expectGoodQ expectBadQ if young==0
 sum Qgoodgood Qgoodbad Qbadgood Qbadbad if young==0
@@ -96,8 +115,6 @@ lab var premature          "Premature ($<$37 weeks)"
 lab var vlbw               "VLBW"
 lab var prematurity        "Weeks premature"
 lab var monthsPrem         "Months Premature"
-lab var badExpectGood      "Bad Season (due in good)"
-lab var badExpectBad       "Bad Season (due in bad)"
 lab var Qgoodbad           "Bad Season (due in good)"
 lab var Qbadbad            "Bad Season (due in bad)"
 lab var Qbadgood           "Good Season (due in bad)"
@@ -106,7 +123,7 @@ lab var ageMother          "Mother's Age"
 lab var yrsEducMother      "Years of education"
 lab var female             "Female"
 
-
+    
 ********************************************************************************
 *** (4a) Regressions (goodQuarter on Age)
 ********************************************************************************
