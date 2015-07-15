@@ -19,8 +19,6 @@ global DAT "~/database/Spain/nacimientos"
 global DIC "~/investigacion/2015/birthQuarter/source/dataPrep"
 global OUT "~/investigacion/2015/birthQuarter/data/spain"
 
-local d2005 "NACIMI.A2005.ANONIMI"
-local d2006 "NACIMIENTOS 2006.TXT"
 local d2007 "A2007.ANONIMINACIMI.TXT"
 local d2008 "NACIMIENTOS.A2008"
 local d2009 "nacimientos A2009.txt"
@@ -29,68 +27,6 @@ local d2011 "datos_nacimientos11.txt"
 local d2012 "datos_nacimientos12.txt"
 local d2013 "Anonimizado Nacimientos sin causa A2013.txt"
 
-
-foreach year of numlist 2005 2006 {
-    *---------------------------------------------------------------------------
-    *--- (2a) Import, destring
-    *---------------------------------------------------------------------------
-    infile using "$DIC/spainNac0506.dct", using("$DAT/`year'/`d`year''") clear
-
-    foreach var of varlist mes* estudio* cauto* pais* {
-        destring `var', replace
-    }
-
-    *---------------------------------------------------------------------------
-    *--- (2b) Generate variables
-    *---------------------------------------------------------------------------
-    gen singleton     = multipli == 1
-    gen twin          = multipli == 2
-    gen premature     = intersem == 2
-    gen gestation     = semanas
-    gen birthweight   = peso if peso>=500 & peso<=5000
-    gen lbw           = peso < 2500 if birthweight != .
-    gen vlbw          = peso < 1500 if birthweight != .
-    gen married       = cas == 1
-    gen single        = cas == 2
-    gen cesarean      = .
-    gen survived1day  = v24hn == 1
-    gen female        = sexo == 6
-    gen motherSpanish = paisnacm == 108
-    gen birthYear     = `year'
-
-    gen birthQuarter  = ceil(mespar/3)
-    gen goodQuarter   = birthQuarter == 2 | birthQuarter == 3
-    gen badQuarter    = birthQuarter == 1 | birthQuarter == 4
-
-    rename multipli multipleBirth
-    rename mespar   monthBirth
-    rename numhv    parity
-    rename estudiom educationMother
-    rename estudiop educationFather
-    rename cautom   professionMother
-    rename cautop   professionFather
-    rename edadm    ageMother
-    rename edadp    ageFather
-    rename proi     inscriptionProvince
-    rename muni     inscriptionMunicip
-    rename munpar   birthMunicip
-    rename propar   birthProvince
-
-    foreach parent in Mother Father {
-        gen yrsEduc`parent' = 0 if education`parent'==1|education`parent'==2
-        replace yrsEduc`parent' = 5 if education`parent'==3
-        replace yrsEduc`parent' = 8 if education`parent'==4
-        replace yrsEduc`parent' = 10 if education`parent'==6
-        replace yrsEduc`parent' = 12 if education`parent'==5
-        replace yrsEduc`parent' = 13 if education`parent'==7
-        replace yrsEduc`parent' = 15 if education`parent'==8
-        replace yrsEduc`parent' = 17 if education`parent'==9
-        replace yrsEduc`parent' = 17 if education`parent'==10
-    }
-
-
-}
-exit
 
 foreach year of numlist 2007(1)2013 {
     *---------------------------------------------------------------------------
@@ -187,4 +123,4 @@ clear
 append using `f2007' `f2008' `f2009' `f2010' `f2011' `f2012' `f2013'
 
 lab data "Spain administrative births.  Imported and cleaned by damianclarke."
-save "$OUT/births2005-2013", replace
+save "$OUT/births2007-2013", replace
