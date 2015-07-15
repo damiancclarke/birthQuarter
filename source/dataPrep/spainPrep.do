@@ -55,6 +55,7 @@ foreach year of numlist 2007(1)2013 {
     gen cesarean      = cesarea == 1
     gen survived1day  = clasif == 1
     gen female        = sexo == 6
+    gen birthYear     = `year'
 
     gen birthQuarter  = ceil(mespar/3)
     gen goodQuarter   = birthQuarter == 2 | birthQuarter == 3
@@ -92,6 +93,7 @@ foreach year of numlist 2007(1)2013 {
     *--- (3) Variable labels
     *-------------------------------------------------------------------------------
     #delimit ;
+    lab drop _all;
     lab def cs   1 "Married" 2 "Single" 3 "Seperated/Divorced" 4 "Widowed" ;
     lab def educ 1 "Illiterate" 2 "Less than 5 years" 3 "Incomplete EGB/ESO/Primary"
                  4 "Complete Primary" 5 "Secondary Bachelor" 6 "Secondary"
