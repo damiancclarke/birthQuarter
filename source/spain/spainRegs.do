@@ -32,7 +32,7 @@ local FE    i.birthProvince
 local se    robust
 local cnd   if twin==0
 
-local JulNov 0
+local JulNov 1
 
 ********************************************************************************
 *** (2a) Open and subset
@@ -78,8 +78,8 @@ if `JulNov'==1 {
 
     gen goodQuarter         = monthBirth>=7 & monthBirth<=11
     gen badQuarter          = monthBirth< 7 | monthBirth> 11
-    gen expectGoodQ         = expectMonth >= 7 & expectMonth<=11 if gest!=.
-    gen expectBadQ          = expectMonth <  7 | expectMonth> 11 if gest!=.
+    gen expectGoodQ         = expectedMonth >= 7 & expectedMonth<=11 if gest!=.
+    gen expectBadQ          = expectedMonth <  7 | expectedMonth> 11 if gest!=.
     gen Qgoodgood           = expectGoodQ==1 & goodQuarter==1 if gest!=.
     gen Qgoodbad            = expectGoodQ==1 & badQuarter ==1 if gest!=.
     gen Qbadgood            = expectBadQ==1  & goodQuarter==1 if gest!=.
@@ -110,8 +110,8 @@ lab var married            "Married"
 lab var birthweight        "Birthweight"
 lab var gestation          "Gestation"
 lab var cesarean           "Cesarean"
-lab var lbw                "Low Birth Weight ($<$2500 g)"
-lab var premature          "Premature ($<$37 weeks)"
+lab var lbw                "LBW"
+lab var premature          "Premature"
 lab var vlbw               "VLBW"
 lab var prematurity        "Weeks premature"
 lab var monthsPrem         "Months Premature"

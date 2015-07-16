@@ -23,7 +23,7 @@ log using "$LOG/spainRegs.txt", text replace
 cap mkdir "$OUT"
 
 local qual birthweight lbw vlbw gestation premature cesarean
-local data births2013
+local data births2007-2013
 local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats /*
 */           (r2 N, fmt(%9.2f %9.0g) label(R-squared Observations))     /*
 */           starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(none) label
@@ -31,10 +31,13 @@ local FE    i.birthProvince
 local se    robust
 local cnd   if twin==0
 
+local JulNov 0
+
 ********************************************************************************
 *** (2a) Open and subset
 ********************************************************************************
 use "$DAT/`data'"
+keep if survived1day == 1
 keep if parity == 1 & motherSpanish == 1 & ageMother>=25 & ageMother<= 45
 destring birthProvince, replace
 
@@ -47,6 +50,7 @@ drop _merge
 ********************************************************************************
 gen ageGroup = 1 if ageMother<40
 replace ageGroup = 2 if ageMother>=40
+
 
 gen professional        = professionM>=2&professionM<=5 if professionM!=. 
 gen highEd              = yrsEducMother > 12 & yrsEducMother != .
@@ -77,6 +81,23 @@ egen    cold            = rowmin(enero-diciembre)
 egen    hot             = rowmax(enero-diciembre)
 egen    meanTemp        = rowmean(enero-diciembre)
 
+
+if `JulNov'==1 {
+    drop goodQuarter badQuarter expectG* expectB* Qgood* Qbad* *XbadQ
+    
+    gen goodQuarter         = monthBirth>=7 & monthBirth<=11
+    gen badQuarter          = monthBirth< 7 | monthBirth> 11
+    gen expectGoodQ         = expectedMonth >= 7 & expectedMonth<=11 if gest!=.
+    gen expectBadQ          = expectedMonth <  7 | expectedMonth> 11 if gest!=.
+    gen Qgoodgood           = expectGoodQ==1 & goodQuarter==1 if gest!=.
+    gen Qgoodbad            = expectGoodQ==1 & badQuarter ==1 if gest!=.
+    gen Qbadgood            = expectBadQ==1  & goodQuarter==1 if gest!=.
+    gen Qbadbad             = expectBadQ==1  & badQuarter ==1 if gest!=.
+    
+    gen youngXbadQ          = young*(1-goodQuarter)
+    gen highEdXbadQ         = highEd*(1-goodQuarter)
+    gen youngXhighEdXbadQ   = young*highEd*(1-goodQuarter)
+}
 
 
 sum expectGoodQ expectBadQ if young==0
@@ -258,7 +279,12 @@ esttab using "$SUM/spainPrem.tex", title("Premature")/*
 */ cells("mean(fmt(2)) sd(fmt(2))") replace label noobs
 drop _p*
     
+********************************************************************************
+*** (4) Good Season by month
+********************************************************************************
 
+
+    
 
 ********************************************************************************
 *** (X) Close
