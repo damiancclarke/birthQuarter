@@ -31,7 +31,7 @@ local FE    i.birthProvince
 local se    robust
 local cnd   if twin==0
 
-local JulNov 0
+local JulNov 1
 
 ********************************************************************************
 *** (2a) Open and subset
@@ -282,8 +282,28 @@ drop _p*
 ********************************************************************************
 *** (4) Good Season by month
 ********************************************************************************
+gen youngBeta = .
+gen youngHigh = .
+gen youngLoww = .
+gen youngMont = .
+foreach num of numlist 1(1)12 {
+    gen month`num' = monthBirth == `num'
+    qui reg month`num' young
+    replace youngBeta = _b[young] in `num'
+    replace youngHigh = _b[young] + 1.96*_se[young] in `num'
+    replace youngLoww = _b[young] - 1.96*_se[young] in `num'
+    replace youngMont = `num' in `num'
+}
+lab def Month   1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun"  /*
+             */ 7 "Jul" 8 "Aug" 9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec"
+lab val youngMont Month
 
-
+#delimit ;
+twoway line youngBeta youngMont || rcap youngLoww youngHigh youngMont,
+scheme(s1mono) yline(0, lpattern(dot)) legend(order(1 "Young-Old" 2 "95% CI"))
+xlabel(1(1)12, valuelabels) xtitle("Month") ytitle("Young-Old");
+graph export "$OUT/youngMonths.eps", as(eps) replace;
+#delimit cr
     
 
 ********************************************************************************
