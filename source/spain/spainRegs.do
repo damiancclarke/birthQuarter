@@ -26,7 +26,7 @@ cap mkdir "$OUT"
 local qual birthweight lbw vlbw gestation premature cesarean
 local data births2007-2013
 local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats /*
-*/           (N, fmt(%9.0g) label(R-squared Observations))              /*
+*/           (N, fmt(%9.0g) label(Observations))                        /*
 */           starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(none) label
 local FE    i.birthProvince
 local se    robust
