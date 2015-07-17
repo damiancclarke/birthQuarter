@@ -375,76 +375,108 @@ for vAge in ['.tex', '_A.tex', '_A2.tex']:
 #==============================================================================
 #== (4b) Heterogeneity table (quality)
 #==============================================================================
-hetT = open(TAB + 'qualityHeterogeneity.tex', 'w')
-loc  = './../../results/nvss/regressions/'
+for vAge in ['.tex', '_A.tex', '_A2.tex']:
 
-table = [
-'Aged 25-39'    ,'',
-'Bad Season    ','',
-'Some College +','',
-'Married'       ,'',
-'Smoked in Preg','',
-'Constant'      ,'',
-'Observations'
-]
+    hetT = open(TAB + 'qualityHeterogeneity' + vAge, 'w')
+    loc  = './../../results/nvss/regressions/'
 
-samples = [loc+'NVSSQualityMain.tex'   ,loc+'NVSSQualitynon-smoking.tex',
-           loc+'NVSSQualitysmoking.tex',loc+'NVSSQuality2012-2013.tex'  ,
-           loc+'NVSSQualitynon-ART.tex',loc+'NVSSQualityART.tex'        ]
 
-ii = 0
-for sample in samples:
-    if ii ==1 or ii==2:
-        jj = 0
-        work  = open(sample,  'r').readlines()
-        for i,line in enumerate(work):
-            if i>=8 and i<=15 or i==17:
-                while jj >= 6 and jj <= 9:
-                    print jj
-                    table[jj]+= '&'
+    inum = [15,17,19,21]
+    jnum = [6,9]
+
+    if vAge == '.tex':
+        label1 = 'Aged 25-29'
+    if vAge == '_A.tex':
+        label1 = 'Mother\'s Age (Years)'        
+    table = [
+        label1          ,'',
+        'Bad Season'    ,'',
+        'Some College +','',
+        'Married'       ,'',
+        'Smoked in Preg','',
+        'Constant'      ,'',
+        'Observations'
+    ]
+    if vAge == '_A2.tex':
+        table = [
+            'Mother\'s Age (Years)'  ,'',
+            'Mother\'s Age$^2$'      ,'',
+            'Bad Season'    ,'',
+            'Some College +'         ,'',
+            'Married'                ,'',
+            'Smoked in Preg'         ,'',
+            'Constant'               ,'',
+            'Observations'
+        ]
+        inum = [17,19,21,23]
+        jnum = [8,11]
+
+
+
+    samples = [loc+'NVSSQualityMain'+vAge   ,loc+'NVSSQualitynon-smoking'+vAge,
+               loc+'NVSSQualitysmoking'+vAge,loc+'NVSSQuality2012-2013'+vAge  ,
+               loc+'NVSSQualitynon-ART'+vAge,loc+'NVSSQualityART'+vAge        ]
+
+    ii = 0
+    for sample in samples:
+        if ii ==1 or ii==2:
+            jj = 0
+            work  = open(sample,  'r').readlines()
+            for i,line in enumerate(work):
+                if i>=8 and i<=inum[0] or i==inum[1]:
+                    while jj >= jnum[0] and jj <= jnum[1]:
+                        table[jj]+= '&'
+                        jj = jj+1
+
+                    line = line.split('&')[1]
+                    table[jj] += '&'+line
                     jj = jj+1
+        else:
+            jj = 0
+            work  = open(sample,  'r').readlines()
+            for i,line in enumerate(work):
+                if i>=8 and i<=inum[2] or i==inum[3]:
+                    line = line.split('&')[1]
+                    table[jj] += '&'+line
+                    jj = jj+1
+        ii = ii+1
+    hetT.write('\\begin{table}[htpb!] \n '
+    '\\caption{Birth Quality and Age: Alternative Samples and Definitions}\n '
+    '\\begin{center} \n'
+    '\\begin{tabular}{lcccccc} \\toprule\\toprule \n'
+    '\\textsc{Dep Var:}&(1)&(2)&(3)&(4)&(5)&(6)\\\\'
+    'Birthweight&&\multicolumn{2}{c}{Smoked During}&'
+    '&\multicolumn{2}{c}{Assisted Reproductive}\\\\'
+    '&&\multicolumn{2}{c}{Pregnancy}&'
+    '&\multicolumn{2}{c}{Technology}'
+    '\\\\\cmidrule(r){3-4}\cmidrule(r){6-7}\n'
+    '&All&Non-  &Smoker&2012- &No&Yes \\\\'
+    '&   &Smoker&      &2013\ &  &    \\\\ \\midrule\n')
 
-                line = line.split('&')[1]
-                table[jj] += '&'+line
-                jj = jj+1
+    hetT.write(table[0]+'\\\\ \n'
+               +table[1]+'\\\\ \n'
+               +table[2]+'\\\\ \n'
+               +table[3]+'\\\\ \n'
+               +table[4]+'\\\\ \n'
+               +table[5]+'\\\\ \n'
+               +table[6]+'\\\\ \n'
+               +table[7]+'\\\\ \n'
+               +table[8]+'\\\\ \n'
+               +table[9]+'\\\\ \n'
+               +table[10]+'\\\\ \n'
+    )
+    if vAge == '_A2.tex':
+        hetT.write(table[11]+'\\\\ \n'
+                   +table[12]+'\\\\ \n'
+                   +table[13]+'\\\\ \\midrule \n'
+                   +table[14]+'\\\\ \n'
+        )
     else:
-        jj = 0
-        work  = open(sample,  'r').readlines()
-        for i,line in enumerate(work):
-            if i>=8 and i<=19 or i==21:
-                line = line.split('&')[1]
-                table[jj] += '&'+line
-                jj = jj+1
-    ii = ii+1
-hetT.write('\\begin{table}[htpb!] \n '
-'\\caption{Birth Quality and Age: Alternative Samples and Definitions}\n '
-'\\begin{center} \n'
-'\\begin{tabular}{lcccccc} \\toprule\\toprule \n'
-'\\textsc{Dep Var:}&(1)&(2)&(3)&(4)&(5)&(6)\\\\'
-'Birthweight&&\multicolumn{2}{c}{Smoked During}&'
-'&\multicolumn{2}{c}{Assisted Reproductive}\\\\'
-'&&\multicolumn{2}{c}{Pregnancy}&'
-'&\multicolumn{2}{c}{Technology}'
-'\\\\\cmidrule(r){3-4}\cmidrule(r){6-7}\n'
-'&All&Non-  &Smoker&2012- &No&Yes \\\\'
-'&   &Smoker&      &2013\ &  &    \\\\ \\midrule\n')
-hetT.write(table[0]+'\\\\ \n'
-+table[1 ] + '\\\\ \n'
-+table[2 ] + '\\\\ \n'
-+table[3 ] + '\\\\ \n'
-+table[4 ] + '\\\\ \n'
-+table[5 ] + '\\\\ \n'
-+table[6 ] + '\\\\ \n'
-+table[7 ] + '\\\\ \n'
-+table[8 ] + '\\\\ \n'
-+table[9 ] + '\\\\ \n'
-+table[10] + '\\\\ \n'
-+table[11] + '\\\\ \\midrule \n'
-+table[12] + '\\\\ \n'
-)
+        hetT.write(table[11]+'\\\\ \\midrule \n'
+                   +table[12]+'\\\\ \n'
+        )
 
-
-hetT.write('\n'+mr+mc1+twid[3]+tcm[3]+mc3+
+    hetT.write('\n'+mr+mc1+twid[3]+tcm[3]+mc3+
            'All specifications are identical to column (2) of table 5 estimated'
            ' by OLS with heteroscedasticity-robust standard errors. Full term i'
            'n column (4) refers to any babies whose gestation was greater than '
@@ -452,8 +484,8 @@ hetT.write('\n'+mr+mc1+twid[3]+tcm[3]+mc3+
            'timated for years 2012-2013.'
            '\\end{footnotesize}}\\\\ \\bottomrule \n\\end{tabular}\\end{center}'
            '\\end{table}'
-)
-hetT.close()
+    )
+    hetT.close()
 
 #==============================================================================
 #== (5) Fix labelling of gestation correction table
@@ -537,7 +569,9 @@ final = open(TAB + 'appendixTables.tex', 'w')
 
 TABLES = [loc2 +'NVSSBinaryFDeaths.tex'      , 
           TAB  +'quarterHeterogeneity_A.tex' ,
+          TAB  +'qualityHeterogeneity_A.tex' ,
           TAB  +'quarterHeterogeneity_A2.tex',
+          TAB  +'qualityHeterogeneity_A2.tex',
           locB2+'NVSSBinary.tex'             ,
           locB2+'NVSSQualityEducAll.tex'     ,
           loc90+'NVSSBinary.tex'             ,  
