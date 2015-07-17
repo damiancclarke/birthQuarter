@@ -31,7 +31,7 @@ local FE    i.birthProvince
 local se    robust
 local cnd   if twin==0
 
-local JulNov 1
+local JulNov 0
 
 ********************************************************************************
 *** (2a) Open and subset
@@ -44,6 +44,8 @@ destring birthProvince, replace
 gen id = birthProvince
 merge m:1 id using "$DAT/temperature2012"
 drop _merge
+
+replace gestation = . if gestation == 0
 
 ********************************************************************************
 *** (2b) Generate variables
@@ -296,7 +298,10 @@ foreach num of numlist 1(1)12 {
 }
 lab def Month   1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun"  /*
              */ 7 "Jul" 8 "Aug" 9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec"
+lab def seasn   0 "Q2 or Q3 (Good)" 1 "Q1 or Q4 (Bad)"
 lab val youngMont Month
+lab val monthBirth Month
+lab val goodQuarter seasn
 
 #delimit ;
 twoway line youngBeta youngMont || rcap youngLoww youngHigh youngMont,
@@ -304,7 +309,44 @@ scheme(s1mono) yline(0, lpattern(dot)) legend(order(1 "Young-Old" 2 "95% CI"))
 xlabel(1(1)12, valuelabels) xtitle("Month") ytitle("Young-Old");
 graph export "$OUT/youngMonths.eps", as(eps) replace;
 #delimit cr
-    
+
+
+********************************************************************************
+*** (5) Prematurity
+********************************************************************************
+#delimit ;
+hist gestat if gestat>24, frac scheme(s1mono) xtitle("Weeks of Gestation")
+width(1) start(25);
+graph export "$OUT/gestWeeks.eps", as(eps) replace;
+
+preserve;
+collapse premature, by(monthBirth);
+twoway bar premature monthBirth, bcolor(black) scheme(s1mono)                
+xtitle("Month of Birth") xlabel(1(1)12, valuelabels)                         
+ytitle("Proportion of Premature Births") ylabel(0.055(0.0025)0.0625);
+graph export "$OUT/prematureMonth.eps", as(eps) replace;
+restore;
+
+preserve;
+collapse premature, by(goodQuarter);
+twoway bar premature goodQuarter, bcolor(black) scheme(s1mono)                
+xtitle("Season of Birth") xlabel(1 2, valuelabels)                         
+ytitle("Proportion of Premature Births") ylabel(0.055(0.0025)0.065);
+graph export "$OUT/prematureSeason.eps", as(eps) replace;
+restore;
+
+preserve;
+collapse premature, by(goodQuarter ageGroup);
+reshape wide premature, i(ageGroup) j(goodQuarter);
+
+graph bar premature*, over(ageGroup)
+scheme(s1mono) legend(label(1 "Bad Season") label(2 "Good Season"))
+bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0)) ylabel(, nogrid)
+exclude0 ylab(0.055(0.0025)0.065);
+graph export "$OUT/prematureSeasonAge.eps", as(eps) replace;
+restore;
+#delimit cr
+
 
 ********************************************************************************
 *** (X) Close
