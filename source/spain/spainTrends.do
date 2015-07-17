@@ -342,7 +342,7 @@ reshape wide premature, i(ageGroup) j(goodQuarter);
 graph bar premature*, over(ageGroup)
 scheme(s1mono) legend(label(1 "Bad Season") label(2 "Good Season"))
 bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0)) ylabel(, nogrid)
-exclude0 ylab(0.055(0.0025)0.065);
+exclude0 ylab(0.05(0.01)0.09);
 graph export "$OUT/prematureSeasonAge.eps", as(eps) replace;
 restore;
 #delimit cr
