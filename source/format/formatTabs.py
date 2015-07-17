@@ -263,83 +263,114 @@ sumT.close()
 #==============================================================================
 #== (4a) Heterogeneity table (birth quarter)
 #==============================================================================
-hetT = open(TAB + 'quarterHeterogeneity.tex', 'w')
-loc  = './../../results/nvss/regressions/'
-rt3  = '/regressions/NVSSBinaryMain.tex'
+for vAge in ['.tex', '_A.tex', '_A2.tex']:
+    hetT = open(TAB + 'quarterHeterogeneity' + vAge, 'w')
+    loc  = './../../results/nvss/regressions/'
+    rt3  = '/regressions/NVSSBinaryMain.tex'
 
-table = [
-'Aged 25-39'    ,'',
-'Some College +','',
-'Married'       ,'',
-'Smoked in Preg','',
-'Constant'      ,'',
-'Observations'
-]
-samples = [loc+'NVSSBinaryMain.tex'   ,loc+'NVSSBinarynon-smoking.tex',
-           loc+'NVSSBinarysmoking.tex',loc+'NVSSBinary2012-2013.tex'  ,
-           loc+'NVSSBinarynon-ART.tex',loc+'NVSSBinaryART.tex'        ]
+    inum = [13,15,17,19]
+    jnum = [4,7]
+
+    if vAge == '.tex':
+        label1 = 'Aged 25-29'
+    if vAge == '_A.tex':
+        label1 = 'Mother\'s Age (Years)'        
+    table = [
+        label1          ,'',
+        'Some College +','',
+        'Married'       ,'',
+        'Smoked in Preg','',
+        'Constant'      ,'',
+        'Observations'
+    ]
+    if vAge == '_A2.tex':
+        table = [
+            'Mother\'s Age (Years)'  ,'',
+            'Mother\'s Age$^2$'      ,'',
+            'Some College +'         ,'',
+            'Married'                ,'',
+            'Smoked in Preg'         ,'',
+            'Constant'               ,'',
+            'Observations'
+        ]
+        inum = [15,17,19,21]
+        jnum = [6,9]
 
 
-ii = 0
-for sample in samples:
-    if ii ==1 or ii==2:
-        jj = 0
-        work  = open(sample,  'r').readlines()
-        for i,line in enumerate(work):
-            if i>=8 and i<=13 or i==15:
-                while jj >= 4 and jj <=7:
-                    table[jj]+= '&'
+
+    samples = [loc+'NVSSBinaryMain'+vAge   , loc+'NVSSBinarynon-smoking'+vAge,
+               loc+'NVSSBinarysmoking'+vAge, loc+'NVSSBinary2012-2013'+vAge  ,
+               loc+'NVSSBinarynon-ART'+vAge, loc+'NVSSBinaryART'+vAge        ]
+
+
+    ii = 0
+    for sample in samples:
+        if ii ==1 or ii==2:
+            jj = 0
+            work  = open(sample,  'r').readlines()
+            for i,line in enumerate(work):
+                if i>=8 and i<=inum[0] or i==inum[1]:
+                    while jj >= jnum[0] and jj <=jnum[1]:
+                        table[jj]+= '&'
+                        jj = jj+1
+
+                    line = line.split('&')[-1]
+                    line = line[:-3]
+                    table[jj] += '&'+line
                     jj = jj+1
-
-                line = line.split('&')[-1]
-                line = line[:-3]
-                table[jj] += '&'+line
-                jj = jj+1
+        else:
+            jj = 0
+            work  = open(sample,  'r').readlines()
+            for i,line in enumerate(work):
+                if i>=8 and i<=inum[2] or i==inum[3]:
+                    line = line.split('&')[-1]
+                    line = line[:-3]
+                    table[jj] += '&'+line
+                    jj = jj+1
+        ii = ii+1
+    hetT.write('\\begin{table}[htpb!] \n ' 
+    '\\caption{Birth Season and Age: Alternative Samples and Definitions}\n '
+    '\\begin{center} \n'
+    '\\begin{tabular}{lcccccc} \\toprule\\toprule \n'
+    '\\textsc{Dep Var:}&(1)&(2)&(3)&(4)&(5)&(6)\\\\'
+    'Good Season\ \ \ \ \ \ \ \ \ \ \  &&\multicolumn{2}{c}{Smoked During}&'
+    '&\multicolumn{2}{c}{Assisted Reproductive}\\\\'
+    '&&\multicolumn{2}{c}{Pregnancy}&'
+    '&\multicolumn{2}{c}{Technology}'
+    '\\\\\cmidrule(r){3-4}\cmidrule(r){6-7}\n'
+    '&All&Non-  &Smoker&2012- &No&Yes \\\\'
+    '&   &Smoker&       &2013\ &  &  \\\\ '
+    '\\midrule\n')
+    hetT.write(table[0]+'\\\\ \n'
+               +table[1]+'\\\\ \n'
+               +table[2]+'\\\\ \n'
+               +table[3]+'\\\\ \n'
+               +table[4]+'\\\\ \n'
+               +table[5]+'\\\\ \n'
+               +table[6]+'\\\\ \n'
+               +table[7]+'\\\\ \n'
+               +table[8]+'\\\\ \n'
+    )
+    if vAge == '_A2.tex':
+        hetT.write(table[9]+'\\\\ \n'
+                   +table[10]+'\\\\ \n'
+                   +table[11]+'\\\\ \\midrule \n'
+                   +table[12]+'\\\\ \n'
+        )
     else:
-        jj = 0
-        work  = open(sample,  'r').readlines()
-        for i,line in enumerate(work):
-            if i>=8 and i<=17 or i==19:
-                line = line.split('&')[-1]
-                line = line[:-3]
-                table[jj] += '&'+line
-                jj = jj+1
-    ii = ii+1
-hetT.write('\\begin{table}[htpb!] \n ' 
-'\\caption{Birth Season and Age: Alternative Samples and Definitions}\n '
-'\\begin{center} \n'
-'\\begin{tabular}{lcccccc} \\toprule\\toprule \n'
-'\\textsc{Dep Var:}&(1)&(2)&(3)&(4)&(5)&(6)\\\\'
-'Good Season\ \ \ \ \ \ \ \ \ \ \  &&\multicolumn{2}{c}{Smoked During}&'
-'&\multicolumn{2}{c}{Assisted Reproductive}\\\\'
-'&&\multicolumn{2}{c}{Pregnancy}&'
-'&\multicolumn{2}{c}{Technology}'
-'\\\\\cmidrule(r){3-4}\cmidrule(r){6-7}\n'
-'&All&Non-  &Smoker&2012- &No&Yes \\\\'
-'&   &Smoker&       &2013\ &  &  \\\\ '
-'\\midrule\n')
-hetT.write(table[0]+'\\\\ \n'
-+table[1]+'\\\\ \n'
-+table[2]+'\\\\ \n'
-+table[3]+'\\\\ \n'
-+table[4]+'\\\\ \n'
-+table[5]+'\\\\ \n'
-+table[6]+'\\\\ \n'
-+table[7]+'\\\\ \n'
-+table[8]+'\\\\ \n'
-+table[9]+'\\\\ \\midrule \n'
-+table[10]+'\\\\ \n'
-)
+        hetT.write(table[9]+'\\\\ \\midrule \n'
+                   +table[10]+'\\\\ \n'
+        )
 
 
-hetT.write('\n'+mr+mc1+twid[2]+tcm[2]+mc3+
+    hetT.write('\n'+mr+mc1+twid[2]+tcm[2]+mc3+
            'All specifications are linear probability models estimates by OLS w'
            'ith heteroscedasticity-robust standard errors. Full term in column '
            'Infertility treatment regressions are only estimated for years 2012'
            '-2013.\\end{footnotesize}}\\\\ \n \\bottomrule '
            '\n\\end{tabular}\\end{center}\\end{table}'
-)
-hetT.close()
+    )
+    hetT.close()
 
 #==============================================================================
 #== (4b) Heterogeneity table (quality)
@@ -504,19 +535,22 @@ loc90 = './../results/1990s/regressions/'
 locB2 = './../results/bord2/regressions/'
 final = open(TAB + 'appendixTables.tex', 'w')
 
-TABLES = [loc2 + 'NVSSBinaryFDeaths.tex' , locB2+'NVSSBinary.tex'        ,
-          locB2+ 'NVSSQualityEducAll.tex',
-          loc70+'NVSSBinary.tex'         , loc90+'NVSSBinary.tex'        ,  
-          loc70+'NVSSseasonMLogit.tex'   , loc90+'NVSSseasonMLogit.tex'  ,
-          loc70+'QualityAllCombnoFE.tex' , loc90+'QualityAllCombnoFE.tex'
+TABLES = [loc2 +'NVSSBinaryFDeaths.tex'      , 
+          TAB  +'quarterHeterogeneity_A.tex' ,
+          TAB  +'quarterHeterogeneity_A2.tex',
+          locB2+'NVSSBinary.tex'             ,
+          locB2+'NVSSQualityEducAll.tex'     ,
+          loc90+'NVSSBinary.tex'             ,  
+          loc90+'NVSSseasonMLogit.tex'       ,
+          loc90+'QualityAllCombnoFE.tex'
 ]
 
 i = 1
 for table in TABLES:
-    if i==1 or i==2 or i==6 or i==7:
+    if i==1 or i==4 or i==7:
         final.write('\\input{'
                     +table+'}\n')
-    if i==3 or i==4 or i==5 or i>=8:
+    else:
         final.write('\\begin{landscape}\n\\input{'
                     +table+'}\n\\end{landscape}\n')
     i = i+1
