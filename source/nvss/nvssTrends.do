@@ -85,7 +85,7 @@ if `pre4w'==1 {
     global SUM "~/investigacion/2015/birthQuarter/results/pre4w/sumStats"
     local keepif  birthOrder == 1 & gestation <=35
 }    
-
+/*
 ********************************************************************************
 *** (2a) Use, descriptive graph
 ********************************************************************************
@@ -110,7 +110,6 @@ foreach g in all young old {
     catplot education `cond', frac scheme(s1mono)
     graph export "$OUT/educDescriptive`g'.eps", as(eps) replace 
 }
-
 
 preserve
 gen birth=1
@@ -176,6 +175,23 @@ ytitle("Assisted Reproductive Technology");
 #delimit cr
 graph export "$OUT/ART.eps", as(eps) replace
 restore
+
+preserve
+gen ageG2 = motherAge>=20 & motherAge<25
+replace ageG2 = 2 if motherAge>=25 & motherAge<35
+replace ageG2 = 3 if motherAge>=35 & motherAge<40
+replace ageG2 = 4 if motherAge>=40 & motherAge<46
+collapse infertTreat, by(ageG2)
+lab def       aG2 1 "20-24" 2 "25-34" 3 "35-39" 4 "40-45"
+lab val ageG2 aG2
+#delimit ;
+graph bar infertTreat, over(ageG2)  ylabel(, nogrid) exclude0
+bar(1, bcolor(ltblue)) bar(2, bcolor(ltblue)) bar(3, bcolor(ltblue))
+bar(4, bcolor(ltblue)) scheme(s1mono) ytitle("Proportion ART");
+graph export "$OUT/ARTageGroup.eps", as(eps) replace;
+#delimit cr
+restore
+
 
 preserve
 replace twin = twin - 1
@@ -338,8 +354,9 @@ lab val birthMont Month
 
 #delimit ;
 twoway line youngBeta youngMont || rcap youngLoww youngHigh youngMont,
-scheme(s1mono) yline(0, lpattern(dot)) legend(order(1 "Young-Old" 2 "95% CI"))
-xlabel(1(1)12, valuelabels) xtitle("Month") ytitle("Young-Old");
+scheme(s1mono) yline(0, lpattern(dash) lcolor(red)) ytitle("Young-Old")
+legend(order(1 "Young-Old" 2 "95% CI")) xlabel(1(1)12, valuelabels)
+xtitle("Month");
 graph export "$OUT/youngMonths.eps", as(eps) replace;
 #delimit cr
 
@@ -587,6 +604,8 @@ graph export "$OUT/birthQdiff_4Ages`app'.eps", as(eps) replace;
 restore
 
 
+
+
 ********************************************************************************
 *** (6) Birth outcomes by groups
 ********************************************************************************
@@ -662,7 +681,7 @@ rename temptmaxst hot
 tempfile weather
 save `weather'
 
-    
+
 use "$DAT/nvss1998_1999"
 keep if birthOrder == 1 & motherAge > 24
 gen goodSeason = birthQuarter == 2 | birthQuarter == 3
@@ -713,6 +732,85 @@ graph export "$OUT/maps/youngGoodSeason.eps", replace as(eps)
 spmap goodSeason if young==0&(FIPS!="02"&FIPS!="15") using "$DAT/../maps/UScoords", /*
 */ id(_ID) fcolor(YlOrRd) legend(symy(*2) symx(*2) size(*2.1))
 graph export "$OUT/maps/oldGoodSeason.eps", replace as(eps)
+*/
+
+********************************************************************************
+*** (8) Time series plot of weather and good season
+********************************************************************************
+cap mkdir "$OUT/weather"
+
+insheet using "$USW/usaWeather.txt", delim(";") names
+rename fips FIPS
+destring temp, replace
+
+reshape wide temp, i(state FIPS year month) j(type) string
+collapse temptmpcst (min) temptminst (max) temptmaxst, by(state FIPS year)
+keep if year>=1971 & year<2000
+
+tostring FIPS, replace
+foreach num in 1 2 4 5 6 8 9 {
+    replace FIPS = "0`num'" if FIPS=="`num'"
+}
+expand 2 if FIPS == "24", gen(expanded)
+replace FIPS = "11" if expanded==1
+drop expanded
+rename temptmpcst meanT
+rename temptminst cold
+rename temptmaxst hot
+bys state FIPS: egen aveTemp70_90 = mean(meanT)
+bys state FIPS: egen aveMin70_90  = mean(cold)
+bys state FIPS: egen aveMax70_90  = mean(hot)
+
+tempfile weatherYear
+save `weatherYear'
+
+
+foreach decade in 70s 80s 90s {
+    use "$DAT/nvss19`decade'.dta"
+    gen young = motherAge>=25&motherAge<40 if motherAge>24
+    keep if young!=.
+    gen goodSeason = birthQuarter == 2 | birthQuarter == 3
+    collapse goodSeason, by(statenat young year)    
+    tempfile birth`decade'
+    save `birth`decade''
+}
+clear
+append using `birth70s' `birth80s' `birth90s'
+merge m:1 statenat using "$DAT/nvssStatesFIPS"
+drop _merge
+
+rename stoccfip FIPS
+merge m:1 FIPS year using `weatherYear'
+**NOTE: merges correctly except for Hawaii (_merge==1) and national (_merge==2)
+
+gen coldState_20 = aveMin70_90<20
+gen coldState_15 = aveMin70_90<15
+gen coldState_10 = aveMin70_90<10
+
+lab var cold       "Coldest Temperature (degree F)"
+lab var goodSeason "Proportion Good Season"
+
+local conds young==1&coldS==1 young==1&coldS==0 young==0&coldS==1 young==0&coldS==0
+local names young_cold young_warm old_cold old_warm
+
+foreach x of numlist 20 15 10 {
+    preserve
+    collapse goodSeason cold, by(coldState_`x' young year)
+    keep if young!=.
+    tokenize `names'
+    foreach c of local conds {
+        #delimit ;
+        twoway line goodS year if `c', yaxis(1) lpattern(dash) lcolor(black)
+        ||     line cold  year if `c', yaxis(2) lcolor(black) scheme(s1mono)
+        ytitle("Proportion Good Season")
+        ytitle("Coldest Temperature (degree F)", axis(2))
+        legend(label(1 "Good Season") label(2 "Coldest Temperature"));
+        graph export "$OUT/weather/weather`x'_`1'.eps", as(eps) replace;
+        #delimit cr
+        macro shift
+    }
+    restore
+}
 
 
 ************************************************************************************
