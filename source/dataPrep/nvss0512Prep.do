@@ -19,7 +19,7 @@ global OUT "~/investigacion/2015/birthQuarter/data/nvss"
 global LOG "~/investigacion/2015/birthQuarter/log"
 
 log using "$LOG/nvss0512Prep.txt", text replace
-/*
+
 ********************************************************************************
 *** (2a) 2005 File
 ********************************************************************************
@@ -680,6 +680,10 @@ foreach year of numlist 1990(1)1999 {
 
     gen education = dmeduc if dmeduc != 99
 
+    foreach var of varlist statenat stoccfip stresfip stateres {
+        tostring `var', replace
+    }
+    
     keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar      /*
     */ premature motherAge education fatherAge ageGroupMan married smoker single/*
     */ female birthMonth gestation numPrenatal monthPrenat birthOrder statenat  /*
@@ -693,7 +697,6 @@ append using `B1995' `B1996' `B1997' `B1998' `B1999', force
 
 lab dat "NVSS birth data 1990s (first births, white, 25-45 year olds)"
 save "$OUT/nvss1990s.dta", replace
-
 
 ********************************************************************************
 *** (8) 1970s File
@@ -749,7 +752,7 @@ append using `B1975' `B1976' `B1977' `B1978' `B1979', force
 
 lab dat "NVSS birth data 1970s (first births, white, 25-45 year olds)"
 save "$OUT/nvss1970s.dta", replace
-*/
+
     
 ********************************************************************************
 *** (9) 1980s File
