@@ -565,6 +565,7 @@ final.close()
 loc70 = './../results/1970s/regressions/'
 loc90 = './../results/1990s/regressions/'
 locB2 = './../results/bord2/regressions/'
+loctw = './../results/nvss/regressions/'
 final = open(TAB + 'appendixTables.tex', 'w')
 
 TABLES = [loc2 +'NVSSBinaryFDeaths.tex'      , 
@@ -574,6 +575,8 @@ TABLES = [loc2 +'NVSSBinaryFDeaths.tex'      ,
           TAB  +'qualityHeterogeneity_A2.tex',
           locB2+'NVSSBinary.tex'             ,
           locB2+'NVSSQualityEducAll.tex'     ,
+          loctw+'NVSSBinaryTwin.tex'         ,
+          loctw+'NVSSQualityTwin.tex'        ,
           loc90+'NVSSBinary.tex'             ,  
           loc90+'NVSSseasonMLogit.tex'       ,
           loc90+'QualityAllCombnoFE.tex'
@@ -581,7 +584,7 @@ TABLES = [loc2 +'NVSSBinaryFDeaths.tex'      ,
 
 i = 1
 for table in TABLES:
-    if i==1 or i==4 or i==7:
+    if i==1 or i==6 or i==8 or i==11:
         final.write('\\input{'
                     +table+'}\n')
     else:
