@@ -54,7 +54,9 @@ foreach year of numlist 2007(1)2013 {
     gen survived1day  = clasif == 3
     gen female        = sexo == 6
     gen birthYear     = `year'
-
+    gen marBirth      = (anopar*12+mespar)-(anomat*12+mesmat)
+    gen marrPreBirth  = married==1 & marBirth > 8
+    
     gen birthQuarter  = ceil(mespar/3)
     gen goodQuarter   = birthQuarter == 2 | birthQuarter == 3
     gen badQuarter    = birthQuarter == 1 | birthQuarter == 4
@@ -109,7 +111,7 @@ foreach year of numlist 2007(1)2013 {
     keep parity multipleBirth monthBirth singleton twin premature gestation lbw
         vlbw inscription* birthM birthP married single cesarean survived1day female
         motherSp* civilStatus education* profession* age* birthQuarter goodQuarter
-        badQuarter yrs* birthweight;
+        badQuarter yrs* birthweight marBirth marrPreBirth;
     #delimit cr
 
     tempfile f`year'
