@@ -165,7 +165,7 @@ lab var Qbadbad            "Bad Season (due in bad)"
 lab var Qbadgood           "Good Season (due in bad)"
 lab var motherAge          "Mother's Age (years)"
 lab var motherAge2         "Mother's Age$^2$"
-/*
+
 ********************************************************************************
 *** (3a) Examine missing covariates
 ********************************************************************************
@@ -247,7 +247,7 @@ lab var young2 "Aged 25-34"
 ********************************************************************************
 local add `" "" "(Young=25-34)" "(Education Interaction)" "(Complete College)" "'
 local nam Main Young34 EdInteract High
-tokenize `nam'c
+tokenize `nam'
 
 foreach type of local add {
 
@@ -268,8 +268,8 @@ foreach type of local add {
     replace `estopt' title("Birth Season and Age `type'") booktabs 
     keep(_cons `age' `edu' `con') style(tex) mlabels(, depvar)
     postfoot("Year FE&&Y&Y&Y\\ \bottomrule"
-             "\multicolumn{5}{p{12.8cm}}{\begin{footnotesize}Sample consists "
-             "of all first born children of US-born, white, non-hispanic     "
+             "\multicolumn{5}{p{12cm}}{\begin{footnotesize}Sample consists "
+             "of all first born children of US-born, white, non-hispanic   "
              "mothers. \end{footnotesize}}\end{tabular}\end{table}");
     #delimit cr
     estimates clear
@@ -280,31 +280,38 @@ foreach type of local add {
 ********************************************************************************
 *** (4b) Conditions
 ********************************************************************************
-local c1    twin==2 smoker==0&twin==1 smoker==1&twin==1 year>=2012&twin==1  /*
-            */ infertTreat==0&twin==1 infertTreat==1&twin==1 twin==1
-local names Twin non-smoking smoking 2012-2013 non-ART ART Main
+local c1 twin==2 smoker==0&twin==1 smoker==1&twin==1 year>=2012&twin==1  /*
+      */ infertTreat==0&twin==1 infertTreat==1&twin==1 twin==1 married==0&twin==1
+local names Twin non-smoking smoking 2012-2013 non-ART ART Main unmarried
 tokenize `names'
 
 foreach cond of local c1 {
     dis "`1'"
+    local cn 5
+    local sp "&&Y&Y&Y"
     
     eststo: reg goodQuarter young                              if `cond', `se'
     eststo: reg goodQuarter young                        `yFE' if `cond', `se'
     eststo: reg goodQuarter young highEd                 `yFE' if `cond', `se'
     eststo: reg goodQuarter young highEd married smoker  `yFE' if `cond', `se'
-
+    
     local ests est1 est2 est3 est4 
+    if `"`1'"' == "unmarried"     local ests est1 est2 est3
+    if `"`1'"' == "unmarried"     local cn 4
+    if `"`1'"' == "unmarried"     local sp "&&Y&Y"
+
     local vars _cons young highEd married smoker
     if `"`1'"'=="non-smoking"|`"`1'"'=="smoking" local ests est1 est2 est3 
     if `"`1'"'=="non-smoking"|`"`1'"'=="smoking" local vars _cons young highEd    
+    if `"`1'"'=="unmarried"                      local vars _cons young highEd
     
     #delimit ;
     esttab `ests' using "$OUT/NVSSBinary`1'.tex", replace `estopt' booktabs 
     title("Birth Season and Age (`1' sample)") keep(`vars') mlabels(, depvar)
-    postfoot("Year FE&&Y&Y&Y\\ \bottomrule"
-             "\multicolumn{5}{p{12.8cm}}{\begin{footnotesize}Sample consists "
-             "of all first birst births to US-born, white, non-hispanic      "
-             "mothers. \end{footnotesize}}\end{tabular}\end{table}") style(tex);
+    postfoot("Year FE`sp'\\ \bottomrule"
+             "\multicolumn{`cn'}{p{12cm}}{\begin{footnotesize}Sample consists "
+             " of all first births to US-born, white, non-hispanic mothers.   "
+             "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
     #delimit cr
     estimates clear
     macro shift
@@ -316,6 +323,8 @@ foreach cond of local c1 {
 tokenize `names'
 foreach cond of local c1 {
     dis "`1'"
+    local cn 5
+    local sp "&&Y&Y&Y"
     
     eststo: reg goodQuarter motherAge                             if `cond', `se'
     eststo: reg goodQuarter motherAge                       `yFE' if `cond', `se'
@@ -323,17 +332,21 @@ foreach cond of local c1 {
     eststo: reg goodQuarter motherAge highEd married smoker `yFE' if `cond', `se'
 
     local ests est1 est2 est3 est4 
+    if `"`1'"' == "unmarried"     local ests est1 est2 est3
+    if `"`1'"' == "unmarried"     local cn 4
+    if `"`1'"' == "unmarried"     local sp "&&Y&Y"
     local vars _cons motherAge highEd married smoker
     if `"`1'"'=="non-smoking"|`"`1'"'=="smoking" local ests est1 est2 est3 
     if `"`1'"'=="non-smoking"|`"`1'"'=="smoking" local vars _cons motherAge highEd    
+    if `"`1'"'=="unmarried"                      local vars _cons motherAge highEd    
     
     #delimit ;
     esttab `ests' using "$OUT/NVSSBinary`1'_A.tex", replace `estopt' booktabs 
     title("Birth Season and Age (`1' sample)") keep(`vars') mlabels(, depvar)
-    postfoot("Year FE&&Y&Y&Y\\ \bottomrule"
-             "\multicolumn{5}{p{12.8cm}}{\begin{footnotesize}Sample consists "
-             "of all first birst births to US-born, white, non-hispanic      "
-             "mothers. \end{footnotesize}}\end{tabular}\end{table}") style(tex);
+    postfoot("Year FE`sp'\\ \bottomrule"
+             "\multicolumn{`cn'}{p{12cm}}{\begin{footnotesize}Sample consists "
+             " of all first births to US-born, white, non-hispanic mothers.   "
+             "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
     #delimit cr
     estimates clear
     macro shift
@@ -345,6 +358,8 @@ foreach cond of local c1 {
 tokenize `names'
 foreach cond of local c1 {
     dis "`1'"
+    local cn 5
+    local sp "&&Y&Y&Y"
     
     eststo: reg goodQuarter motherAge*                             if `cond', `se'
     eststo: reg goodQuarter motherAge*                       `yFE' if `cond', `se'
@@ -352,24 +367,27 @@ foreach cond of local c1 {
     eststo: reg goodQuarter motherAge* highEd married smoker `yFE' if `cond', `se'
 
     local ests est1 est2 est3 est4 
+    if `"`1'"' == "unmarried"     local ests est1 est2 est3
+    if `"`1'"' == "unmarried"     local cn 4
+    if `"`1'"' == "unmarried"     local sp "&&Y&Y"
     local vars _cons motherAge motherAge2 highEd married smoker
     if `"`1'"'=="non-smoking"|`"`1'"'=="smoking" local ests est1 est2 est3 
-    if `"`1'"'=="non-smoking"|`"`1'"'=="smoking" local vars _cons motherAge /*
-    */ motherAge2 highEd    
+    if `"`1'"'=="non-smoking"|`"`1'"'=="smoking"|`"`1'"'=="unmarried" /*
+    */ local vars _cons motherAge motherAge2 highEd    
     
     #delimit ;
     esttab `ests' using "$OUT/NVSSBinary`1'_A2.tex", replace `estopt' booktabs 
     title("Birth Season and Age (`1' sample)") keep(`vars') mlabels(, depvar)
-    postfoot("Year FE&&Y&Y&Y\\ \bottomrule"
-             "\multicolumn{5}{p{12.8cm}}{\begin{footnotesize}Sample consists "
-             "of all first birst births to US-born, white, non-hispanic      "
-             "mothers. \end{footnotesize}}\end{tabular}\end{table}") style(tex);
+    postfoot("Year FE`sp'\\ \bottomrule"
+             "\multicolumn{`cn'}{p{12.8cm}}{\begin{footnotesize}Sample consists"
+             " of all first births to US-born, white, non-hispanic mothers.    "
+             "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
     #delimit cr
     estimates clear
     macro shift
 }
 
-exit
+/*
 ********************************************************************************
 *** (4c) Multinomial logit for expected/realised
 ********************************************************************************
@@ -412,11 +430,11 @@ estimates clear
 *** (5) Regressions (Quality on Age, season)
 ********************************************************************************
 local c1    twin==1 smoker==0&twin==1 smoker==1&twin==1 year>=2012&twin==1    /*
-*/ infertTreat==0&twin==1 infertTreat==1&twin==1 twin==2
+*/ infertTreat==0&twin==1 infertTreat==1&twin==1 twin==2 married==0&twin==1
 local varsY   young badQuarter highEd married smoker
 local varsA   motherAge badQuarter highEd married smoker
 local varsA2  motherAge motherAge2 badQuarter highEd married smoker
-local names Main non-smoking smoking 2012-2013 non-ART ART Twin
+local names   Main non-smoking smoking 2012-2013 non-ART ART Twin unmarried
 tokenize `names'
 
 
@@ -433,7 +451,7 @@ foreach cond of local c1 {
         }
 
         local Ovars _cons `vars`ageType''
-        if `"`1'"'=="non-smoking"|`"`1'"'=="smoking" {
+        if `"`1'"'=="non-smoking"|`"`1'"'=="smoking"|`"`1'"'=="unmarried" {
             if `"`ageType'"'=="Y"  local Ovars _cons young badQuarter highEd
             if `"`ageType'"'=="A"  local Ovars _cons motherAge badQuarter highEd
             if `"`ageType'"'=="A2" local Ovars _cons motherAge motherAge2 /*
@@ -454,7 +472,7 @@ foreach cond of local c1 {
     
     macro shift
 }
-
+exit
 ********************************************************************************
 *** (5a) Redefine bad season as bad season due to short gest, and bad season
 ********************************************************************************
