@@ -32,7 +32,7 @@ local FE    i.birthProvince
 local se    robust
 local cnd   if twin==0
 
-local JulNov 1
+local JulNov 0
 
 ********************************************************************************
 *** (2a) Open and subset
@@ -41,6 +41,8 @@ use "$DAT/`data'"
 keep if survived1day == 1
 keep if parity == 1 & motherSpanish == 1 & ageMother>=25 & ageMother<= 45
 destring birthProvince, replace
+
+replace gestation = . if gestation == 0
 
 ********************************************************************************
 *** (2b) Generate variables
@@ -66,6 +68,7 @@ replace expectedMonth   = expectedMonth + 12 if expectedMonth<1
 gen     expectQuarter   = ceil(expectedMonth/3)
 gen     expectGoodQ     = expectQuarter == 2 | expectQuarter == 3 if gest!=.
 gen     expectBadQ      = expectQuarter == 4 | expectQuarter == 1 if gest!=.
+gen     labourForce     = professionM >0 & professionM <11 if professionM!=.
 
 gen     Qgoodgood       = expectGoodQ==1 & goodQuarter==1 if gest!=.
 gen     Qgoodbad        = expectGoodQ==1 & badQuarter ==1 if gest!=.
@@ -106,6 +109,7 @@ lab var youngXhighEdXbadQ  "Young$\times$ College$\times$ Bad S"
 lab var vhighEd            "Complete Degree"
 lab var youngXvhighEd      "Degree$\times$ Aged 25-39"
 lab var professional       "White Collar Job"
+lab var labourForce        "In Labour Market"
 lab var married            "Married"
 lab var birthweight        "Birthweight"
 lab var gestation          "Gestation"
@@ -144,6 +148,23 @@ postfoot("Province FE&&Y&Y&Y&Y\\ \bottomrule"
                   "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
+
+eststo: reg goodQuarter young                                  `cnd', `se'
+eststo: reg goodQuarter young                             `FE' `cnd', `se'
+eststo: reg goodQuarter young highEd                      `FE' `cnd', `se'
+eststo: reg goodQuarter young highEd labourForce          `FE' `cnd', `se'
+eststo: reg goodQuarter young highEd labourForce  married `FE' `cnd', `se'
+#delimit ;
+esttab est1 est2 est3 est4 est5 using "$OUT/spainBinaryLForce.tex",
+replace `estopt' title("Birth Season and Age (Spain 2013)") booktabs
+keep(_cons young highEd labourForce  married) style(tex) mlabels(, depvar)
+postfoot("Province FE&&Y&Y&Y&Y\\ \bottomrule"
+                  "\multicolumn{6}{p{15cm}}{\begin{footnotesize}Sample consists"
+                  "of all singleton first born children of Spanish mothers"
+                  "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+
 
 eststo: reg goodQuarter young                                   `cnd', `se'
 eststo: reg goodQuarter young                              `FE' `cnd', `se'
