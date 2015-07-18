@@ -693,10 +693,10 @@ append using `B1995' `B1996' `B1997' `B1998' `B1999', force
 
 lab dat "NVSS birth data 1990s (first births, white, 25-45 year olds)"
 save "$OUT/nvss1990s.dta", replace
-*/
+
 
 ********************************************************************************
-*** (7) 1970s File
+*** (8) 1970s File
 ********************************************************************************
 foreach year of numlist 1971(1)1979 {
     use "$DAT/natl`year'"
@@ -749,3 +749,59 @@ append using `B1975' `B1976' `B1977' `B1978' `B1979', force
 
 lab dat "NVSS birth data 1970s (first births, white, 25-45 year olds)"
 save "$OUT/nvss1970s.dta", replace
+*/
+    
+********************************************************************************
+*** (9) 1980s File
+********************************************************************************
+foreach year of numlist 1980(1)1989 {
+    use "$DAT/natl`year'"
+
+    if `year'>1988  gen married     = dmar == 1
+    if `year'<1989  gen married     = mar2 == 1
+    gen birthOrder  = dlivord
+    gen motherAge   = dmage
+    gen fatherAge   = fage11
+    gen birthMonth  = birmon
+    gen year        = `year'
+    gen twin        = dplural
+    gen birthweight = dbirwt if dbirwt>=500 & dbirwt <= 5000
+    gen vlbw        = birthweight < 1500 if birthweight != .
+    gen lbw         = birthweight < 2500 if birthweight != .
+    gen gestation   = dgestat if dgestat!=99&dgestat!=0
+    gen premature   = gestation < 37 if gestation != .
+    *gen smoker      = cigar>0 if cigar < 99
+    gen female      = csex==2
+    gen sampWeight  = 1
+    cap replace sampWeight = recwt
+    
+    keep if birthOrder<=2 & (motherAge>=20 & motherAge<=45)
+    keep if mrace == 1
+    
+    gen birthQuarter = ceil(birthMonth/3)
+
+    gen ageGroup = motherAge>=25 & motherAge <=34
+    replace ageGroup = 2 if motherAge >= 35 & motherAge <= 39
+    replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
+
+    gen ageGroupMan = fage11>6 & fage11 != 11
+    replace ageGroupMan = ageGroupMan + 1
+
+    gen educLevel = dmeduc >= 13
+    replace educLevel = 2 if dmeduc >= 16
+    replace educLevel = . if dmeduc == 99
+
+    gen education = dmeduc if dmeduc != 99
+
+    keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw     /*
+    */ premature motherAge education fatherAge ageGroupMan married female   /*
+    */ birthMonth gestation birthOrder statenat stateres sampWeight
+    tempfile B`year'
+    save `B`year''
+}
+clear
+append using `B1980' `B1981' `B1982' `B1983' `B1984', force
+append using `B1985' `B1986' `B1987' `B1988' `B1989', force
+
+lab dat "NVSS birth data 1980s (first births, white, 25-45 year olds)"
+save "$OUT/nvss1980s.dta", replace
