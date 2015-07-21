@@ -583,6 +583,11 @@ TABLES = [loc2 +'NVSSBinaryFDeaths.tex'      ,
           loc90+'NVSSBinary.tex'             ,  
           loc90+'NVSSseasonMLogit.tex'       ,
           loc90+'QualityAllCombnoFE.tex'     ,
+          loc90+'NVSSBinaryWeather.tex'      ,
+          loc90+'NVSSQualityWeather.tex'     ,
+          loc90+'NVSSQualityWarm.tex'        ,
+          loc90+'NVSSQualityCold.tex'        ,
+          loc90+'NVSSQualityWInterac.tex'    ,
           spain+'spainBinaryLForce.tex'
 ]
 
