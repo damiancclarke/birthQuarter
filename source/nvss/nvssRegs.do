@@ -17,6 +17,7 @@ cap log close
 *** (1) globals and locals
 ********************************************************************************
 global DAT "~/investigacion/2015/birthQuarter/data/nvss"
+global USW "~/investigacion/2015/birthQuarter/data/weather"
 global OUT "~/investigacion/2015/birthQuarter/results/nvss/regressions"
 global LOG "~/investigacion/2015/birthQuarter/log"
 
@@ -32,7 +33,7 @@ local yFE    i.year
 local se     robust
 local cnd    if twin==1
 local keepif birthOrder==1 & motherAge>24
-
+/*
 ********************************************************************************
 *** (1b) Define run type
 ********************************************************************************
@@ -560,15 +561,54 @@ postfoot("Year FE&&Y&Y\\ \bottomrule"
 #delimit cr
 estimates clear
 
-
+*/
 ********************************************************************************
 *** (7) 1970, 1990 regs
 ********************************************************************************
-foreach syear of numlist 1990 1970 {
-    use "$DAT/nvss`syear's", clear
-    keep if birthOrder==1 & motherAge>24
+insheet using "$USW/usaWeather.txt", delim(";") names
+rename fips stoccfip
+destring temp, replace
+
+reshape wide temp, i(state stoccfip year month) j(type) string
+keep if year>=1990&year<=1999
+bys state year (temptmpcst): gen tempOrder = _n
+foreach num of numlist 1 2 3 {
+    gen min`num' = month if tempOrder == `num'
+    by state year: egen minMonth`num' = mean(min`num')
+    drop min`num'
+}
+
+gen minTemp = temptminst if tempOrder ==1
+bys state: egen aveMinTemp=mean(minTemp)
+drop tempOrder minTemp
+
+reshape wide temp*, i(state stoccfip year minMonth* aveMinTemp) j(month)
+gen coldState_20 = aveMinTemp<20
+
+tostring stoccfip, replace
+foreach num in 1 2 4 5 6 8 9 {
+    replace stoccfip = "0`num'" if stoccfip=="`num'"
+}
+expand 2 if stoccfip == "24", gen(expanded)
+replace stoccfip = "11" if expanded == 1
+drop expanded
+
+tempfile weather
+save `weather'
+
+
+foreach syear of numlist 1990 /*1970*/ {
     global OUT "~/investigacion/2015/birthQuarter/results/`syear's/regressions"
 
+    use "$DAT/nvss`syear's", clear
+    keep if birthOrder==1 & motherAge>24
+    merge m:1 stoccfip year using `weather'
+    gen badSeasonWeather = birthMonth == minMonth1 | birthMonth == minMonth2 /*
+                      */ | birthMonth == minMonth3
+    replace badSeasonWeather = 1 if statenat=="12"&/*
+                      */       (birthMonth==12|birthMonth==1|birthMonth==2)
+    gen goodSeasonWeather = badSeasonWeather == 0
+    
     gen birth = 1
     gen goodQuarter = birthQuarter == 2 | birthQuarter == 3
     gen badQuarter  = birthQuarter == 4 | birthQuarter == 1
@@ -599,7 +639,7 @@ foreach syear of numlist 1990 1970 {
     gen     Qgoodbad        = expectGoodQ==1 & badQuarter ==1 if gest!=.
     gen     Qbadgood        = expectBadQ==1  & goodQuarter==1 if gest!=.
     gen     Qbadbad         = expectBadQ==1  & badQuarter ==1 if gest!=.
-    
+
     sum expectGoodQ expectBadQ
     sum Qgoodgood Qgoodbad Qbadgood Qbadbad
 
@@ -663,6 +703,26 @@ foreach syear of numlist 1990 1970 {
     #delimit cr
     estimates clear
 
+    
+    eststo:  reg goodSeasonW young                              `cnd', `se'
+    eststo:  reg goodSeasonW young                        `yFE' `cnd', `se'
+    eststo:  reg goodSeasonW young highEd                 `yFE' `cnd', `se'
+    eststo:  reg goodSeasonW young highEd married `smoke' `yFE' `cnd', `se' 
+    eststo: areg goodSeasonW young highEd married `smoke' `yFE' `cnd', `se' `abs'
+
+    #delimit ;
+    esttab est1 est2 est3 est4 est5 using "$OUT/NVSSBinaryWeather.tex",
+    replace `estopt' title("Birth Season and Age: `syear'") booktabs 
+    keep(_cons young highEd married) style(tex) mlabels(, depvar)
+    postfoot("Year FE&&Y&Y&Y&Y\\ State FE&&&&&Y\\ \bottomrule"
+         "\multicolumn{6}{p{15.6cm}}{\begin{footnotesize}Sample consists of all"
+         "first born children of US-born, white, non-hispanic mothers in the   "
+         "`syear'. Good season is defined as a birth occurring in one of the   "
+         "nine warmest months of the year for each state.                      "
+         "\end{footnotesize}}\end{tabular}\end{table}");
+    #delimit cr
+    estimates clear
+    
     ****************************************************************************
     *** (7b) Mlogit
     ****************************************************************************
@@ -716,6 +776,69 @@ foreach syear of numlist 1990 1970 {
     ****************************************************************************
     *** (7c) Quality regs
     ****************************************************************************
+    gen badQuarterCold = badQuarterWeather*cold
+    lab var badQuarterWeather "Bad Season (weather)"
+    lab var coldState_20      "Cold State"               
+    lab var badQuarterCold    "Bad Season$\times$ Cold"
+    
+    local wvar badQuarterWeather coldState_20 badQuarterCold
+    local cvar highEd married smoker 
+    local FE2  i.year i.statecode
+
+
+    foreach y of varlist `qual' {
+        eststo: reg `y' young badQuarterWeather `cvar' `FE2' `cnd', `se'
+        eststo: reg `y' young `wvar'            `cvar' `FE2' `cnd', `se'
+    }
+
+    #delimit ;
+    esttab est1 est3 est5 est7 est9 est11 using "$OUT/NVSSQualityWeather.tex",
+    replace `estopt' keep(_cons badQuarterWeather `cvar') style(tex)
+    mlabels(, depvar) booktabs
+    title("Birth Quality by Age and Season (Weather to define badQuarter)")    
+    postfoot("\bottomrule"
+             "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Sample consists "
+             "of all first born children of US-born, white, non-hispanic   "
+             "mothers. Warm or cold states are defined as a minimum yearly "
+             "temperature of above or below 20 degrees Fahrenheit.         "
+             "\end{footnotesize}}\end{tabular}\end{table}");
+
+    esttab est2 est4 est6 est8 est10 est12 using "$OUT/NVSSQualityWInterac.tex",
+    replace `estopt' keep(_cons `wvar' `cvar') style(tex)
+    mlabels(, depvar) booktabs
+    title("Birth Quality by Age and Season (Weather Interactions)")    
+    postfoot("\bottomrule"
+             "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Sample consists "
+             "of all first born children of US-born, white, non-hispanic   "
+             "mothers. Warm or cold states are defined as a minimum yearly "
+             "temperature of above or below 20 degrees Fahrenheit.         "
+             "\end{footnotesize}}\end{tabular}\end{table}");
+    #delimit cr
+    estimates clear
+
+    gen statetype = "Cold" if coldstate==1
+    replace statetype = "Warm" if coldstate==0|statenat=="12"
+    foreach ww in Warm Cold {
+        local cond `cnd'&statetype=="`ww'"
+        foreach y of varlist `qual' {
+            eststo: reg `y' young badQuarterWeather `cvar' `FE2' if `cond', `se'
+        }
+        #delimit ;
+        esttab est1 est2 est3 est4 est5 est6 using "$OUT/NVSSQuality`ww'.tex",
+        replace `estopt' keep(_cons badQuarterWeather `cvar') style(tex)
+        mlabels(, depvar) booktabs
+        title("Birth Quality by Age and Season (`ww' states only)")    
+        postfoot("\bottomrule"
+                 "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Sample consists "
+                 "of all first born children of US-born, white, non-hispanic   "
+                 "mothers.  Warm or cold states are defined as a minimum yearly"
+                 " temperature of above or below 20 degrees Fahrenheit.        "
+                 "\end{footnotesize}}\end{tabular}\end{table}")
+        #delimit cr
+        estimates clear
+    }
+
+    exit
     foreach method in FE noFE {
         local cont highEd married
         local seasons Qgoodbad Qbadgood Qbadbad
