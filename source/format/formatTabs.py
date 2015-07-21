@@ -61,8 +61,8 @@ br   = '\\bottomrule'
 mc1  = '\\multicolumn{'
 mc2  = '}}'
 twid = ['10','6','7','7','7','6']
-tcm  = ['}{p{16.6cm}}','}{p{14.2cm}}','}{p{16.4cm}}','}{p{18.4cm}}'
-        ,'}{p{12.8cm}}','}{p{12.8cm}}']
+tcm  = ['}{p{16.6cm}}','}{p{13.4cm}}','}{p{15.6cm}}','}{p{17.6cm}}'
+        ,'}{p{12.8cm}}','}{p{12.2cm}}']
 mc3  = '{\\begin{footnotesize}\\textsc{Notes:} '
 lname = "Fertility$\\times$desire"
 tname = "Twin$\\times$desire"
@@ -191,7 +191,9 @@ sumT.close()
 #==============================================================================
 sumT = open(TAB + 'sumStats'+ftype+'.tex', 'w')
 sumT.write('\\begin{table}[htpb!] \n \\begin{center} \n' 
-'\\caption{Descriptive Statistics (NVSS 2005-2013)}\n \\begin{tabular}{lccccc} '
+'\\caption{Descriptive Statistics (NVSS 2005-2013)}\n '
+'\\label{bqTab:SumStatsNVSS}'
+'\\begin{tabular}{lccccc} '
 '\n \\toprule\\toprule \\vspace{5mm} \n'
 '& N & Mean & Std. Dev. & Min. & Max. \\\\ \\midrule \n'
 '\multicolumn{6}{l}{\\textbf{Panel A: Mother}} \\\\ \n')
@@ -232,7 +234,9 @@ sumT.close()
 #==============================================================================
 sumT = open(TAB + 'sumStatsSpain.tex', 'w')
 sumT.write('\\begin{table}[htpb!] \n \\begin{center} \n' 
-'\\caption{Descriptive Statistics (Spain 2013)}\n \\begin{tabular}{lccccc} '
+'\\caption{Descriptive Statistics (Spain 2013)}\n '
+'\\label{bqTab:SumStatsSpain}'
+'\\begin{tabular}{lccccc} '
 '\n \\toprule\\toprule \\vspace{5mm} \n'
 '& N & Mean & Std. Dev. & Min. & Max. \\\\ \\midrule \n'
 '\multicolumn{6}{l}{\\textbf{Panel A: Mother}} \\\\ \n')
@@ -365,9 +369,11 @@ for vAge in ['.tex', '_A.tex', '_A2.tex']:
 
     hetT.write('\n'+mr+mc1+twid[2]+tcm[2]+mc3+
            'All specifications are linear probability models estimates by OLS w'
-           'ith heteroscedasticity-robust standard errors. Full term in column '
+           'ith heteroscedasticity-robust standard errors.                     '
            'Infertility treatment regressions are only estimated for years 2012'
-           '-2013.\\end{footnotesize}}\\\\ \n \\bottomrule '
+           '-2013. Descriptive statistics for each variable are available in ta'
+           'ble \\ref{bqTab:SumStatsNVSS}.'
+           '\\end{footnotesize}}\\\\ \n \\bottomrule '
            '\n\\end{tabular}\\end{center}\\end{table}'
     )
     hetT.close()
@@ -481,7 +487,8 @@ for vAge in ['.tex', '_A.tex', '_A2.tex']:
            ' by OLS with heteroscedasticity-robust standard errors. Full term i'
            'n column (4) refers to any babies whose gestation was greater than '
            'or equal to 39 weeks. Infertility treatment regressions are only es'
-           'timated for years 2012-2013.'
+           'timated for years 2012-2013. Descriptive statistics for variables  '
+           'are available in table \\ref{bqTab:SumStatsNVSS}.'
            '\\end{footnotesize}}\\\\ \\bottomrule \n\\end{tabular}\\end{center}'
            '\\end{table}'
     )

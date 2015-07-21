@@ -21,7 +21,7 @@ global USW "~/investigacion/2015/birthQuarter/data/weather"
 global OUT "~/investigacion/2015/birthQuarter/results/nvss/regressions"
 global LOG "~/investigacion/2015/birthQuarter/log"
 
-log using "$LOG/nvssRegs2.txt", text replace
+log using "$LOG/nvssRegs.txt", text replace
 cap mkdir "$OUT"
 
 local qual birthweight lbw vlbw gestation premature apgar 
@@ -289,6 +289,7 @@ tokenize `names'
 foreach cond of local c1 {
     dis "`1'"
     local cn 5
+    local cm 12
     local sp "&&Y&Y&Y"
     
     eststo: reg goodQuarter young                              if `cond', `se'
@@ -300,6 +301,7 @@ foreach cond of local c1 {
     if `"`1'"' == "unmarried"     local ests est1 est2 est3
     if `"`1'"' == "unmarried"     local cn 4
     if `"`1'"' == "unmarried"     local sp "&&Y&Y"
+    if `"`1'"' == "unmarried"     local cm 10.4
 
     local vars _cons young highEd married smoker
     if `"`1'"'=="non-smoking"|`"`1'"'=="smoking" local ests est1 est2 est3 
@@ -310,8 +312,8 @@ foreach cond of local c1 {
     esttab `ests' using "$OUT/NVSSBinary`1'.tex", replace `estopt' booktabs 
     title("Birth Season and Age (`1' sample)") keep(`vars') mlabels(, depvar)
     postfoot("Year FE`sp'\\ \bottomrule"
-             "\multicolumn{`cn'}{p{12cm}}{\begin{footnotesize}Sample consists "
-             " of all first births to US-born, white, non-hispanic mothers.   "
+             "\multicolumn{`cn'}{p{`cm'cm}}{\begin{footnotesize}Sample consists"
+             " of all first births to US-born, white, non-hispanic mothers.    "
              "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
     #delimit cr
     estimates clear
@@ -498,7 +500,7 @@ mtitles("No Gest" "Gestation" "No Gest" "Gestation" "No Gest" "Gestation")
 mgroups("All" "Young" "Old", pattern(1 0 1 0 1 0)
 prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(r){@span}))
 postfoot("\bottomrule"
-         "\multicolumn{7}{p{20.2cm}}{\begin{footnotesize}Sample consists of all"
+         "\multicolumn{7}{p{19.2cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of US-born, white, non-hispanic mothers. Bad     "
          "Season (due in bad) is a dummy for children expected and born in     "
          "quarters 1 or 4, while Bad Season (due in good) is a dummy for       "
@@ -713,7 +715,7 @@ foreach syear of numlist 1990 /*1970*/ {
 
     #delimit ;
     esttab est1 est2 est3 est4 est5 using "$OUT/NVSSBinaryWeather.tex",
-    replace `estopt' title("Birth Season and Age (Weather to define badQuarter)") 
+    replace `estopt' title("Birth Season and Age (Weather to define Good Season)") 
     keep(_cons young highEd married) style(tex) mlabels(, depvar) booktabs 
     postfoot("Year FE&&Y&Y&Y&Y\\ State FE&&&&&Y\\ \bottomrule"
          "\multicolumn{6}{p{15.6cm}}{\begin{footnotesize}Sample consists of all"

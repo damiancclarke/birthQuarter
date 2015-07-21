@@ -305,8 +305,9 @@ lab val goodQuarter seasn
 
 #delimit ;
 twoway line youngBeta youngMont || rcap youngLoww youngHigh youngMont,
-scheme(s1mono) yline(0, lpattern(dot)) legend(order(1 "Young-Old" 2 "95% CI"))
-xlabel(1(1)12, valuelabels) xtitle("Month") ytitle("Young-Old");
+scheme(s1mono) yline(0, lpattern(dash) lcolor(red))  xtitle("Month")
+legend(order(1 "Young-Old" 2 "95% CI")) xlabel(1(1)12, valuelabels)
+ytitle("Young-Old");
 graph export "$OUT/youngMonths.eps", as(eps) replace;
 #delimit cr
 

@@ -148,7 +148,7 @@ postfoot("Province FE&&Y&Y&Y&Y\\ \bottomrule"
                   "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-
+exit
 eststo: reg goodQuarter young                                  `cnd', `se'
 eststo: reg goodQuarter young                             `FE' `cnd', `se'
 eststo: reg goodQuarter young highEd                      `FE' `cnd', `se'
@@ -232,7 +232,7 @@ esttab est1 est2 est3 est4 est5 est6 using "$OUT/spainQuality.tex",
 replace `estopt' title("Birth Quality by Age and Season (Spain 2013)")
 keep(_cons young badQuarter) style(tex) booktabs mlabels(, depvar)
 postfoot("\bottomrule"
-         "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Sample consists of all"
+         "\multicolumn{7}{p{15.8cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of Spanish mothers. Gestation weeks and premature"
          "are recorded separately in birth records: premature (binary) for all,"
          "and gestation (continuous) only for some."
@@ -281,9 +281,9 @@ keep(_cons young `seasons' `cont') starlevel ("*" 0.10 "**" 0.05 "***" 0.01)
 mgroups("All" "Young" "Old", pattern(1 0 1 0 1 0)
 prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(r){@span}))
 postfoot("\bottomrule"
-         "\multicolumn{7}{p{20cm}}{\begin{footnotesize}Sample consists of all  "
-         "first born children of Spanish mothers. Bad Season (due in bad) is a "
-         "dummy for children expected and born in quarters 1 or 4, while Bad   "
+         "\multicolumn{7}{p{18.6cm}}{\begin{footnotesize}Sample consists of all"
+         " first born children of Spanish mothers. Bad Season (due in bad) is a"
+         " dummy for children expected and born in quarters 1 or 4, while Bad  "
          "Season (due in good) is a dummy for children expected in quarters 2  "
          "or 3, but were born prematurely in quarters 1 or 4. Fixed effects for"
          "weeks of gestation are included."
