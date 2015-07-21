@@ -686,7 +686,7 @@ foreach syear of numlist 1990 /*1970*/ {
     local abs abs(statecode)
     local smoke
     if `syear'==1990 local smoke smoker
-    /*    
+
     eststo:  reg goodQuarter young                              `cnd', `se'
     eststo:  reg goodQuarter young                        `yFE' `cnd', `se'
     eststo:  reg goodQuarter young highEd                 `yFE' `cnd', `se'
@@ -727,7 +727,6 @@ foreach syear of numlist 1990 /*1970*/ {
     ****************************************************************************
     *** (7b) Mlogit
     ****************************************************************************
-
     gen     seasonType = 1 if Qgoodgood  == 1
     replace seasonType = 2 if Qgoodbad   == 1
     replace seasonType = 3 if Qbadgood   == 1
@@ -773,7 +772,7 @@ foreach syear of numlist 1990 /*1970*/ {
          "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
     #delimit cr
     estimates clear
-    */
+
     ****************************************************************************
     *** (7c) Quality regs
     ****************************************************************************
@@ -785,11 +784,12 @@ foreach syear of numlist 1990 /*1970*/ {
     local wvar badSeasonWeather badSeasonCold
     local cvar highEd married smoker 
     local FE2  i.year i.statecode
+    local sec  cluster(statecode)
+    
 
-    /*
     foreach y of varlist `qual' {
-        eststo: reg `y' young badSeasonWeather `cvar' `FE2' `cnd', `se'
-        eststo: reg `y' young `wvar'           `cvar' `FE2' `cnd', `se'
+        eststo: reg `y' young badSeasonWeather `cvar' `FE2' `cnd', `sec'
+        eststo: reg `y' young `wvar'           `cvar' `FE2' `cnd', `sec'
     }
 
     #delimit ;
@@ -816,13 +816,13 @@ foreach syear of numlist 1990 /*1970*/ {
              "\end{footnotesize}}\end{tabular}\end{table}");
     #delimit cr
     estimates clear
-    */
+
     gen statetype = "Cold" if coldState_20==1
     replace statetype = "Warm" if coldState_20==0|statenat=="12"
     foreach ww in Warm Cold {
         local cond `cnd'&statetype=="`ww'"
         foreach y of varlist `qual' {
-            eststo: reg `y' young badSeasonWeather `cvar' `FE2' `cond', `se'
+            eststo: reg `y' young badSeasonWeather `cvar' `FE2' `cond', `sec'
         }
         #delimit ;
         esttab est1 est2 est3 est4 est5 est6 using "$OUT/NVSSQuality`ww'.tex",
@@ -834,12 +834,14 @@ foreach syear of numlist 1990 /*1970*/ {
                  "of all first born children of US-born, white, non-hispanic   "
                  "mothers.  Warm or cold states are defined as a minimum yearly"
                  " temperature of above or below 20 degrees Fahrenheit.        "
-                 "\end{footnotesize}}\end{tabular}\end{table}")
+                 "\end{footnotesize}}\end{tabular}\end{table}");
         #delimit cr
         estimates clear
     }
 
-    exit
+    ****************************************************************************
+    *** (7d) Quality regs -- gestation interaction
+    **************************************************************************** 
     foreach method in FE noFE {
         local cont highEd married
         local seasons Qgoodbad Qbadgood Qbadbad
