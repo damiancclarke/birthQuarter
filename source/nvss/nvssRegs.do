@@ -649,6 +649,7 @@ foreach syear of numlist 1990 /*1970*/ {
     lab val ageGroup    aG
     lab val goodQuarter gQ
     
+    lab var goodSeasonWeather  "Good Season"
     lab var goodQuarter        "Good Season"
     lab var badQuarter         "Bad Season"
     lab var highEd             "Some College +"
@@ -685,7 +686,7 @@ foreach syear of numlist 1990 /*1970*/ {
     local abs abs(statecode)
     local smoke
     if `syear'==1990 local smoke smoker
-    
+    /*    
     eststo:  reg goodQuarter young                              `cnd', `se'
     eststo:  reg goodQuarter young                        `yFE' `cnd', `se'
     eststo:  reg goodQuarter young highEd                 `yFE' `cnd', `se'
@@ -712,8 +713,8 @@ foreach syear of numlist 1990 /*1970*/ {
 
     #delimit ;
     esttab est1 est2 est3 est4 est5 using "$OUT/NVSSBinaryWeather.tex",
-    replace `estopt' title("Birth Season and Age: `syear'") booktabs 
-    keep(_cons young highEd married) style(tex) mlabels(, depvar)
+    replace `estopt' title("Birth Season and Age (Weather to define badQuarter)") 
+    keep(_cons young highEd married) style(tex) mlabels(, depvar) booktabs 
     postfoot("Year FE&&Y&Y&Y&Y\\ State FE&&&&&Y\\ \bottomrule"
          "\multicolumn{6}{p{15.6cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of US-born, white, non-hispanic mothers in the   "
@@ -726,7 +727,7 @@ foreach syear of numlist 1990 /*1970*/ {
     ****************************************************************************
     *** (7b) Mlogit
     ****************************************************************************
-    /*
+
     gen     seasonType = 1 if Qgoodgood  == 1
     replace seasonType = 2 if Qgoodbad   == 1
     replace seasonType = 3 if Qbadgood   == 1
@@ -776,24 +777,24 @@ foreach syear of numlist 1990 /*1970*/ {
     ****************************************************************************
     *** (7c) Quality regs
     ****************************************************************************
-    gen badQuarterCold = badQuarterWeather*cold
-    lab var badQuarterWeather "Bad Season (weather)"
-    lab var coldState_20      "Cold State"               
-    lab var badQuarterCold    "Bad Season$\times$ Cold"
+    gen badSeasonCold = badSeasonWeather*cold
+    lab var badSeasonWeather "Bad Season (weather)"
+    lab var coldState_20     "Cold State"               
+    lab var badSeasonCold    "Bad Season$\times$ Cold"
     
-    local wvar badQuarterWeather coldState_20 badQuarterCold
+    local wvar badSeasonWeather badSeasonCold
     local cvar highEd married smoker 
     local FE2  i.year i.statecode
 
-
+    /*
     foreach y of varlist `qual' {
-        eststo: reg `y' young badQuarterWeather `cvar' `FE2' `cnd', `se'
-        eststo: reg `y' young `wvar'            `cvar' `FE2' `cnd', `se'
+        eststo: reg `y' young badSeasonWeather `cvar' `FE2' `cnd', `se'
+        eststo: reg `y' young `wvar'           `cvar' `FE2' `cnd', `se'
     }
 
     #delimit ;
     esttab est1 est3 est5 est7 est9 est11 using "$OUT/NVSSQualityWeather.tex",
-    replace `estopt' keep(_cons badQuarterWeather `cvar') style(tex)
+    replace `estopt' keep(_cons badSeasonWeather `cvar') style(tex)
     mlabels(, depvar) booktabs
     title("Birth Quality by Age and Season (Weather to define badQuarter)")    
     postfoot("\bottomrule"
@@ -815,17 +816,17 @@ foreach syear of numlist 1990 /*1970*/ {
              "\end{footnotesize}}\end{tabular}\end{table}");
     #delimit cr
     estimates clear
-
-    gen statetype = "Cold" if coldstate==1
-    replace statetype = "Warm" if coldstate==0|statenat=="12"
+    */
+    gen statetype = "Cold" if coldState_20==1
+    replace statetype = "Warm" if coldState_20==0|statenat=="12"
     foreach ww in Warm Cold {
         local cond `cnd'&statetype=="`ww'"
         foreach y of varlist `qual' {
-            eststo: reg `y' young badQuarterWeather `cvar' `FE2' if `cond', `se'
+            eststo: reg `y' young badSeasonWeather `cvar' `FE2' `cond', `se'
         }
         #delimit ;
         esttab est1 est2 est3 est4 est5 est6 using "$OUT/NVSSQuality`ww'.tex",
-        replace `estopt' keep(_cons badQuarterWeather `cvar') style(tex)
+        replace `estopt' keep(_cons badSeasonWeather `cvar') style(tex)
         mlabels(, depvar) booktabs
         title("Birth Quality by Age and Season (`ww' states only)")    
         postfoot("\bottomrule"
