@@ -760,6 +760,7 @@ rename temptmaxst hot
 bys state FIPS: egen aveTemp70_90 = mean(meanT)
 bys state FIPS: egen aveMin70_90  = mean(cold)
 bys state FIPS: egen aveMax70_90  = mean(hot)
+bys state FIPS: egen aveMin90s    = mean(cold) if year>1987
 
 tempfile weatherYear
 save `weatherYear'
@@ -786,6 +787,8 @@ merge m:1 FIPS year using `weatherYear'
 gen coldState_20 = aveMin70_90<20
 gen coldState_15 = aveMin70_90<15
 gen coldState_10 = aveMin70_90<10
+gen deviation    = cold-aveMin70_90
+gen deviation90s = cold-aveMin90s
 
 lab var cold       "Coldest Temperature (degree F)"
 lab var goodSeason "Proportion Good Season"
@@ -793,6 +796,44 @@ lab var goodSeason "Proportion Good Season"
 local conds young==1&coldS==1 young==1&coldS==0 young==0&coldS==1 young==0&coldS==0
 local names young_cold young_warm old_cold old_warm
 
+drop if young==.
+foreach lag of numlist 1 2 {
+    bys statenat young (year): gen minLag_`lag'=cold[_n-`lag']
+    bys statenat young (year): gen devLag_`lag'=deviation[_n-`lag']
+    bys statenat young (year): gen devL90_`lag'=deviation90s[_n-`lag']
+    gen deviationGroup_`lag' = .
+    gen deviationG90s_`lag'  = .
+    foreach num of numlist 1(1)6{
+        local min = -20+(5*`num')
+        local max = -15+(5*`num')
+        dis "`min', `max'"
+        replace deviationGroup_`lag' = `num' if devLag_`lag'>=`min'&devLag_`lag'<`max'
+        replace deviationG90s_`lag' = `num' if devL90_`lag'>=`min'&devL90_`lag'<`max'
+    }
+}
+
+lab def dev 1 "-15 to -10" 2 "-10 to -5" 3 "-5 to 0" 4 "0 to 5" 5 "5 to 10" 6 "10 to 15"
+lab val deviationGroup_1 dev
+lab val deviationGroup_2 dev
+lab val deviationG90s_1 dev
+lab val deviationG90s_2 dev
+
+foreach lag of numlist 1 2 {
+    foreach DG in deviationGroup deviationG90s {
+        local opts over(`DG'_`lag') nooutsides box(1, fcolor(white) lcolor(black)) /*
+        */ scheme(s1mono) ylabel(,nogrid) medline(lcolor(black) lwidth(thin))
+        graph box goodSeason if coldState_20==1&young==1, `opts'
+        graph export "$OUT/weather/`DG'ColdYoung_lag`lag'.eps", as(eps) replace
+        graph box goodSeason if coldState_20==0&young==1, `opts'
+        graph export "$OUT/weather/`DG'WarmYoung_lag`lag'.eps", as(eps) replace
+        graph box goodSeason if coldState_20==1&young==0, `opts'
+        graph export "$OUT/weather/`DG'ColdOld_lag`lag'.eps", as(eps) replace
+        graph box goodSeason if coldState_20==0&young==0, `opts'
+        graph export "$OUT/weather/`DG'WarmOld_lag`lag'.eps", as(eps) replace
+    }
+}
+exit
+    
 foreach x of numlist 20 15 10 {
     preserve
     collapse goodSeason cold, by(coldState_`x' young year)
