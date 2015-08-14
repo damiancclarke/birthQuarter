@@ -655,7 +655,7 @@ foreach outcome in `hkbirth' {
     macro shift
 }
 restore
-
+*/
 ********************************************************************************
 *** (7) Examine by geographic variation (hot/cold)
 ********************************************************************************
@@ -704,10 +704,13 @@ lab var meanT       "Mean monthly temperature (degree F)"
 foreach num of numlist 0 1 {
     local age young
     if `num'==0 local age old
-    
+    drop if FIPS=="02"
+
+    corr goodSeason cold if young==`num'
+    local ccoef = string(r(rho),"%5.3f")
     twoway scatter goodSeason cold if young==`num', mlabel(state) ||      ///
         lfit goodSeason cold if young==`num', scheme(s1mono) lcolor(gs0)  ///
-            legend(off) lpattern(dash)
+            legend(off) lpattern(dash) note("Correlation coefficient=`ccoef'")
     graph export "$OUT/`age'TempCold.eps", as(eps) replace
     twoway scatter goodSeason hot if young==`num', mlabel(state)  ||      ///
         lfit goodSeason hot if young==`num', scheme(s1mono) lcolor(gs0)   ///
