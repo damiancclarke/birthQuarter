@@ -151,9 +151,11 @@ foreach num of numlist 0 1 {
     local age young
     if `num'==0 local age old
 
+    corr goodQuarter cold if young==`num'
+    local ccoef = string(r(rho),"%5.3f")
     twoway scatter goodQuarter cold if young==`num', mlabel(name)  ||      ///
         lfit goodQuarter cold if young==`num', scheme(s1mono) lcolor(gs0)  ///
-        legend(off) lpattern(dash)
+        legend(off) lpattern(dash) note("Correlation coefficient=`ccoef'")
     graph export "$OUT/`age'TempCold.eps", as(eps) replace
     twoway scatter goodQuarter hot if young==`num', mlabel(name)   ||      ///
         lfit goodQuarter hot if young==`num', scheme(s1mono) lcolor(gs0)   ///
