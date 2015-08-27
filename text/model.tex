@@ -5,6 +5,7 @@
 \usepackage{amsmath}
 \usepackage{amsthm}
 \usepackage{appendix}
+\usepackage{bm}
 \usepackage{booktabs}
 \usepackage[usenames, dvipsnames]{color} 
 \usepackage{graphicx}
@@ -414,14 +415,13 @@ and
 q_{it} = \beta_0 + \beta_1 S^{good}_{it} + \beta_2 young_{it} + \beta_3 Educ_{i}.
 \]
 
-\paragraph{Bellman Equations} In each of the four periods, each individual 
-is endowed with a series of state variables.  These are (time invariant) 
-education $Educ_i$, accrued labour market experience, $Exper_{it}$, and the 
-utility shocks $\varepsilon_{it}$.  We now denote these state variables as 
-$\Omega_{it}$.  Conditional on state variable, we can express the value of
-remaining childless or deciding to have a child in the form of Bellman 
-equations.  The value of remaining childless, $V_{it}^{b=0}(\Omega_{it})$, 
-can be expressed as:
+\paragraph{Bellman Equations} In each of the four periods the state variables
+for each individual are (time invariant) education $Educ_i$, accrued labour 
+market experience, $Exper_{it}$, and the utility shocks $\varepsilon_{it}$.  
+We now denote these state variables as $\Omega_{it}$.  Conditional on state 
+variable, we can express the value of remaining childless or deciding to have 
+a child in the form of Bellman equations.  The value of remaining childless, 
+$V_{it}^{b=0}(\Omega_{it})$, can be expressed as:
 \begin{equation}
 \label{beEqn:VF0}
 V_{it}^{b=0}(\Omega_{it})=U_{it}^{b=0}+\beta E\max
@@ -431,9 +431,28 @@ where $\beta$ is the discount rate.  Similarly, the value of deciding to
 give birth is expressed as:
 \begin{equation}
 \label{beEqn:VF1}
-V_{it}^{b=1}(\Omega_{it})=U_{it}^{b=1}+\beta E(V_{t+1}|b_t=1)
+V_{it}^{b=1}(\Omega_{it})=U_{it}^{b=1}+\beta E(V_{t+1}|b_t=1).
 \end{equation}
- 
+Once the individual decides to give birth, the value function $V_{t+1}|b_t=1$
+consists of the discounted present value of labour market return and child
+quality, from $t+1$ to the final period.
+
+%-------------------------------------------------------------------------------
+\paragraph{Estimating the Model}
+The decision whether or not to have a birth depends upon prior decisions 
+regarding births, as well as the prevailing instantaneous utilities.  The
+likelihood of observing a first birth in a given period can then be thought of
+as the intersection of the probability that the individual remains childless and
+the probability that the instantaneous utility of having a birth is greater than
+the utility of remaining childless.  If the error terms $\varepsilon^{b=1}$
+and $\varepsilon^{b=0}$ are i.i.d., these two events are independent, and the
+likelihood will be the product of these two terms.
+
+Define a vector of parameters $\bm\theta=\gamma,\sigma_{b=1},\sigma_{b=0}$.  
+Then we are interested in writing the likelihood function:
+\[
+\mathcal{L}(\bm\theta|b=1)=P(b=1|\bm\theta)
+\]
 
 \newpage
 \bibliography{./refs}
