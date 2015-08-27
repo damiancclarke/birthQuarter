@@ -403,12 +403,16 @@ U^{b=0}&=&\ln(w_{it}^{b=0}) + \varepsilon^{b=0}_{it}. \nonumber
 In this framework utility comes from the from market wage or shadow price for 
 home labour ($w_{it}$), as well as the biological quality of the child ($q_{it}$)
 if a birth has been realised, and a stochastic utility shock only observed once 
-arriving to each period ($\varepsilon_{it}$).
+arriving to each period ($\varepsilon_{it}$).  For now, it is assumed that these
+stochastic shocks are jointly normally distributed each with a mean of zero, 
+standard deviation $\sigma_{b=1},\sigma_{b=0}$ and zero covariance.  Each 
+$\varepsilon_{it}$ term is assumed to be i.i.d., so past values of each utility
+shock have no effect on current realisations.
 
 Wage and birth quality can be thought of as offer functions in each period, and 
 are modelled as:
 \[
-ln(w_{it})=\alpha_1 Educ_{i} + \alpha_2 Exper_{it} + \alpha_3 Exper_{it}^2
+\ln(w_{it})=\alpha_1 Educ_{i} + \alpha_2 Exper_{it} + \alpha_3 Exper_{it}^2
 \]
 and
 \[
@@ -419,7 +423,7 @@ q_{it} = \beta_0 + \beta_1 S^{good}_{it} + \beta_2 young_{it} + \beta_3 Educ_{i}
 for each individual are (time invariant) education $Educ_i$, accrued labour 
 market experience, $Exper_{it}$, and the utility shocks $\varepsilon_{it}$.  
 We now denote these state variables as $\Omega_{it}$.  Conditional on state 
-variable, we can express the value of remaining childless or deciding to have 
+variables, we can express the value of remaining childless or deciding to have 
 a child in the form of Bellman equations.  The value of remaining childless, 
 $V_{it}^{b=0}(\Omega_{it})$, can be expressed as:
 \begin{equation}
@@ -434,26 +438,72 @@ give birth is expressed as:
 V_{it}^{b=1}(\Omega_{it})=U_{it}^{b=1}+\beta E(V_{t+1}|b_t=1).
 \end{equation}
 Once the individual decides to give birth, the value function $V_{t+1}|b_t=1$
-consists of the discounted present value of labour market return and child
-quality, from $t+1$ to the final period.
+consists of the discounted expected present value of labour market return and 
+child quality, from $t+1$ to the final period.
 
 %-------------------------------------------------------------------------------
 \paragraph{Estimating the Model}
-The decision whether or not to have a birth depends upon prior decisions 
+The decision of whether or not to have a birth depends upon prior decisions 
 regarding births, as well as the prevailing instantaneous utilities.  The
-likelihood of observing a first birth in a given period can then be thought of
-as the intersection of the probability that the individual remains childless and
-the probability that the instantaneous utility of having a birth is greater than
-the utility of remaining childless.  If the error terms $\varepsilon^{b=1}$
-and $\varepsilon^{b=0}$ are i.i.d., these two events are independent, and the
-likelihood will be the product of these two terms.
+likelihood of observing a first birth in a given period $t$ can then be thought 
+of as the intersection of the probability that the individual still remains 
+childless at the end of $t-1$, and the probability that the instantaneous 
+utility of having a birth is greater than the utility of remaining childless. As 
+the error terms $\varepsilon_t^{b=1}$ and $\varepsilon_t^{b=0}$ are assumed to 
+be i.i.d., these two events are independent, and the likelihood will be the 
+product of these two terms.
 
-Define a vector of parameters $\bm\theta=\gamma,\sigma_{b=1},\sigma_{b=0}$.  
-Then we are interested in writing the likelihood function:
+Define a vector of parameters $\bm\theta=(\gamma,\beta,\sigma_{b=1},
+\sigma_{b=0})$. Then we are interested in writing the likelihood function, which 
+for an individual in time $t$ looks like:
+\begin{eqnarray}
+\mathcal{L}(\bm\theta;b_t=1,U_t^{b=1},U_t^{b=0})&=&
+P(b_{t-1}=0|\bm\theta) \times P(U_t^{b=1}-U_t^{b=0}>0|\bm\theta) \nonumber \\
+& = & \mathcal{L}(\bm\theta;b_{t-1}=0)\times 
+\mathcal{L}(\bm\theta;U_t^{b=1}-U_t^{b=0}>0) \nonumber
+\end{eqnarray}
+writing this as the log-likelihood gives:
+\begin{equation}
+\ell(\bm\theta;b_t=1,U_t^{b=1},U_t^{b=0})= \ell(\bm\theta;b_{t-1}=0) 
++ \ell(\bm\theta;U_t^{b=1}-U_t^{b=0}>0)
+\end{equation}
+
+We can write the likelihood of the second part of this equation by considering
+the probability that $U_t^{b=1}>U_t^{b=0}$:
+\begin{eqnarray}
+\label{bqEqn:LL2}
+Pr(U_t^{b=1}>U_t^{b=0})&=&Pr\{[\ln(w_{it}^{b=1}) + \gamma q_{it} + \varepsilon^{b=1}_{it}]
+>[\ln(w_{it}^{b=0}) + \varepsilon^{b=0}_{it}]\} \nonumber \\
+&=&Pr[\ln(w_{it}^{b=1})-\ln(w_{it}^{b=0})+ \gamma q_{it} > 
+(\varepsilon^{b=1}_{it}-\varepsilon^{b=0}_{it})] 
+\end{eqnarray}
+given that each of the $\varepsilon$ terms is normally distributed, 
+$\varepsilon^{b=1}_{it}-\varepsilon^{b=0}_{it})$ is also normally distributed,
+with a mean of zero and a variance of $\sigma_{b=1}^2+\sigma_{b=0}^2$, which for
+ease of exposition we will will now denote as $\sigma^2_b$.  We can then simply 
+write the likelihood using the well known formula for a normal as:
+\begin{equation}
+\ell(\bm\theta;U_t^{b=1}-U_t^{b=0}>0) = \ln\left[\sigma_b^{-1}\cdot\phi
+\left(\frac{\ln(w_{it}^{b=1})-\ln(w_{it}^{b=0})+ \gamma q_{it}}{\sigma_b}\right)\right],
+\end{equation}
+where $\phi(\cdot)$ is the normal $pdf$.
+
+The likelihood of the first part of the equation can be calculated by using the
+Bellman equations (\ref{beEqn:VF0}) and (\ref{beEqn:VF1}).  This can be calculated
+analytically using backwards induction, given that the expectation of the value
+functions is taken over future draws from iid normal variables.  \textcolor{blue}{I 
+need to work through the math here, but I think it will look somewhat similar to the 
+second part of the log-likelihood discussed above, meaning that the log-likelihood
+can be maximised quite easily on the computer, and we can estimate $\bm{\theta}$,
+and hence $\gamma$, the parameter which compares the utility from an additional
+gram of birth weight versus the utility from an additional unit of $\ln$(wage).}
+
+Finally then, aggregating over all individuals in each period, we can write the
+log-likelihood function to maximise as:
 \[
-\mathcal{L}(\bm\theta|b=1)=P(b=1|\bm\theta)
+\ell(\bm\theta;b_t=1,U_t^{b=1},U_t^{b=0})= \prod_{i=1}^N\prod_{t=1}^T
+\ell(\bm\theta;b_{it-1}=0) + \ell(\bm\theta;U_{it}^{b=1}-U_{it}^{b=0}>0).
 \]
-
 \newpage
 \bibliography{./refs}
 \newpage
