@@ -1,0 +1,453 @@
+\documentclass[a4paper, 11 pt]{article}
+
+
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{appendix}
+\usepackage{bm}
+\usepackage{booktabs}
+\usepackage[usenames, dvipsnames]{color} 
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\epstopdfsetup{update}
+\usepackage{helvet}
+\usepackage{hyperref}
+\usepackage{indentfirst}
+\usepackage{lscape}
+\usepackage{morefloats}
+\usepackage{natbib} \bibliographystyle{abbrvnat}\bibpunct{(}{)}{;}{a}{,}{,}
+\usepackage{setspace}
+\usepackage{subcaption}
+\usepackage[capposition=top]{floatrow}
+\usepackage{subfloat}
+\usepackage[latin1]{inputenc}
+\usepackage{tikz}
+\usetikzlibrary{trees}
+\usetikzlibrary{decorations.markings}
+
+
+\theoremstyle{plain}
+\newtheorem{thm}{Theorem}
+\newtheorem{cor}{Corollary}
+\newtheorem{lem}[thm]{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+
+%MARGINS
+ \topmargin   =  7.0in
+ \headheight  =  2.0in
+ \headsep     =  0.7in
+ \oddsidemargin= 0.0in
+ \evensidemargin=0.0in
+ \textwidth   =  6.45in
+ \headheight  =  0.0in
+ \topmargin   =  0.0in
+ \textheight  =  9.0in
+ \textwidth   =  6.45in
+\setlength{\parindent}{4em}
+\setlength{\parskip}{1em}
+
+\newcommand{\fmt}{.eps}
+%\newcommand{\fmt}{.png}
+\hypersetup{                                                                                                    
+    colorlinks=true,   
+    linkcolor=BlueViolet,
+    citecolor=BlueViolet,
+    filecolor=BlueViolet,
+    urlcolor=BlueViolet
+}  
+
+
+
+
+\setcounter{page}{0}
+\begin{document}
+
+
+
+\title{Fertility Timing and Season of Birth:\\ The Role of Biological and Economic Constraints\thanks{\scriptsize{We thank ... for helpful comments and suggestions. ... Any errors contained in the paper are our own.}}}
+\author{Damian Clarke \\ U. of Oxford \and Sonia Oreffice \\ U. of Surrey \& IZA  \and Climent Quintana-Domeque \\ U. of Oxford \& IZA}
+\date{April 2015}
+
+
+%\author{Damian Clarke  \and Sonia Oreffice  \and Climent Quintana-Domeque  }
+%\author{Damian Clarke \\ University of Oxford \and Sonia Oreffice \\ University of Surrey and IZA \and Climent Quintana-Domeque \\University of Oxford and IZA}
+
+
+\maketitle
+\thispagestyle{empty}
+
+\begin{abstract}
+{....}
+\end{abstract}
+\emph{JEL Classification Codes}: ....\\
+\emph{Keywords}: .....
+
+
+\newpage
+\begin{spacing}{1.4}
+
+\section{Introduction}
+
+
+
+%-------------------------------------------------------------------------------
+\section{Data and Descriptive Statistics}
+\subsection{USA Birth Data}
+\label{bqSscn:USAdata}
+Data on all births occurring each year in the United States are collected from 
+birth certificate records, and publicly released as the National Vital 
+Statistics System (NVSS) by the National Center of Health Statistics. This data 
+is available for download for all years (inclusive) between 1968 and 2013, with
+all registered births in all states and the District of Columbia reported from 
+1984 onwards.\footnote{Prior to 1984, a 50\% sample was released for those 
+states which did not submit their birth records on electronic, machine readable 
+tape \citep{Martinetal2015}.}  In total, greater than 99\% of births occurring 
+in the country are registered \citep{Martinetal2015}. Our main estimation 
+sample consists of birth years 2005-2013, and we retain all first births to 
+US-born, white, non-hispanic mothers aged between 25 and 45 years at the time
+of birth.  This results in 4,863,864 records for live singleton or twin births.  
+In many cases we restrict our sample to only single births, in which case the 
+estimation sample consists of 4,711,449 first births.
+
+The birth certificate data records a number of important parental and child
+covariates and outcomes.  For the mother this includes age, education, smoking
+status, and assisted reproductive technology (ART) use. For the newborn, measured
+outcomes include gestation, birthweight, one- and five-minute APGAR, and place 
+and time of birth. However, USA birth certificates have gone through two 
+important revisions: one in 1989 and the other in 2003.  These revisions 
+(described fully in \citet{NCHS2000}) were implemented
+by states at different points in time.  Prior to 2005 all states had fully 
+incorporated the 1989 revision.  In the most recent wave of birth certificate
+data (2013), 41 states, containing 90.2\% of all births had switched to the
+more recent 2003 revision.  Importantly, the revised data includes a different
+measure of education, a wider range of birth outcomes, and does not include
+the mother's smoking status.  ART use was first released in 2012. These changes
+mean that we do not have measures of all covariates for all years.  Complete
+details of covariate availability are available in table 
+\ref{bqTab:SumStatsNVSS}, and further details regarding birth certificate 
+revisions and the effect on reported variables are provided in appendix
+\ref{bqScn:datApp}.  Finally, from 2005 onwards public use data does not 
+contain geographic detail released in earlier waves of data.  We applied to
+the National Association for Public Health Statistics and Information Systems 
+(NAPHSIS) to receive state identifiers for all births for all time periods
+of our study.\footnote{This data is freely available upon application and
+NAPHSIS review.  Full details are provided on the web at
+\href{http://www.cdc.gov/nchs/nvss/dvs_data_release.htm}{http://www.cdc.gov/nchs/nvss/dvs\_data\_release.htm}.}
+
+
+\subsection{Spain Birth Data}
+Birth certificate records from Spain are released by the National Institute
+of Statistics (INE) with coverage from 1979 to 2013 inclusive.  These consist 
+of the universe of births registered annually in Spain.  Our principal 
+estimation sample consists of all first born children who survived one day,
+born to Spanish mothers.  We use births from the period 2007 to 2013, given
+that prior to 2013, education was not recorded on birth certificates.  This
+results in a sample of 1,239,749 live births, of which 1,238,685 were 
+singletons.
+
+Like birth certificate data in the USA, Spanish certificates provide mother
+and child characteristics, including education and labour market status of the 
+mother (and father where present), mother's age at time of birth, marital 
+status, and child APGAR, gestation, birthweight, prematurity, and so forth
+\citep{INE2013}.  The Spanish records include publicly released data on 
+geographical location of birth, at both the provincial and municipal level 
+(similar to US states and counties respectively).  Descriptive statistics for
+Spanish births are provided in table \ref{bqTab:SumStatsSpain}.
+
+\subsection{Other Variables}
+A number of other data sources are consulted, and merged with birth data to
+provide time-varying coverage of local conditions at the time of conception.  
+This includes Spanish and United States measures of weather and unemployment.  
+In each case these are calculated at the year$\times$month$\times$state (or 
+province) level, and are merged by conception (not birth) month.  In the
+case of both USA and Spain, we are able to precisely calculate both conception
+and birth month, given that gestation (in weeks) is reported in administrative
+data.
+
+United States temperature data is provided by the National Centers for 
+Environmental Information from 1895 onwards, updated monthly.  We collate 
+measures of monthly means, maxima and minima for each state, year and month 
+as described in \citet{Voseetal2014}.  These are available for all states 
+with the exception of Hawaii, however are not available for the District of 
+Columbia (DC). We assign births that take place in DC temperature data
+from Maryland, a contiguous state.  Spanish climate data at the level of the
+province is calculated from data released by the State Meteorlogical Agency 
+(AEMET).  This data records the temperature at principal state meteorological
+stations, from which we calculate monthly average, minima and maxima.  Finally, 
+unemployment data at the level of the state, year and month is created from
+the Bureau of Labor Statistics' (BLS) online monthly time series data.%
+\footnote{Full records are available at 
+\href{http://download.bls.gov/pub/time.series/la/}{http://download.bls.gov/pub/time.series/la/}.} 
+This data comes from the Local Area Unemployment Statistics (LAUS) Series,
+and is avaialable for all states plus DC for the entire time period of 
+interest.
+
+\section{Estimation}
+\subsection{Season of Birth: Determinants and Effects}
+
+Begin by discussing determinants of season of birth regression for mother $i$ in 
+region $j$:
+\begin{equation}
+\label{eqn:season}
+S^{good}_{ij} = \alpha_0 + \alpha_1 young_{ij} + \alpha_2 educ_{ij}  + 
+\mathbf{X}_{ij}'\mathbf{\alpha_3} + \mathbf{W}_{j}'\mathbf{\alpha_4} + \mu_j +\nu_{ij}. 
+\end{equation}
+Here, $S^{good}_{ij}$ refers to a birth in the ``good'' season (quarters 2 and 3),
+$\mathbf{X}$ are individual covariates including smoking status and marital status,
+and $\mathbf{W}$ are state-specific time-varying indicators such as unemployment
+rates and weather in month of conception.  We include state fixed effects $\mu_j$.
+
+Then examine the quality regression for the first-born child of woman $i$:
+\begin{equation}
+\label{eqn:quality}
+Bwt_{ij} = \beta_0 + \beta_1 S^{good}_{ij} + \beta_2 young_{ij} + \beta_3 educ_{ij}  + 
+\mathbf{X}_{ij}'\mathbf{\beta_3} + \mathbf{W}_{j}'\mathbf{\beta_4} + \mu_j +\nu_{ij}. 
+\end{equation}
+We proxy birth quality by birthweight, however also examine other outcomes 
+including APGAR, low birth weight indicators, prematurity, and so forth.
+
+
+%-------------------------------------------------------------------------------
+\subsection{A Structural Interpretation of Season of Birth Choices: The Quality%
+--Labour Market Tradeoff}
+We begin with a young woman $i$ endowed with completed education $Educ_i$.  Each
+individual decides sequentially whether or not to have their first birth.  The 
+decision is made dynamically, and consists of four periods in which the woman 
+can decide to give birth or not: young good season (YG), young bad season (YB), 
+old good season (OG) and old bad season (OB). A control variable denoted $b_{it}$ 
+describes the optimal entry rule: if $b_{it}=0$, the woman has not yet chosen to 
+give birth, and in the period in which she decides to give birth, $b_{it}$ 
+switches to 1 forever after. 
+
+\paragraph{Instantaneous Utilities}
+In each period the individual faces instantaneous utility of having a birth
+($b=1$) or not having a birth ($b=0$) described by:
+\begin{eqnarray}
+U^{b=1}&=&\ln(w_{it}^{b=1}) + \gamma q_{it} + \varepsilon^{b=1}_{it}, \nonumber \\
+U^{b=0}&=&\ln(w_{it}^{b=0}) + \varepsilon^{b=0}_{it}. \nonumber 
+\end{eqnarray}
+In this framework utility comes from the from market wage or shadow price for 
+home labour ($w_{it}$), as well as the biological quality of the child ($q_{it}$)
+if a birth has been realised, and a stochastic utility shock only observed once 
+arriving to each period ($\varepsilon_{it}$).  For now, it is assumed that these
+stochastic shocks are jointly normally distributed each with a mean of zero, 
+standard deviation $\sigma_{b=1},\sigma_{b=0}$ and zero covariance.  Each 
+$\varepsilon_{it}$ term is assumed to be i.i.d., so past values of each utility
+shock have no effect on current realisations.
+
+Wage and birth quality can be thought of as offer functions in each period, and 
+are modelled as:
+\[
+\ln(w_{it})=\alpha_1 Educ_{i} + \alpha_2 Exper_{it} + \alpha_3 Exper_{it}^2
+\]
+and
+\[
+q_{it} = \beta_0 + \beta_1 S^{good}_{it} + \beta_2 young_{it} + \beta_3 Educ_{i}.
+\]
+
+\paragraph{Bellman Equations} In each of the four periods the state variables
+for each individual are (time invariant) education $Educ_i$, accrued labour 
+market experience, $Exper_{it}$, and the utility shocks $\varepsilon_{it}$.  
+We now denote these state variables as $\Omega_{it}$.  Conditional on state 
+variables, we can express the value of remaining childless or deciding to have 
+a child in the form of Bellman equations.  The value of remaining childless, 
+$V_{it}^{b=0}(\Omega_{it})$, can be expressed as:
+\begin{equation}
+\label{beEqn:VF0}
+V_{it}^{b=0}(\Omega_{it})=U_{it}^{b=0}+\beta E\max
+                         [V_{it+1}^{b=0}(\Omega_{it+1}),V_{it+1}^{b=1}(\Omega_{it+1})]
+\end{equation}
+where $\beta$ is the discount rate.  Similarly, the value of deciding to
+give birth is expressed as:
+\begin{equation}
+\label{beEqn:VF1}
+V_{it}^{b=1}(\Omega_{it})=U_{it}^{b=1}+\beta E(V_{t+1}|b_t=1).
+\end{equation}
+Once the individual decides to give birth, the value function $V_{t+1}|b_t=1$
+consists of the discounted expected present value of labour market return and 
+child quality, from $t+1$ to the final period.
+
+%-------------------------------------------------------------------------------
+\paragraph{Estimating the Model}
+The decision of whether or not to have a birth depends upon prior decisions 
+regarding births, as well as the prevailing instantaneous utilities.  The
+likelihood of observing a first birth in a given period $t$ can then be thought 
+of as the intersection of the probability that the individual still remains 
+childless at the end of $t-1$, and the probability that the instantaneous 
+utility of having a birth is greater than the utility of remaining childless. As 
+the error terms $\varepsilon_t^{b=1}$ and $\varepsilon_t^{b=0}$ are assumed to 
+be i.i.d., these two events are independent, and the likelihood will be the 
+product of these two terms.
+
+Define a vector of parameters $\bm\theta=(\gamma,\beta,\sigma_{b=1},
+\sigma_{b=0})$. Then we are interested in writing the likelihood function, which 
+for an individual in time $t$ looks like:
+\begin{eqnarray}
+\mathcal{L}(\bm\theta;b_t=1,U_t^{b=1},U_t^{b=0})&=&
+P(b_{t-1}=0|\bm\theta) \times P(U_t^{b=1}-U_t^{b=0}>0|\bm\theta) \nonumber \\
+& = & \mathcal{L}(\bm\theta;b_{t-1}=0)\times 
+\mathcal{L}(\bm\theta;U_t^{b=1}-U_t^{b=0}>0) \nonumber
+\end{eqnarray}
+writing this as the log-likelihood gives:
+\begin{equation}
+\ell(\bm\theta;b_t=1,U_t^{b=1},U_t^{b=0})= \ell(\bm\theta;b_{t-1}=0) 
++ \ell(\bm\theta;U_t^{b=1}-U_t^{b=0}>0)
+\end{equation}
+
+We can write the likelihood of the second part of this equation by considering
+the probability that $U_t^{b=1}>U_t^{b=0}$:
+\begin{eqnarray}
+\label{bqEqn:LL2}
+Pr(U_t^{b=1}>U_t^{b=0})&=&Pr\{[\ln(w_{it}^{b=1}) + \gamma q_{it} + \varepsilon^{b=1}_{it}]
+>[\ln(w_{it}^{b=0}) + \varepsilon^{b=0}_{it}]\} \nonumber \\
+&=&Pr[\ln(w_{it}^{b=1})-\ln(w_{it}^{b=0})+ \gamma q_{it} > 
+(\varepsilon^{b=1}_{it}-\varepsilon^{b=0}_{it})] 
+\end{eqnarray}
+given that each of the $\varepsilon$ terms is normally distributed, 
+$\varepsilon^{b=1}_{it}-\varepsilon^{b=0}_{it}$ is also normally distributed,
+with a mean of zero and a variance of $\sigma_{b=1}^2+\sigma_{b=0}^2$, which for
+ease of exposition we will will now denote as $\sigma^2_b$.  We can then simply 
+write the likelihood using the well known formula for a normally distributed 
+variable as:
+\begin{equation}
+\ell(\bm\theta;U_t^{b=1}-U_t^{b=0}>0) = \ln\left[\sigma_b^{-1}\cdot\phi
+\left(\frac{\ln(w_{it}^{b=1})-\ln(w_{it}^{b=0})+ \gamma q_{it}}{\sigma_b}\right)\right],
+\end{equation}
+where $\phi(\cdot)$ is the normal $pdf$.
+
+The likelihood of the first part of the equation, $\ell(\bm\theta;b_{t-1}=0)$, can 
+be calculated by using the Bellman equations (\ref{beEqn:VF0}) and (\ref{beEqn:VF1}).  
+This can be calculated analytically using backwards induction, given that the 
+expectation of the value functions is taken over future draws from iid normal 
+variables.  \textcolor{blue}{I need to work through the math here, but I think it 
+will look somewhat similar to the second part of the log-likelihood discussed above, 
+meaning that the log-likelihood can be written as a closed form equation, and can be 
+maximised quite easily on the computer.  From this, we estimate $\bm{\theta}$, and 
+hence $\gamma$, the parameter which compares the utility from an additional gram of 
+birth weight versus the utility from an additional unit of $\ln$(wage).}
+
+Finally then, aggregating over all individuals in each period, we can write the
+log-likelihood function to maximise as:
+\[
+\ell(\bm\theta;b_t=1,U_t^{b=1},U_t^{b=0})= \prod_{i=1}^N\prod_{t=1}^T
+\ell(\bm\theta;b_{it-1}=0) + \ell(\bm\theta;U_{it}^{b=1}-U_{it}^{b=0}>0).
+\]
+
+
+\section{Results}
+
+\section{Conclusion}
+
+\newpage
+\bibliography{./refs}
+
+
+
+
+\newpage
+\section*{Tables}
+\input{./../tables/tablesnvss.tex}
+
+\newpage
+\section*{Figures}
+\input{./figures.tex}
+
+\clearpage
+\appendix
+\section{Appendix Tables}
+\input{./../tables/appendixTables.tex}
+
+\clearpage
+\appendix
+\section{Appendix Figures}
+\input{./appendixFigures.tex}
+
+
+\section{Data Appendix}
+\label{bqScn:datApp}
+\subsection{NVSS Birth Certificate Data}
+A brief description of USA birth certificate data is provided in section 
+\ref{bqSscn:USAdata} of the paper.  As discussed, the format of US birth
+certificates has undergone two important revisions: the first in 1989
+and the second in 2003.  The date of adoption of these revisions varies 
+by state.  By 2013 41 states or territories had adopted the revised (2003)
+format, while the reaminder still follow the 1989 format.\footnote{The full
+birth certificate for each revision is reproduced as figures 1 and 2 in
+\citet{MenackerMartin2005}.  Over time the adoption of the 2003 certificate 
+was as follows: 2005: 12 (31\%), 2006: 19 (49\%), 2007: 22 (53\%), 2008: 27 
+(65\%), 2009: 28 (66\%), 2010: 33 (76\%), 2011: 36 (83\%), 2012: 38 (86\%),
+and 2013: 41 (90\%).  In each case the first number refers to the number
+of states, while the parenthesis indicates the percent of births in revised
+states.}
+
+In all cases where variable coding differs between the revised and unrevised
+certificates (principally education for mother and father), we use the revised
+2003 coding of the variables.  The reason we do this is because after 2008,
+variables which are exclusive to 1989 certificates are no longer reported.
+Figure \ref{bqFig:educMissing} illustrates this pattern.  The dotted line 
+represents the proportion of observations for maternal education which are
+reported in the 1989 format, while the bars represent the proportion 
+\emph{missing} in the 2003 format.  From 2005-2008, all missing 2003 revision
+variables are recorded in the 1989 format.  However, from 2009 onwards only
+the 2003 revision of education is reported, meaning that those states who
+still use the 1989 standard certificate do not have publicly released education
+data.  As expected, these are not missing at random, given that educational
+attainment varies considerably by state (see table \ref{bqTab:missingEduc}).
+In each case when these variables are used, we include full year and state
+fixed effects.  
+\begin{figure}[htpb!]
+\caption{Missing Education Data by Time}
+\label{bqFig:educMissing}
+\includegraphics[scale=0.74]{../results/nvss/graphs/missingEduc.eps}
+\end{figure}
+\input{./../results/nvss/regressions/NVSSMissingScale.tex}
+
+
+\end{spacing}
+\end{document}
+
+
+
+
+
+
+
+\begin{eqnarray}
+\label{struc1}
+\max_{\{s,a\}} u(w,b) &\text{s.t.}& w=f(age,educ,\mathbf{X},\varepsilon_w) \\ 
+\label{struc2}
+&& b=\mu(age,s,\mathbf{X},\varepsilon_b)                                  \\ 
+\label{struc3}
+&& s=\phi(age,educ,\varepsilon_s). 
+\end{eqnarray}
+
+Here $u(\cdot), f(\cdot), \mu(\cdot)$ and $\phi(\cdot)$ are functions and 
+$\mathbf{\varepsilon}=(\varepsilon_w,\varepsilon_s,\varepsilon_b)$ are 
+unobserved shocks.  To close the structural model we must attach functional
+form to the four functions, and make distributional assumptions for $\varepsilon$.
+
+Functional form for equations (\ref{struc2}) and (\ref{struc3}) can be quite simple, 
+as it is precisely what we are estimating in equations (\ref{eqn:season}) and 
+(\ref{eqn:quality}) respectively.  From our results we know very clearly that:
+\[
+\frac{\partial b}{\partial s^{good}}>0 \text{\ and \ }
+\frac{\partial s^{good}}{\partial age}<0.
+\]
+It is also generally the case that:
+\[
+\frac{\partial w}{\partial age}>0.
+\]
+The wage equation in (\ref{struc1}) could be Mincerian, depending on $age$ and 
+$age^2$, as well as education, and is calculated at the level of the state, 
+(perhaps using data from CPS or similar to get wage).  Finally, we define $u(w,b)$ 
+as a Cobb-Douglas
+or CES function (or some other logical form), and assume that $\varepsilon$ is
+drawn from a trivariate normal.  We can thus write down a log-likelihood function,
+and use our birth data to maximise this function, estimating the parameters in
+$f(\cdot), \mu(\cdot)$ and $\phi(\cdot)$, which allows us to quantify the
+trade-off between ``having a child today'' versus ``having a child tomorrow'' 
+with the relative (market and shadow) prices of labor, as measured by wages, and 
+child quality, proxied by birthweights.
