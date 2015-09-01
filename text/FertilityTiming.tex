@@ -89,9 +89,12 @@
 \newpage
 \begin{spacing}{1.4}
 
+%-------------------------------------------------------------------------------
 \section{Introduction}
-
-
+Papers we have mentioned in discussions:
+\citet{BucklesHungerman2013,Shigeoka2015,AlbaCaceres2014,Canchoetal2007},
+plus I think we mentioned the papers showing short time changes in birth timing
+due to tax reforms (such as \citet{GansLeigh2009,LaLumiaetal2015}), etc.
 
 %-------------------------------------------------------------------------------
 \section{Data and Descriptive Statistics}
@@ -114,39 +117,56 @@ estimation sample consists of 4,711,449 first births.
 
 The birth certificate data records a number of important parental and child
 covariates and outcomes.  For the mother this includes age, education, smoking
-status, and assisted reproductive technology (ART) use. For the newborn, measured
-outcomes include gestation, birthweight, one- and five-minute APGAR, and place 
-and time of birth. However, USA birth certificates have gone through two 
-important revisions: one in 1989 and the other in 2003.  These revisions 
-(described fully in \citet{NCHS2000}) were implemented
+status, and assisted reproductive technology (ART) use. For the newborn, 
+measured outcomes include gestation, birthweight, one- and five-minute APGAR, 
+and place and time of birth. However, USA birth certificates have gone through 
+two important revisions in the variables reported: one in 1989 and the other in 
+2003.  These revisions (described fully in \citet{NCHS2000}) were implemented
 by states at different points in time.  Prior to 2005 all states had fully 
 incorporated the 1989 revision.  In the most recent wave of birth certificate
 data (2013), 41 states, containing 90.2\% of all births had switched to the
 more recent 2003 revision.  Importantly, the revised data includes a different
 measure of education, a wider range of birth outcomes, and does not include
-the mother's smoking status.  ART use was first released in 2012. These changes
+the mother's smoking status. ART use was first released in 2012. These changes
 mean that we do not have measures of all covariates for all years.  Complete
 details of covariate availability are available in table 
 \ref{bqTab:SumStatsNVSS}, and further details regarding birth certificate 
-revisions and the effect on reported variables are provided in appendix
-\ref{bqScn:datApp}.  Finally, from 2005 onwards public use data does not 
-contain geographic detail released in earlier waves of data.  We applied to
-the National Association for Public Health Statistics and Information Systems 
-(NAPHSIS) to receive state identifiers for all births for all time periods
-of our study.\footnote{This data is freely available upon application and
-NAPHSIS review.  Full details are provided on the web at
-\href{http://www.cdc.gov/nchs/nvss/dvs_data_release.htm}{http://www.cdc.gov/nchs/nvss/dvs\_data\_release.htm}.}
+revisions and the effect on reported variables and representativeness of the
+country as a whole are provided in appendix \ref{bqScn:datApp}. Finally, from 2005 
+onwards public use data does not contain geographic detail released in earlier 
+waves of data.  We applied to the National Association for Public Health 
+Statistics and Information Systems (NAPHSIS) to receive state identifiers for all 
+births for all time periods of our study.\footnote{This data is freely available 
+upon application and NAPHSIS review. Full details are provided on the web at
+\href{http://www.cdc.gov/nchs/nvss/dvs_data_release.htm}%
+{http://www.cdc.gov/nchs/nvss/dvs\_data\_release.htm}.}
 
+Summary statistics are provided in table \ref{bqTab:SumStatsNVSS}.  Of first-%
+time mothers in the USA, 84\% are married, and 97\% are aged under 40 years.
+The full distribution of mother's age at first birth for 25-45 year-olds is 
+presented in figure \ref{bqFig:NVSSages}.  The modal age at first birth of this
+sample of women in the USA is 28 years, and the mean age is 30.24 years. A high 
+proportion of white mothers from 2005-2013 report having at least some 
+post-secondary education (87\%), where this category includes ``some college 
+credit, but not a degree'', as well as associate or bachelor degrees and above.  
+Of the subset of states and years in which smoking status is reported, 6\% of 
+women report smoking at some point during pregnancy.  Of all births, slightly 
+more children are born in quarters 2 or 3 (``good season''), at 51\%.  In terms
+of birth outcomes, 7\% of babies are classified as low birth weight (LBW) given
+that they weigh less than 2,500 grams at birth (the average birth weight is 
+slightly more than 3,300g), 10\% are born premature (less than 37 weeks of 
+gestation), and 3\% of recorded births are twins.
 
+%-------------------------------------------------------------------------------
 \subsection{Spain Birth Data}
-Birth certificate records from Spain are released by the National Institute
-of Statistics (INE) with coverage from 1979 to 2013 inclusive.  These consist 
-of the universe of births registered annually in Spain.  Our principal 
-estimation sample consists of all first born children who survived one day,
-born to Spanish mothers.  We use births from the period 2007 to 2013, given
-that prior to 2013, education was not recorded on birth certificates.  This
-results in a sample of 1,239,749 live births, of which 1,238,685 were 
-singletons.
+We augment results from USA using data on births from Spain. Birth certificate 
+records from Spain are released by the National Institute of Statistics (INE) 
+with coverage from 1979 to 2013 inclusive. These consist of the universe of 
+births registered annually in Spain. Our principal estimation sample consists of 
+all first born children who survived one day, born to Spanish mothers. We use 
+births from the period 2007 to 2013, given that prior to 2007, education was not 
+recorded on birth certificates.  This results in a sample of 1,239,749 live 
+births, of which 1,238,685 were singletons.
 
 Like birth certificate data in the USA, Spanish certificates provide mother
 and child characteristics, including education and labour market status of the 
@@ -155,35 +175,41 @@ status, and child APGAR, gestation, birthweight, prematurity, and so forth
 \citep{INE2013}.  The Spanish records include publicly released data on 
 geographical location of birth, at both the provincial and municipal level 
 (similar to US states and counties respectively).  Descriptive statistics for
-Spanish births are provided in table \ref{bqTab:SumStatsSpain}.
+Spanish births are provided in table \ref{bqTab:SumStatsSpain}.  In the same
+age group, the average age and proportion of young mothers is similar to data
+from USA (32 years and 96\% respectively), however a lower proportion report
+being married (64\%), or having at least some post secondary education (53\%).
+Spanish newborns are slightly lighter on average than their USA-born 
+counterparts (3,200g), however are also less likely to be born prematurely,
+or classified as having low birth weight.
 
+%-------------------------------------------------------------------------------
 \subsection{Other Variables}
 A number of other data sources are consulted, and merged with birth data to
 provide time-varying coverage of local conditions at the time of conception.  
 This includes Spanish and United States measures of weather and unemployment.  
-In each case these are calculated at the year$\times$month$\times$state (or 
-province) level, and are merged by conception (not birth) month.  In the
-case of both USA and Spain, we are able to precisely calculate both conception
-and birth month, given that gestation (in weeks) is reported in administrative
-data.
+In each case these are calculated at the year by month by state (or province) 
+level, and are merged by conception (not birth) month.  In the case of both USA 
+and Spain, we are able to precisely calculate both conception and birth month, 
+given that gestation (in weeks) is reported in administrative data.
 
 United States temperature data is provided by the National Centers for 
 Environmental Information from 1895 onwards, updated monthly.  We collate 
 measures of monthly means, maxima and minima for each state, year and month 
-as described in \citet{Voseetal2014}.  These are available for all states 
-with the exception of Hawaii, however are not available for the District of 
-Columbia (DC). We assign births that take place in DC temperature data
-from Maryland, a contiguous state.  Spanish climate data at the level of the
-province is calculated from data released by the State Meteorlogical Agency 
-(AEMET).  This data records the temperature at principal state meteorological
-stations, from which we calculate monthly average, minima and maxima.  Finally, 
-unemployment data at the level of the state, year and month is created from
-the Bureau of Labor Statistics' (BLS) online monthly time series data.%
-\footnote{Full records are available at 
-\href{http://download.bls.gov/pub/time.series/la/}{http://download.bls.gov/pub/time.series/la/}.} 
-This data comes from the Local Area Unemployment Statistics (LAUS) Series,
-and is avaialable for all states plus DC for the entire time period of 
-interest.
+over our time period of analysis as described in \citet{Voseetal2014}. These are 
+available for all states with the exception of Hawaii, however are not available 
+for the District of Columbia (DC). We assign births that take place in DC 
+temperature data from Maryland, a contiguous state.  Spanish climate data at the 
+level of the province is calculated from data released by the State Meteorlogical 
+Agency (AEMET). This data records the temperature at principal state 
+meteorological stations, from which we calculate monthly average, minima and 
+maxima. Finally, unemployment data at the level of the state, year and month is 
+created from the Bureau of Labor Statistics' (BLS) online monthly time series 
+data.\footnote{Full records are available at 
+\href{http://download.bls.gov/pub/time.series/la/}%
+{http://download.bls.gov/pub/time.series/la/}.} This data comes from the Local 
+Area Unemployment Statistics (LAUS) Series, and is avaialable for all states 
+plus DC for the entire time period of interest.
 
 \section{Estimation}
 \subsection{Season of Birth: Determinants and Effects}
@@ -336,8 +362,15 @@ log-likelihood function to maximise as:
 \ell(\bm\theta;b_{it-1}=0) + \ell(\bm\theta;U_{it}^{b=1}-U_{it}^{b=0}>0).
 \]
 
-
 \section{Results}
+\subsection{Season of Birth Choice: Descriptive Characteristics}
+
+\subsection{Season of Birth Choice: Reduced Form Estimates}
+
+\subsection{Structural Estimates of Birth and Career Timing}
+
+
+
 
 \section{Conclusion}
 
