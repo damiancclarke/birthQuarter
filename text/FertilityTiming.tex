@@ -211,34 +211,69 @@ data.\footnote{Full records are available at
 Area Unemployment Statistics (LAUS) Series, and is avaialable for all states 
 plus DC for the entire time period of interest.
 
+%-------------------------------------------------------------------------------
 \section{Estimation}
 \subsection{Season of Birth: Determinants and Effects}
-
-Begin by discussing determinants of season of birth regression for mother $i$ in 
-region $j$:
+We examine the choice of season of birth of mother $i$ in region $j$ by 
+estimating the following regression:
 \begin{equation}
 \label{eqn:season}
 S^{good}_{ij} = \alpha_0 + \alpha_1 young_{ij} + \alpha_2 educ_{ij}  + 
-\mathbf{X}_{ij}'\mathbf{\alpha_3} + \mathbf{W}_{j}'\mathbf{\alpha_4} + \mu_j +\nu_{ij}. 
+\mathbf{X}_{ij}'\mathbf{\alpha_3} + \mathbf{W}_{j}'\mathbf{\alpha_4} + 
+\mu_j +\nu_{ij}. 
 \end{equation}
-Here, $S^{good}_{ij}$ refers to a birth in the ``good'' season (quarters 2 and 3),
-$\mathbf{X}$ are individual covariates including smoking status and marital status,
-and $\mathbf{W}$ are state-specific time-varying indicators such as unemployment
-rates and weather in month of conception.  We include state fixed effects $\mu_j$.
+Here, $S^{good}_{ij}$ refers to a birth in the ``good'' season, which in our
+principal specificion we consider as being born in quarters 2 and 3 (in the 
+Northern Hemisphere), or in other words, being born between the months of April
+and September inclusive.\footnote{In various specifications we consider 
+alternative definitions of ``good'' season of birth, including only quarter 3,
+particular months, or being defined based on local temperatures.}  We regress 
+this on a range of individual and state level characteristics: young (defined
+in the principal specification as aged 25-39), education indicators, and a 
+vector of individual covariates, $\mathbf{X}$, consisting of smoking and marital 
+status.  In $\mathbf{W}$ we include state-specific time-varying indicators such 
+as unemployment rates and weather in month of conception, as well as state fixed 
+effects $\mu_j$.
 
-Then examine the quality regression for the first-born child of woman $i$:
+We estimate (\ref{eqn:season}) in two ways. Firstly, we simply estimate this
+as a linear probability model by OLS.  Secondly, we redefine the dependent 
+variable as a categorical variable to recognise that season of birth choice
+may not match up with realised outcomes.  To do so we define a variable 
+$birth_{ij}$ as:
+\[ birth_{ij} =
+ \begin{cases}
+  1 & \quad \text{if } \text{ due in good and born in good} \vspace{-2mm}\\ 
+  2 & \quad \text{if } \text{ due in good and born in bad } \vspace{-2mm}\\
+  3 & \quad \text{if } \text{ due in bad and born in good } \vspace{-2mm}\\
+  4 & \quad \text{if } \text{ due in bad and born in bad. }              \\
+  \end{cases}
+\]
+We then replace $S^{good}_{ij}$ from (\ref{eqn:season}) with $birth_{ij}$ as the
+dependent variable, and estimate the model using a multinomial logit (where 
+$birth_{ij}=1$ is the omitted base category).
+
+We then turn to the conditional effects of season of birth on birth outcomes.
+For the first-born child of woman $i$ we estimate:
 \begin{equation}
 \label{eqn:quality}
 Bwt_{ij} = \beta_0 + \beta_1 S^{good}_{ij} + \beta_2 young_{ij} + \beta_3 educ_{ij}  + 
 \mathbf{X}_{ij}'\mathbf{\beta_3} + \mathbf{W}_{j}'\mathbf{\beta_4} + \mu_j +\nu_{ij}. 
 \end{equation}
 We proxy birth quality by birthweight, however also examine other outcomes 
-including APGAR, low birth weight indicators, prematurity, and so forth.
+including APGAR, low birth weight indicators, and prematurity.  We condition on
+the set of controls discussed in (\ref{eqn:season}), and also include an 
+indicator for being born in a good season of birth.
 
 
 %-------------------------------------------------------------------------------
 \subsection{A Structural Interpretation of Season of Birth Choices: The Quality%
 --Labour Market Tradeoff}
+After documenting the reduced form effects of season of birth choices on birth
+outcomes, we turn to a structural interpretation of season of birth choices. In
+this model, age at first birth is viewed as a trade-off between the biological
+benefits of (young) age and good season, against the costs of career delays 
+associated with births at a younger age.
+ 
 We begin with a young woman $i$ endowed with completed education $Educ_i$.  Each
 individual decides sequentially whether or not to have their first birth.  The 
 decision is made dynamically, and consists of four periods in which the woman 
@@ -252,47 +287,51 @@ switches to 1 forever after.
 In each period the individual faces instantaneous utility of having a birth
 ($b=1$) or not having a birth ($b=0$) described by:
 \begin{eqnarray}
-U^{b=1}&=&\ln(w_{it}^{b=1}) + \gamma q_{it} + \varepsilon^{b=1}_{it}, \nonumber \\
-U^{b=0}&=&\ln(w_{it}^{b=0}) + \varepsilon^{b=0}_{it}. \nonumber 
+U_{ijt}^{b=1}&=&\ln(w_{jt}^{b=1}) + \gamma q_{ijt} + \varepsilon^{b=1}_{ijt}, \nonumber \\
+U_{ijt}^{b=0}&=&\ln(w_{jt}^{b=0}) + \varepsilon^{b=0}_{ijt}. \nonumber 
 \end{eqnarray}
 In this framework utility comes from the from market wage or shadow price for 
-home labour ($w_{it}$), as well as the biological quality of the child ($q_{it}$)
-if a birth has been realised, and a stochastic utility shock only observed once 
-arriving to each period ($\varepsilon_{it}$).  For now, it is assumed that these
-stochastic shocks are jointly normally distributed each with a mean of zero, 
-standard deviation $\sigma_{b=1},\sigma_{b=0}$ and zero covariance.  Each 
-$\varepsilon_{it}$ term is assumed to be i.i.d., so past values of each utility
-shock have no effect on current realisations.
+home labour ($w_{jt}$) available to the woman in her state of residence, as well 
+as the biological quality of the child ($q_{ijt}$) if a birth has been realised, 
+and a stochastic utility shock only observed once arriving to each period 
+($\varepsilon_{ijt}$).  For now, it is assumed that these stochastic shocks are 
+jointly normally distributed each with a mean of zero, standard deviations 
+$\sigma_{b=1},\sigma_{b=0}$ and zero covariance.  Each $\varepsilon_{ijt}$ term 
+is assumed to be i.i.d., so past values of each utility shock have no effect on 
+current realisations.
 
 Wage and birth quality can be thought of as offer functions in each period, and 
 are modelled as:
 \[
-\ln(w_{it})=\alpha_1 Educ_{i} + \alpha_2 Exper_{it} + \alpha_3 Exper_{it}^2
+\ln(w_{jt})=\alpha_1 Educ_{j} + \alpha_2 Exper_{jt} + \alpha_3 Exper_{jt}^2
 \]
 and
 \[
-q_{it} = \beta_0 + \beta_1 S^{good}_{it} + \beta_2 young_{it} + \beta_3 Educ_{i}.
+q_{ijt} = \beta_0 + \beta_1 S^{good}_{ijt} + \beta_2 young_{ijt} + \beta_3 Educ_{ij}.
 \]
+Given that wages are not observed in the NVSS birth data, the wage offer is
+considered to be the average market wage in the woman's state of residence for
+a woman with the same education and experience level.
 
 \paragraph{Bellman Equations} In each of the four periods the state variables
-for each individual are (time invariant) education $Educ_i$, accrued labour 
-market experience, $Exper_{it}$, and the utility shocks $\varepsilon_{it}$.  
-We now denote these state variables as $\Omega_{it}$.  Conditional on state 
+for each individual are (time invariant) education $Educ_ij$, accrued labour 
+market experience, $Exper_{ijt}$, and the utility shocks $\varepsilon_{ijt}$.  
+We now denote these state variables as $\Omega_{ijt}$.  Conditional on state 
 variables, we can express the value of remaining childless or deciding to have 
 a child in the form of Bellman equations.  The value of remaining childless, 
-$V_{it}^{b=0}(\Omega_{it})$, can be expressed as:
+$V_{ijt}^{b=0}(\Omega_{ijt})$, can be expressed as:
 \begin{equation}
 \label{beEqn:VF0}
-V_{it}^{b=0}(\Omega_{it})=U_{it}^{b=0}+\beta E\max
-                         [V_{it+1}^{b=0}(\Omega_{it+1}),V_{it+1}^{b=1}(\Omega_{it+1})]
+V_{ijt}^{b=0}(\Omega_{ijt})=U_{ijt}^{b=0}+\rho E\max
+                         [V_{ijt+1}^{b=0}(\Omega_{ijt+1}),V_{ijt+1}^{b=1}(\Omega_{ijt+1})]
 \end{equation}
-where $\beta$ is the discount rate.  Similarly, the value of deciding to
-give birth is expressed as:
+where $\rho$ is the discount rate.  Similarly, the value of deciding to give 
+birth is expressed as:
 \begin{equation}
 \label{beEqn:VF1}
-V_{it}^{b=1}(\Omega_{it})=U_{it}^{b=1}+\beta E(V_{t+1}|b_t=1).
+V_{ijt}^{b=1}(\Omega_{ijt})=U_{ijt}^{b=1}+\rho E(V_{ijt+1}|b_t=1).
 \end{equation}
-Once the individual decides to give birth, the value function $V_{t+1}|b_t=1$
+Once the individual decides to give birth, the value function $V_{ijt+1}|b_t=1$
 consists of the discounted expected present value of labour market return and 
 child quality, from $t+1$ to the final period.
 
@@ -362,8 +401,44 @@ log-likelihood function to maximise as:
 \ell(\bm\theta;b_{it-1}=0) + \ell(\bm\theta;U_{it}^{b=1}-U_{it}^{b=0}>0).
 \]
 
+%-------------------------------------------------------------------------------
 \section{Results}
 \subsection{Season of Birth Choice: Descriptive Characteristics}
+Descriptive statistics of season of birth in the USA are described in table 
+\ref{bqTab:singleSum} and figure \ref{bqFig:diffQ}.  These suggest two clear
+stylised facts.  Firstly, young women are considerably more like to have births
+in the good season than their older counterparts.  And secondly, this effect 
+appears to be largely driven by more highly educated women.  We find for the 
+period and sample of interest, that young women are 3\% more likely to have 
+births in the good season (51.5\% good, 48.5\% bad).  However, older mothers
+appear to be approximately evenly spaced over the course of the year, at 40.8
+and 50.2\% respectively. Figure \ref{fig:NVSSbirthsAges} seperates these results 
+further by age group. Women aged 25-34 are those who most favour the choice of
+good season, followed by women aged 20-24, 35-39, and finally, women aged over
+40, who are slightly \emph{less} likely to give birth during good seasons.
+
+The choice of season of birth appears to be much more pronounced in areas where
+the difference between good and bad season are more notable.  Descriptive
+geographical evidence from the USA is presented in figures \ref{fig:mapYoung} 
+and \ref{fig:mapOld}. Among young women (figure \ref{fig:mapYoung}), a much 
+higher proportion of births are observed in northern states where the winter
+temperature is colder.  This geographic variation is observed throughout the
+whole country: in more northern states considerably more good season births
+are observed, while moving towards the south results in a continually lower
+proportion of births in good seasons.  Turning to older first birth mothers, no
+similar pattern is observed (figure \ref{fig:mapOld}), with the proportion of 
+good season births appearing to be unrelated to geographic location of the state.
+We examine this in further detail in figures \ref{fig:tempUSAYoung}-%
+\ref{fig:tempUSAOld}.  In these figures we plot the proportion of good season
+births in a state agains the coldest monthly average temperature in the year.
+For young women, we see a clear negative correlation between these variables, 
+where states with colder winters have a greater proportion of good season births
+(with a correlation coefficient of -0.729).  For older mothers, a much weaker
+association is observed.  Although it is negative so colder states have more
+births timed to fall in good seasons, the correlation coefficient is much lower,
+at -0.115.
+
+
 
 \subsection{Season of Birth Choice: Reduced Form Estimates}
 
