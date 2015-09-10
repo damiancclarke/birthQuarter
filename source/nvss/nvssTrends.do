@@ -44,49 +44,6 @@ local lyear   25
 if `twins' == 1 local app twins
 
 ********************************************************************************
-*** (1b) Define run type
-********************************************************************************
-local a2024  0
-local y1213  0
-local bord2  0
-local over30 0
-local fterm  0
-local pre4w  0
-
-if `a2024'==1 {
-    global OUT "~/investigacion/2015/birthQuarter/results/2024/graphs" 
-    global SUM "~/investigacion/2015/birthQuarter/results/2024/sumStats"
-    local keepif  birthOrder == 1
-    local lyear   20
-}
-if `y1213'==1 {
-    dis "Running only for 2012-2013 (see line 71)" 
-    global OUT "~/investigacion/2015/birthQuarter/results/2012/graphs" 
-    global SUM "~/investigacion/2015/birthQuarter/results/2012/sumStats"
-    local keepif birthOrder == 1 & year==2012|year==2013
-}    
-if `bord2'==1 {
-    global OUT "~/investigacion/2015/birthQuarter/results/bord2/graphs" 
-    global SUM "~/investigacion/2015/birthQuarter/results/bord2/sumStats"
-    local keepif  birthOrder == 2 & motherAge > 24
-}    
-if `over30'==1 {
-    global OUT "~/investigacion/2015/birthQuarter/results/over30/graphs" 
-    global SUM "~/investigacion/2015/birthQuarter/results/over30/sumStats"
-    local keepif  birthOrder == 1 & motherAge > 24 & (education!=6|motherAge>30)
-}    
-if `fterm'==1 {
-    global OUT "~/investigacion/2015/birthQuarter/results/fullT/graphs" 
-    global SUM "~/investigacion/2015/birthQuarter/results/fullT/sumStats"
-    local keepif  birthOrder == 1 & gestation >=39
-}    
-if `pre4w'==1 {
-    global OUT "~/investigacion/2015/birthQuarter/results/pre4w/graphs" 
-    global SUM "~/investigacion/2015/birthQuarter/results/pre4w/sumStats"
-    local keepif  birthOrder == 1 & gestation <=35
-}    
-/*
-********************************************************************************
 *** (2a) Use, descriptive graph
 ********************************************************************************
 use "$DAT/`data'"
@@ -126,7 +83,6 @@ restore
 
 replace educLevel = educLevel + 1
 replace educLevel = 2 if educLevel == 3
-if `a2024'==1 replace ageGroup = 1 if ageGroup == 0
 replace ageGroup  = 1 if ageGroup  == 2
 replace ageGroup  = 2 if ageGroup  == 3
 
@@ -219,6 +175,13 @@ replace educCat = 16 if education == 5
 replace educCat = 17 if education == 6
 gen goodQuarter = birthQuarter == 2 | birthQuarter == 3
 replace twin    = twin - 1
+gen     prematurity     = gestation - 39
+gen     monthsPrem      = round(prematurity/4)*-1
+gen     expectedMonth   = birthMonth + monthsPrem
+replace expectedMonth   = expectedMonth - 12 if expectedMonth>12
+replace expectedMonth   = expectedMonth + 12 if expectedMonth<1
+gene    expectQuarter   = ceil(expectedMonth/3)
+gen     expectGoodQ     = expectQuarter == 2 | expectQuarter == 3 if gest!=.
 
 lab var educCat     "Years of education"
 lab var motherAge   "Mother's Age"
@@ -235,10 +198,11 @@ lab var female      "Female"
 lab var smoker      "Smoked during Pregnancy"
 lab var infertTreat "Used ART (2012-2013 only)"
 lab var young       "Young (aged 25-39)"
+lab var expectGoodQ "Intended good season of birth"
 
 local Mum     motherAge married young 
 local MumPart college educCat smoker infertTreat
-local Kid     goodQuarter birthweight lbw gestat premature apgar twin female
+local Kid     goodQ expectGoodQ birthweight lbw gestat premature apgar twin fem
 
 foreach stype in Mum Kid MumPart {
     sum ``stype''
@@ -265,7 +229,7 @@ replace period = 3 if year >=2010 & year<=2013
 ********************************************************************************
 *** (2c) Label for clarity
 ********************************************************************************
-lab def aG  1 "Young " 2  "Old "
+lab def aG  1 "Young (25-39) " 2  "Old (40-45) "
 lab def pr  1 "Pre-crisis" 2 "Crisis" 3 "Post-crisis"
 lab def gQ  0 "quarter 4(t) or quarter 1(t+1)" 1 "quarter 2(t) or quarter 3(t)"
 lab def eL  1 "No College" 2 "Some College +"
@@ -396,7 +360,7 @@ graph export "$OUT/prematureSeasonAge.eps", as(eps) replace;
 restore;
 #delimit cr
 
-exit
+
 
 
 ********************************************************************************
@@ -518,7 +482,7 @@ graph export "$OUT/total`app'.eps", as(eps) replace;
 #delimit cr
 save `all'
 restore
-
+exit
 ********************************************************************************
 *** (5b) Histogram by education level
 ********************************************************************************

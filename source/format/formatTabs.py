@@ -105,7 +105,7 @@ for parity in ['single']:
                "\cmidrule(r){2-5} \cmidrule(r){6-7} \n"
                "& Bad    & Good   & Diff. & Ratio & $< $37 & ART \\\\\n"
                "& Season & Season &       &       & Weeks  &     \\\\\\midrule"
-               "\multicolumn{5}{l}{\\textsc{Panel A: By Age Groups}}\\\\"
+               "\multicolumn{5}{l}{\\textsc{Panel A: By Age}}\\\\"
                "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
                "\\begin{footnotesize}\\end{footnotesize}\\\\ \n")
     
@@ -214,7 +214,7 @@ for i,line in enumerate(MP):
 
 sumT.write(' \n \\multicolumn{6}{l}{\\textbf{Panel B: Child}}\\\\ \n ')
 for i,line in enumerate(Ki):
-    if i>8 and i<17:
+    if i>8 and i<18:
         line = line.replace('\\hline','\\midrule')
         line = line.replace('At least some college','Some College +')
         line = line.replace('Quarter','season of birth')
