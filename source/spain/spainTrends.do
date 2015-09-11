@@ -108,6 +108,7 @@ sum Qgoodgood Qgoodbad Qbadgood Qbadbad if young==0
 
 lab var goodQuarter        "Good Season"
 lab var badQuarter         "Bad Season"
+lab var expectGoodQ        "Intended good season of birth"
 lab var highEd             "Some College +"
 lab var young              "Young (aged 25-39)"
 lab var youngXhighEd       "College$\times$ Aged 25-39"
@@ -170,7 +171,7 @@ restore
     
 
 local sumM ageMother young married college yrsEducMother professional 
-local sumK goodQuarter birthweight lbw gestat premature female cesarean
+local sumK goodQuarter expectGoodQ birthweight lbw gestat premature female cesarean
 
 foreach sumS in sumM sumK {
     sum ``sumS''
@@ -187,7 +188,7 @@ gen birth         = 1
 gen educLevel     = 1 if highEd==0
 replace educLevel = 2 if highEd==1
 
-lab def aG  1 "Young " 2  "Old "
+lab def aG  1 "Young (25-39) " 2  "Old (40-45) "
 lab def eL  1 "No College" 2 "Some College +"
 lab val ageGroup    aG
 lab val educLevel   eL
@@ -214,6 +215,9 @@ drop totalbirths diff rati birth* avePrem
 
 decode ageGroup, gen(ag)
 decode educLevel, gen(el)
+replace ag="Young " if ag=="Young (25-39) "
+replace ag="Old "   if ag=="Old (40-45) "
+
 egen group=concat(ag el)
 order group
 sort ageGroup educLevel

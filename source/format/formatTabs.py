@@ -251,7 +251,7 @@ for i,line in enumerate(Mu):
 
 sumT.write(' \n \\multicolumn{6}{l}{\\textbf{Panel B: Child}}\\\\ \n ')
 for i,line in enumerate(Ki):
-    if i>8 and i<16:
+    if i>8 and i<17:
         line = line.replace('\\hline','\\midrule')
         line = line.replace('Quarter','season of birth')
         sumT.write(line)
@@ -545,12 +545,8 @@ final = open(TAB + "tables"+ ftype +".tex", 'w')
 
 TABLES = [loc1+'sumStats'+ftype+'.tex', loc1+'sumsingle'+ftype+'.tex'  ,
 loc2+'NVSSBinaryMain.tex'             , loc2+'NVSSExpectMain.tex'      ,
-loc2+'NVSSBinaryEdInteract.tex'       , loc2+'NVSSQualityEduc.tex'     ,
-loc2+'QualityAllComb.tex'             , loc2+'QualityAllCombExp.tex'   ,
-loc1+'sumStatsSpain.tex'              , loc1+'sumSpain.tex'            ,
-loc3+'spainBinary.tex'                , loc3+'spainQualityEduc.tex'    ,
-loc3+'spainQualityGestFix.tex'
-]
+loc2+'NVSSBinaryEdInteract.tex'       , loc2+'NVSSQualityMain.tex'     ,
+loc2+'QualityAllComb.tex'             , loc2+'QualityAllCombExp.tex'   ]
 
 i = 1
 
@@ -578,32 +574,27 @@ loctw = './../results/nvss/regressions/'
 spain = './../results/spain/regressions/'
 final = open(TAB + 'appendixTables.tex', 'w')
 
-TABLES = [loc2 +'NVSSBinaryFDeaths.tex'      , 
-          loc2 +'NVSSBinaryYoung34.tex'      , 
-          TAB  +'quarterHeterogeneity_A.tex' ,
-          TAB  +'qualityHeterogeneity_A.tex' ,
-          TAB  +'quarterHeterogeneity_A2.tex',
-          TAB  +'qualityHeterogeneity_A2.tex',
-          locB2+'NVSSBinary.tex'             ,
-          locB2+'NVSSQualityEducAll.tex'     ,
+TABLES = [locB2+'NVSSBinary.tex'             ,
           loctw+'NVSSBinaryTwin.tex'         ,
-          loctw+'NVSSQualityTwin.tex'        ,
-          loctw+'NVSSBinaryunmarried.tex'    ,
-          loctw+'NVSSQualityunmarried.tex'   ,
+          loc2 +'NVSSBinaryFDeaths.tex'      , 
+          loc2 +'NVSSBinaryMain_A.tex'       , 
+          loc2 +'NVSSBinaryMain_A2.tex'      , 
+          loc2 +'NVSSBinaryYoung34.tex'      , 
+          locB2+'NVSSQualityEducAll.tex'     ,
+          loctw+'NVSSQualityTwin.tex'        ,          
           loc90+'NVSSBinary.tex'             ,  
-          loc90+'NVSSseasonMLogit.tex'       ,
-          loc90+'QualityAllCombnoFE.tex'     ,
-          loc90+'NVSSBinaryWeather.tex'      ,
-          loc90+'NVSSQualityWeather.tex'     ,
-          loc90+'NVSSQualityWarm.tex'        ,
-          loc90+'NVSSQualityCold.tex'        ,
-          loc90+'NVSSQualityWInterac.tex'    ,
+
+          loc1+'sumStatsSpain.tex'           ,
+          loc1+'sumSpain.tex'                ,
+          loc3+'spainBinary.tex'             , 
+          loc3+'spainQualityEduc.tex'        ,
+          loc3+'spainQualityGestFix.tex'     ,
           spain+'spainBinaryLForce.tex'
 ]
 
 i = 1
 for table in TABLES:
-    if i==1 or i==6 or i==8 or i==10 or i==13:
+    if i==1 or i==2 or i==3:
         final.write('\\input{'
                     +table+'}\n')
     else:

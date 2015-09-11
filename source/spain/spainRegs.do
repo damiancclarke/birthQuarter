@@ -140,7 +140,7 @@ eststo: reg goodQuarter young highEd professional married `FE' `cnd', `se'
 
 #delimit ;
 esttab est1 est2 est3 est4 est5 using "$OUT/spainBinary.tex",
-replace `estopt' title("Birth Season and Age (Spain 2013)") booktabs
+replace `estopt' title("Birth Season and Age (Spain 2007-2013)") booktabs
 keep(_cons young highEd professional married) style(tex) mlabels(, depvar)
 postfoot("Province FE&&Y&Y&Y&Y\\ \bottomrule"
                   "\multicolumn{6}{p{15cm}}{\begin{footnotesize}Sample consists"
@@ -148,7 +148,7 @@ postfoot("Province FE&&Y&Y&Y&Y\\ \bottomrule"
                   "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-exit
+
 eststo: reg goodQuarter young                                  `cnd', `se'
 eststo: reg goodQuarter young                             `FE' `cnd', `se'
 eststo: reg goodQuarter young highEd                      `FE' `cnd', `se'
@@ -156,7 +156,7 @@ eststo: reg goodQuarter young highEd labourForce          `FE' `cnd', `se'
 eststo: reg goodQuarter young highEd labourForce  married `FE' `cnd', `se'
 #delimit ;
 esttab est1 est2 est3 est4 est5 using "$OUT/spainBinaryLForce.tex",
-replace `estopt' title("Birth Season and Age (Spain 2013)") booktabs
+replace `estopt' title("Birth Season and Age (Spain 2007-2013)") booktabs
 keep(_cons young highEd labourForce  married) style(tex) mlabels(, depvar)
 postfoot("Province FE&&Y&Y&Y&Y\\ \bottomrule"
                   "\multicolumn{6}{p{15cm}}{\begin{footnotesize}Sample consists"
@@ -175,7 +175,7 @@ eststo: reg goodQuarter young vhighEd professional married `FE' `cnd', `se'
 
 #delimit ;
 esttab est1 est2 est3 est4 est5 using "$OUT/spainBinaryHigh.tex",
-replace `estopt' title("Birth Season and Age (Spain 2013)") booktabs
+replace `estopt' title("Birth Season and Age (Spain 2007-2013)") booktabs
 keep(_cons young vhighEd married professional) style(tex) mlabels(, depvar)
 postfoot("Province FE&&Y&Y&Y&Y\\ \bottomrule"
                   "\multicolumn{6}{p{15cm}}{\begin{footnotesize}Sample consists"
@@ -225,12 +225,12 @@ estimates clear
 *** (4b) Regressions (Quality on Age, season)
 ********************************************************************************
 foreach y of varlist `qual' {
-    eststo: reg `y' young badQuarter `FE' `cnd', `se'
+    eststo: reg `y' young goodQuarter `FE' `cnd', `se'
 }
 #delimit ;
 esttab est1 est2 est3 est4 est5 est6 using "$OUT/spainQuality.tex",
 replace `estopt' title("Birth Quality by Age and Season (Spain 2013)")
-keep(_cons young badQuarter) style(tex) booktabs mlabels(, depvar)
+keep(_cons young goodQuarter) style(tex) booktabs mlabels(, depvar)
 postfoot("\bottomrule"
          "\multicolumn{7}{p{15.8cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of Spanish mothers. Gestation weeks and premature"
@@ -241,12 +241,12 @@ postfoot("\bottomrule"
 estimates clear
 
 foreach y of varlist `qual' {
-    eststo: reg `y' young badQua highEd professional married `FE' `cnd', `se'
+    eststo: reg `y' young goodQua highEd professional married `FE' `cnd', `se'
 }
 #delimit ;
 esttab est1 est2 est3 est4 est5 est6 using "$OUT/spainQualityEduc.tex",
 replace `estopt' title("Birth Quality by Age and Season (Spain 2013)")
-keep(_cons young badQ* high* marr* pro*) style(tex) booktabs mlabels(, depvar)
+keep(_cons young goodQ* high* marr* pro*) style(tex) booktabs mlabels(, depvar)
 postfoot("\bottomrule"
          "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of Spanish mothers. Gestation weeks and premature"
@@ -261,6 +261,7 @@ estimates clear
 *** (5) Redefine bad season as bad season due to short gestation, and bad season
 ********************************************************************************
 local cont     highEd professional married
+local cont     
 local seasons  Qgoodbad Qbadgood Qbadbad
 local aa       abs(gestation)
 
