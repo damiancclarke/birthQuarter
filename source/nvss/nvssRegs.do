@@ -32,7 +32,7 @@ local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats      /*
 local yFE    i.year
 local se     robust
 local cnd    if twin==1
-local keepif birthOrder==1 & motherAge>24
+local keepif birthOrder==1 & motherAge>24 & motherAge <= 45
 
 
 ********************************************************************************
@@ -74,7 +74,8 @@ gen     Qgoodgood       = expectGoodQ==1 & goodQuarter==1 if gest!=.
 gen     Qgoodbad        = expectGoodQ==1 & badQuarter ==1 if gest!=.
 gen     Qbadgood        = expectBadQ==1  & goodQuarter==1 if gest!=.
 gen     Qbadbad         = expectBadQ==1  & badQuarter ==1 if gest!=.
-
+gen     noART           = (ART-1)*-1
+gen     noARTyoung      = noART*young
 sum expectGoodQ expectBadQ
 sum Qgoodgood Qgoodbad Qbadgood Qbadbad
 
@@ -121,7 +122,9 @@ lab var Qbadbad            "Bad Season (due in bad)"
 lab var Qbadgood           "Good Season (due in bad)"
 lab var motherAge          "Mother's Age (years)"
 lab var motherAge2         "Mother's Age$^2$"
-/*
+lab var noART              "Did not undertake ART"
+lab var noARTyoung         "No ART$\times$ Young"
+
 ********************************************************************************
 *** (3a) Examine missing covariates
 ********************************************************************************
@@ -202,6 +205,8 @@ lab var young2 "Aged 25-34"
 ********************************************************************************
 local add `" "" "(Young=25-34)" "(Education Interaction)" "(Complete College)" "'
 local nam Main Young34 EdInteract High
+local add `" ""  "'
+local nam Main 
 tokenize `nam'
 
 foreach type of local add {
@@ -210,25 +215,48 @@ foreach type of local add {
     local edu highEd
     local con married smoker
     local yab abs(year)
+    local ges i.gestation
     if `"`1'"' == "Young34"    local age young2
     if `"`1'"' == "EdInteract" local edu highEd youngXhighEd
     if `"`1'"' == "High"       local edu vhighEd 
 
-    eststo: areg goodQuarter `age' `edu' `con'     `cnd'          , `se' `yab'
-    eststo: areg goodQuarter `age' `edu'           `cnd'&e(sample), `se' `yab'
-    eststo: areg goodQuarter `age'                 `cnd'&e(sample), `se' `yab'
-    eststo:  reg goodQuarter `age'                 `cnd'&e(sample), `se'
-    eststo: areg goodQuarter `age' `edu' `con'     `cnd'&ART!=.   , `se' `yab'
-    eststo: areg goodQuarter `age' `edu' `con' ART `cnd'&ART!=.   , `se' `yab'
+    eststo: areg goodQuarter `age' `edu' `con'       `cnd'          , `se' `yab'
+    eststo: areg goodQuarter `age' `edu'             `cnd'&e(sample), `se' `yab'
+    eststo: areg goodQuarter `age'                   `cnd'&e(sample), `se' `yab'
+    eststo:  reg goodQuarter `age'                   `cnd'&e(sample), `se'
+    eststo: areg goodQuarter `age' `edu' `con'       `cnd'&ART!=.   , `se' `yab'
+    eststo: areg goodQuarter `age' `edu' `con' noART `cnd'&ART!=.   , `se' `yab'
+    eststo: areg goodQuarter `age' `edu' `con' noART `ges' `cnd'&ART!=.   , `se' `yab'
 
     #delimit ;
-    esttab est4 est3 est2 est1 est5 est6 using "$OUT/NVSSBinary`1'.tex",
+    esttab est4 est3 est2 est1 est5 est6 est7 using "$OUT/NVSSBinary`1'.tex",
     replace `estopt' title("Birth Season and Age `type'") booktabs 
-    keep(_cons `age' `edu' ART `con') style(tex) mlabels(, depvar)
-    postfoot("Year FE&&Y&Y&Y&Y&Y\\ 2012-2013 Only&&&&&Y&Y\\ \bottomrule"
-             "\multicolumn{7}{p{17cm}}{\begin{footnotesize}Sample consists "
+    keep(_cons `age' `edu' noART `con') style(tex) mlabels(, depvar)
+    postfoot("Year FE&&Y&Y&Y&Y&Y&Y\\ 2012-2013 Only&&&&&Y&Y&Y\\            "
+             "Gestation FE &&&&&&&Y\\ \bottomrule                          "
+             "\multicolumn{8}{p{18cm}}{\begin{footnotesize}Sample consists "
              "of all first born children of US-born, white, non-hispanic   "
              "mothers. \end{footnotesize}}\end{tabular}\end{table}");
+    #delimit cr
+    estimates clear
+
+    *ART TABLE
+    
+    eststo: areg goodQuarter noART `age' `edu'                  , `se' `yab'
+    eststo: areg goodQuarter noART `age' noARTyoung if e(sample), `se' `yab'
+    eststo: areg goodQuarter noART `age'            if e(sample), `se' `yab'
+    eststo: areg goodQuarter noART                  if e(sample), `se' `yab'
+    eststo:  reg goodQuarter noART                  if e(sample), `se' 
+    
+    #delimit ;
+    esttab est5 est4 est3 est1 est2 using "$OUT/NVSSBinaryART.tex",
+    replace `estopt' title("Birth Season and ART Usage") booktabs 
+    keep(_cons noART `age' noARTyoung `edu') style(tex) mlabels(, depvar)
+    postfoot("Year FE&&Y&Y&Y&Y\\  \bottomrule                              "
+             "\multicolumn{6}{p{13cm}}{\begin{footnotesize}Sample consists "
+             "of all first born children of US-born, white, non-hispanic   "
+             "mothers from 2012-2013.                                      "
+             "\end{footnotesize}}\end{tabular}\end{table}");
     #delimit cr
     estimates clear
 
@@ -237,14 +265,16 @@ foreach type of local add {
     eststo: areg expectGoodQ `age'                 `cnd'&e(sample), `se' `yab'
     eststo:  reg expectGoodQ `age'                 `cnd'&e(sample), `se'
     eststo: areg expectGoodQ `age' `edu' `con'     `cnd'&ART!=.   , `se' `yab'
-    eststo: areg expectGoodQ `age' `edu' `con' ART `cnd'&ART!=.   , `se' `yab'
+    eststo: areg expectGoodQ `age' `edu' `con' noART `cnd'&ART!=.   , `se' `yab'
+    eststo: areg expectGoodQ `age' `edu' `con' noART `ges' `cnd'&ART!=.   , `se' `yab'
 
     #delimit ;
-    esttab est4 est3 est2 est1 est5 est6 using "$OUT/NVSSExpect`1'.tex",
+    esttab est4 est3 est2 est1 est5 est6 est7 using "$OUT/NVSSExpect`1'.tex",
     replace `estopt' title("Birth Season and Age `type'") booktabs 
-    keep(_cons `age' `edu' ART `con') style(tex) mlabels(, depvar)
-    postfoot("Year FE&&Y&Y&Y&Y&Y\\ 2012-2013 Only&&&&&Y&Y\\ \bottomrule"
-             "\multicolumn{7}{p{17cm}}{\begin{footnotesize}Sample consists "
+    keep(_cons `age' `edu' noART `con') style(tex) mlabels(, depvar)
+    postfoot("Year FE&&Y&Y&Y&Y&Y\\ 2012-2013 Only&&&&&Y&Y\\                "
+             "Gestation FE &&&&&&&Y\\ \bottomrule                          "
+             "\multicolumn{8}{p{18cm}}{\begin{footnotesize}Sample consists "
              "of all first born children of US-born, white, non-hispanic   "
              "mothers for whom gestation is recorded."
              "\end{footnotesize}}\end{tabular}\end{table}");
@@ -300,22 +330,32 @@ foreach cond of local c1 {
 ********************************************************************************
 *** (4b-i) Conditions (age continuous)
 ********************************************************************************
+local c1 twin==1
+local names Main
 tokenize `names'
+
 foreach cond of local c1 {
     dis "`1'"
-    local cn 5
-    local sp "&&Y&Y&Y"
+    local cn 7
+    local sp "&&Y&Y&Y&Y&Y"
+    local age motherAge
+    local edu highEd
+    local con married smoker
+    local yab abs(year)
     
-    eststo: reg goodQuarter motherAge                             if `cond', `se'
-    eststo: reg goodQuarter motherAge                       `yFE' if `cond', `se'
-    eststo: reg goodQuarter motherAge highEd                `yFE' if `cond', `se'
-    eststo: reg goodQuarter motherAge highEd married smoker `yFE' if `cond', `se'
+    eststo: areg goodQuarter `age' `edu' `con'       `cnd'          , `se' `yab'
+    eststo: areg goodQuarter `age' `edu'             `cnd'&e(sample), `se' `yab'
+    eststo: areg goodQuarter `age'                   `cnd'&e(sample), `se' `yab'
+    eststo:  reg goodQuarter `age'                   `cnd'&e(sample), `se'
+    eststo: areg goodQuarter `age' `edu' `con'       `cnd'&ART!=.   , `se' `yab'
+    eststo: areg goodQuarter `age' `edu' `con' noART `cnd'&ART!=.   , `se' `yab'
 
-    local ests est1 est2 est3 est4 
+    
+    local ests est4 est3 est2 est1 est5 est6  
     if `"`1'"' == "unmarried"     local ests est1 est2 est3
     if `"`1'"' == "unmarried"     local cn 4
     if `"`1'"' == "unmarried"     local sp "&&Y&Y"
-    local vars _cons motherAge highEd married smoker
+    local vars _cons motherAge highEd married smoker noART
     if `"`1'"'=="non-smoking"|`"`1'"'=="smoking" local ests est1 est2 est3 
     if `"`1'"'=="non-smoking"|`"`1'"'=="smoking" local vars _cons motherAge highEd    
     if `"`1'"'=="unmarried"                      local vars _cons motherAge highEd    
@@ -338,19 +378,25 @@ foreach cond of local c1 {
 tokenize `names'
 foreach cond of local c1 {
     dis "`1'"
-    local cn 5
-    local sp "&&Y&Y&Y"
+    local cn 7
+    local sp "&&Y&Y&Y&Y&Y"
+    local age motherAge motherAge2
+    local edu highEd
+    local con married smoker
+    local yab abs(year)
     
-    eststo: reg goodQuarter motherAge*                             if `cond', `se'
-    eststo: reg goodQuarter motherAge*                       `yFE' if `cond', `se'
-    eststo: reg goodQuarter motherAge* highEd                `yFE' if `cond', `se'
-    eststo: reg goodQuarter motherAge* highEd married smoker `yFE' if `cond', `se'
-
-    local ests est1 est2 est3 est4 
+    eststo: areg goodQuarter `age' `edu' `con'       `cnd'          , `se' `yab'
+    eststo: areg goodQuarter `age' `edu'             `cnd'&e(sample), `se' `yab'
+    eststo: areg goodQuarter `age'                   `cnd'&e(sample), `se' `yab'
+    eststo:  reg goodQuarter `age'                   `cnd'&e(sample), `se'
+    eststo: areg goodQuarter `age' `edu' `con'       `cnd'&ART!=.   , `se' `yab'
+    eststo: areg goodQuarter `age' `edu' `con' noART `cnd'&ART!=.   , `se' `yab'
+    
+    local ests est1 est2 est3 est4 est5 est6
     if `"`1'"' == "unmarried"     local ests est1 est2 est3
     if `"`1'"' == "unmarried"     local cn 4
     if `"`1'"' == "unmarried"     local sp "&&Y&Y"
-    local vars _cons motherAge motherAge2 highEd married smoker
+    local vars _cons motherAge motherAge2 highEd married smoker noART
     if `"`1'"'=="non-smoking"|`"`1'"'=="smoking" local ests est1 est2 est3 
     if `"`1'"'=="non-smoking"|`"`1'"'=="smoking"|`"`1'"'=="unmarried" /*
     */ local vars _cons motherAge motherAge2 highEd    
@@ -359,7 +405,7 @@ foreach cond of local c1 {
     esttab `ests' using "$OUT/NVSSBinary`1'_A2.tex", replace `estopt' booktabs 
     title("Birth Season and Age (`1' sample)") keep(`vars') mlabels(, depvar)
     postfoot("Year FE`sp'\\ \bottomrule"
-             "\multicolumn{`cn'}{p{12.8cm}}{\begin{footnotesize}Sample consists"
+             "\multicolumn{`cn'}{p{14.8cm}}{\begin{footnotesize}Sample consists"
              " of all first births to US-born, white, non-hispanic mothers.    "
              "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
     #delimit cr
@@ -453,14 +499,16 @@ foreach cond of local c1 {
     macro shift
 }
 
-*/
+
 ********************************************************************************
 *** (5a) Redefine bad season as bad season due to short gest, and bad season
 ********************************************************************************
 local cont highEd married smoker
+local cont
 local seasons Qgoodbad Qbadgood Qbadbad
 local aa abs(gestation)
-    
+
+
 eststo: reg  birthweight young `seasons' `cont' `yFE' `cnd', `se'
 eststo: areg birthweight young `seasons' `cont' `yFE' `cnd', `se'    `aa'
 eststo: reg  birthweight `seasons' `cont' `yFE' `cnd'&young==1, `se'
@@ -485,7 +533,7 @@ postfoot("\bottomrule"
          "children expected in quarters 2 or 3, but were born prematurely in   "
          "quarters 1 or 4.  For each outcome, the first column is unconditional"
          "on gestation while the second column includes fixed effects for weeks"
-         " of gestation. Education, marraige and smoking controls are included."
+         " of gestation. "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -513,7 +561,7 @@ postfoot("\bottomrule"
          "first born children of US-born, white, non-hispanic mothers. For each"
          " outcome, the first column is unconditional on gestation while the   "
          "second column includes fixed effects for weeks"
-         " of gestation. Education, marraige and smoking controls are included."
+         " of gestation. "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
