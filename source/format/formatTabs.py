@@ -544,10 +544,9 @@ loc3  = './../results/spain/regressions/'
 final = open(TAB + "tables"+ ftype +".tex", 'w')
 
 TABLES = [loc1+'sumStats'+ftype+'.tex', loc1+'sumsingle'+ftype+'.tex'  ,
-loc2+'NVSSBinaryMain.tex'             , loc1+'quarterHeterogeneity.tex',
-loc2+'NVSSBinaryEdInteract.tex'       , loc2+'NVSSBinaryYoung34.tex'   , 
-loc2+'NVSSseasonMLogit.tex'           , loc2+'NVSSQualityEduc.tex'     ,
-loc1+'qualityHeterogeneity.tex'       , loc2+'QualityAllComb.tex'      ,
+loc2+'NVSSBinaryMain.tex'             , loc2+'NVSSExpectMain.tex'      ,
+loc2+'NVSSBinaryEdInteract.tex'       , loc2+'NVSSQualityEduc.tex'     ,
+loc2+'QualityAllComb.tex'             , loc2+'QualityAllCombExp.tex'   ,
 loc1+'sumStatsSpain.tex'              , loc1+'sumSpain.tex'            ,
 loc3+'spainBinary.tex'                , loc3+'spainQualityEduc.tex'    ,
 loc3+'spainQualityGestFix.tex'
@@ -556,10 +555,13 @@ loc3+'spainQualityGestFix.tex'
 i = 1
 
 for table in TABLES:
-    if i<4 or i==5 or i==6 or i==7 or i==11 or i==12:
+    if i<3 or i==9 or i==10:
         final.write('\\input{'
                     +table+'}\n')
-    if i==4 or i==8 or i==9 or i==10 or i==13 or i==14 or i==15:
+    elif i==5:
+        final.write('%\\input{'
+                    +table+'}\n')        
+    else:
         final.write('\\begin{landscape}\n\\input{'
                     +table+'}\n\\end{landscape}\n')
     i = i+1
@@ -577,6 +579,7 @@ spain = './../results/spain/regressions/'
 final = open(TAB + 'appendixTables.tex', 'w')
 
 TABLES = [loc2 +'NVSSBinaryFDeaths.tex'      , 
+          loc2 +'NVSSBinaryYoung34.tex'      , 
           TAB  +'quarterHeterogeneity_A.tex' ,
           TAB  +'qualityHeterogeneity_A.tex' ,
           TAB  +'quarterHeterogeneity_A2.tex',
