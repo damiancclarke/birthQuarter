@@ -42,7 +42,7 @@ local stateFE 0
 local twins   0
 local lyear   25
 if `twins' == 1 local app twins
-
+/*
 ********************************************************************************
 *** (2a) Use, descriptive graph
 ********************************************************************************
@@ -124,9 +124,9 @@ graph export "$OUT/ageDescriptiveParityDegree.eps", as(eps) replace
 restore
 
 preserve
-collapse infertTreat, by(motherAge)
+collapse ART, by(motherAge)
 #delimit ;
-twoway line infertTreat motherAge, xtitle("Mother's Age") scheme(s1mono)
+twoway line ART motherAge, xtitle("Mother's Age") scheme(s1mono)
 ytitle("Assisted Reproductive Technology");
 #delimit cr
 graph export "$OUT/ART.eps", as(eps) replace
@@ -137,11 +137,11 @@ gen ageG2 = motherAge>=20 & motherAge<25
 replace ageG2 = 2 if motherAge>=25 & motherAge<35
 replace ageG2 = 3 if motherAge>=35 & motherAge<40
 replace ageG2 = 4 if motherAge>=40 & motherAge<46
-collapse infertTreat, by(ageG2)
+collapse ART, by(ageG2)
 lab def       aG2 1 "20-24" 2 "25-34" 3 "35-39" 4 "40-45"
 lab val ageG2 aG2
 #delimit ;
-graph bar infertTreat, over(ageG2)  ylabel(, nogrid) exclude0
+graph bar ART, over(ageG2)  ylabel(, nogrid) exclude0
 bar(1, bcolor(ltblue)) bar(2, bcolor(ltblue)) bar(3, bcolor(ltblue))
 bar(4, bcolor(ltblue)) scheme(s1mono) ytitle("Proportion ART");
 graph export "$OUT/ARTageGroup.eps", as(eps) replace;
@@ -196,12 +196,12 @@ lab var apgar       "APGAR (1-10)"
 lab var twin        "Twin"
 lab var female      "Female"
 lab var smoker      "Smoked during Pregnancy"
-lab var infertTreat "Used ART (2012-2013 only)"
+lab var ART         "Used ART (2012-2013 only)"
 lab var young       "Young (aged 25-39)"
 lab var expectGoodQ "Intended good season of birth"
 
 local Mum     motherAge married young 
-local MumPart college educCat smoker infertTreat
+local MumPart college educCat smoker ART
 local Kid     goodQ expectGoodQ birthweight lbw gestat premature apgar twin fem
 
 foreach stype in Mum Kid MumPart {
@@ -230,6 +230,7 @@ replace period = 3 if year >=2010 & year<=2013
 *** (2c) Label for clarity
 ********************************************************************************
 lab def aG  1 "Young (25-39) " 2  "Old (40-45) "
+lab def aGa 1 "Young " 2  "Old "
 lab def pr  1 "Pre-crisis" 2 "Crisis" 3 "Post-crisis"
 lab def gQ  0 "quarter 4(t) or quarter 1(t+1)" 1 "quarter 2(t) or quarter 3(t)"
 lab def eL  1 "No College" 2 "Some College +"
@@ -368,10 +369,10 @@ restore;
 ********************************************************************************
 preserve
 drop if educLevel==.
-collapse premature infertTreat (sum) birth, by(goodQuarter educLevel ageGroup)
+collapse premature ART (sum) birth, by(goodQuarter educLevel ageGroup)
 bys ageGroup educLevel: egen aveprem = mean(premature)
-bys ageGroup educLevel: egen aveART = mean(infertTreat)
-drop premature infertTreat
+bys ageGroup educLevel: egen aveART = mean(ART)
+drop premature ART
 reshape wide birth, i(educLevel ageGroup) j(goodQuarter)
 
 gen totalbirths = birth0 + birth1
@@ -389,6 +390,8 @@ gen str4 ART        = string(aveART, "%04.2f")
 drop totalbirths diff rati birth* ave*
     
 decode ageGroup, gen(ag)
+replace ag = "Young " if ag == "Young (25-39) "
+replace ag = "Old "   if ag == "Old (40-45) "
 decode educLevel, gen(el)
 egen group=concat(ag el)
 order group
@@ -399,10 +402,10 @@ restore
 
 preserve
 drop if educLevel==.
-collapse premature infertTreat (sum) birth, by(goodQuarter educLevel)
+collapse premature ART (sum) birth, by(goodQuarter educLevel)
 bys educLevel: egen aveprem = mean(premature)
-bys educLevel: egen aveART = mean(infertTreat)
-drop premature infertTreat
+bys educLevel: egen aveART = mean(ART)
+drop premature ART
 reshape wide birth, i(educLevel) j(goodQuarter)
 gen totalbirths = birth0 + birth1
 replace birth0=round(10000*birth0/totalbirths)/100
@@ -427,10 +430,10 @@ restore
 
 preserve
 drop if educLevel==.
-collapse premature infertTreat (sum) birth, by(goodQuarter ageGroup)
+collapse premature ART (sum) birth, by(goodQuarter ageGroup)
 bys ageGroup: egen aveprem = mean(premature)
-bys ageGroup: egen aveART = mean(infertTreat)
-drop premature infertTreat
+bys ageGroup: egen aveART = mean(ART)
+drop premature ART
 reshape wide birth, i(ageGroup) j(goodQuarter)
 gen totalbirths = birth0 + birth1
 replace birth0=round(10000*birth0/totalbirths)/100
@@ -446,7 +449,7 @@ drop totalbirths diff rati ave*
 outsheet using "$SUM/FullSample`app'.txt", delimiter("&") replace noquote
 restore
 
-foreach var of varlist premature infertTreat {
+foreach var of varlist premature ART {
     gen _`var'young = `var'       if ageGroup  == 1
     gen _`var'old = `var'         if ageGroup  == 2
     gen _`var'lowEd = `var'       if educLevel == 1
@@ -456,19 +459,28 @@ foreach var of varlist premature infertTreat {
     gen _`var'oldlowEd = `var'    if educLevel == 1 & ageGroup == 2
     gen _`var'oldhighEd = `var'   if educLevel == 2 & ageGroup == 2
 }
-sum _p* _i*
-estpost tabstat _p* _i*, statistics(mean sd) columns(statistics)
+sum _p* _A*
+estpost tabstat _p* _A*, statistics(mean sd) columns(statistics)
 esttab using "$SUM/nvssARTPrem.tex", title("ART and Premature")/*
     */ cells("mean(fmt(2)) sd(fmt(2))") replace label noobs
-drop _p* _i*
+drop _p* _A*
 
-
+*/
 ********************************************************************************
 *** (5a) Global histogram
 ********************************************************************************
 tempfile all educ
 
 preserve
+use "$DAT/`data'", clear
+keep if birthOrder==1
+gen goodQuarter = birthQuarter == 2 | birthQuarter == 3
+gen birth=1
+drop ageGroup
+gen ageGroup = 1 if motherAge>=20&motherAge<25
+replace ageGroup = 2 if motherAge>=25&motherAge<40
+replace ageGroup = 3 if motherAge>=40&motherAge<46
+
 collapse (sum) birth, by(goodQuarter ageGroup)
 reshape wide birth, i(ageGroup) j(goodQuarter)
 gen totalbirths = birth0 + birth1
@@ -477,16 +489,27 @@ replace birth1=(round(10000*birth1/totalbirths)/100)-50
 #delimit ;
 graph bar birth*, over(ageGroup) scheme(s1mono) legend(label(1 "Bad Quarter")
   label(2 "Good Quarter")) bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0))
-  ylabel(, nogrid) yline(0);
+  bar(3, bcolor(gs12) lcolor(gs0)) ylabel(, nogrid) yline(0);
 graph export "$OUT/total`app'.eps", as(eps) replace;
 #delimit cr
 save `all'
 restore
-exit
+
 ********************************************************************************
 *** (5b) Histogram by education level
 ********************************************************************************
 preserve
+use "$DAT/`data'", clear
+keep if birthOrder==1
+gen goodQuarter = birthQuarter == 2 | birthQuarter == 3
+gen birth=1
+drop ageGroup
+gen ageGroup = 1 if motherAge>=20&motherAge<25
+replace ageGroup = 2 if motherAge>=25&motherAge<40
+replace ageGroup = 3 if motherAge>=40&motherAge<46
+replace educLevel = educLevel + 1
+replace educLevel = 2 if educLevel == 3
+
 collapse (sum) birth, by(goodQuarter ageGroup educLevel)
 reshape wide birth, i(ageGroup educLevel) j(goodQuarter)
 gen totalbirths = birth0 + birth1
@@ -497,7 +520,8 @@ replace birth1=(round(10000*birth1/totalbirths)/100)-50
 graph bar birth*, over(educLevel, relabel(1 "No College" 2 "Some College +")
                                               label(angle(45))) over(ageGroup)
 scheme(s1mono) legend(label(1 "Bad Quarter") label(2 "Good Quarter"))
-bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0)) ylabel(, nogrid) yline(0);
+bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0))
+bar(3, bcolor(gs12) lcolor(gs0)) ylabel(, nogrid) yline(0);
 graph export "$OUT/totalEduc`app'.eps", as(eps) replace;
 #delimit cr
 drop if educLevel == .
@@ -524,12 +548,13 @@ reshape wide birth1, i(educLevel) j(ageGroup)
 graph bar birth*, over(educLevel, relabel(1 "All" 2 "No College" 3
                                           "Some College +")
                        label(angle(45))) yline(0)
-legend(label(1 "Young") label(2 "Old")) ylabel(, nogrid)
-scheme(s1mono) bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0));
+legend(label(1 "20-25") label(2 "25-39") label(3 "40-45")) ylabel(, nogrid)
+scheme(s1mono) bar(3, bcolor(gs0)) bar(2, bcolor(white) lcolor(gs0))
+bar(1, bcolor(gs12) lcolor(gs0));
 graph export "$OUT/birthQdiff`app'.eps", as(eps) replace;
 #delimit cr
 restore
-
+exit
 ********************************************************************************
 *** (5d) Histogram for more age groups
 ********************************************************************************
