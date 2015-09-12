@@ -272,7 +272,7 @@ foreach type of local add {
     esttab est4 est3 est2 est1 est5 est6 est7 using "$OUT/NVSSExpect`1'.tex",
     replace `estopt' title("Birth Season and Age `type'") booktabs 
     keep(_cons `age' `edu' noART `con') style(tex) mlabels(, depvar)
-    postfoot("Year FE&&Y&Y&Y&Y&Y\\ 2012-2013 Only&&&&&Y&Y\\                "
+    postfoot("Year FE&&Y&Y&Y&Y&Y&Y\\ 2012-2013 Only&&&&&Y&Y&Y\\            "
              "Gestation FE &&&&&&&Y\\ \bottomrule                          "
              "\multicolumn{8}{p{18cm}}{\begin{footnotesize}Sample consists "
              "of all first born children of US-born, white, non-hispanic   "
