@@ -55,7 +55,7 @@ histogram motherAge if motherAge<=24|motherAge>45, freq color(gs12) width(1)
     ylabel( 0 "0" 100000 "100,000" 200000 "200,000" 300000 "300,000" 400000
            "400,000" 500000 "500,000", angle(0)) xtitle("Mother's Age") 
     legend(label(1 "Estimation Sample") label(2 "<25 or >45")) scheme(s1mono);
-#delimit cr
+                                        #delimit cr
 graph export "$OUT/ageDescriptive.eps", as(eps) replace
 keep if `keepif'&twin<3
 
@@ -563,7 +563,6 @@ restore
 ********************************************************************************
 *** (5d) Histogram for more age groups
 ********************************************************************************
-*/
 preserve
 use "$DAT/`data'", clear
 keep if birthOrder==1&educLevel!=.&motherAge>=20&motherAge<=45
@@ -583,7 +582,7 @@ reshape wide birth, i(ageG2) j(goodQuarter)
 gen totalbirths = birth0 + birth1
 replace birth0=(round(10000*birth0/totalbirths)/100)-50
 replace birth1=(round(10000*birth1/totalbirths)/100)-50
-keep birth1 ageG2
+keep birth1 ageG2 
 replace birth1=birth1*2
 list
 lab def       aG2 1 "20-24" 2 "25-34" 3 "35-39" 4 "40-45"
@@ -598,6 +597,7 @@ graph export "$OUT/birthQdiff_4Ages`app'.eps", as(eps) replace;
 #delimit cr
 restore
 
+*/
 preserve
 use "$DAT/`data'", clear
 keep if birthOrder==1&educLevel!=.&motherAge>=20&motherAge<=45
@@ -613,6 +613,21 @@ gen goodQuarter = birthQuarter == 2 | birthQuarter == 3
 gen birth = 1
 
 keep if ART!=.
+gen age2024 = ageG2==1
+gen age2534 = ageG2==2
+gen age3539 = ageG2==3
+replace goodQuarter = goodQuarter*100
+foreach Anum of numlist 0 1 {
+    reg goodQuarter age2024 age2534 age3539 if ART==`Anum'
+    local se2024`Anum' = _se[age2024]
+    local se2534`Anum' = _se[age2534]
+    local se3539`Anum' = _se[age3539]
+    local se4045`Anum' = _se[_cons]
+}
+replace goodQuarter = goodQuarter/100
+
+
+
 collapse (sum) birth, by(goodQuarter ageG2 ART)
 reshape wide birth, i(ageG2 ART) j(goodQuarter)
 gen totalbirths = birth0 + birth1
@@ -623,17 +638,49 @@ replace birth1=birth1*2
 list
 lab def       aG2 1 "20-24" 2 "25-34" 3 "35-39" 4 "40-45"
 lab val ageG2 aG2
+
+gen seUp   = .
+gen seDown = .
+foreach Anum of numlist 0 1 {
+    replace seUp= birth1+1.96*`se2024`Anum'' if ageG2==1&ART==`Anum'
+    replace seUp= birth1+1.96*`se2534`Anum'' if ageG2==2&ART==`Anum'
+    replace seUp= birth1+1.96*`se3539`Anum'' if ageG2==3&ART==`Anum'
+    replace seUp= birth1+1.96*`se4045`Anum'' if ageG2==4&ART==`Anum'
+
+    replace seDo= birth1-1.96*`se2024`Anum'' if ageG2==1&ART==`Anum'
+    replace seDo= birth1-1.96*`se2534`Anum'' if ageG2==2&ART==`Anum'
+    replace seDo= birth1-1.96*`se3539`Anum'' if ageG2==3&ART==`Anum'
+    replace seDo= birth1-1.96*`se4045`Anum'' if ageG2==4&ART==`Anum'
+}
+
 #delimit ;
 graph bar birth1 if ART==1, over(ageG2)  ylabel(, nogrid) yline(0, lpattern("_")) 
 bar(1, bcolor(ltblue)) bar(2, bcolor(ltblue)) bar(3, bcolor(ltblue))
 bar(4, bcolor(ltblue)) scheme(s1mono) ytitle("% Good Season - % Bad Season");
 graph export "$OUT/birthQdiff_4Ages`app'ART.eps", as(eps) replace;
 
+twoway bar birth1 ageG2 if ART==1, barw(0.5) ylabel(, nogrid) color(ltblue)
+  || rcap seUp seDo ageG2 if ART==1, lcolor(black) yline(0, lpattern("_"))
+xlabel(1 "20-24" 2 "25-34" 3 "35-39" 4 "40-45") xtitle(" ") legend(off)
+scheme(s1mono) ytitle("% Good Season - % Bad Season");
+graph export "$OUT/birthQdiff_4Ages`app'ART.eps", as(eps) replace;
+
+
 graph bar birth1 if ART==0, over(ageG2)  ylabel(, nogrid) yline(0, lpattern("_")) 
 bar(1, bcolor(ltblue)) bar(2, bcolor(ltblue)) bar(3, bcolor(ltblue))
 bar(4, bcolor(ltblue)) scheme(s1mono) ytitle("% Good Season - % Bad Season");
 graph export "$OUT/birthQdiff_4Ages`app'NoART.eps", as(eps) replace;
+
+twoway bar birth1 ageG2 if ART==0, barw(0.5) color(ltblue) ylabel(, nogrid)
+ || rcap seUp seDo ageG2 if ART==0, yline(0, lpattern("_")) lcolor(black) 
+xlabel(1 "20-24" 2 "25-34" 3 "35-39" 4 "40-45") xtitle(" ") legend(off)
+scheme(s1mono) ytitle("% Good Season - % Bad Season");
+graph export "$OUT/birthQdiff_4Ages`app'NoART.eps", as(eps) replace;
+
 #delimit cr
+
+
+
 
 exit
 
