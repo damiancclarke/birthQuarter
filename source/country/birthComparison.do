@@ -164,7 +164,7 @@ foreach cc in Spain USA Chile Mexico {
 
             twoway bar excessBirths birth`period' if young==`num', bcolor(black)
             xlabel(1(1)`Nn', valuelabels angle(90)) ytitle("Proportion") 
-            xtitle("") yline(0, lpattern(dash) lcolor(black)) title(`cc')
+            xtitle("") yline(0, lpattern(dash) lcolor(black)) 
             ytitle("Proportion Excess Births") ylabel(`sc2') scheme(s1mono)
             saving($OUT/`cc'`period'Excess`num', replace);
             graph export "$OUT/excess`period'`cc'`name'.eps", as(eps) replace;
@@ -173,7 +173,7 @@ foreach cc in Spain USA Chile Mexico {
                 #delimit ;
                 twoway bar excessB birth`period' if young==`num', bcolor(black)
                 yaxis(1) || line temper birth`period' if young==`num', yaxis(2)
-                legend(off) title(`cc') lpattern(dash) lcolor(black)
+                legend(off) lpattern(dash) lcolor(black)
                 xlabel(1(1)`Nn', valuelabels angle(90)) ytitle("Proportion") 
                 xtitle("") yline(0, lpattern(dash) lcolor(black)) 
                 ytitle("Proportion Excess Births") ylabel(`sc2') scheme(s1mono)
@@ -197,6 +197,9 @@ graph export "$OUT/combinedMonthExcess.eps", as(eps) replace
 graph combine "$OUT/ChileMonthExcess1T" "$OUT/SpainMonthExcess1T"/*
 */ "$OUT/MexicoMonthExcess1T" "$OUT/USAMonthExcess1T", scheme(s1mono)
 graph export "$OUT/combinedMonthExcessTemp.eps", as(eps) replace
+
+graph combine "$OUT/ChileMonthExcess1T"  "$OUT/USAMonthExcess1T", scheme(s1mono)
+graph export "$OUT/combinedMonthExcessTempChiUSA.eps", as(eps) replace
 
 ********************************************************************************
 *** (7a) Combine all countries (Months)
