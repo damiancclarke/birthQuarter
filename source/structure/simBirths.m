@@ -18,12 +18,12 @@ GoodS = [1,0,1,0];
 Wages = NaN(N,T,2);
 Quali = NaN(N,T);
 exper = 0;
+Gamma = 0.1;
 
 %-------------------------------------------------------------------------------
 %---(2) Calculate wages and quality based on simulated values
 %-------------------------------------------------------------------------------
 for t=1:T
-    t
     Wages(:,t,1)=2+RetEd(2)*educ+0.5*exper;
     exper = exper+1;
     Wages(:,t,2)=4+RetEd(1)*educ+0.5*exper;
@@ -38,5 +38,14 @@ end
 Utility = NaN(N,T,2);
 Utility(:,:,1) = Wages(:,:,1) + randn(N,T);
 
-%Need to calculate utility of birth which is based on PV of wages
 
+for t=1:T
+        betas          = 0.95.^(1:T-t+1) 
+        Utility(:,t,2) = Wages(:,t:T,1)*transpose(betas) + ...
+                         Gamma*Quali(:,t) + randn(N,1);
+end
+
+
+%-------------------------------------------------------------------------------
+%---(4) Value Function
+%-------------------------------------------------------------------------------
