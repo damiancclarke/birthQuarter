@@ -31,8 +31,8 @@ local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats      /*
 */           starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(none) label
 local yFE    i.year
 local se     robust
-local cnd    if twin==1
-local keepif birthOrder==1 & motherAge>24 & motherAge <= 45
+local cnd    if twin==1 & motherAge>24 & motherAge <= 45
+local keepif birthOrder==1 
 
 
 ********************************************************************************
@@ -149,11 +149,11 @@ lab var educMissing  "Missing Education"
 lab var fatherAgeMis "Father's Age Not Known"
 
 local base young married
-local yv goodQuarter
-eststo: reg `yv' `base' educMissing   smokeMissing              `yFE', `se'
-eststo: reg `yv' `base' educMissing   smokeMissing   fatherAgeM `yFE', `se'
-eststo: reg `yv' `base' educMissing2* smokeMissing   fatherAgeM `yFE', `se'
-eststo: reg `yv' `base' educMissing2* smokeMissing2* fatherAgeM `yFE', `se'
+local y goodQuarter
+eststo: reg `y' `base' educMissing   smokeMissing              `yFE' `cnd', `se'
+eststo: reg `y' `base' educMissing   smokeMissing   fatherAgeM `yFE' `cnd', `se'
+eststo: reg `y' `base' educMissing2* smokeMissing   fatherAgeM `yFE' `cnd', `se'
+eststo: reg `y' `base' educMissing2* smokeMissing2* fatherAgeM `yFE' `cnd', `se'
 #delimit ;
 esttab est1 est2 est3 est4 using "$OUT/NVSSMissing.tex",
 replace `estopt' title("Missing Records (NVSS 2005-2013)") booktabs 
@@ -174,16 +174,16 @@ gen yearMissing = .
 
 local ii = 1
 foreach y of numlist 2005(1)2013 {
-    qui count if educLevel == . & year==`y'
+    qui count `cnd' & educLevel == . & year==`y'
     local mis = `=r(N)'
-    qui count if year==`y'
+    qui count `cnd' & year==`y'
     local all = `=r(N)'
     local prop = `mis'/`all'
 
     replace propMissing = `prop' in `ii'
     replace yearMissing = `y'    in `ii'
 
-    sum oldEduc if year==`y'
+    sum oldEduc `cnd' & year==`y'
     if `y'<2009  replace propOldEduc = r(mean) in `ii'
     if `y'>=2009 replace propOldEduc = 0       in `ii'
     local ++ii
@@ -269,11 +269,11 @@ foreach type of local add {
 }
 
 *ART TABLE
-eststo: areg goodQuarter noART young highEd                 , `se' abs(year)
-eststo: areg goodQuarter noART young noARTyoung if e(sample), `se' abs(year)
-eststo: areg goodQuarter noART young            if e(sample), `se' abs(year)
-eststo: areg goodQuarter noART                  if e(sample), `se' abs(year)
-eststo:  reg goodQuarter noART                  if e(sample), `se' 
+eststo: areg goodQuarter noART young highEd     `cnd'          , `se' abs(year)
+eststo: areg goodQuarter noART young noARTyoung `cnd'&e(sample), `se' abs(year)
+eststo: areg goodQuarter noART young            `cnd'&e(sample), `se' abs(year)
+eststo: areg goodQuarter noART                  `cnd'&e(sample), `se' abs(year)
+eststo:  reg goodQuarter noART                  `cnd'&e(sample), `se' 
     
 #delimit ;
 esttab est5 est4 est3 est1 est2 using "$OUT/NVSSBinaryART.tex",
@@ -301,12 +301,13 @@ foreach cond of local c1 {
     dis "`1'"
     local cn 5
     local cm 12
+    local cc if motherAge>24&motherAge<=45
     local sp "&&Y&Y&Y"
     
-    eststo: reg goodQuarter young                              if `cond', `se'
-    eststo: reg goodQuarter young                        `yFE' if `cond', `se'
-    eststo: reg goodQuarter young highEd                 `yFE' if `cond', `se'
-    eststo: reg goodQuarter young highEd married smoker  `yFE' if `cond', `se'
+    eststo: reg goodQuarter young                              `cc'&`cond', `se'
+    eststo: reg goodQuarter young                        `yFE' `cc'&`cond', `se'
+    eststo: reg goodQuarter young highEd                 `yFE' `cc'&`cond', `se'
+    eststo: reg goodQuarter young highEd married smoker  `yFE' `cc'&`cond', `se'
     
     local ests est1 est2 est3 est4 
     if `"`1'"' == "unmarried"     local ests est1 est2 est3
@@ -334,7 +335,7 @@ foreach cond of local c1 {
 ********************************************************************************
 *** (4b-i) Conditions (age continuous)
 ********************************************************************************
-local c1 twin==1
+local c1 twin==1&motherAge>24&motherAge<=45
 local names Main
 tokenize `names'
 
@@ -463,6 +464,7 @@ local c1      twin==1 year>=2012&twin==1 infertTreat==0&twin==1 /*
 local varsY   young goodQuarter highEd married smoker
 local varsA   motherAge goodQuarter highEd married smoker
 local varsA2  motherAge motherAge2 goodQuarter highEd married smoker
+local cc      if motherAge>24&motherAge<=45
 local names   Main 2012-2013 non-ART ART Twin
 tokenize `names'
 
@@ -476,7 +478,7 @@ foreach cond of local c1 {
 
         
         foreach y of varlist `qual' {
-            eststo: reg `y' `vars`ageType'' `yFE' if `cond', `se'
+            eststo: reg `y' `vars`ageType'' `yFE' `cc'&`cond', `se'
         }
 
         local Ovars _cons `vars`ageType''
@@ -506,7 +508,7 @@ foreach cond of local c1 {
 *COMBINED AGE TABLES
 local controls age2534 age3539 goodQuarter highEd married smoker
 foreach y of varlist `qual' {
-    eststo: reg `y' `controls' `yFE' if `cnd', `se'
+    eststo: reg `y' `controls' `yFE' `cc'&`cnd', `se'
 }
 
 #delimit ;
