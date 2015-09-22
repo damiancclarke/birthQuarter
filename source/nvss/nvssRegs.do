@@ -58,6 +58,7 @@ gen vhighEd             = educLevel == 2 if educLevel!=.
 gen youngXvhighEd       = young*vhighEd
 gen age2534             = motherAge>=25 & motherAge <35
 gen age3539             = motherAge>=35 & motherAge <40
+gen teenage             = motherAge>=15 & motherAge <20
 gen noPreVisit          = numPrenatal == 0 if numPrenatal<99
 gen prenate3months      = monthPrenat>0 & monthPrenat <= 3 if monthPrenat<99
 gen motherAge2          = motherAge^2
@@ -107,6 +108,7 @@ lab var vhighEd            "Complete Degree"
 lab var youngXvhighEd      "Degree$\times$ Aged 25-39"
 lab var age2534            "Aged 25-34"
 lab var age3539            "Aged 35-39"
+lab var teenage            "Aged 15-19"
 lab var married            "Married"
 lab var smoker             "Smoked in Preg"
 lab var noPreVisit         "No Prenatal Visits"
@@ -201,7 +203,7 @@ graph export "$OUT/../graphs/missingEduc.eps", as(eps) replace;
 #delimit cr
 
 restore
-*/
+
 
 ********************************************************************************
 *** (4) Good Quarter Regressions
@@ -294,7 +296,49 @@ postfoot("Year FE&&Y&Y&Y&Y\\  \bottomrule                              "
 #delimit cr
 estimates clear
 restore
+*/
 
+*TEEN TEST
+preserve
+keep if twin==1 & (motherAge>14&motherAge<=19)|(motherAge>39&motherAge <= 45)
+
+local age teenage
+local edu highEd
+local con married smoker
+local yab abs(year)
+local ges i.gestation
+
+local i = 1
+foreach yvar of goodQuarter expectGoodQ {
+    local title NVSSBinaryTeen
+    if `i'==2 local title NVSSExpectTeen
+    if `i'==2 local msg "and for whom gestation is recorded."
+    
+    eststo: areg `yvar' `age' `edu' `con'                   , `se' `yab'
+    eststo: areg `yvar' `age' `edu'             if e(sample), `se' `yab'
+    eststo: areg `yvar' `age'                   if e(sample), `se' `yab'
+    eststo:  reg `yvar' `age'                   if e(sample), `se'
+    eststo: areg `yvar' `age' `edu' `con'                   , `se' `yab'
+    eststo: areg `yvar' `age' `edu' `con' noART             , `se' `yab'
+    eststo: areg `yvar' `age' `edu' `con' noART `ges'       , `se' `yab'
+
+    #delimit ;
+    esttab est4 est3 est2 est1 est5 est6 est7 using "$OUT/`title'.tex",
+    replace `estopt' title("Birth Season and Age (Teen Placebo)") booktabs 
+    keep(_cons `age' `edu' noART `con') style(tex) mlabels(, depvar)
+    postfoot("Year FE&&Y&Y&Y&Y&Y&Y\\ 2012-2013 Only&&&&&Y&Y&Y\\            "
+             "Gestation FE &&&&&&&Y\\ \bottomrule                          "
+             "\multicolumn{8}{p{18cm}}{\begin{footnotesize}Sample consists "
+             "of all first born children to teenage mothers (15-19) and 40-"
+             "45 year old mothers who are US-born, white, and non-hispanic "
+             "`msg' 20-39 year olds are not included in the estimation     "
+             "sample.\end{footnotesize}}\end{tabular}\end{table}");
+    #delimit cr
+    estimates clear
+    restore
+    local ++i
+}
+exit
 ********************************************************************************
 *** (4b) Conditions
 ********************************************************************************

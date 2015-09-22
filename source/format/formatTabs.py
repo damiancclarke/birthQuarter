@@ -545,16 +545,17 @@ final = open(TAB + "tables"+ ftype +".tex", 'w')
 
 TABLES = [loc1+'sumStats'+ftype+'.tex', loc1+'sumsingle'+ftype+'.tex'  ,
 loc2+'NVSSBinaryMain.tex'             , loc2+'NVSSExpectMain.tex'      ,
+loc2+'NVSSBinaryMain_A.tex'           , 
 loc2+'NVSSBinaryEdInteract.tex'       , loc2+'NVSSQualityMain.tex'     ,
 loc2+'QualityAllComb.tex'             , loc2+'QualityAllCombExp.tex'   ]
-
+          
 i = 1
 
 for table in TABLES:
-    if i<3 or i==9 or i==10:
+    if i<3:
         final.write('\\input{'
                     +table+'}\n')
-    elif i==5:
+    elif i==6:
         final.write('%\\input{'
                     +table+'}\n')        
     else:
@@ -577,12 +578,16 @@ final = open(TAB + 'appendixTables.tex', 'w')
 TABLES = [locB2+'NVSSBinary.tex'             ,
           loctw+'NVSSBinaryTwin.tex'         ,
           loc2 +'NVSSBinaryFDeaths.tex'      , 
-          loc2 +'NVSSBinaryMain_A.tex'       , 
+          loc2 +'NVSSBinaryDeseg.tex'        , 
+          loc2 +'NVSSBinaryTeen.tex'         , 
+          loc2 +'NVSSExpectTeen.tex'         ,
           loc2 +'NVSSBinaryMain_A2.tex'      , 
           loc2 +'NVSSBinaryYoung34.tex'      , 
           locB2+'NVSSQualityEducAll.tex'     ,
+          loc2 +'NVSSQualityDeseg.tex'       ,
           loctw+'NVSSQualityTwin.tex'        ,          
           loc90+'NVSSBinary.tex'             ,  
+          loc2 +'ART2024.tex'                ,  
 
           loc1+'sumStatsSpain.tex'           ,
           loc1+'sumSpain.tex'                ,
