@@ -42,7 +42,7 @@ local stateFE 0
 local twins   0
 local lyear   25
 if `twins' == 1 local app twins
-/*
+
 ********************************************************************************
 *** (2a) Use, descriptive graph
 ********************************************************************************
@@ -57,9 +57,7 @@ histogram motherAge if motherAge<=24|motherAge>45, freq color(gs12) width(1)
     legend(label(1 "Estimation Sample") label(2 "<25 or >45")) scheme(s1mono);
                                         #delimit cr
 graph export "$OUT/ageDescriptive.eps", as(eps) replace
-keep if `keepif'&twin<3
-
-
+keep if twin<3
 
 #delimit ;
 lab def e 0 "N/A" 1 "Grades 1-8" 2 "Incomplete Highschool" 3 "Complete Highschool"
@@ -76,6 +74,7 @@ foreach g in all young old {
 }
 
 preserve
+keep if `keepif'
 gen birth=1
 collapse (sum) birth, by(motherAge twin)
 bys twin: egen total=sum(birth)
@@ -102,7 +101,7 @@ foreach edu of numlist 1 2 {
     graph export "$OUT/ageDescriptive`title'.eps", as(eps) replace
 
     preserve
-    keep `cond'
+    keep `cond'&`keepif'
     gen birth=1
     collapse (sum) birth, by(motherAge twin)
     bys twin: egen total=sum(birth)
@@ -118,7 +117,7 @@ foreach edu of numlist 1 2 {
 
 preserve
 gen birth=1
-keep if education==5|education==6
+keep if education==5|education==6&`keepif'
 collapse (sum) birth, by(motherAge twin)
 bys twin: egen total=sum(birth)
 replace birth=birth/total
@@ -131,6 +130,7 @@ graph export "$OUT/ageDescriptiveParityDegree.eps", as(eps) replace
 restore
 
 preserve
+keep if `keepif'
 collapse ART, by(motherAge)
 #delimit ;
 twoway line ART motherAge, xtitle("Mother's Age") scheme(s1mono)
@@ -144,6 +144,7 @@ gen ageG2 = motherAge>=20 & motherAge<25
 replace ageG2 = 2 if motherAge>=25 & motherAge<35
 replace ageG2 = 3 if motherAge>=35 & motherAge<40
 replace ageG2 = 4 if motherAge>=40 & motherAge<46
+keep if motherAge>=20&motherAge<=45
 collapse ART, by(ageG2)
 lab def       aG2 1 "20-24" 2 "25-34" 3 "35-39" 4 "40-45"
 lab val ageG2 aG2
@@ -157,6 +158,7 @@ restore
 
 
 preserve
+keep if `keepif'
 replace twin = twin - 1
 keep twin motherAge educLevel
 drop if educLevel==.
@@ -172,7 +174,8 @@ restore
 ********************************************************************************
 *** (2aii) Summary stats table
 ********************************************************************************
-gen young   = ageGroup==1 
+gen young   = motherAge>=25&motherAge<40
+replace young = . if motherAge<25|motherAge>45
 gen college = educLevel==2 if educLevel!=.
 gen educCat = 4 if education==1
 replace educCat = 10 if education == 2
@@ -209,20 +212,32 @@ lab var expectGoodQ "Intended good season of birth"
 
 local Mum     motherAge married young 
 local MumPart college educCat smoker ART
-local Kid     goodQ expectGoodQ birthweight lbw gestat premature apgar twin fem
 
-foreach stype in Mum Kid MumPart {
-    sum ``stype''
-    estpost tabstat ``stype'', statistics(count mean sd min max)               /*
-    */ columns(statistics)
+foreach st in Mum Kid MumPart {
+    local Kid goodQ expectGoodQ birthweight lbw gestat premature apgar twin fem
+
+    sum ``st''
+    estpost tabstat ``st'', statistics(count mean sd min max) columns(statistics)
     esttab using "$SUM/nvss`stype'.tex", title("Descriptive Statistics (NVSS)")/*
     */ cells("count(fmt(0)) mean(fmt(2)) sd(fmt(2)) min(fmt(0)) max(fmt(0))")  /*
     */ replace label noobs
-}
 
+    local Kid goodQ expectGoodQ birthweight lbw gestat premature apgar fem
+    preserve
+    keep if `keepif' &married!=.&smoker!=.&college!=.&young!=.&twin==1
+    sum ``st''
+    estpost tabstat ``st'', statistics(count mean sd min max)               /*
+    */ columns(statistics)
+    esttab using "$SUM/samp`stype'.tex", title("Descriptive Statistics (NVSS)")/*
+    */ cells("count(fmt(0)) mean(fmt(2)) sd(fmt(2)) min(fmt(0)) max(fmt(0))")  /*
+    */ replace label noobs
+    restore
+}
+exit
 ********************************************************************************
 *** (2b) Subset
 ********************************************************************************
+keep if `keepif'
 if `twins'==1 keep if twin == 1
 if `twins'==0 keep if twin == 0
 
