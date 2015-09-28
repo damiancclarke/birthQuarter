@@ -9,7 +9,7 @@
 
 clear
 clc
-%rng(2727)
+rng(2727)
 %-------------------------------------------------------------------------------
 %---(1a) Simulate and preset
 %-------------------------------------------------------------------------------
@@ -19,10 +19,11 @@ educ  = randi(2,N,1)-1;
 GoodS = [1,0,1,0];
 
 Wages = NaN(N,T,2);
+Shock = randn(N,T,2);
 Quali = NaN(N,T);
 exper = 0;
-Gamma = 0.01;
-BETA  = 0.2;
+Gamma = 0.001;
+BETA  = 0.4;
 
 %-------------------------------------------------------------------------------
 %---(1b) Coefficients
@@ -41,21 +42,23 @@ BwCoef = 2800;
 %---(2) Calculate wages and quality based on simulated values
 %-------------------------------------------------------------------------------
 %WAGES: Childless
-Wages(:,1,1) = 1000 + 400*educ;
-Wages(:,2,1) = 1000 + 800*educ + 200;
-Wages(:,3,1) = 1000 + 1600*educ + 600; 
-Wages(:,4,1) = 1000 + 2000*educ + 1000;
-Wages(:,5,1) = 1000 + 2000*educ + 1000;
+Wages(:,1,1) = 1600 + 400*educ;
+Wages(:,2,1) = 2600 + 800*educ + 200;
+Wages(:,3,1) = 3600 + 1600*educ + 600; 
+Wages(:,4,1) = 4600 + 2000*educ + 1000;
+Wages(:,5,1) = 6600 + 2000*educ + 1000;
 
 %WAGES: Birth
 Wages(:,1,2) = 800 + 300*educ;
-Wages(:,2,2) = 800 + 600*educ + 100;
-Wages(:,3,2) = 800 + 1200*educ + 300;
-Wages(:,4,2) = 800 + 1500*educ + 500;
-Wages(:,5,2) = 800 + 1500*educ + 500;
+Wages(:,2,2) = 1800 + 600*educ + 100;
+Wages(:,3,2) = 2800 + 1200*educ + 300;
+Wages(:,4,2) = 3800 + 1500*educ + 500;
+Wages(:,5,2) = 4800 + 1500*educ + 500;
+
+Wages = Wages/10;
 
 %Quality
-Quali(:,1) = 300 + 100 + 100*educ;
+Quali(:,1) = 300 + 200 + 100*educ;
 Quali(:,2) = 300 + 100*educ;
 Quali(:,3) = 300 + 50  + 50*educ;
 Quali(:,4) = 300 + 50*educ;
@@ -74,13 +77,13 @@ Quali(:,4) = 300 + 50*educ;
 %---(3) Calculate utility based on simulated values
 %-------------------------------------------------------------------------------
 Utility = NaN(N,T,2);
-Utility(:,:,1) = log(Wages(:,:,1)) + randn(N,T);
+Utility(:,:,1) = log(Wages(:,:,1));
 
 
 for t=1:T
-    betas          = BETA.^(1:T-t+1) 
+    betas          = BETA.^(1:T-t+1);
     Utility(:,t,2) = log(Wages(:,t:T,1))*transpose(betas) + ...
-        Gamma*log(Quali(:,t)) + randn(N,1);
+        Gamma*log(Quali(:,t));
 end
 
 %-------------------------------------------------------------------------------
@@ -92,8 +95,25 @@ VF(:,5) = 0;
 for t=(T-1):-1:1
     fprintf('Time Period: %d\n', t)
 
-    VF(:,t) = max(Utility(:,t,1) + BETA*VF(:,t+1), Utility(:,t,2))
+    %VF(:,t) = max(Utility(:,t,1) + Shock(:,t,1) + BETA*VF(:,t+1), ...
+    %              Utility(:,t,2) + Shock(:,t,2));
+    VF(:,t) = max(Utility(:,t,1) + BETA*VF(:,t+1) + (Shock(:,t,1) - Shock(:,t,2)), ...
+                  Utility(:,t,2));
 end
 
-[VFv,birthTime] = max(VF,[],2)
+[VFv,birthTime] = max(VF,[],2);
+%Wages
+%Quali
+%Utility
+%VF
 [sum(birthTime==1) sum(birthTime==2) sum(birthTime==3) sum(birthTime==4)]
+
+%Data = [Wages(:,:,1), Wages(:,:,2), Quali(:,:), birthTime]
+
+
+
+%-------------------------------------------------------------------------------
+%--- (5) Try to recover parameters using Data
+%-------------------------------------------------------------------------------
+% Requires: U1 at each time, U0 at each time Expected Value
+% Function at each time
