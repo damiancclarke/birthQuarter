@@ -281,12 +281,13 @@ lab var educLevel    "Level of education obtained by mother"
 *** (3) Descriptives by month
 *******************************************************************************
 preserve
-drop if age3!=.|conceptionMonth==.
+drop if age3==.|conceptionMonth==.
 collapse (sum) birth, by(conceptionMonth age3)
 lab val conceptionMon mon
 lab val age3          ag3
 bys age3: egen totalBirths = sum(birth)
 gen birthProportion = birth/totalBirths
+sort conceptionMonth age3
 
 local line1 lpattern(solid)    lcolor(black) lwidth(thick)
 local line2 lpattern(dash)     lcolor(black) lwidth(medium)
@@ -305,19 +306,22 @@ restore
 
 
 preserve
-gen dayweight = .
-local days 31 28.25 31 30 31 30 31 31 30 31 30 31
-local i = 1
-foreach d of local days {
-    replace dayweight = `d' if conceptionMonth == `i'
-    local ++i
-}
-drop if age3!=.|conceptionMonth==.
-collapse (sum) birth [fw=dayweight], by(conceptionMonth age3)
+drop if age3==.|conceptionMonth==.
+collapse (sum) birth, by(conceptionMonth age3)
 lab val conceptionMon mon
 lab val age3          ag3
 bys age3: egen totalBirths = sum(birth)
 gen birthProportion = birth/totalBirths
+sort conceptionMonth age3
+gen expected = .
+local days 31 28.25 31 30 31 30 31 31 30 31 30 31
+local i = 1
+foreach d of local days {
+    replace expected = `d' if conceptionMonth == `i'
+    local ++i
+}
+replace expected = expected/365.25
+replace birthProportion = birthProportion - expected
 
 #delimit ;
 twoway line birthProportion conceptionMonth if age3==1, `line1' ||
@@ -325,11 +329,10 @@ twoway line birthProportion conceptionMonth if age3==1, `line1' ||
        line birthProportion conceptionMonth if age3==3, `line3'
 scheme(s1mono) xtitle("Month of Conception") xlabel(1(1)12, valuelabels)
 legend(label(1 "25-34 Year-olds") label(2 "35-39 Year-olds")
-       label(3 "40-45 Year-olds")) ytitle("Proportion of All Births") ;
+       label(3 "40-45 Year-olds")) ytitle("Excess Births");
 graph export "$OUT/conceptionMonthWeighted.eps", as(eps) replace;
 #delimit cr
 restore
-exit
 
 
 tab young
@@ -381,6 +384,19 @@ scheme(s1mono) ytitle("% Premature");
 graph export "$OUT/prematureQOB.eps", as(eps) replace;
 #delimit cr
 restore
+
+preserve
+drop if age3==.
+collapse premature, by(age3)
+#delimit ;
+graph bar premature, ylabel(0.07(0.01)0.14, nogrid) exclude0
+over(age3, relabel(1 "25-34 Year-olds" 2 "35-39 Year-olds" 3 "40-45 Year-olds"))
+bar(1, bcolor(gs0)) bar(2, bcolor(gs0)) bar(3, bcolor(gs0))
+scheme(s1mono) ytitle("% Premature");
+graph export "$OUT/prematureAges.eps", as(eps) replace;
+#delimit cr
+restore
+exit
 
 gen youngBeta = .
 gen youngHigh = .
