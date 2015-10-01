@@ -192,6 +192,12 @@ replace expectedMonth   = expectedMonth - 12 if expectedMonth>12
 replace expectedMonth   = expectedMonth + 12 if expectedMonth<1
 gene    expectQuarter   = ceil(expectedMonth/3)
 gen     expectGoodQ     = expectQuarter == 2 | expectQuarter == 3 if gest!=.
+gen     conceptionMonth = birthMonth - round(gestation*7/30.5)
+replace conceptionMonth = conceptionMonth + 12 if conceptionMonth<1
+generat age3            = .
+replace age3            = 1 if motherAge>=25 & motherAge<35
+replace age3            = 2 if motherAge>=35 & motherAge<40
+replace age3            = 3 if motherAge>=40 & motherAge<46
 
 lab var educCat     "Years of education"
 lab var motherAge   "Mother's Age"
@@ -218,22 +224,22 @@ foreach st in Mum Kid MumPart {
 
     sum ``st''
     estpost tabstat ``st'', statistics(count mean sd min max) columns(statistics)
-    esttab using "$SUM/nvss`stype'.tex", title("Descriptive Statistics (NVSS)")/*
+    esttab using "$SUM/nvss`st'.tex", title("Descriptive Statistics (NVSS)")/*
     */ cells("count(fmt(0)) mean(fmt(2)) sd(fmt(2)) min(fmt(0)) max(fmt(0))")  /*
     */ replace label noobs
 
     local Kid goodQ expectGoodQ birthweight lbw gestat premature apgar fem
     preserve
-    keep if `keepif' &married!=.&smoker!=.&college!=.&young!=.&twin==1
+    keep if `keepif' &married!=.&smoker!=.&college!=.&young!=.&twin==0
     sum ``st''
     estpost tabstat ``st'', statistics(count mean sd min max)               /*
     */ columns(statistics)
-    esttab using "$SUM/samp`stype'.tex", title("Descriptive Statistics (NVSS)")/*
+    esttab using "$SUM/samp`st'.tex", title("Descriptive Statistics (NVSS)")/*
     */ cells("count(fmt(0)) mean(fmt(2)) sd(fmt(2)) min(fmt(0)) max(fmt(0))")  /*
     */ replace label noobs
     restore
 }
-exit
+
 ********************************************************************************
 *** (2b) Subset
 ********************************************************************************
@@ -253,9 +259,12 @@ replace period = 3 if year >=2010 & year<=2013
 ********************************************************************************
 lab def aG  1 "Young (25-39) " 2  "Old (40-45) "
 lab def aGa 1 "Young " 2  "Old "
+lab def aG3 1 "25-34 Years " 2  "35-39 Years" 3 "40-45 Years"
 lab def pr  1 "Pre-crisis" 2 "Crisis" 3 "Post-crisis"
 lab def gQ  0 "quarter 4(t) or quarter 1(t+1)" 1 "quarter 2(t) or quarter 3(t)"
 lab def eL  1 "No College" 2 "Some College +"
+lab def mon 1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug" /*
+*/ 9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec"
 
 lab val period      pr
 lab val ageGroup    aG
@@ -270,7 +279,59 @@ lab var educLevel    "Level of education obtained by mother"
 
 ********************************************************************************
 *** (3) Descriptives by month
-********************************************************************************
+*******************************************************************************
+preserve
+drop if age3!=.|conceptionMonth==.
+collapse (sum) birth, by(conceptionMonth age3)
+lab val conceptionMon mon
+lab val age3          ag3
+bys age3: egen totalBirths = sum(birth)
+gen birthProportion = birth/totalBirths
+
+local line1 lpattern(solid)    lcolor(black) lwidth(thick)
+local line2 lpattern(dash)     lcolor(black) lwidth(medium)
+local line3 lpattern(longdash) lcolor(black) lwidth(thin)
+
+#delimit ;
+twoway line birthProportion conceptionMonth if age3==1, `line1' ||
+       line birthProportion conceptionMonth if age3==2, `line2' ||
+       line birthProportion conceptionMonth if age3==3, `line3'
+scheme(s1mono) xtitle("Month of Conception") xlabel(1(1)12, valuelabels)
+legend(label(1 "25-34 Year-olds") label(2 "35-39 Year-olds")
+       label(3 "40-45 Year-olds")) ytitle("Proportion of All Births") ;
+graph export "$OUT/conceptionMonth.eps", as(eps) replace;
+#delimit cr
+restore
+
+
+preserve
+gen dayweight = .
+local days 31 28.25 31 30 31 30 31 31 30 31 30 31
+local i = 1
+foreach d of local days {
+    replace dayweight = `d' if conceptionMonth == `i'
+    local ++i
+}
+drop if age3!=.|conceptionMonth==.
+collapse (sum) birth [fw=dayweight], by(conceptionMonth age3)
+lab val conceptionMon mon
+lab val age3          ag3
+bys age3: egen totalBirths = sum(birth)
+gen birthProportion = birth/totalBirths
+
+#delimit ;
+twoway line birthProportion conceptionMonth if age3==1, `line1' ||
+       line birthProportion conceptionMonth if age3==2, `line2' ||
+       line birthProportion conceptionMonth if age3==3, `line3'
+scheme(s1mono) xtitle("Month of Conception") xlabel(1(1)12, valuelabels)
+legend(label(1 "25-34 Year-olds") label(2 "35-39 Year-olds")
+       label(3 "40-45 Year-olds")) ytitle("Proportion of All Births") ;
+graph export "$OUT/conceptionMonthWeighted.eps", as(eps) replace;
+#delimit cr
+restore
+exit
+
+
 tab young
 preserve
 collapse (sum) birth, by(birthMonth young)
@@ -288,9 +349,7 @@ gen excessBirths = birth - expectedProp
 lab var birth        "Proportion of Births"
 lab var expectedProp "Expected Births (days/365.25)"
 lab var excessBirths "Proportion of Excess Births (Actual-Expected)"
-lab def months 1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug" /*
-*/ 9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec"
-lab val birthMonth months
+lab val birthMonth    mon
 
 sort young birthMonth
 foreach num of numlist 0 1 {
@@ -612,7 +671,6 @@ graph export "$OUT/birthQdiff_4Ages`app'.eps", as(eps) replace;
 #delimit cr
 restore
 
-*/
 preserve
 use "$DAT/`data'", clear
 keep if birthOrder==1&educLevel!=.&motherAge>=20&motherAge<=45
@@ -750,7 +808,7 @@ foreach outcome in `hkbirth' {
     macro shift
 }
 restore
-*/
+
 ********************************************************************************
 *** (7) Examine by geographic variation (hot/cold)
 ********************************************************************************
