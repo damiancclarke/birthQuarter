@@ -43,6 +43,11 @@ MumNVSS = RES + ftype + '/sumStats/nvssMum.tex'
 MumPNVSS= RES + ftype + '/sumStats/nvssMumPart.tex'
 KidNVSS = RES + ftype + '/sumStats/nvssKid.tex'
 
+MumNVSS2 = RES + ftype + '/sumStats/sampMum.tex'
+MumPNVSS2= RES + ftype + '/sumStats/sampMumPart.tex'
+KidNVSS2 = RES + ftype + '/sumStats/sampKid.tex'
+
+
 MumSpain = RES + 'spain' + '/sumStats/SpainsumM.tex'
 KidSpain = RES + 'spain' + '/sumStats/SpainsumK.tex'
 
@@ -191,7 +196,7 @@ sumT.close()
 #==============================================================================
 sumT = open(TAB + 'sumStats'+ftype+'.tex', 'w')
 sumT.write('\\begin{table}[htpb!] \n \\begin{center} \n' 
-'\\caption{Descriptive Statistics (NVSS 2005-2013)}\n '
+'\\caption{Descriptive Statistics All Ages (NVSS 2005-2013)}\n '
 '\\label{bqTab:SumStatsNVSS}'
 '\\begin{tabular}{lccccc} '
 '\n \\toprule\\toprule \\vspace{5mm} \n'
@@ -222,7 +227,50 @@ for i,line in enumerate(Ki):
 
 sumT.write('\n'+mr+mc1+twid[1]+tcm[1]+mc3+
            "Each sample consists of all first-born children born to white, "
-           "non-hispanic, US-born mothers. Good season refers to birth quarters"
+           "non-hispanic, US-born mothers of any age ocurring in the NVSS. "
+           "birth register. Good season refers to birth quarters 2 and 3   "
+           "(Apr-Jun and Jul-Sept)."
+           "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}\\end{center}"
+           "\\end{table}")
+sumT.close()
+
+
+sumT = open(TAB + 'sumStatsSamp.tex', 'w')
+sumT.write('\\begin{table}[htpb!] \n \\begin{center} \n' 
+'\\caption{Descriptive Statistics Main Sample (NVSS 2005-2013)}\n '
+'\\label{bqTab:SumStatsMain}'
+'\\begin{tabular}{lccccc} '
+'\n \\toprule\\toprule \\vspace{5mm} \n'
+'& N & Mean & Std. Dev. & Min. & Max. \\\\ \\midrule \n'
+'\multicolumn{6}{l}{\\textbf{Panel A: Mother}} \\\\ \n')
+
+Mu2  = open(MumNVSS2,  'r').readlines()
+MP2  = open(MumPNVSS2, 'r').readlines()
+Ki2  = open(KidNVSS2,  'r').readlines()
+
+for i,line in enumerate(Mu2):
+    if i>8 and i<12:
+        line = line.replace('\\hline','\\midrule')
+        sumT.write(line)
+for i,line in enumerate(MP2):
+    if i>8 and i<13:
+        line = line.replace('\\hline','\\midrule')
+        line = line.replace('At least some college','Some College +')
+        sumT.write(line)
+
+sumT.write(' \n \\multicolumn{6}{l}{\\textbf{Panel B: Child}}\\\\ \n ')
+for i,line in enumerate(Ki2):
+    if i>8 and i<17:
+        line = line.replace('\\hline','\\midrule')
+        line = line.replace('At least some college','Some College +')
+        line = line.replace('Quarter','season of birth')
+        sumT.write(line)
+
+sumT.write('\n'+mr+mc1+twid[1]+tcm[1]+mc3+
+           "Each sample consists of all first-born children born to white, "
+           "non-hispanic, US-born mothers aged between 25-39 for whom      "
+           "education, smoking, and marital status is recorded. This is the"
+           " main estimation sample. Good season refers to birth quarters  "
            " 2 and 3 (Apr-Jun and Jul-Sept)."
            "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}\\end{center}"
            "\\end{table}")
@@ -543,21 +591,16 @@ loc2  = './../results/'+ftype+'/regressions/'
 loc3  = './../results/spain/regressions/'
 final = open(TAB + "tables"+ ftype +".tex", 'w')
 
-TABLES = [loc1+'sumStats'+ftype+'.tex', loc1+'sumsingle'+ftype+'.tex'  ,
-loc2+'NVSSBinaryMain.tex'             , loc2+'NVSSExpectMain.tex'      ,
-loc2+'NVSSBinaryMain_A.tex'           , 
-loc2+'NVSSBinaryEdInteract.tex'       , loc2+'NVSSQualityMain.tex'     ,
-loc2+'QualityAllComb.tex'             , loc2+'QualityAllCombExp.tex'   ]
+TABLES = [loc1+'sumStats'+ftype+'.tex', loc1+'sumStatsSamp.tex'        ,
+loc1+'sumsingle'+ftype+'.tex'         , loc2+'NVSSBinaryMain.tex'      ,
+loc2 +'ART2024.tex'                   , loc2+'NVSSQualityMain.tex'     ]
           
 i = 1
 
 for table in TABLES:
-    if i<3:
+    if i<4:
         final.write('\\input{'
                     +table+'}\n')
-    elif i==6:
-        final.write('%\\input{'
-                    +table+'}\n')        
     else:
         final.write('\\begin{landscape}\n\\input{'
                     +table+'}\n\\end{landscape}\n')
@@ -575,31 +618,26 @@ loctw = './../results/nvss/regressions/'
 spain = './../results/spain/regressions/'
 final = open(TAB + 'appendixTables.tex', 'w')
 
-TABLES = [locB2+'NVSSBinary.tex'             ,
+TABLES = [loc2 + 'NVSSExpectMain.tex'        ,
+          locB2+'NVSSBinary.tex'             ,
           loctw+'NVSSBinaryTwin.tex'         ,
           loc2 +'NVSSBinaryFDeaths.tex'      , 
-          loc2 +'NVSSBinaryDeseg.tex'        , 
-          loc2 +'NVSSBinaryTeen.tex'         , 
-          loc2 +'NVSSExpectTeen.tex'         ,
+          loc2 +'NVSSBinaryMain_A.tex'       , 
           loc2 +'NVSSBinaryMain_A2.tex'      , 
           loc2 +'NVSSBinaryYoung34.tex'      , 
-          locB2+'NVSSQualityEducAll.tex'     ,
-          loc2 +'NVSSQualityDeseg.tex'       ,
+          loc2 +'NVSSBinaryNoSep.tex'        , 
           loctw+'NVSSQualityTwin.tex'        ,          
-          loc90+'NVSSBinary.tex'             ,  
-          loc2 +'ART2024.tex'                ,  
-
+          loc2 +'NVSSBinaryDeseg.tex'        , 
           loc1+'sumStatsSpain.tex'           ,
           loc1+'sumSpain.tex'                ,
           loc3+'spainBinary.tex'             , 
           loc3+'spainQualityEduc.tex'        ,
-          loc3+'spainQualityGestFix.tex'     ,
           spain+'spainBinaryLForce.tex'
 ]
 
 i = 1
 for table in TABLES:
-    if i==1 or i==2 or i==3:
+    if i==2 or i==3 or i==4 or i==11 or i==12:
         final.write('\\input{'
                     +table+'}\n')
     else:
