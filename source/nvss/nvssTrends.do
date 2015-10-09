@@ -42,7 +42,7 @@ local stateFE 0
 local twins   0
 local lyear   25
 if `twins' == 1 local app twins
-
+/*
 ********************************************************************************
 *** (2a) Use, descriptive graph
 ********************************************************************************
@@ -58,7 +58,7 @@ histogram motherAge if motherAge<=24|motherAge>45, freq color(gs12) width(1)
                                         #delimit cr
 graph export "$OUT/ageDescriptive.eps", as(eps) replace
 keep if twin<3
-/*
+
 #delimit ;
 lab def e 0 "N/A" 1 "Grades 1-8" 2 "Incomplete Highschool" 3 "Complete Highschool"
 4 "Incomplete College" 5 "Bachelor's Degree" 6 "Higher Degree";
@@ -169,7 +169,7 @@ twoway line twin1 motherAge, || line twin2 motherAge, lpattern(dash) lcolor(gs0)
 */ legend(label(1 "No College") label(2 "Some College +")) 
 graph export "$OUT/twinPrevalence.eps", as(eps) replace
 restore
-*/
+
 
 ********************************************************************************
 *** (2aii) Summary stats table
@@ -216,7 +216,7 @@ lab var ART         "Used ART (2012-2013 only)"
 lab var young       "Young (aged 25-39)"
 lab var expectGoodQ "Intended good season of birth"
 
-/*
+
 local Mum     motherAge married young 
 local MumPart college educCat smoker ART
 
@@ -240,7 +240,7 @@ foreach st in Mum Kid MumPart {
     */ replace label noobs
     restore
 }
-*/
+
 ********************************************************************************
 *** (2b) Subset
 ********************************************************************************
@@ -878,10 +878,48 @@ foreach outcome in `hkbirth' {
     macro shift
 }
 restore
-
+*/
 ********************************************************************************
 *** (7) Examine by geographic variation (hot/cold)
 ********************************************************************************
+use "$DAT/nvss1990s", clear
+keep if `keepif' & twin==1
+gen birth = 1
+
+***NOTE: 12 is Florida (but only 32,537 births). 31 is Nebraska (502,256 births)
+***      Florida can be replaced by Texas (48) with 373,310 births if desired.
+keep if statenat == "12"|statenat=="31"
+gen     conceptionMonth = birthMonth - round(gestation*7/30.5)
+replace conceptionMonth = conceptionMonth + 12 if conceptionMonth<1
+gen     state = ""
+replace state = "Florida"  if statenat=="12"
+replace state = "Nebraska" if statenat=="31"
+
+cap lab def mon 1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" /*
+*/ 8 "Aug" 9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec"
+
+
+drop if conceptionMonth==.
+collapse (sum) birth, by(conceptionMonth state)
+lab val conceptionMon mon
+bys state: egen totalBirths = sum(birth)
+gen birthProportion = birth/totalBirths
+sort conceptionMonth state
+
+local line1 lpattern(solid)    lcolor(black)
+local line2 lpattern(dash)     lcolor(black) 
+
+#delimit ;
+twoway line birthProportion conceptionMonth if state=="Florida",  `line1' ||
+       line birthProportion conceptionMonth if state=="Nebraska", `line2' 
+scheme(s1mono) xtitle("Month of Conception") ytitle("Proportion of All Births") 
+legend(label(1 "Florida") label(2 "Nebraska")) xlabel(1(1)12, valuelabels);
+graph export "$OUT/conceptionMonthStates.eps", as(eps) replace;
+#delimit cr
+
+exit
+
+
 insheet using "$USW/usaWeather.txt", delim(";") names
 rename fips FIPS
 destring temp, replace
