@@ -140,12 +140,13 @@ eststo: reg goodQuarter young highEd professional married `FE' `cnd', `se'
 
 #delimit ;
 esttab est1 est2 est3 est4 est5 using "$OUT/spainBinary.tex",
-replace `estopt' title("Birth Season and Age (Spain 2007-2013)") booktabs
+replace `estopt' title("Season of Birth Correlates (Spain 2007-2013)") 
 keep(_cons young highEd professional married) style(tex) mlabels(, depvar)
 postfoot("Province FE&&Y&Y&Y&Y\\ \bottomrule"
-                  "\multicolumn{6}{p{15cm}}{\begin{footnotesize}Sample consists"
-                  "of all singleton first born children of Spanish mothers"
-                  "\end{footnotesize}}\end{tabular}\end{table}");
+         "\multicolumn{6}{p{16.2cm}}{\begin{footnotesize}Sample consists"
+         "of all singleton first born children of Spanish mothers.      "
+         "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.         "
+         "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
 #delimit cr
 estimates clear
 
@@ -156,12 +157,14 @@ eststo: reg goodQuarter young highEd labourForce          `FE' `cnd', `se'
 eststo: reg goodQuarter young highEd labourForce  married `FE' `cnd', `se'
 #delimit ;
 esttab est1 est2 est3 est4 est5 using "$OUT/spainBinaryLForce.tex",
-replace `estopt' title("Birth Season and Age (Spain 2007-2013)") booktabs
-keep(_cons young highEd labourForce  married) style(tex) mlabels(, depvar)
+replace `estopt' style(tex) mlabels(, depvar)
+title("Season of Birth Correlates and Labor Market Status (Spain 2007-2013)") 
+keep(_cons young highEd labourForce  married) 
 postfoot("Province FE&&Y&Y&Y&Y\\ \bottomrule"
-                  "\multicolumn{6}{p{15cm}}{\begin{footnotesize}Sample consists"
-                  "of all singleton first born children of Spanish mothers"
-                  "\end{footnotesize}}\end{tabular}\end{table}");
+         "\multicolumn{6}{p{16.2cm}}{\begin{footnotesize}Sample consists"
+         "of all singleton first born children of Spanish mothers.      "
+         "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.         "
+         "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
 #delimit cr
 estimates clear
 
@@ -229,13 +232,14 @@ foreach y of varlist `qual' {
 }
 #delimit ;
 esttab est1 est2 est3 est4 est5 est6 using "$OUT/spainQuality.tex",
-replace `estopt' title("Birth Quality by Age and Season (Spain 2013)")
+replace `estopt' title("Birth Outcome Correlates (Spain 2007-2013)")
 keep(_cons young goodQuarter) style(tex) booktabs mlabels(, depvar)
 postfoot("\bottomrule"
-         "\multicolumn{7}{p{15.8cm}}{\begin{footnotesize}Sample consists of all"
-         "first born children of Spanish mothers. Gestation weeks and premature"
-         "are recorded separately in birth records: premature (binary) for all,"
-         "and gestation (continuous) only for some."
+         "\multicolumn{7}{p{17.4cm}}{\begin{footnotesize}Sample consists of all"
+         " first born children of Spanish mothers. Gestation weeks and         "
+         "premature are recorded separately in birth records: premature        "
+         "(binary) for all, and gestation (continuous) only for some.          "
+         "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.                "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -245,17 +249,18 @@ foreach y of varlist `qual' {
 }
 #delimit ;
 esttab est1 est2 est3 est4 est5 est6 using "$OUT/spainQualityEduc.tex",
-replace `estopt' title("Birth Quality by Age and Season (Spain 2013)")
+replace `estopt' title("Birth Outcome Correlates (Spain 2007-2013)")
 keep(_cons young goodQ* high* marr* pro*) style(tex) booktabs mlabels(, depvar)
 postfoot("\bottomrule"
-         "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Sample consists of all"
+         "\multicolumn{7}{p{17.4cm}}{\begin{footnotesize}Sample consists of all"
          "first born children of Spanish mothers. Gestation weeks and premature"
          "are recorded separately in birth records: premature (binary) for all,"
-         "and gestation (continuous) only for some."
+         "and gestation (continuous) only for some.                            "
+         "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.                "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-
+exit
 
 ********************************************************************************
 *** (5) Redefine bad season as bad season due to short gestation, and bad season
