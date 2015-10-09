@@ -139,10 +139,11 @@ lab var noARTyoung         "No ART$\times$ Young"
 lab var age2024            "Aged 20-24"
 lab var ARTage2024         "Aged 20-24$\times$ ART"
 
-/*
+
 ********************************************************************************
 *** (3a) Examine missing covariates
 ********************************************************************************
+/*
 preserve
 keep `cnd'
 gen smokeMissing = smoker    == .

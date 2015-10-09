@@ -886,14 +886,14 @@ use "$DAT/nvss1990s", clear
 keep if `keepif' & twin==1
 gen birth = 1
 
-***NOTE: 12 is Florida (but only 32,537 births). 31 is Nebraska (502,256 births)
-***      Florida can be replaced by Texas (48) with 373,310 births if desired.
-keep if statenat == "12"|statenat=="31"
+***NOTE: 12 is Florida (759,551 births). 31 is Nebraska (125,628 births)
+keep if stoccfip=="12"|stoccfip=="31"
+
 gen     conceptionMonth = birthMonth - round(gestation*7/30.5)
 replace conceptionMonth = conceptionMonth + 12 if conceptionMonth<1
 gen     state = ""
-replace state = "Florida"  if statenat=="12"
-replace state = "Nebraska" if statenat=="31"
+replace state = "Florida"   if stoccfip=="12"
+replace state = "Nebraska"  if stoccfip=="31"
 
 cap lab def mon 1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" /*
 */ 8 "Aug" 9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec"
@@ -910,13 +910,12 @@ local line1 lpattern(solid)    lcolor(black)
 local line2 lpattern(dash)     lcolor(black) 
 
 #delimit ;
-twoway line birthProportion conceptionMonth if state=="Florida",  `line1' ||
+twoway line birthProportion conceptionMonth if state=="Florida" , `line1' ||
        line birthProportion conceptionMonth if state=="Nebraska", `line2' 
 scheme(s1mono) xtitle("Month of Conception") ytitle("Proportion of All Births") 
 legend(label(1 "Florida") label(2 "Nebraska")) xlabel(1(1)12, valuelabels);
-graph export "$OUT/conceptionMonthStates.eps", as(eps) replace;
+graph export "$OUT/conceptionMonthFloridaNebraska.eps", as(eps) replace;
 #delimit cr
-
 exit
 
 
