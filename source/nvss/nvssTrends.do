@@ -58,7 +58,7 @@ histogram motherAge if motherAge<=24|motherAge>45, freq color(gs12) width(1)
                                         #delimit cr
 graph export "$OUT/ageDescriptive.eps", as(eps) replace
 keep if twin<3
-
+/*
 #delimit ;
 lab def e 0 "N/A" 1 "Grades 1-8" 2 "Incomplete Highschool" 3 "Complete Highschool"
 4 "Incomplete College" 5 "Bachelor's Degree" 6 "Higher Degree";
@@ -169,7 +169,7 @@ twoway line twin1 motherAge, || line twin2 motherAge, lpattern(dash) lcolor(gs0)
 */ legend(label(1 "No College") label(2 "Some College +")) 
 graph export "$OUT/twinPrevalence.eps", as(eps) replace
 restore
-
+*/
 
 ********************************************************************************
 *** (2aii) Summary stats table
@@ -216,6 +216,7 @@ lab var ART         "Used ART (2012-2013 only)"
 lab var young       "Young (aged 25-39)"
 lab var expectGoodQ "Intended good season of birth"
 
+/*
 local Mum     motherAge married young 
 local MumPart college educCat smoker ART
 
@@ -239,7 +240,7 @@ foreach st in Mum Kid MumPart {
     */ replace label noobs
     restore
 }
-
+*/
 ********************************************************************************
 *** (2b) Subset
 ********************************************************************************
@@ -304,7 +305,6 @@ graph export "$OUT/conceptionMonth.eps", as(eps) replace;
 #delimit cr
 restore
 
-
 preserve
 drop if age3==.|conceptionMonth==.
 collapse (sum) birth, by(conceptionMonth age3)
@@ -334,6 +334,60 @@ graph export "$OUT/conceptionMonthWeighted.eps", as(eps) replace;
 #delimit cr
 restore
 
+preserve
+drop if age3==.|conceptionMonth==.
+keep if ART==1
+collapse (sum) birth, by(conceptionMonth age3)
+lab val conceptionMon mon
+lab val age3          ag3
+bys age3: egen totalBirths = sum(birth)
+gen birthProportion = birth/totalBirths
+sort conceptionMonth age3
+
+local line1 lpattern(solid)    lcolor(black) lwidth(thick)
+local line2 lpattern(dash)     lcolor(black) lwidth(medium)
+local line3 lpattern(longdash) lcolor(black) lwidth(thin)
+
+#delimit ;
+twoway line birthProportion conceptionMonth if age3==1, `line1' ||
+       line birthProportion conceptionMonth if age3==2, `line2' ||
+       line birthProportion conceptionMonth if age3==3, `line3'
+scheme(s1mono) xtitle("Month of Conception") xlabel(1(1)12, valuelabels)
+legend(label(1 "25-34 Year-olds") label(2 "35-39 Year-olds")
+       label(3 "40-45 Year-olds")) ytitle("Proportion of All Births") ;
+graph export "$OUT/conceptionMonthART.eps", as(eps) replace;
+#delimit cr
+restore
+
+preserve
+drop if age3==.|conceptionMonth==.
+keep if ART==1
+collapse (sum) birth, by(conceptionMonth age3)
+lab val conceptionMon mon
+lab val age3          ag3
+bys age3: egen totalBirths = sum(birth)
+gen birthProportion = birth/totalBirths
+sort conceptionMonth age3
+gen expected = .
+local days 31 28.25 31 30 31 30 31 31 30 31 30 31
+local i = 1
+foreach d of local days {
+    replace expected = `d' if conceptionMonth == `i'
+    local ++i
+}
+replace expected = expected/365.25
+replace birthProportion = birthProportion - expected
+
+#delimit ;
+twoway line birthProportion conceptionMonth if age3==1, `line1' ||
+       line birthProportion conceptionMonth if age3==2, `line2' ||
+       line birthProportion conceptionMonth if age3==3, `line3'
+scheme(s1mono) xtitle("Month of Conception") xlabel(1(1)12, valuelabels)
+legend(label(1 "25-34 Year-olds") label(2 "35-39 Year-olds")
+       label(3 "40-45 Year-olds")) ytitle("Excess Births");
+graph export "$OUT/conceptionMonthWeightedART.eps", as(eps) replace;
+#delimit cr
+restore
 
 tab young
 preserve
