@@ -19,7 +19,7 @@ cap log close
 global DAT "~/investigacion/2015/birthQuarter/data/nvss"
 global USW "~/investigacion/2015/birthQuarter/data/weather"
 global OUT "~/investigacion/2015/birthQuarter/results/nvss/regressions"
-global OUT "~/investigacion/2015/birthQuarter/results/expect/regressions"
+global OUT "~/investigacion/2015/birthQuarter/results/married/regressions"
 global LOG "~/investigacion/2015/birthQuarter/log"
 
 log using "$LOG/nvssRegs.txt", text replace
@@ -40,6 +40,7 @@ local keepif birthOrder==1
 *** (2a) Open data, setup for regressions
 ********************************************************************************
 use "$DAT/`data'"
+keep if married==1
 
 gen birth = 1
 gen goodQuarter = birthQuarter == 2 | birthQuarter == 3
@@ -88,8 +89,8 @@ replace conceptionMonth = conceptionMonth + 12 if conceptionMonth<1
 sum expectGoodQ expectBadQ
 sum Qgoodgood Qgoodbad Qbadgood Qbadbad
 
-drop goodQuarter
-gen goodQuarter = expectGoodQ
+*drop goodQuarter
+*gen goodQuarter = expectGoodQ
 
 ********************************************************************************
 *** (2b) Label for clarity
@@ -215,7 +216,7 @@ graph export "$OUT/../graphs/missingEduc.eps", as(eps) replace;
 
 restore
 */
-
+/*
 ********************************************************************************
 *** (4a) Good Quarter Regressions
 ********************************************************************************
@@ -235,6 +236,7 @@ foreach type of local add {
     local age young
     local edu highEd
     local con married smoker
+    local con smoker
     local yab abs(year)
     local ges i.gestation
     local spcnd
@@ -280,7 +282,7 @@ foreach type of local add {
     macro shift
     restore
 }
-
+*/
 keep if `keepif'
 
 *eststo: areg expectGoodQ `age' `edu' `con'       `spcnd'      , `se' `yab'
@@ -316,6 +318,7 @@ local names `" "(age as a continuous variable)" "(age and age squared)" "'
 
 local edu highEd
 local con married smoker
+local con smoker
 local yab abs(year)
 local age motherAge
 local app A
@@ -333,7 +336,7 @@ foreach AA of local names {
     eststo: areg goodQuarter `age' `edu' `con' noART if ART!=.   , `se' `yab'
 
 
-    local vars _cons `age' highEd married smoker noART
+    local vars _cons `age' `edu' `con' noART
 
     #delimit ;
     esttab est4 est3 est2 est1 est5 est6 using "$OUT/NVSSBinaryMain_`app'.tex",
@@ -359,6 +362,7 @@ restore
 preserve
 keep if twin==1 & motherAge>=20 & motherAge<=45
 local con highEd married smoker
+local con highEd smoker
 
 eststo: areg goodQuarter age2024 ART            `con'             , abs(year)
 eststo: areg goodQuarter age2024 ART                  if e(sample), abs(year)
@@ -390,6 +394,9 @@ local c1      twin==1 twin==2
 local varsY   young goodQuarter highEd married smoker
 local varsA   motherAge goodQuarter highEd married smoker
 local varsA2  motherAge motherAge2 goodQuarter highEd married smoker
+local varsY   young goodQuarter highEd smoker
+local varsA   motherAge goodQuarter highEd smoker
+local varsA2  motherAge motherAge2 goodQuarter highEd smoker
 local names   Main Twin
 tokenize `names'
 

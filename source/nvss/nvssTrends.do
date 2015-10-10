@@ -23,7 +23,9 @@ cap log close
 ********************************************************************************
 global DAT "~/investigacion/2015/birthQuarter/data/nvss"
 global OUT "~/investigacion/2015/birthQuarter/results/nvss/graphs"
+global OUT "~/investigacion/2015/birthQuarter/results/married/graphs"
 global SUM "~/investigacion/2015/birthQuarter/results/nvss/sumStats"
+global SUM "~/investigacion/2015/birthQuarter/results/married/sumStats"
 global LOG "~/investigacion/2015/birthQuarter/log"
 global USW "~/investigacion/2015/birthQuarter/data/weather"
 
@@ -47,6 +49,7 @@ if `twins' == 1 local app twins
 *** (2a) Use, descriptive graph
 ********************************************************************************
 use "$DAT/`data'"
+keep if married==1
 keep if birthOrder==1
 
 #delimit ;
@@ -162,7 +165,7 @@ foreach st in Mum Kid MumPart {
     */ replace label noobs
     restore
 }
-exit
+
 ********************************************************************************
 *** (2b) Subset
 ********************************************************************************
@@ -170,12 +173,17 @@ keep if `keepif'
 if `twins'==1 keep if twin == 1
 if `twins'==0 keep if twin == 0
 
+***drop goodQuarter
+***generate goodQuarter = expectGoodQ
+***lab var goodQuarter "Good Quarter"
+
 gen birth = 1
 
 gen period = .
 replace period = 1 if year >=2005 & year<=2007
 replace period = 2 if year >=2008 & year<=2009
 replace period = 3 if year >=2010 & year<=2013
+
 
 ********************************************************************************
 *** (2c) Label for clarity
@@ -417,7 +425,7 @@ foreach A of numlist 0 1 {
     graph export "$OUT/youngMonthsART`A'.eps", as(eps) replace;
     #delimit cr
 }
-exit
+
 ********************************************************************************
 *** (3) Prematurity
 ********************************************************************************
@@ -436,6 +444,7 @@ restore;
 
 preserve;
 collapse premature, by(goodQuarter);
+drop if goodQuarter==.;
 twoway bar premature goodQuarter, bcolor(black) scheme(s1mono)
 xtitle("Season of Birth") xlabel(1 2, valuelabels)
 ytitle("Proportion of Premature Births") ylabel(0.08(0.005)0.095);
@@ -444,6 +453,7 @@ restore;
 
 preserve;
 collapse premature, by(goodQuarter ageGroup);
+drop if goodQuarter==.;
 reshape wide premature, i(ageGroup) j(goodQuarter);
 
 graph bar premature*, over(ageGroup)
@@ -460,6 +470,7 @@ restore;
 ********************************************************************************
 preserve
 drop if educLevel==.
+drop if goodQuarter==.
 collapse premature ART (sum) birth, by(goodQuarter educLevel ageGroup)
 bys ageGroup educLevel: egen aveprem = mean(premature)
 bys ageGroup educLevel: egen aveART = mean(ART)
@@ -492,7 +503,7 @@ outsheet using "$SUM/EducSample`app'.txt", delimiter("&") replace noquote
 restore
 
 preserve
-drop if educLevel==.
+drop if educLevel==.|goodQuarter==.
 collapse premature ART (sum) birth, by(goodQuarter educLevel)
 bys educLevel: egen aveprem = mean(premature)
 bys educLevel: egen aveART = mean(ART)
@@ -520,7 +531,7 @@ restore
 
 
 preserve
-drop if educLevel==.
+drop if educLevel==.|goodQuarter==.
 collapse premature ART (sum) birth, by(goodQuarter ageGroup)
 bys ageGroup: egen aveprem = mean(premature)
 bys ageGroup: egen aveART = mean(ART)
@@ -555,7 +566,7 @@ estpost tabstat _p* _A*, statistics(mean sd) columns(statistics)
 esttab using "$SUM/nvssARTPrem.tex", title("ART and Premature")/*
     */ cells("mean(fmt(2)) sd(fmt(2))") replace label noobs
 drop _p* _A*
-
+exit
 ********************************************************************************
 *** (5a) Global histogram
 ********************************************************************************
