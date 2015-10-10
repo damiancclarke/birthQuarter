@@ -23,7 +23,7 @@ print('\n\n Producing tex files for output tables.\n\n')
 #==============================================================================
 RES   = "/home/damiancclarke/investigacion/2015/birthQuarter/results/"
 TAB   = "/home/damiancclarke/investigacion/2015/birthQuarter/tables/"
-ftype = 'nvss'
+ftype = 'married'
 dloc  = './../'
 
 singleNVSS       = RES + ftype + '/sumStats/FullSample.txt'
@@ -80,9 +80,9 @@ R2   = 'R$^2$'
 #==============================================================================
 #== (2a) Write birth quarter summary tables NVSS
 #==============================================================================
-tNV  = open(twinNVSS, 'r').readlines()
-tNVe = open(twinEducNVSS, 'r').readlines()
-tNVj = open(TallEducNVSS, 'r').readlines()
+#tNV  = open(twinNVSS, 'r').readlines()
+#tNVe = open(twinEducNVSS, 'r').readlines()
+#tNVj = open(TallEducNVSS, 'r').readlines()
 sNV  = open(singleNVSS, 'r').readlines()
 sNVe = open(singleEducNVSS, 'r').readlines()
 sNVj = open(allEducNVSS, 'r').readlines()
@@ -182,8 +182,7 @@ sumT.write(NV[1]+'\\\\ \n'
 sumT.write('\n'+mr+mc1+twid[5]+tcm[5]+mc3+
            "Good season refers to birth quarters 2 and 3 (Apr-Jun and "
            "Jul-Sept).  Bad season refers to quarters 1 and 4 (Jan-Mar "
-           "and Oct-Dec).  Values reflect the percent of yearly births from "
-           "each season in 2013. `Young' refers to 25-39 year olds,"
+           "and Oct-Dec).  `Young' refers to 25-39 year olds,"
            " `Old' refers to 40-45 year olds. \n"
            "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}"
            "\\end{center}\\end{table}")
@@ -312,260 +311,261 @@ sumT.write('\n'+mr+mc1+twid[1]+tcm[1]+mc3+
            "\\end{table}")
 sumT.close()
 
-#==============================================================================
-#== (4a) Heterogeneity table (birth quarter)
-#==============================================================================
-for vAge in ['.tex', '_A.tex', '_A2.tex']:
-    hetT = open(TAB + 'quarterHeterogeneity' + vAge, 'w')
-    loc  = './../../results/nvss/regressions/'
-    rt3  = '/regressions/NVSSBinaryMain.tex'
-
-    inum = [13,15,17,19]
-    jnum = [4,7]
-
-    if vAge == '.tex':
-        label1 = 'Aged 25-29'
-    if vAge == '_A.tex':
-        label1 = 'Mother\'s Age (Years)'        
-    table = [
-        label1          ,'',
-        'Some College +','',
-        'Married'       ,'',
-        'Smoked in Preg','',
-        'Constant'      ,'',
-        'Observations'
-    ]
-    if vAge == '_A2.tex':
-        table = [
-            'Mother\'s Age (Years)'  ,'',
-            'Mother\'s Age$^2$'      ,'',
-            'Some College +'         ,'',
-            'Married'                ,'',
-            'Smoked in Preg'         ,'',
-            'Constant'               ,'',
-            'Observations'
-        ]
-        inum = [15,17,19,21]
-        jnum = [6,9]
-
-
-
-    samples = [loc+'NVSSBinaryMain'+vAge   , loc+'NVSSBinarynon-smoking'+vAge,
-               loc+'NVSSBinarysmoking'+vAge, loc+'NVSSBinary2012-2013'+vAge  ,
-               loc+'NVSSBinarynon-ART'+vAge, loc+'NVSSBinaryART'+vAge        ]
-
-
-    ii = 0
-    for sample in samples:
-        if ii ==1 or ii==2:
-            jj = 0
-            work  = open(sample,  'r').readlines()
-            for i,line in enumerate(work):
-                if i>=8 and i<=inum[0] or i==inum[1]:
-                    while jj >= jnum[0] and jj <=jnum[1]:
-                        table[jj]+= '&'
-                        jj = jj+1
-
-                    line = line.split('&')[-1]
-                    line = line[:-3]
-                    table[jj] += '&'+line
-                    jj = jj+1
-        else:
-            jj = 0
-            work  = open(sample,  'r').readlines()
-            for i,line in enumerate(work):
-                if i>=8 and i<=inum[2] or i==inum[3]:
-                    line = line.split('&')[-1]
-                    line = line[:-3]
-                    table[jj] += '&'+line
-                    jj = jj+1
-        ii = ii+1
-    hetT.write('\\begin{table}[htpb!] \n ' 
-    '\\caption{Birth Season and Age: Alternative Samples and Definitions}\n '
-    '\\begin{center} \n'
-    '\\begin{tabular}{lcccccc} \\toprule\\toprule \n'
-    '\\textsc{Dep Var:}&(1)&(2)&(3)&(4)&(5)&(6)\\\\'
-    'Good Season\ \ \ \ \ \ \ \ \ \ \  &&\multicolumn{2}{c}{Smoked During}&'
-    '&\multicolumn{2}{c}{Assisted Reproductive}\\\\'
-    '&&\multicolumn{2}{c}{Pregnancy}&'
-    '&\multicolumn{2}{c}{Technology}'
-    '\\\\\cmidrule(r){3-4}\cmidrule(r){6-7}\n'
-    '&All&Non-  &Smoker&2012- &No&Yes \\\\'
-    '&   &Smoker&       &2013\ &  &  \\\\ '
-    '\\midrule\n')
-    hetT.write(table[0]+'\\\\ \n'
-               +table[1]+'\\\\ \n'
-               +table[2]+'\\\\ \n'
-               +table[3]+'\\\\ \n'
-               +table[4]+'\\\\ \n'
-               +table[5]+'\\\\ \n'
-               +table[6]+'\\\\ \n'
-               +table[7]+'\\\\ \n'
-               +table[8]+'\\\\ \n'
-    )
-    if vAge == '_A2.tex':
-        hetT.write(table[9]+'\\\\ \n'
-                   +table[10]+'\\\\ \n'
-                   +table[11]+'\\\\ \\midrule \n'
-                   +table[12]+'\\\\ \n'
-        )
-    else:
-        hetT.write(table[9]+'\\\\ \\midrule \n'
-                   +table[10]+'\\\\ \n'
-        )
-
-
-    hetT.write('\n'+mr+mc1+twid[2]+tcm[2]+mc3+
-           'All specifications are linear probability models estimates by OLS w'
-           'ith heteroscedasticity-robust standard errors.                     '
-           'Infertility treatment regressions are only estimated for years 2012'
-           '-2013. Descriptive statistics for each variable are available in ta'
-           'ble \\ref{bqTab:SumStatsNVSS}.'
-           '\\end{footnotesize}}\\\\ \n \\bottomrule '
-           '\n\\end{tabular}\\end{center}\\end{table}'
-    )
-    hetT.close()
-
-#==============================================================================
-#== (4b) Heterogeneity table (quality)
-#==============================================================================
-for vAge in ['.tex', '_A.tex', '_A2.tex']:
-
-    hetT = open(TAB + 'qualityHeterogeneity' + vAge, 'w')
-    loc  = './../../results/nvss/regressions/'
-
-
-    inum = [15,17,19,21]
-    jnum = [6,9]
-
-    if vAge == '.tex':
-        label1 = 'Aged 25-29'
-    if vAge == '_A.tex':
-        label1 = 'Mother\'s Age (Years)'        
-    table = [
-        label1          ,'',
-        'Bad Season'    ,'',
-        'Some College +','',
-        'Married'       ,'',
-        'Smoked in Preg','',
-        'Constant'      ,'',
-        'Observations'
-    ]
-    if vAge == '_A2.tex':
-        table = [
-            'Mother\'s Age (Years)'  ,'',
-            'Mother\'s Age$^2$'      ,'',
-            'Bad Season'    ,'',
-            'Some College +'         ,'',
-            'Married'                ,'',
-            'Smoked in Preg'         ,'',
-            'Constant'               ,'',
-            'Observations'
-        ]
-        inum = [17,19,21,23]
-        jnum = [8,11]
-
-
-
-    samples = [loc+'NVSSQualityMain'+vAge   ,loc+'NVSSQualitynon-smoking'+vAge,
-               loc+'NVSSQualitysmoking'+vAge,loc+'NVSSQuality2012-2013'+vAge  ,
-               loc+'NVSSQualitynon-ART'+vAge,loc+'NVSSQualityART'+vAge        ]
-
-    ii = 0
-    for sample in samples:
-        if ii ==1 or ii==2:
-            jj = 0
-            work  = open(sample,  'r').readlines()
-            for i,line in enumerate(work):
-                if i>=8 and i<=inum[0] or i==inum[1]:
-                    while jj >= jnum[0] and jj <= jnum[1]:
-                        table[jj]+= '&'
-                        jj = jj+1
-
-                    line = line.split('&')[1]
-                    table[jj] += '&'+line
-                    jj = jj+1
-        else:
-            jj = 0
-            work  = open(sample,  'r').readlines()
-            for i,line in enumerate(work):
-                if i>=8 and i<=inum[2] or i==inum[3]:
-                    line = line.split('&')[1]
-                    table[jj] += '&'+line
-                    jj = jj+1
-        ii = ii+1
-    hetT.write('\\begin{table}[htpb!] \n '
-    '\\caption{Birth Quality and Age: Alternative Samples and Definitions}\n '
-    '\\begin{center} \n'
-    '\\begin{tabular}{lcccccc} \\toprule\\toprule \n'
-    '\\textsc{Dep Var:}&(1)&(2)&(3)&(4)&(5)&(6)\\\\'
-    'Birthweight&&\multicolumn{2}{c}{Smoked During}&'
-    '&\multicolumn{2}{c}{Assisted Reproductive}\\\\'
-    '&&\multicolumn{2}{c}{Pregnancy}&'
-    '&\multicolumn{2}{c}{Technology}'
-    '\\\\\cmidrule(r){3-4}\cmidrule(r){6-7}\n'
-    '&All&Non-  &Smoker&2012- &No&Yes \\\\'
-    '&   &Smoker&      &2013\ &  &    \\\\ \\midrule\n')
-
-    hetT.write(table[0]+'\\\\ \n'
-               +table[1]+'\\\\ \n'
-               +table[2]+'\\\\ \n'
-               +table[3]+'\\\\ \n'
-               +table[4]+'\\\\ \n'
-               +table[5]+'\\\\ \n'
-               +table[6]+'\\\\ \n'
-               +table[7]+'\\\\ \n'
-               +table[8]+'\\\\ \n'
-               +table[9]+'\\\\ \n'
-               +table[10]+'\\\\ \n'
-    )
-    if vAge == '_A2.tex':
-        hetT.write(table[11]+'\\\\ \n'
-                   +table[12]+'\\\\ \n'
-                   +table[13]+'\\\\ \\midrule \n'
-                   +table[14]+'\\\\ \n'
-        )
-    else:
-        hetT.write(table[11]+'\\\\ \\midrule \n'
-                   +table[12]+'\\\\ \n'
-        )
-
-    hetT.write('\n'+mr+mc1+twid[3]+tcm[3]+mc3+
-           'All specifications are identical to column (2) of table 5 estimated'
-           ' by OLS with heteroscedasticity-robust standard errors. Full term i'
-           'n column (4) refers to any babies whose gestation was greater than '
-           'or equal to 39 weeks. Infertility treatment regressions are only es'
-           'timated for years 2012-2013. Descriptive statistics for variables  '
-           'are available in table \\ref{bqTab:SumStatsNVSS}.'
-           '\\end{footnotesize}}\\\\ \\bottomrule \n\\end{tabular}\\end{center}'
-           '\\end{table}'
-    )
-    hetT.close()
-
-#==============================================================================
-#== (5) Fix labelling of gestation correction table
-#==============================================================================
-goodT = open(NVSSGoodE, 'r').readlines()
-badT  = open(NVSSBadE , 'r').readlines()
-
-outG = open(TAB + 'NVSSBinaryExpectGood.tex', 'w')
-outB = open(TAB + 'NVSSBinaryExpectBad.tex' , 'w')
-
-for line in goodT:
-    line = line.replace('(due in good)','')
-    line = line.replace('\\midrule'    ,'')
-    line = line.replace('Aged','&(due in good)'*4+'\\\\ \\midrule\n Aged')
-    line = line.replace('Observations','\\midrule\n Observations')
-    outG.write(line)
-for line in badT:
-    line = line.replace('(due in bad)','')
-    line = line.replace('\\midrule'    ,'')
-    line = line.replace('Aged','&(due in bad)'*4+'\\\\ \\midrule\n Aged')
-    line = line.replace('Observations','\\midrule\n Observations')
-    outB.write(line)
-
-outG.close
-outB.close
+##==============================================================================
+##== (4a) Heterogeneity table (birth quarter)
+##==============================================================================
+#for vAge in ['.tex', '_A.tex', '_A2.tex']:
+#    hetT = open(TAB + 'quarterHeterogeneity' + vAge, 'w')
+#    loc  = './../../results/nvss/regressions/'
+#    rt3  = '/regressions/NVSSBinaryMain.tex'
+#
+#    inum = [13,15,17,19]
+#    jnum = [4,7]
+#
+#    if vAge == '.tex':
+#        label1 = 'Aged 25-29'
+#    if vAge == '_A.tex':
+#        label1 = 'Mother\'s Age (Years)'        
+#    table = [
+#        label1          ,'',
+#        'Some College +','',
+#        'Married'       ,'',
+#        'Smoked in Preg','',
+#        'Constant'      ,'',
+#        'Observations'
+#    ]
+#    if vAge == '_A2.tex':
+#        table = [
+#            'Mother\'s Age (Years)'  ,'',
+#            'Mother\'s Age$^2$'      ,'',
+#            'Some College +'         ,'',
+#            'Married'                ,'',
+#            'Smoked in Preg'         ,'',
+#            'Constant'               ,'',
+#            'Observations'
+#        ]
+#        inum = [15,17,19,21]
+#        jnum = [6,9]
+#
+#
+#
+#    samples = [loc+'NVSSBinaryMain'+vAge   , loc+'NVSSBinarynon-smoking'+vAge,
+#               loc+'NVSSBinarysmoking'+vAge, loc+'NVSSBinary2012-2013'+vAge  ,
+#               loc+'NVSSBinarynon-ART'+vAge, loc+'NVSSBinaryART'+vAge        ]
+#
+#
+#    ii = 0
+#    for sample in samples:
+#        if ii ==1 or ii==2:
+#            jj = 0
+#            work  = open(sample,  'r').readlines()
+#            for i,line in enumerate(work):
+#                if i>=8 and i<=inum[0] or i==inum[1]:
+#                    while jj >= jnum[0] and jj <=jnum[1]:
+#                        table[jj]+= '&'
+#                        jj = jj+1
+#
+#                    line = line.split('&')[-1]
+#                    line = line[:-3]
+#                    table[jj] += '&'+line
+#                    jj = jj+1
+#        else:
+#            jj = 0
+#            work  = open(sample,  'r').readlines()
+#            for i,line in enumerate(work):
+#                if i>=8 and i<=inum[2] or i==inum[3]:
+#                    line = line.split('&')[-1]
+#                    line = line[:-3]
+#                    table[jj] += '&'+line
+#                    jj = jj+1
+#        ii = ii+1
+#    hetT.write('\\begin{table}[htpb!] \n ' 
+#    '\\caption{Birth Season and Age: Alternative Samples and Definitions}\n '
+#    '\\begin{center} \n'
+#    '\\begin{tabular}{lcccccc} \\toprule\\toprule \n'
+#    '\\textsc{Dep Var:}&(1)&(2)&(3)&(4)&(5)&(6)\\\\'
+#    'Good Season\ \ \ \ \ \ \ \ \ \ \  &&\multicolumn{2}{c}{Smoked During}&'
+#    '&\multicolumn{2}{c}{Assisted Reproductive}\\\\'
+#    '&&\multicolumn{2}{c}{Pregnancy}&'
+#    '&\multicolumn{2}{c}{Technology}'
+#    '\\\\\cmidrule(r){3-4}\cmidrule(r){6-7}\n'
+#    '&All&Non-  &Smoker&2012- &No&Yes \\\\'
+#    '&   &Smoker&       &2013\ &  &  \\\\ '
+#    '\\midrule\n')
+#    hetT.write(table[0]+'\\\\ \n'
+#               +table[1]+'\\\\ \n'
+#               +table[2]+'\\\\ \n'
+#               +table[3]+'\\\\ \n'
+#               +table[4]+'\\\\ \n'
+#               +table[5]+'\\\\ \n'
+#               +table[6]+'\\\\ \n'
+#               +table[7]+'\\\\ \n'
+#               +table[8]+'\\\\ \n'
+#    )
+#    if vAge == '_A2.tex':
+#        hetT.write(table[9]+'\\\\ \n'
+#                   +table[10]+'\\\\ \n'
+#                   +table[11]+'\\\\ \\midrule \n'
+#                   +table[12]+'\\\\ \n'
+#        )
+#    else:
+#        hetT.write(table[9]+'\\\\ \\midrule \n'
+#                   +table[10]+'\\\\ \n'
+#        )
+#
+#
+#    hetT.write('\n'+mr+mc1+twid[2]+tcm[2]+mc3+
+#           'All specifications are linear probability models estimates by OLS w'
+#           'ith heteroscedasticity-robust standard errors.                     '
+#           'Infertility treatment regressions are only estimated for years 2012'
+#           '-2013. Descriptive statistics for each variable are available in ta'
+#           'ble \\ref{bqTab:SumStatsNVSS}.'
+#           '\\end{footnotesize}}\\\\ \n \\bottomrule '
+#           '\n\\end{tabular}\\end{center}\\end{table}'
+#    )
+#    hetT.close()
+#
+##==============================================================================
+##== (4b) Heterogeneity table (quality)
+##==============================================================================
+#for vAge in ['.tex', '_A.tex', '_A2.tex']:
+#
+#    hetT = open(TAB + 'qualityHeterogeneity' + vAge, 'w')
+#    loc  = './../../results/nvss/regressions/'
+#
+#
+#    inum = [15,17,19,21]
+#    jnum = [6,9]
+#
+#    if vAge == '.tex':
+#        label1 = 'Aged 25-29'
+#    if vAge == '_A.tex':
+#        label1 = 'Mother\'s Age (Years)'        
+#    table = [
+#        label1          ,'',
+#        'Bad Season'    ,'',
+#        'Some College +','',
+#        'Married'       ,'',
+#        'Smoked in Preg','',
+#        'Constant'      ,'',
+#        'Observations'
+#    ]
+#    if vAge == '_A2.tex':
+#        table = [
+#            'Mother\'s Age (Years)'  ,'',
+#            'Mother\'s Age$^2$'      ,'',
+#            'Bad Season'    ,'',
+#            'Some College +'         ,'',
+#            'Married'                ,'',
+#            'Smoked in Preg'         ,'',
+#            'Constant'               ,'',
+#            'Observations'
+#        ]
+#        inum = [17,19,21,23]
+#        jnum = [8,11]
+#
+#
+#
+#    samples = [loc+'NVSSQualityMain'+vAge   ,loc+'NVSSQualitynon-smoking'+vAge,
+#               loc+'NVSSQualitysmoking'+vAge,loc+'NVSSQuality2012-2013'+vAge  ,
+#               loc+'NVSSQualitynon-ART'+vAge,loc+'NVSSQualityART'+vAge        ]
+#
+#    ii = 0
+#    for sample in samples:
+#        if ii ==1 or ii==2:
+#            jj = 0
+#            work  = open(sample,  'r').readlines()
+#            for i,line in enumerate(work):
+#                if i>=8 and i<=inum[0] or i==inum[1]:
+#                    while jj >= jnum[0] and jj <= jnum[1]:
+#                        table[jj]+= '&'
+#                        jj = jj+1
+#
+#                    line = line.split('&')[1]
+#                    table[jj] += '&'+line
+#                    jj = jj+1
+#        else:
+#            jj = 0
+#            work  = open(sample,  'r').readlines()
+#            for i,line in enumerate(work):
+#                if i>=8 and i<=inum[2] or i==inum[3]:
+#                    line = line.split('&')[1]
+#                    table[jj] += '&'+line
+#                    jj = jj+1
+#        ii = ii+1
+#    hetT.write('\\begin{table}[htpb!] \n '
+#    '\\caption{Birth Quality and Age: Alternative Samples and Definitions}\n '
+#    '\\begin{center} \n'
+#    '\\begin{tabular}{lcccccc} \\toprule\\toprule \n'
+#    '\\textsc{Dep Var:}&(1)&(2)&(3)&(4)&(5)&(6)\\\\'
+#    'Birthweight&&\multicolumn{2}{c}{Smoked During}&'
+#    '&\multicolumn{2}{c}{Assisted Reproductive}\\\\'
+#    '&&\multicolumn{2}{c}{Pregnancy}&'
+#    '&\multicolumn{2}{c}{Technology}'
+#    '\\\\\cmidrule(r){3-4}\cmidrule(r){6-7}\n'
+#    '&All&Non-  &Smoker&2012- &No&Yes \\\\'
+#    '&   &Smoker&      &2013\ &  &    \\\\ \\midrule\n')
+#
+#    hetT.write(table[0]+'\\\\ \n'
+#               +table[1]+'\\\\ \n'
+#               +table[2]+'\\\\ \n'
+#               +table[3]+'\\\\ \n'
+#               +table[4]+'\\\\ \n'
+#               +table[5]+'\\\\ \n'
+#               +table[6]+'\\\\ \n'
+#               +table[7]+'\\\\ \n'
+#               +table[8]+'\\\\ \n'
+#               +table[9]+'\\\\ \n'
+#               +table[10]+'\\\\ \n'
+#    )
+#    if vAge == '_A2.tex':
+#        hetT.write(table[11]+'\\\\ \n'
+#                   +table[12]+'\\\\ \n'
+#                   +table[13]+'\\\\ \\midrule \n'
+#                   +table[14]+'\\\\ \n'
+#        )
+#    else:
+#        hetT.write(table[11]+'\\\\ \\midrule \n'
+#                   +table[12]+'\\\\ \n'
+#        )
+#
+#    hetT.write('\n'+mr+mc1+twid[3]+tcm[3]+mc3+
+#           'All specifications are identical to column (2) of table 5 estimated'
+#           ' by OLS with heteroscedasticity-robust standard errors. Full term i'
+#           'n column (4) refers to any babies whose gestation was greater than '
+#           'or equal to 39 weeks. Infertility treatment regressions are only es'
+#           'timated for years 2012-2013. Descriptive statistics for variables  '
+#           'are available in table \\ref{bqTab:SumStatsNVSS}.'
+#           '\\end{footnotesize}}\\\\ \\bottomrule \n\\end{tabular}\\end{center}'
+#           '\\end{table}'
+#    )
+#    hetT.close()
+#
+##==============================================================================
+##== (5) Fix labelling of gestation correction table
+##==============================================================================
+#goodT = open(NVSSGoodE, 'r').readlines()
+#badT  = open(NVSSBadE , 'r').readlines()
+#
+#outG = open(TAB + 'NVSSBinaryExpectGood.tex', 'w')
+#outB = open(TAB + 'NVSSBinaryExpectBad.tex' , 'w')
+#
+#for line in goodT:
+#    line = line.replace('(due in good)','')
+#    line = line.replace('\\midrule'    ,'')
+#    line = line.replace('Aged','&(due in good)'*4+'\\\\ \\midrule\n Aged')
+#    line = line.replace('Observations','\\midrule\n Observations')
+#    outG.write(line)
+#for line in badT:
+#    line = line.replace('(due in bad)','')
+#    line = line.replace('\\midrule'    ,'')
+#    line = line.replace('Aged','&(due in bad)'*4+'\\\\ \\midrule\n Aged')
+#    line = line.replace('Observations','\\midrule\n Observations')
+#    outB.write(line)
+#
+#outG.close
+#outB.close
+#
 
 #==============================================================================
 #== (X) write tables.tex file
@@ -616,28 +616,28 @@ loc90 = './../results/1990s/regressions/'
 locB2 = './../results/bord2/regressions/'
 loctw = './../results/nvss/regressions/'
 spain = './../results/spain/regressions/'
-final = open(TAB + 'appendixTables.tex', 'w')
+final = open(TAB + ftype + 'AppendixTables.tex', 'w')
 
-TABLES = [loc2 + 'NVSSExpectMain.tex'        ,
-          locB2+'NVSSBinary.tex'             ,
-          loctw+'NVSSBinaryTwin.tex'         ,
+TABLES = [loc2 +'NVSSExpectMain.tex'         ,
+          loc2 +'NVSSBinaryBord2.tex'        ,
+          loc2 +'NVSSBinaryTwin.tex'         ,
           loc2 +'NVSSBinaryFDeaths.tex'      , 
           loc2 +'NVSSBinaryMain_A.tex'       , 
           loc2 +'NVSSBinaryMain_A2.tex'      , 
           loc2 +'NVSSBinaryYoung34.tex'      , 
           loc2 +'NVSSBinaryNoSep.tex'        , 
-          loctw+'NVSSQualityTwin.tex'        ,          
           loc2 +'NVSSBinaryDeseg.tex'        , 
-          loc1+'sumStatsSpain.tex'           ,
-          loc1+'sumSpain.tex'                ,
-          loc3+'spainBinary.tex'             , 
-          loc3+'spainQualityEduc.tex'        ,
+          loc2 +'NVSSQualityTwin.tex'        , 
+          loc1 +'sumStatsSpain.tex'          ,
+          loc1 +'sumSpain.tex'               ,
+          loc3 +'spainBinary.tex'            , 
+          loc3 +'spainQualityEduc.tex'       ,
           spain+'spainBinaryLForce.tex'
 ]
 
 i = 1
 for table in TABLES:
-    if i==2 or i==3 or i==4 or i==11 or i==12:
+    if i==4 or i==11 or i==12:
         final.write('\\input{'
                     +table+'}\n')
     else:
