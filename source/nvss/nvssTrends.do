@@ -42,7 +42,7 @@ local stateFE 0
 local twins   0
 local lyear   25
 if `twins' == 1 local app twins
-/*
+
 ********************************************************************************
 *** (2a) Use, descriptive graph
 ********************************************************************************
@@ -58,76 +58,6 @@ histogram motherAge if motherAge<=24|motherAge>45, freq color(gs12) width(1)
                                         #delimit cr
 graph export "$OUT/ageDescriptive.eps", as(eps) replace
 keep if twin<3
-
-#delimit ;
-lab def e 0 "N/A" 1 "Grades 1-8" 2 "Incomplete Highschool" 3 "Complete Highschool"
-4 "Incomplete College" 5 "Bachelor's Degree" 6 "Higher Degree";
-lab val education e;
-#delimit cr
-lab var education "Completed Education"
-foreach g in all young old {
-    if `"`g'"'=="young" local cond if motherAge>=`lyear' & motherAge<=39
-    if `"`g'"'=="old"   local cond if motherAge>=40      & motherAge<=45
-
-    catplot education `cond', frac scheme(s1mono)
-    graph export "$OUT/educDescriptive`g'.eps", as(eps) replace 
-}
-
-preserve
-keep if `keepif'
-gen birth=1
-collapse (sum) birth, by(motherAge twin)
-bys twin: egen total=sum(birth)
-replace birth=birth/total
-sort twin motherAge 
-twoway line birth motherAge if twin==1, || line birth motherAge if twin==2,/*
-*/ scheme(s1mono) xtitle("Mother's Age") ytitle("Proportion (first birth)")/*
-*/ legend(label(1 "Single Births") label(2 "Twin Births")) lpattern(dash)  /*
-*/ lcolor(gs0)
-graph export "$OUT/ageDescriptiveParity.eps", as(eps) replace
-restore
-
-replace educLevel = educLevel + 1
-replace educLevel = 2 if educLevel == 3
-replace ageGroup  = 1 if ageGroup  == 2
-replace ageGroup  = 2 if ageGroup  == 3
-
-foreach edu of numlist 1 2 {
-    if `edu'==1 local title "NoCollege"
-    if `edu'==2 local title "SomeCollege"
-    local cond if educLevel==`edu'
-    
-    histogram motherAge `cond', frac scheme(s1mono) xtitle("Mother's Age")
-    graph export "$OUT/ageDescriptive`title'.eps", as(eps) replace
-
-    preserve
-    keep `cond'&`keepif'
-    gen birth=1
-    collapse (sum) birth, by(motherAge twin)
-    bys twin: egen total=sum(birth)
-    replace birth=birth/total
-    sort twin motherAge
-    twoway line birth motherAge if twin==1, || line birth motherAge if twin==2,/*
-    */ scheme(s1mono) xtitle("Mother's Age") ytitle("Proportion (first birth)")/*
-    */ legend(label(1 "Single Births") label(2 "Twin Births")) lpattern(dash)  /*
-    */ lcolor(gs0)
-    graph export "$OUT/ageDescriptiveParity`title'.eps", as(eps) replace
-    restore
-}
-
-preserve
-gen birth=1
-keep if education==5|education==6&`keepif'
-collapse (sum) birth, by(motherAge twin)
-bys twin: egen total=sum(birth)
-replace birth=birth/total
-sort twin motherAge 
-twoway line birth motherAge if twin==1, || line birth motherAge if twin==2,/*
-*/ scheme(s1mono) xtitle("Mother's Age") ytitle("Proportion (first birth)")/*
-*/ legend(label(1 "Single Births") label(2 "Twin Births")) lpattern(dash)  /*
-*/ lcolor(gs0)
-graph export "$OUT/ageDescriptiveParityDegree.eps", as(eps) replace
-restore
 
 preserve
 keep if `keepif'
@@ -157,19 +87,6 @@ graph export "$OUT/ARTageGroup.eps", as(eps) replace;
 restore
 
 
-preserve
-keep if `keepif'
-replace twin = twin - 1
-keep twin motherAge educLevel
-drop if educLevel==.
-collapse twin, by(motherAge educLevel) 
-reshape wide twin, i(motherAge) j(educLevel)
-twoway line twin1 motherAge, || line twin2 motherAge, lpattern(dash) lcolor(gs0)/*
-*/ scheme(s1mono) xtitle("Mother's Age") ytitle("Proportion Twins")             /*
-*/ legend(label(1 "No College") label(2 "Some College +")) 
-graph export "$OUT/twinPrevalence.eps", as(eps) replace
-restore
-
 
 ********************************************************************************
 *** (2aii) Summary stats table
@@ -187,13 +104,18 @@ gen goodQuarter = birthQuarter == 2 | birthQuarter == 3
 replace twin    = twin - 1
 gen     prematurity     = gestation - 39
 gen     monthsPrem      = round(prematurity/4)*-1
-gen     expectedMonth   = birthMonth + monthsPrem
-replace expectedMonth   = expectedMonth - 12 if expectedMonth>12
-replace expectedMonth   = expectedMonth + 12 if expectedMonth<1
-gene    expectQuarter   = ceil(expectedMonth/3)
-gen     expectGoodQ     = expectQuarter == 2 | expectQuarter == 3 if gest!=.
+*gen     expectedMonth   = birthMonth + monthsPrem
+*replace expectedMonth   = expectedMonth - 12 if expectedMonth>12
+*replace expectedMonth   = expectedMonth + 12 if expectedMonth<1
+*gene    expectQuarter   = ceil(expectedMonth/3)
+*gen     expectGoodQ     = expectQuarter == 2 | expectQuarter == 3 if gest!=.
 gen     conceptionMonth = birthMonth - round(gestation*7/30.5)
 replace conceptionMonth = conceptionMonth + 12 if conceptionMonth<1
+gen     expectedMonth   = conceptionMonth + 9
+replace expectedMonth   = expectedMonth-12 if expectedMonth>12
+gen     expectQuarter   = ceil(expectedMonth/3)
+gen     expectGoodQ     = expectQuarter == 2 | expectQuarter == 3 if gest!=.
+
 generat age3            = .
 replace age3            = 1 if motherAge>=25 & motherAge<35
 replace age3            = 2 if motherAge>=35 & motherAge<40
@@ -240,7 +162,7 @@ foreach st in Mum Kid MumPart {
     */ replace label noobs
     restore
 }
-
+exit
 ********************************************************************************
 *** (2b) Subset
 ********************************************************************************
@@ -450,7 +372,6 @@ scheme(s1mono) ytitle("% Premature");
 graph export "$OUT/prematureAges.eps", as(eps) replace;
 #delimit cr
 restore
-exit
 
 gen youngBeta = .
 gen youngHigh = .
@@ -532,8 +453,6 @@ exclude0 ylab(0.08(0.01)0.14);
 graph export "$OUT/prematureSeasonAge.eps", as(eps) replace;
 restore;
 #delimit cr
-
-
 
 
 ********************************************************************************
@@ -822,13 +741,6 @@ graph export "$OUT/birthQdiff_4Ages`app'NoART.eps", as(eps) replace;
 
 #delimit cr
 
-
-
-
-exit
-
-
-
 ********************************************************************************
 *** (6) Birth outcomes by groups
 ********************************************************************************
@@ -878,7 +790,7 @@ foreach outcome in `hkbirth' {
     macro shift
 }
 restore
-*/
+
 ********************************************************************************
 *** (7) Examine by geographic variation (hot/cold)
 ********************************************************************************
@@ -888,7 +800,6 @@ gen birth = 1
 
 ***NOTE: 12 is Florida (759,551 births). 31 is Nebraska (125,628 births)
 keep if stoccfip=="12"|stoccfip=="31"
-
 gen     conceptionMonth = birthMonth - round(gestation*7/30.5)
 replace conceptionMonth = conceptionMonth + 12 if conceptionMonth<1
 gen     state = ""
@@ -916,7 +827,7 @@ scheme(s1mono) xtitle("Month of Conception") ytitle("Proportion of All Births")
 legend(label(1 "Florida") label(2 "Nebraska")) xlabel(1(1)12, valuelabels);
 graph export "$OUT/conceptionMonthFloridaNebraska.eps", as(eps) replace;
 #delimit cr
-exit
+
 
 
 insheet using "$USW/usaWeather.txt", delim(";") names
@@ -995,126 +906,7 @@ graph export "$OUT/maps/youngGoodSeason.eps", replace as(eps)
 spmap goodSeason if young==0&(FIPS!="02"&FIPS!="15") using "$DAT/../maps/UScoords", /*
 */ id(_ID) fcolor(YlOrRd) legend(symy(*2) symx(*2) size(*2.1))
 graph export "$OUT/maps/oldGoodSeason.eps", replace as(eps)
-*/
 
-********************************************************************************
-*** (8) Time series plot of weather and good season
-********************************************************************************
-cap mkdir "$OUT/weather"
-
-insheet using "$USW/usaWeather.txt", delim(";") names
-rename fips FIPS
-destring temp, replace
-
-reshape wide temp, i(state FIPS year month) j(type) string
-collapse temptmpcst (min) temptminst (max) temptmaxst, by(state FIPS year)
-keep if year>=1971 & year<2000
-
-tostring FIPS, replace
-foreach num in 1 2 4 5 6 8 9 {
-    replace FIPS = "0`num'" if FIPS=="`num'"
-}
-expand 2 if FIPS == "24", gen(expanded)
-replace FIPS = "11" if expanded==1
-drop expanded
-rename temptmpcst meanT
-rename temptminst cold
-rename temptmaxst hot
-bys state FIPS: egen aveTemp70_90 = mean(meanT)
-bys state FIPS: egen aveMin70_90  = mean(cold)
-bys state FIPS: egen aveMax70_90  = mean(hot)
-bys state FIPS: egen aveMin90s    = mean(cold) if year>1987
-
-tempfile weatherYear
-save `weatherYear'
-
-
-foreach decade in 70s 80s 90s {
-    use "$DAT/nvss19`decade'.dta"
-    gen young = motherAge>=25&motherAge<40 if motherAge>24
-    keep if young!=.
-    gen goodSeason = birthQuarter == 2 | birthQuarter == 3
-    collapse goodSeason, by(statenat young year)    
-    tempfile birth`decade'
-    save `birth`decade''
-}
-clear
-append using `birth70s' `birth80s' `birth90s'
-merge m:1 statenat using "$DAT/nvssStatesFIPS"
-drop _merge
-
-rename stoccfip FIPS
-merge m:1 FIPS year using `weatherYear'
-**NOTE: merges correctly except for Hawaii (_merge==1) and national (_merge==2)
-
-gen coldState_20 = aveMin70_90<20
-gen coldState_15 = aveMin70_90<15
-gen coldState_10 = aveMin70_90<10
-gen deviation    = cold-aveMin70_90
-gen deviation90s = cold-aveMin90s
-
-lab var cold       "Coldest Temperature (degree F)"
-lab var goodSeason "Proportion Good Season"
-
-local conds young==1&coldS==1 young==1&coldS==0 young==0&coldS==1 young==0&coldS==0
-local names young_cold young_warm old_cold old_warm
-
-drop if young==.
-foreach lag of numlist 1 2 {
-    bys statenat young (year): gen minLag_`lag'=cold[_n-`lag']
-    bys statenat young (year): gen devLag_`lag'=deviation[_n-`lag']
-    bys statenat young (year): gen devL90_`lag'=deviation90s[_n-`lag']
-    gen deviationGroup_`lag' = .
-    gen deviationG90s_`lag'  = .
-    foreach num of numlist 1(1)6{
-        local min = -20+(5*`num')
-        local max = -15+(5*`num')
-        dis "`min', `max'"
-        replace deviationGroup_`lag' = `num' if devLag_`lag'>=`min'&devLag_`lag'<`max'
-        replace deviationG90s_`lag' = `num' if devL90_`lag'>=`min'&devL90_`lag'<`max'
-    }
-}
-
-lab def dev 1 "-15 to -10" 2 "-10 to -5" 3 "-5 to 0" 4 "0 to 5" 5 "5 to 10" 6 "10 to 15"
-lab val deviationGroup_1 dev
-lab val deviationGroup_2 dev
-lab val deviationG90s_1 dev
-lab val deviationG90s_2 dev
-
-foreach lag of numlist 1 2 {
-    foreach DG in deviationGroup deviationG90s {
-        local opts over(`DG'_`lag') nooutsides box(1, fcolor(white) lcolor(black)) /*
-        */ scheme(s1mono) ylabel(,nogrid) medline(lcolor(black) lwidth(thin))
-        graph box goodSeason if coldState_20==1&young==1, `opts'
-        graph export "$OUT/weather/`DG'ColdYoung_lag`lag'.eps", as(eps) replace
-        graph box goodSeason if coldState_20==0&young==1, `opts'
-        graph export "$OUT/weather/`DG'WarmYoung_lag`lag'.eps", as(eps) replace
-        graph box goodSeason if coldState_20==1&young==0, `opts'
-        graph export "$OUT/weather/`DG'ColdOld_lag`lag'.eps", as(eps) replace
-        graph box goodSeason if coldState_20==0&young==0, `opts'
-        graph export "$OUT/weather/`DG'WarmOld_lag`lag'.eps", as(eps) replace
-    }
-}
-exit
-    
-foreach x of numlist 20 15 10 {
-    preserve
-    collapse goodSeason cold, by(coldState_`x' young year)
-    keep if young!=.
-    tokenize `names'
-    foreach c of local conds {
-        #delimit ;
-        twoway line goodS year if `c', yaxis(1) lpattern(dash) lcolor(black)
-        ||     line cold  year if `c', yaxis(2) lcolor(black) scheme(s1mono)
-        ytitle("Proportion Good Season")
-        ytitle("Coldest Temperature (degree F)", axis(2))
-        legend(label(1 "Good Season") label(2 "Coldest Temperature"));
-        graph export "$OUT/weather/weather`x'_`1'.eps", as(eps) replace;
-        #delimit cr
-        macro shift
-    }
-    restore
-}
 
 
 ************************************************************************************
