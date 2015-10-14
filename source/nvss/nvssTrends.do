@@ -23,9 +23,7 @@ cap log close
 ********************************************************************************
 global DAT "~/investigacion/2015/birthQuarter/data/nvss"
 global OUT "~/investigacion/2015/birthQuarter/results/nvss/graphs"
-global OUT "~/investigacion/2015/birthQuarter/results/married/graphs"
 global SUM "~/investigacion/2015/birthQuarter/results/nvss/sumStats"
-global SUM "~/investigacion/2015/birthQuarter/results/married/sumStats"
 global LOG "~/investigacion/2015/birthQuarter/log"
 global USW "~/investigacion/2015/birthQuarter/data/weather"
 
@@ -44,7 +42,7 @@ local stateFE 0
 local twins   0
 local lyear   25
 if `twins' == 1 local app twins
-
+/*
 ********************************************************************************
 *** (2a) Use, descriptive graph
 ********************************************************************************
@@ -801,47 +799,57 @@ foreach outcome in `hkbirth' {
     macro shift
 }
 restore
-
+*/
 ********************************************************************************
 *** (7) Examine by geographic variation (hot/cold)
 ********************************************************************************
 use "$DAT/nvss1990s", clear
 keep if `keepif' & twin==1
 gen birth = 1
+gen young = motherAge>=25&motherAge<40
 
-***NOTE: 12 is Florida (759,551 births). 31 is Nebraska (125,628 births)
-keep if stoccfip=="12"|stoccfip=="31"
+
+***NOTE: 12 is Florida (759,551 births). 31 is Nebraska (125,628 births).
+***27 is Minnesota (350,968 births).
+keep if stoccfip=="12"|stoccfip=="27"
 gen     conceptionMonth = birthMonth - round(gestation*7/30.5)
 replace conceptionMonth = conceptionMonth + 12 if conceptionMonth<1
 gen     state = ""
-replace state = "Florida"   if stoccfip=="12"
-replace state = "Nebraska"  if stoccfip=="31"
+replace state = "Florida"    if stoccfip=="12"
+replace state = "Minnesota"  if stoccfip=="27"
 
 cap lab def mon 1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" /*
 */ 8 "Aug" 9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec"
 
 
 drop if conceptionMonth==.
-collapse (sum) birth, by(conceptionMonth state)
+collapse (sum) birth, by(conceptionMonth state young)
 lab val conceptionMon mon
-bys state: egen totalBirths = sum(birth)
+bys state young: egen totalBirths = sum(birth)
 gen birthProportion = birth/totalBirths
 sort conceptionMonth state
 
 local line1 lpattern(solid)    lcolor(black)
 local line2 lpattern(dash)     lcolor(black) 
+local cond1 state=="Florida"  
+local cond2 state=="Minnesota"
 
 #delimit ;
-twoway line birthProportion conceptionMonth if state=="Florida" , `line1' ||
-       line birthProportion conceptionMonth if state=="Nebraska", `line2' 
+twoway line birthProportion conceptionMonth if `cond1'& young==1, `line1' ||
+       line birthProportion conceptionMonth if `cond2'& young==1, `line2' 
 scheme(s1mono) xtitle("Month of Conception") ytitle("Proportion of All Births") 
-legend(label(1 "Florida") label(2 "Nebraska")) xlabel(1(1)12, valuelabels);
-graph export "$OUT/conceptionMonthFloridaNebraska.eps", as(eps) replace;
+legend(label(1 "Florida") label(2 "Minnesota")) xlabel(1(1)12, valuelabels);
+graph export "$OUT/conceptionMonthFloridaMinnesota_young.eps", as(eps) replace;
+
+twoway line birthProportion conceptionMonth if `cond1'& young==0, `line1' ||
+       line birthProportion conceptionMonth if `cond2'& young==0, `line2' 
+scheme(s1mono) xtitle("Month of Conception") ytitle("Proportion of All Births") 
+legend(label(1 "Florida") label(2 "Minnesota")) xlabel(1(1)12, valuelabels);
+graph export "$OUT/conceptionMonthFloridaMinnesota_old.eps", as(eps) replace;
 #delimit cr
+exit
 
-
-
-insheet using "$USW/usaWeather.txt", delim(";") names
+insheet using "$USW/usaWeather.txt", delim(";") names clear
 rename fips FIPS
 destring temp, replace
 
