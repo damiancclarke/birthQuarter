@@ -23,7 +23,7 @@ print('\n\n Producing tex files for output tables.\n\n')
 #==============================================================================
 RES   = "/home/damiancclarke/investigacion/2015/birthQuarter/results/"
 TAB   = "/home/damiancclarke/investigacion/2015/birthQuarter/tables/"
-ftype = 'married'
+ftype = 'nvss'
 dloc  = './../'
 
 singleNVSS       = RES + ftype + '/sumStats/FullSample.txt'
@@ -627,6 +627,7 @@ TABLES = [loc2 +'NVSSExpectMain.tex'         ,
           loc2 +'NVSSBinaryYoung34.tex'      , 
           loc2 +'NVSSBinaryNoSep.tex'        , 
           loc2 +'NVSSBinaryDeseg.tex'        , 
+          loc2 +'NVSSQualityBord2.tex'       ,
           loc2 +'NVSSQualityTwin.tex'        , 
           loc1 +'sumStatsSpain.tex'          ,
           loc1 +'sumSpain.tex'               ,
@@ -637,7 +638,7 @@ TABLES = [loc2 +'NVSSExpectMain.tex'         ,
 
 i = 1
 for table in TABLES:
-    if i==4 or i==11 or i==12:
+    if i==4 or i==12 or i==13:
         final.write('\\input{'
                     +table+'}\n')
     else:
