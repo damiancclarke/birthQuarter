@@ -1,0 +1,746 @@
+\documentclass[10pt,letterpaper,subeqn]{beamer}
+\setbeamertemplate{navigation symbols}{}
+\usefonttheme{serif}
+\usecolortheme{seahorse}
+
+
+
+\usepackage[english]{babel}
+\selectlanguage{english}
+\usepackage{bm}
+\usepackage{booktabs}
+\usepackage{color}
+\usepackage[update,prepend]{epstopdf}
+\usepackage{framed}
+\usepackage{fleqn}
+\usepackage{graphics}
+\usepackage{hyperref}
+\usepackage[utf8]{inputenc}
+\usepackage{setspace}
+\usepackage{textcomp}
+\usepackage{wrapfig}
+\usepackage{multirow}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{subfloat}
+\setbeamertemplate{caption}[numbered]
+\usepackage{wrapfig}
+\usepackage{tikz}
+
+\definecolor{cadmiumgreen}{rgb}{0.0, 0.42, 0.24}
+\usetikzlibrary{trees}
+\usetikzlibrary{decorations.markings}
+
+
+%================================================================================
+%== TITLE, NAMES, DATE
+%================================================================================
+\title{\Large{\textsc{Choosing Season of Birth:}}\\ \Large{\textsc{The Role of Biological and Economic Constraints}}}
+
+\author{Damian Clarke\inst{\S}
+   \and Sonia Oreffice\inst{\diamond}
+   \and Climent Quintana-Domeque\inst{*}}
+
+\institute{\inst{\S}  University of Oxford
+      \and \inst{\diamond} University of Surrey and IZA
+      \and \inst{*}     University of Oxford and IZA}
+
+\date{October 2015}
+%********************************************************************************
+\begin{document}
+
+
+\begin{frame}
+\titlepage
+\end{frame}
+%********************************************************************************
+
+\begin{frame}[label=Motivation]
+\frametitle{Motivation}
+
+\begin{itemize}
+\item The \emph{effects} of the season of birth are clear:
+      \begin{itemize}
+        \item child health, educational attainment, labor market
+        \item Angrist and Krueger (1991), Buckles and Hungerman (2013), Currie and Schwandt (2013)
+        %\item Crawford et al.\ (2014)
+        %\item Currie and Schwandt (2013)
+      \end{itemize}
+\item Although no consensus yet on the main driving force:
+      \begin{itemize}
+        \item selection (of mothers), weather (colder)
+      \end{itemize}
+\item There are ``good'' and ``bad'' seasons
+      \begin{itemize}
+\item Colder months are bad: quarters 1 and 4
+\item Spring and Summer are good: quarters 2 and 3
+\item At least in the US
+      \end{itemize}
+\end{itemize}
+\end{frame}
+
+%-------------------------------------------------------------------------------
+\begin{frame}[label=Motivation2]
+\frametitle{Motivation}
+\begin{itemize}
+\item No analysis of the \emph{determinants} of the season of birth of a child
+\item No study has yet considered season of birth as a choice variable
+\item Prominence of family planning in people's work and family life, sense that winter may represent tougher birth months for weather/diseases and different work commitments
+\item We consider \underline{when} to have their \underline{first} child:
+\begin{itemize}
+  \item When (\underline{young or old}) and in \underline{which season} (quarter of birth)?
+%  \item Focus on SOB decision, take age of mother as given
+\end{itemize}
+\end{itemize}
+\end{frame}
+
+%-------------------------------------------------------------------------------
+\begin{frame}[label=Motivation3]
+\frametitle{Anecdotal evidence}
+\begin{itemize}
+\item ``The preconception period (three months prior to pregnancy) is the time to make life changes that can help boost fertility, reduce problems during pregnancy and assist in recovery from birth.''
+\item ``When you start thinking about becoming pregnant you should take a look at your health and that of your partner. Try to give yourselves three months to prepare for pregnancy.''
+\item http://boards.weddingbee.com/topic/\textcolor[rgb]{0.00,0.00,1.00}{choosing-which-month-your-baby-will-be-born-in}/
+\item comparison of the four seasons:
+\begin{itemize}
+\item http://www.popsugar.com/moms/\textcolor[rgb]{0.00,0.00,1.00}{When-Best-Time-Year-Have-Baby}-27331341
+\end{itemize}
+\item ``It's certainly not a bad time to give birth -- less fears of germs getting your baby sick and plenty of sunshiney days for backyard birthday parties when they're older.''
+\item ``Summer is a great season for your maternity leave to fall on ...''
+\item ``All saved their sick days for many years before getting pregnant or had early summer babies on purpose!''
+\item ``If we were to conceive now, the baby would be due around six weeks before summer break next year so I basically wouldn't finish the school year as leave would end after post planning.''%  Would I still receive my summer pay or would they try to not pay me for not finishing the year?''
+\end{itemize}
+\end{frame}
+
+
+
+%-------------------------------------------------------------------------------
+\begin{frame}[label=map]
+\frametitle{What do we do?}
+
+\begin{enumerate}
+\item We establish new stylized facts on the choice of season of birth:
+\begin{itemize}
+\item Reduced-form estimates of season of birth correlates
+\begin{itemize}
+\item By age group of the mother,
+\item By cold weather patterns,
+\item By ART usage
+\item Using month of birth, or month of conception + 9 months
+\end{itemize}
+\item Reduced-form estimates of birth quality correlates
+
+%\item Use gestation weeks to further disentangle the \emph{intended} from the \emph{realized} good and bad seasons
+\end{itemize}
+\item We estimate a structural model where:
+      \begin{itemize}
+        \item mother's age (young vs. old) and SOB (good vs. bad)  are choice variables
+%        \item SOB is choice variable
+      \end{itemize}
+\item We estimate the value of SOB in terms of trade-off between birth quality (mother's well-being) and earnings (biological and economic constraints)
+%\item Value of SOB and postponing fertility, trade-off:
+      \begin{itemize}
+       \item Postpone (old): earnings increase but good season less likely
+       \item Not to postpone (young): earnings decrease but good season more likely
+      \end{itemize}
+%\end{itemize}
+\end{enumerate}
+\end{frame}
+
+%-------------------------------------------------------------------------------
+
+\begin{frame}[label=datades]
+\frametitle{Data Description}
+\begin{itemize}
+\item US National Vital Statistics System: all birth certificates
+\item Detailed information on ``birth quality'' and mothers' characteristics
+\item We focus on:
+      \begin{itemize}
+        \item White and non-Hispanic women who had their first-born child
+        \item Singletons (we also look at twins)
+        \item Mothers aged 25-45
+        \item 2005-2013
+     \end{itemize}
+\item Spanish National Vital Statistics: all birth certificates (2007-2013)
+\end{itemize}
+\end{frame}
+
+
+%%% WHAT'S THE DIFFERENT BETWEEN THESE TWO TABLES?
+%%% DCC: REMOVED FIRST TABLE: THEY ARE THE SAME (I MADE THEM FOR THE PAPER WHEN
+%%%      WE REPLICATED FOR VARIOUS SPECIFICATIONS).
+%%\begin{frame}[label=sum1]
+%%\frametitle{Descriptive Statistics}
+%%\input{./../tables/sumStatsexpect.tex}
+%%\end{frame}
+
+
+
+\begin{frame}[label=sum2]
+\frametitle{Descriptive Statistics}
+\input{./tables/sumStatsnvss.tex}
+\end{frame}
+
+\begin{frame}[label=sum2]
+\frametitle{Descriptive Statistics}
+\input{./tables/sumStatsSamp.tex}
+\end{frame}
+
+
+
+%-------------------------------------------------------------------------------
+
+
+
+%-------------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Age and conception months}
+\begin{figure}[htpb!]
+  \centering
+  \includegraphics[scale=0.7]{./../results/nvss/graphs/conceptionMonth.eps}
+\end{figure}
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{Age and conception months (ART only)}
+\begin{figure}[htpb!]
+  \includegraphics[scale=0.7]{./../results/nvss/graphs/conceptionMonthART.eps}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Age and conception months (25-34 Year-old Highschool)}
+%\begin{figure}[htpb!]
+ % \includegraphics[scale=0.7]{./../results/nvss/graphs/conceptionMonthART.eps}
+%\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Proportion of ART Conceptions by Month}
+\begin{figure}[htpb!]
+  \includegraphics[scale=0.7]{./../results/nvss/graphs/proportionMonthART.eps}
+\end{figure}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Florida vs. Minnesota}
+\begin{figure}[htpb!]
+\begin{center}
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.37]{./../results/nvss/graphs/conceptionMonthFloridaMinnesota_young.eps}
+  \caption{Young Women (25-39)}
+  \label{fig:conceptionsStatesYoung}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.37]{./../results/nvss/graphs/conceptionMonthFloridaMinnesota_old.eps}
+  \caption{Old Women (40-45)}
+  \label{fig:conceptionsStatesOld}
+\end{subfigure}
+\end{center}
+\end{figure}
+\end{frame}
+
+
+
+
+
+
+\begin{frame}
+\frametitle{Good Season by State for Younger Women}
+\begin{figure}[htpb!]
+\begin{center}
+  \centering
+%  \caption{Good Season by State for Younger Women}
+  \includegraphics[scale=0.3]{./../results/nvss/graphs/maps/young.png}
+  \label{fig:mapYoung}
+\end{center}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Good Season by State for Older Women}
+\begin{figure}[htpb!]
+\begin{center}
+  \centering
+%  \caption{Good Season by State for Older Women}
+  \includegraphics[scale=0.3]{./../results/nvss/graphs/maps/old.png}
+  \label{fig:mapOld}
+\end{center}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Temperature and Good Season}
+\begin{figure}[htpb!]
+\begin{center}
+%\caption{Temperature and Good Season}
+\label{fig:tempUSA}
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.37]{./../results/nvss/graphs/youngTempCold.eps}
+  \caption{Younger Mothers}
+  \label{fig:tempUSAYoung}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.37]{./../results/nvss/graphs/oldTempCold.eps}
+  \caption{Older Mothers}
+  \label{fig:tempUSAOld}
+\end{subfigure}
+\end{center}
+%\floatfoot{\textsc{Notes to figure \ref{fig:tempUSA}}: Each point
+%represents a state average of proportion of women giving birth in the
+%good birth season.  Dotted line is a fitted regression line.  Monthly
+%temperature data is collected from the National Centers for Environmental
+%Information.}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Birth per Month and Temperature: Various Countries}
+\begin{figure}[htpb!]
+\begin{center}
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.37]{./../results/countries/excessMonthChileYoungTemp.eps}
+  \caption{Chile}
+  \label{fig:ChileTemp}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.37]{./../results/countries/excessMonthUSAYoungTemp.eps}
+  \caption{USA}
+  \label{fig:USATemp}
+\end{subfigure}
+\end{center}
+\end{figure}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Younger (25-39) versus older (40-45) women births}
+\begin{figure}[htpb!]
+\centering
+%\caption{Younger (25-39) versus older (40-45) women births}
+\label{bqFig:YoungvOld}
+  \centering
+  \includegraphics[scale=0.7]{./../results/nvss/graphs/youngMonths.eps}
+%\floatfoot{\textsc{Notes to figure}: Each point and standard error comes from a regression
+%of birth month $x$ on a binary indicator of being younger ($=$ 1 if 25-39, $=0$ if 40-45).
+%}
+\end{figure}
+\end{frame}
+
+%-------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+\begin{frame}
+\frametitle{Difference in Births (\% Good Season - \% Bad Season)}
+\begin{figure}[htpb!]
+  \begin{center}
+  %\caption{Difference in Births (\% Good Season - \% Bad Season)}
+  \label{fig:NVSSbirthsAges}
+  \includegraphics[scale=0.8]{./../results/nvss/graphs/birthQdiff_4Ages.eps}
+  \end{center}
+\end{figure}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Difference in Births (\% Good Season - \% Bad Season)}
+\begin{figure}[htpb!]
+\begin{center}
+%\caption{Difference in Births (\% Good Season - \% Bad Season)}
+\label{fig:birthDiffART}
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.37]{./../results/nvss/graphs/birthQdiff_4AgesART.eps}
+  \caption{ART Users}
+  \label{fig:DiffNoART}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.37]{./../results/nvss/graphs/birthQdiff_4AgesNoART.eps}
+  \caption{Non-ART Users}
+  \label{fig:DiffART}
+\end{subfigure}
+\end{center}
+\end{figure}
+\end{frame}
+
+
+
+
+
+
+
+
+
+
+
+
+
+\begin{frame}[label=BQs]
+\frametitle{Percent of Births (Singletons)}
+\input{./tables/sumsinglenvss.tex}
+\end{frame}
+
+
+
+
+
+
+
+
+\begin{frame}[label=QBw]
+\frametitle{Birth Quality (Birth Weight) by Season}
+\begin{figure}[htpb!]
+\centering
+%\caption{Child quality: Birthweight (grams)}
+\label{QBwt}
+\includegraphics[scale=0.6]{./../results/nvss/graphs/AllQuality_birthweight_.eps}
+\end{figure}
+\end{frame}
+
+
+
+\begin{frame}%[label=NVSSseason]
+\frametitle{Season of Birth Correlates}
+\input{./tables/NVSSBinaryMain}
+\end{frame}
+
+
+\begin{frame}%[label=NVSSseason]
+\frametitle{Season of Birth Correlates: Very Young and ART users}
+\input{./tables/ART2024}
+\end{frame}
+
+%\begin{frame}[label=NVSSseasonQ]
+%\frametitle{Season of Birth, Age and Education}
+%\input{./tables/quarterHeterogeneity.tex}
+%\end{frame}
+
+\begin{frame}%[label=NVSSQuality]
+\frametitle{Birth Outcomes Correlates}
+\input{./tables/NVSSQualityMain.tex}
+\end{frame}
+
+%%\begin{frame}[label=how]
+%%\frametitle{Which good season?}
+%%\begin{itemize}
+%%\item Age is the most important determinant of SOB
+%%\item Why? Preferences and/or biological constraints?
+%%\item Age difference represents different choices or older mothers' SOB is driven by pre-term realized SOB?
+%%\item Difference between intended and realized SOB: if pre-term, birth may end up in the ``wrong'' season
+%%\item Using gestation weeks, construct a new dummy good intended season
+%%\end{itemize}
+%%\end{frame}
+%%
+%%
+%%\begin{frame}%[label=NVSSseason]
+%%\frametitle{Season of Birth Correlates: month of conception}
+%%\input{./../results/expect/regressions/NVSSBinaryMain.tex}
+%%\end{frame}
+%%
+%%\begin{frame}%[label=NVSSseason]
+%%\frametitle{Birth Outcomes Correlates: month of conception}
+%%\input{./../results/expect/regressions/NVSSQualityMain.tex}
+%%\end{frame}
+
+\begin{frame}[label=how]
+\frametitle{Premature Births by Age}
+\begin{figure}[htpb!]
+  \centering
+  \includegraphics[scale=0.7]{./../results/nvss/graphs/prematureAges.eps}
+\end{figure}
+\end{frame}
+
+
+
+
+%\begin{frame}[label=NVSSQuality]
+%\frametitle{Birth Quality}
+%\input{./tables/qualityHeterogeneity.tex}
+%\end{frame}
+
+%\begin{frame}[label=NVSSQualitySeasons]
+%\frametitle{Birth Quality}
+%\input{./tables/QualityAllSeasons.tex}
+%\end{frame}
+
+
+
+%\begin{frame}[label=fig3]
+%\frametitle{Intended Table}
+%\begin{itemize}
+%\item Birth quality and intended good SOB
+%\end{itemize}
+%\end{frame}
+
+%\begin{frame}[label=sumSpain]
+%\input{./tables/sumStatsSpain.tex}
+%\end{frame}
+
+%\begin{frame}[label=sumSpainBQ]
+%\input{./tables/sumSpain.tex}
+%\end{frame}
+
+
+%\begin{frame}[label=SpainQuality]
+%\frametitle{Birth Quality (Spain)}
+%\input{./tables/spainQualityEduc.tex}
+%\end{frame}
+
+
+%\begin{frame}
+%\frametitle{Conception and Births: YOUNG (Spain)}
+%\begin{figure}
+%\hspace{6.0cm}{\footnotesize \textbf{Realized Season}} \vspace{4mm}\\
+%\begin{tikzpicture}[scale=0.6,thick,
+%    level/.style={level distance=3cm},
+%    level 2/.style={sibling distance=6cm},
+%    level 3/.style={sibling distance=4cm}
+%]
+%\coordinate
+%child[grow=right, level distance=0pt] {
+%        child  {
+%            child {
+%                node {{\footnotesize \textcolor{red}{Bad Season = 0.471}}}
+%                edge from parent
+%            }
+ %           child {
+ %               node {{\footnotesize \textcolor{cadmiumgreen}{Good Season = 0.023}}}
+ %               edge from parent
+ %           }
+ %           edge from parent
+ %           node [left] {{\footnotesize Bad Season = 0.494 \ }}
+  %      }
+   %     child {
+    %        child {
+    %           node {{\footnotesize \textcolor{red}{Bad Season=0.026}}}
+     %           edge from parent
+      %      }
+       %     child {
+        %        node {{\footnotesize \textcolor{cadmiumgreen}{Good Season=0.480}}}
+         %       edge from parent
+          %  }
+           % edge from parent
+           % node [left] {{\footnotesize Good Season = 0.506 \ }}
+       % }
+       % node [left] {{\footnotesize \textbf{Expected Season\ \ }}}
+   % };
+%\end{tikzpicture}
+%\end{figure}
+%\end{frame}
+
+%\begin{frame}
+%\frametitle{Conception and Births: OLD (Spain)}
+%\begin{figure}
+%\hspace{6.0cm}{\footnotesize \textbf{Realized Season}} \vspace{4mm}\\
+%\begin{tikzpicture}[scale=0.6,thick,
+%    level/.style={level distance=3cm},
+%    level 2/.style={sibling distance=6cm},
+%    level 3/.style={sibling distance=4cm}
+%]
+%\coordinate
+%child[grow=right, level distance=0pt] {
+%        child  {
+%            child {
+%                node {{\footnotesize \textcolor{red}{Bad Season = 0.490}}}
+%                edge from parent
+%            }
+%            child {
+%                node {{\footnotesize \textcolor{cadmiumgreen}{Good Season = 0.024}}}
+%                edge from parent
+%            }
+%            edge from parent
+%            node [left] {{\footnotesize Bad Season = 0.514 \ }}
+%        }
+%        child {
+%            child {
+%               node {{\footnotesize \textcolor{red}{Bad Season=0.026}}}
+%                edge from parent
+%            }
+%            child {
+%                node {{\footnotesize \textcolor{cadmiumgreen}{Good Season=0.460}}}
+%                edge from parent
+%            }
+%            edge from parent
+%            node [left] {{\footnotesize Good Season = 0.486 \ }}
+%        }
+%        node [left] {{\footnotesize \textbf{Expected Season\ \ }}}
+%    };
+%\end{tikzpicture}
+%\end{figure}
+%\end{frame}
+
+
+%\begin{frame}[label=SpainQuality]
+%\frametitle{Birth Quality (Spain)}
+%\input{./tables/spainQualityGestFix.tex}
+%\end{frame}
+
+\begin{frame}[label=conclusions]
+\frametitle{Preliminary conclusions and directions}
+\begin{itemize}
+\item With 2 age groups or only married women: same results
+\item With birth or conception month: same results
+\item What matters is planned SOB 
+\item Cold weather plays a role in mother's decision
+\item Next step (structural model): estimating the value of SOB
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\begin{center}
+{\Large Appendix}
+\end{center}
+\end{frame}
+
+%Season of Birth Correlates (age as a continuous variable)
+
+\begin{frame}
+\frametitle{Season of Birth Correlates (Birth Order 2)}
+\input{./tables/NVSSBinaryBord2}
+\end{frame}
+
+\begin{frame}
+\frametitle{Season of Birth Correlates (Twins Only)}
+\input{./tables/NVSSBinaryTwin}
+\end{frame}
+
+\begin{frame}
+\frametitle{Season of Birth Correlates (Including Fetal Deaths)}
+\input{./tables/NVSSBinaryFDeaths}
+\end{frame}
+
+\begin{frame}
+\frametitle{Season of Birth Correlates (No September Conceptions)}
+\input{./tables/NVSSBinaryNoSep}
+\end{frame}
+
+
+
+
+
+\begin{frame}%[label=births]
+\frametitle{Season of Birth Correlates (age as a continuous variable)}
+\input{./tables/NVSSBinaryMain_A.tex}
+\end{frame}
+
+
+\begin{frame}[label=births]
+\frametitle{Maternal Age at Birth: USA}
+\begin{figure}[htpb!]
+\begin{center}
+  \centering
+ % \caption{Mother's Age at First Birth, 25-45}
+  \includegraphics[scale=0.6]{./../results/nvss/graphs/ageDescriptive.eps}
+  \label{fig:NVSSbirths}
+\end{center}
+\end{figure}
+\vspace{-5mm}
+\end{frame}
+
+\begin{frame}[label=twins]
+\frametitle{Twin Prevalance and Age}
+\begin{figure}[htpb!]
+\begin{center}
+  \centering
+%  \caption{Proportion of Twins Born by Age}
+  \includegraphics[scale=0.6]{./../results/nvss/graphs/twinPrevalence.eps}
+  \label{fig:NVSSTwins}
+\end{center}
+\end{figure}
+\vspace{-5mm}
+\end{frame}
+
+
+
+\begin{frame}[label=ART]
+\frametitle{Assisted Reproductive Technology and Age}
+\begin{figure}[htpb!]
+\begin{center}
+  \centering
+ % \caption{Proportion of Mothers Reporting any ART}
+  \includegraphics[scale=0.6]{./../results/nvss/graphs/ART.eps}
+  \label{fig:NVSSART}
+\end{center}
+\end{figure}
+\vspace{-5mm}
+\footnotesize{Notes: Questions on ART use are only included in 2012-2013
+birth certificate data.}
+\end{frame}
+
+%\begin{frame}[label=QBwEd]
+%\frametitle{Birth Quality by Season}
+%begin{figure}[htpb!]
+%\centering
+%\caption{Child quality: Birthweight by Education}
+%\label{QBwtEd}
+%\includegraphics[scale=0.6]{../results/nvss/graphs/Quality_birthweight_.eps}
+%\end{figure}
+%\end{frame}
+
+%\begin{frame}[label=EdInteract]
+%\frametitle{Season of Birth, Age and Education}
+%\input{./tables/NVSSBinaryEdInteract.tex}
+%\end{frame}
+
+%\begin{frame}[label=birthSeasonYoung34]
+%\frametitle{Season of Birth, Age and Education}
+%\input{./tables/NVSSBinaryYoung34.tex}
+%\end{frame}
+
+%\begin{frame}[label=Spainseason]
+%\frametitle{Season of Birth, Age and Education (Spain)}
+%\input{./tables/spainBinary.tex}
+%\end{frame}
+
+
+
+
+
+
+
+
+
+
+\begin{frame}
+\frametitle{First Birth Rates by Mother's Age: 35-39 vs. 40-44}
+\begin{center}
+\includegraphics[scale=0.3]{./tables/Figure_1.png}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{First Birth for Mother's Age 40-44 by Race and Ethnicity}
+\begin{center}
+\includegraphics[scale=0.3]{./tables/Figure_3.png}
+\end{center}
+\end{frame}
+
+
+
+
+
+
+\end{document}
+%********************************************************************************
+
+
+
