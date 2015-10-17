@@ -42,14 +42,14 @@ local stateFE 0
 local twins   0
 local lyear   25
 if `twins' == 1 local app twins
-/*
+
 ********************************************************************************
 *** (2a) Use, descriptive graph
 ********************************************************************************
 use "$DAT/`data'"
 keep if married==1
 keep if birthOrder==1
-
+/*
 #delimit ;
 twoway histogram motherAge if motherA>24&motherA<=45, freq color(gs0) width(1) ||
 histogram motherAge if motherAge<=24|motherAge>45, freq color(gs12) width(1)
@@ -88,7 +88,7 @@ graph export "$OUT/ARTageGroup.eps", as(eps) replace;
 restore
 
 
-
+*/
 ********************************************************************************
 *** (2aii) Summary stats table
 ********************************************************************************
@@ -139,12 +139,12 @@ lab var ART         "Used ART (2012-2013 only)"
 lab var young       "Young (aged 25-39)"
 lab var expectGoodQ "Intended good season of birth"
 
-
+/*
 local Mum     motherAge married young 
 local MumPart college educCat smoker ART
 
 foreach st in Mum Kid MumPart {
-    local Kid goodQ expectGoodQ birthweight lbw gestat premature apgar twin fem
+    local Kid goodQ expectGoodQ twin fem birthweight lbw gestat premature apgar
 
     sum ``st''
     estpost tabstat ``st'', statistics(count mean sd min max) columns(statistics)
@@ -152,7 +152,7 @@ foreach st in Mum Kid MumPart {
     */ cells("count(fmt(0)) mean(fmt(2)) sd(fmt(2)) min(fmt(0)) max(fmt(0))")  /*
     */ replace label noobs
 
-    local Kid goodQ expectGoodQ birthweight lbw gestat premature apgar fem
+    local Kid goodQ expectGoodQ fem birthweight lbw gestat premature apgar
     preserve
     keep if `keepif' &married!=.&smoker!=.&college!=.&young!=.&twin==0
     sum ``st''
@@ -163,7 +163,7 @@ foreach st in Mum Kid MumPart {
     */ replace label noobs
     restore
 }
-
+*/
 ********************************************************************************
 *** (2b) Subset
 ********************************************************************************
@@ -210,6 +210,23 @@ lab var educLevel    "Level of education obtained by mother"
 *** (3) Descriptives by month
 *******************************************************************************
 preserve
+drop if ART==.|conceptionMonth==.
+collapse (sum) birth, by(conceptionMonth ART)
+reshape wide birth, i(conceptionMonth) j(ART)
+lab def m2 1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug" /*
+*/ 9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec"
+
+lab val conceptionMon m2
+gen proportionART = birth1/(birth0+birth1)
+sort conceptionMonth
+twoway line proportionART conceptionMonth, xlabel(1(1)12, valuelabels) /*
+*/ scheme(s1mono) ytitle("Proportion of Conceptions Using ART")        /*
+*/ xtitle("Month of Conception")
+graph export "$OUT/proportionMonthART.eps", as(eps) replace
+restore
+
+
+preserve
 drop if age3==.|conceptionMonth==.
 collapse (sum) birth, by(conceptionMonth age3)
 lab val conceptionMon mon
@@ -226,7 +243,10 @@ local line3 lpattern(longdash) lcolor(black) lwidth(thin)
 twoway line birthProportion conceptionMonth if age3==1, `line1' ||
        line birthProportion conceptionMonth if age3==2, `line2' ||
        line birthProportion conceptionMonth if age3==3, `line3'
-scheme(s1mono) xtitle("Month of Conception") xlabel(1(1)12, valuelabels)
+xaxis(1 2) scheme(s1mono) xtitle("Month of Conception", axis(2))
+xlabel(1(1)12, valuelabels axis(2)) 
+xlabel(1 "Oct" 2 "Nov" 3 "Dec" 4 "Jan" 5 "Feb" 6 "Mar" 7 "Apr" 8 "May" 9 "Jun"
+10 "Jul" 11 "Aug" 12 "Sep", axis(1)) xtitle("Expected Month")
 legend(label(1 "25-34 Year-olds") label(2 "35-39 Year-olds")
        label(3 "40-45 Year-olds")) ytitle("Proportion of All Births") ;
 graph export "$OUT/conceptionMonth.eps", as(eps) replace;
@@ -280,13 +300,16 @@ local line3 lpattern(longdash) lcolor(black) lwidth(thin)
 twoway line birthProportion conceptionMonth if age3==1, `line1' ||
        line birthProportion conceptionMonth if age3==2, `line2' ||
        line birthProportion conceptionMonth if age3==3, `line3'
-scheme(s1mono) xtitle("Month of Conception") xlabel(1(1)12, valuelabels)
+xaxis(1 2) scheme(s1mono) xtitle("Month of Conception", axis(2))
+xlabel(1(1)12, valuelabels axis(2)) 
+xlabel(1 "Oct" 2 "Nov" 3 "Dec" 4 "Jan" 5 "Feb" 6 "Mar" 7 "Apr" 8 "May" 9 "Jun"
+10 "Jul" 11 "Aug" 12 "Sep", axis(1)) xtitle("Expected Month")
 legend(label(1 "25-34 Year-olds") label(2 "35-39 Year-olds")
        label(3 "40-45 Year-olds")) ytitle("Proportion of All Births") ;
 graph export "$OUT/conceptionMonthART.eps", as(eps) replace;
 #delimit cr
 restore
-
+exit
 preserve
 drop if age3==.|conceptionMonth==.
 keep if ART==1
