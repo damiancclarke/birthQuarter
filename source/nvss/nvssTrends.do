@@ -47,7 +47,7 @@ if `twins' == 1 local app twins
 *** (2a) Use, descriptive graph
 ********************************************************************************
 use "$DAT/`data'"
-keep if married==1
+*keep if married==1
 keep if birthOrder==1
 /*
 #delimit ;
@@ -225,6 +225,26 @@ twoway line proportionART conceptionMonth, xlabel(1(1)12, valuelabels) /*
 graph export "$OUT/proportionMonthART.eps", as(eps) replace
 restore
 
+preserve
+keep if motherAge>=25&motherAge<=34
+drop if education>2 | conceptionMonth==.
+collapse (sum) birth, by(conceptionMonth)
+lab val conceptionMon mon
+egen totalBirths = sum(birth)
+
+gen birthProportion = birth/totalBirths
+sort conceptionMonth
+#delimit ;
+twoway line birthProportion conceptionMonth, 
+xaxis(1 2) scheme(s1mono) xtitle("Month of Conception", axis(2))
+xlabel(1(1)12, valuelabels axis(2)) lcolor(black) lwidth(thick)
+xlabel(1 "Oct" 2 "Nov" 3 "Dec" 4 "Jan" 5 "Feb" 6 "Mar" 7 "Apr" 8 "May" 9 "Jun"
+10 "Jul" 11 "Aug" 12 "Sep", axis(1)) xtitle("Expected Month")
+ytitle("Proportion of All Births");
+#delimit cr
+graph export "$OUT/conceptionMonthDropout.eps", as(eps) replace
+restore
+exit
 
 preserve
 drop if age3==.|conceptionMonth==.
