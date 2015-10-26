@@ -43,13 +43,14 @@ local twins   0
 local lyear   25
 if `twins' == 1 local app twins
 
+/*
 ********************************************************************************
 *** (2a) Use, descriptive graph
 ********************************************************************************
 use "$DAT/`data'"
 *keep if married==1
 keep if birthOrder==1
-/*
+
 #delimit ;
 twoway histogram motherAge if motherA>24&motherA<=45, freq color(gs0) width(1) ||
 histogram motherAge if motherAge<=24|motherAge>45, freq color(gs12) width(1)
@@ -88,7 +89,7 @@ graph export "$OUT/ARTageGroup.eps", as(eps) replace;
 restore
 
 
-*/
+
 ********************************************************************************
 *** (2aii) Summary stats table
 ********************************************************************************
@@ -139,7 +140,7 @@ lab var ART         "Used ART (2012-2013 only)"
 lab var young       "Young (aged 25-39)"
 lab var expectGoodQ "Intended good season of birth"
 
-/*
+
 local Mum     motherAge married young 
 local MumPart college educCat smoker ART
 
@@ -163,7 +164,7 @@ foreach st in Mum Kid MumPart {
     */ replace label noobs
     restore
 }
-*/
+
 ********************************************************************************
 *** (2b) Subset
 ********************************************************************************
@@ -236,10 +237,10 @@ gen birthProportion = birth/totalBirths
 sort conceptionMonth
 #delimit ;
 twoway line birthProportion conceptionMonth, 
-xaxis(1 2) scheme(s1mono) xtitle("Month of Conception", axis(2))
-xlabel(1(1)12, valuelabels axis(2)) lcolor(black) lwidth(thick)
+xaxis(1 2) scheme(s1mono) xtitle("Expected Month", axis(2))
+xlabel(1(1)12, valuelabels axis(1)) lcolor(black) lwidth(thick)
 xlabel(1 "Oct" 2 "Nov" 3 "Dec" 4 "Jan" 5 "Feb" 6 "Mar" 7 "Apr" 8 "May" 9 "Jun"
-10 "Jul" 11 "Aug" 12 "Sep", axis(1)) xtitle("Expected Month")
+10 "Jul" 11 "Aug" 12 "Sep", axis(2)) xtitle("Month of Conception")
 ytitle("Proportion of All Births");
 #delimit cr
 graph export "$OUT/conceptionMonthDropout.eps", as(eps) replace
@@ -842,7 +843,7 @@ foreach outcome in `hkbirth' {
     macro shift
 }
 restore
-*/
+
 ********************************************************************************
 *** (7) Examine by geographic variation (hot/cold)
 ********************************************************************************
@@ -891,7 +892,7 @@ legend(label(1 "Florida") label(2 "Minnesota")) xlabel(1(1)12, valuelabels);
 graph export "$OUT/conceptionMonthFloridaMinnesota_old.eps", as(eps) replace;
 #delimit cr
 exit
-
+*/
 insheet using "$USW/usaWeather.txt", delim(";") names clear
 rename fips FIPS
 destring temp, replace
@@ -916,11 +917,20 @@ save `weather'
 
 
 use "$DAT/nvss1998_1999"
-keep if birthOrder == 1 & motherAge > 24
-gen goodSeason = birthQuarter == 2 | birthQuarter == 3
-gen young = motherAge < 40    
-collapse goodSeason, by(young stoccfip)
+keep if birthOrder == 1
+drop ageGroup
+gen     ageGroup = 1 if motherAge>=15&motherAge<=19
+replace ageGroup = 2 if motherAge>=20&motherAge<=25
+replace ageGroup = 3 if motherAge>=25&motherAge<=39
+replace ageGroup = 4 if motherAge>=40&motherAge<=45
 
+gen goodSeason = birthQuarter == 2 | birthQuarter == 3
+collapse goodSeason, by(ageGroup stoccfip)
+
+gen     young = 1 if ageGroup == 3
+replace young = 0 if ageGroup == 4
+
+gen statefipe = stoccfip
 rename stoccfip FIPS
 tostring FIPS, replace
 foreach num in 1 2 4 5 6 8 9 {
@@ -954,7 +964,7 @@ foreach num of numlist 0 1 {
             legend(off) lpattern(dash)
     graph export "$OUT/`age'TempMean.eps", as(eps) replace
 }
-exit
+
 
 
 merge m:1 FIPS using "$DAT/../maps/USdata"
@@ -968,6 +978,10 @@ graph export "$OUT/maps/youngGoodSeason.eps", replace as(eps)
 spmap goodSeason if young==0&(FIPS!="02"&FIPS!="15") using "$DAT/../maps/UScoords", /*
 */ id(_ID) fcolor(YlOrRd) legend(symy(*2) symx(*2) size(*2.1))
 graph export "$OUT/maps/oldGoodSeason.eps", replace as(eps)
+
+spmap goodSeason if ageGr==1&(FIPS!="02"&FIPS!="15") using "$DAT/../maps/UScoords", /*
+*/ id(_ID) fcolor(YlOrRd) legend(symy(*2) symx(*2) size(*2.1))
+graph export "$OUT/maps/teenGoodSeason.eps", replace as(eps)
 
 
 
