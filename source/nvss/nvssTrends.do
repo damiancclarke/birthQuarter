@@ -930,7 +930,7 @@ collapse goodSeason, by(ageGroup stoccfip)
 gen     young = 1 if ageGroup == 3
 replace young = 0 if ageGroup == 4
 
-gen statefipe = stoccfip
+gen statefips = stoccfip
 rename stoccfip FIPS
 tostring FIPS, replace
 foreach num in 1 2 4 5 6 8 9 {
@@ -947,6 +947,7 @@ lab var meanT       "Mean monthly temperature (degree F)"
 foreach num of numlist 0 1 {
     local age young
     if `num'==0 local age old
+    preserve
     drop if FIPS=="02"
 
     corr goodSeason cold if young==`num'
@@ -963,25 +964,31 @@ foreach num of numlist 0 1 {
         lfit goodSeason meanT if young==`num', scheme(s1mono) lcolor(gs0) ///
             legend(off) lpattern(dash)
     graph export "$OUT/`age'TempMean.eps", as(eps) replace
+    restore
 }
 
 
-
-merge m:1 FIPS using "$DAT/../maps/USdata"
-drop if _merge==2
+merge m:1 statefips using "$DAT/../maps/state_database_clean"
 drop _merge
+format goodSeason %5.3f
 
-spmap goodSeason if young==1&(FIPS!="02"&FIPS!="15") using "$DAT/../maps/UScoords",/*
-*/ id(_ID) fcolor(YlOrRd) legend(symy(*2) symx(*2) size(*2.1))
-graph export "$OUT/maps/youngGoodSeason.eps", replace as(eps)
+#delimit ;
+spmap goodSeason if young==1&(FIPS!="02"&FIPS!="15") using
+"$DAT/../maps/state_coords_clean", id(_polygonid) fcolor(YlOrRd)
+legend(symy(*2) symx(*2) size(*2.1) position(4) rowgap(1)) legstyle(2);
+graph export "$OUT/maps/youngGoodSeason.eps", replace as(eps);
 
-spmap goodSeason if young==0&(FIPS!="02"&FIPS!="15") using "$DAT/../maps/UScoords", /*
-*/ id(_ID) fcolor(YlOrRd) legend(symy(*2) symx(*2) size(*2.1))
-graph export "$OUT/maps/oldGoodSeason.eps", replace as(eps)
+spmap goodSeason if young==0&(FIPS!="02"&FIPS!="15") using
+"$DAT/../maps/state_coords_clean", id(_polygonid) fcolor(YlOrRd)
+legend(symy(*2) symx(*2) size(*2.1) position(4) rowgap(1)) legstyle(2);
+graph export "$OUT/maps/oldGoodSeason.eps", replace as(eps);
 
-spmap goodSeason if ageGr==1&(FIPS!="02"&FIPS!="15") using "$DAT/../maps/UScoords", /*
-*/ id(_ID) fcolor(YlOrRd) legend(symy(*2) symx(*2) size(*2.1))
-graph export "$OUT/maps/teenGoodSeason.eps", replace as(eps)
+spmap goodSeason if ageGr==1&(FIPS!="02"&FIPS!="15") using
+"$DAT/../maps/state_coords_clean", id(_polygonid) fcolor(YlOrRd)
+legend(symy(*2) symx(*2) size(*2.1) position(4) rowgap(1)) legstyle(2);
+graph export "$OUT/maps/teenGoodSeason.eps", replace as(eps);
+
+#delimit cr
 
 
 
