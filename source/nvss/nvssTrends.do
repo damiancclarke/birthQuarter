@@ -43,7 +43,7 @@ local twins   0
 local lyear   25
 if `twins' == 1 local app twins
 
-/*
+
 ********************************************************************************
 *** (2a) Use, descriptive graph
 ********************************************************************************
@@ -206,7 +206,7 @@ lab var ageGroup     "Categorical age group"
 lab var period       "Period of time considered (pre/crisis/post)"
 lab var educLevel    "Level of education obtained by mother"
 
-
+/*
 ********************************************************************************
 *** (3) Descriptives by month
 *******************************************************************************
@@ -467,9 +467,36 @@ foreach A of numlist 0 1 {
     graph export "$OUT/youngMonthsART`A'.eps", as(eps) replace;
     #delimit cr
 }
-
+*/
 ********************************************************************************
-*** (3) Prematurity
+*** (4) Graph of good season by age
+********************************************************************************
+tab motherAge, gen(_age)
+reg goodQuarter _age1-_age15 if motherAge>=25&motherAge<=45
+
+gen ageES = .
+gen ageLB = .
+gen ageUB = .
+gen ageNM = .
+foreach num of numlist 1(1)15 {
+    replace ageES = _b[_age`num']                     in `num'
+    replace ageLB = _b[_age`num']-1.96*_se[_age`num'] in `num'
+    replace ageUB = _b[_age`num']+1.96*_se[_age`num'] in `num'
+    replace ageNM = `num'+24                          in `num'
+}
+#delimit ;
+twoway line ageES ageNM in 1/15, lpattern(solid) lcolor(black) lwidth(medthick)
+    || line ageLB ageNM in 1/15, lpattern(dash)  lcolor(black) lwidth(medium)
+    || line ageUB ageNM in 1/15, lpattern(dash)  lcolor(black) lwidth(medium) ||
+    scatter ageES ageNM in 1/15, mcolor(black) m(S) 
+    scheme(s1mono) legend(order(1 "Point Estimate" 2 "95 % CI"))
+    xlabel(25(1)39) xtitle("Mother's Age") ytitle("Proportion Good Season" " ");
+graph export "$OUT/goodSeasonAge.eps", as(eps) replace;
+#delimit cr
+
+exit
+********************************************************************************
+*** (5) Prematurity
 ********************************************************************************
 #delimit ;
 hist gestat if gestat>24, frac scheme(s1mono) xtitle("Weeks of Gestation")
@@ -508,7 +535,7 @@ restore;
 
 
 ********************************************************************************
-*** (4) Sumstats all periods together
+*** (6) Sumstats all periods together
 ********************************************************************************
 preserve
 drop if educLevel==.
@@ -610,7 +637,7 @@ esttab using "$SUM/nvssARTPrem.tex", title("ART and Premature")/*
 drop _p* _A*
 exit
 ********************************************************************************
-*** (5a) Global histogram
+*** (6a) Global histogram
 ********************************************************************************
 tempfile all educ
 
@@ -630,7 +657,7 @@ save `all'
 restore
 
 ********************************************************************************
-*** (5b) Histogram by education level
+*** (6b) Histogram by education level
 ********************************************************************************
 preserve
 collapse (sum) birth, by(goodQuarter ageGroup educLevel)
@@ -651,7 +678,7 @@ save `educ'
 restore
 
 ********************************************************************************
-*** (5c) Histogram: All, educ
+*** (6c) Histogram: All, educ
 ********************************************************************************
 preserve
 use `all', replace
@@ -677,7 +704,7 @@ graph export "$OUT/birthQdiff`app'.eps", as(eps) replace;
 restore
 
 ********************************************************************************
-*** (5d) Histogram for more age groups
+*** (6d) Histogram for more age groups
 ********************************************************************************
 preserve
 use "$DAT/`data'", clear
@@ -795,7 +822,7 @@ graph export "$OUT/birthQdiff_4Ages`app'NoART.eps", as(eps) replace;
 #delimit cr
 
 ********************************************************************************
-*** (6) Birth outcomes by groups
+*** (7) Birth outcomes by groups
 ********************************************************************************
 local hkbirth birthweight lbw gestation premature vlbw apgar  
 local axesN   3100[50]3350 0.04[0.02]0.14 38[0.2]39 0.06[0.02]0.18
@@ -845,7 +872,7 @@ foreach outcome in `hkbirth' {
 restore
 
 ********************************************************************************
-*** (7) Examine by geographic variation (hot/cold)
+*** (8) Examine by geographic variation (hot/cold)
 ********************************************************************************
 use "$DAT/nvss1990s", clear
 keep if `keepif' & twin==1
@@ -925,6 +952,7 @@ replace ageGroup = 3 if motherAge>=25&motherAge<=39
 replace ageGroup = 4 if motherAge>=40&motherAge<=45
 
 gen goodSeason = birthQuarter == 2 | birthQuarter == 3
+
 collapse goodSeason, by(ageGroup stoccfip)
 
 gen     young = 1 if ageGroup == 3
@@ -947,7 +975,6 @@ lab var meanT       "Mean monthly temperature (degree F)"
 foreach num of numlist 0 1 {
     local age young
     if `num'==0 local age old
-    preserve
     drop if FIPS=="02"
 
     corr goodSeason cold if young==`num'
@@ -964,7 +991,6 @@ foreach num of numlist 0 1 {
         lfit goodSeason meanT if young==`num', scheme(s1mono) lcolor(gs0) ///
             legend(off) lpattern(dash)
     graph export "$OUT/`age'TempMean.eps", as(eps) replace
-    restore
 }
 
 
