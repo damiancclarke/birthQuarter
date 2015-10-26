@@ -19,7 +19,7 @@ global OUT "~/investigacion/2015/birthQuarter/data/nvss"
 global LOG "~/investigacion/2015/birthQuarter/log"
 
 log using "$LOG/nvss0512Prep.txt", text replace
-
+/*
 ********************************************************************************
 *** (2a) 2005 File
 ********************************************************************************
@@ -47,7 +47,7 @@ gen numPrenatal = uprevis if uprevis != 99
 gen monthPrenat = mpcb
 replace monthPrenat = precare if monthPrenat == .
 
-keep if birthOrder<=2 & (motherAge>=20 & motherAge<=45)
+keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0
 gen fatherWhiteNonHisp = fracerec==1 & ufhisp == 0
 
@@ -102,7 +102,7 @@ gen numPrenatal = uprevis if uprevis != 99
 gen monthPrenat = mpcb
 replace monthPrenat = precare if monthPrenat == .
 
-keep if birthOrder<=2 & (motherAge>=20 & motherAge<=45)
+keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0
 gen fatherWhiteNonHisp = fracerec==1 & ufhisp == 0
 
@@ -157,7 +157,7 @@ gen numPrenatal = uprevis if uprevis != 99
 gen monthPrenat = mpcb
 replace monthPrenat = precare if monthPrenat == .
 
-keep if birthOrder==1 & (motherAge>=20 & motherAge<=45)
+keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0
 gen fatherWhiteNonHisp = fracerec==1 & ufhisp == 0
 
@@ -212,7 +212,7 @@ gen numPrenatal = uprevis if uprevis != 99
 gen monthPrenat = mpcb
 replace monthPrenat = precare if monthPrenat == .
 
-keep if birthOrder<=2 & (motherAge>=20 & motherAge<=45)
+keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0
 gen fatherWhiteNonHisp = fracerec==1 & ufhisp == 0
 
@@ -266,7 +266,7 @@ gen numPrenatal = uprevis if uprevis != 99
 gen monthPrenat = precare
 gen prePregBMI  = bmi
 
-keep if birthOrder<=2 & (motherAge>=20 & motherAge<=45)
+keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0
 gen fatherWhiteNonHisp = fracerec==1 & ufhisp == 0
 
@@ -320,7 +320,7 @@ gen numPrenatal = uprevis if uprevis != 99
 gen monthPrenat = precare
 gen prePregBMI  = bmi
 
-keep if birthOrder<=2 & (motherAge>=20 & motherAge<=45)
+keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0
 gen fatherWhiteNonHisp = fracerec==1 & ufhisp == 0
 
@@ -374,7 +374,7 @@ gen numPrenatal = uprevis if uprevis != 99
 gen monthPrenat = precare
 gen prePregBMI  = bmi
 
-keep if birthOrder<=2 & (motherAge>=20 & motherAge<=45)
+keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0
 gen fatherWhiteNonHisp = fracerec==1 & ufhisp == 0
 
@@ -428,8 +428,9 @@ gen numPrenatal = uprevis if uprevis != 99
 gen monthPrenat = precare
 gen prePregBMI  = bmi
 gen infertTreat = rf_inftr=="Y" if rf_inftr!="U"&rf_inftr!=""
+gen ART         = rf_artec=="Y" if rf_artec!="U"&rf_artec!=""
 
-keep if birthOrder<=2 & (motherAge>=20 & motherAge<=45)
+keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0
 gen fatherWhiteNonHisp = fracerec==1 & ufhisp == 0
 
@@ -454,7 +455,7 @@ replace education = . if meduc==9
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
 */ female birthMonth numPrenatal monthPrenat prePregBMI birthOrder infertTreat/*
-*/ fatherWhiteNonH
+*/ fatherWhiteNonH ART
 tempfile B2012
 save `B2012'
 
@@ -484,8 +485,9 @@ gen numPrenatal = uprevis if uprevis != 99
 gen monthPrenat = precare
 gen prePregBMI  = bmi
 gen infertTreat = rf_inftr=="Y" if rf_inftr!="U"&rf_inftr!=""
+gen ART         = rf_artec=="Y" if rf_artec!="U"&rf_artec!=""
 
-keep if birthOrder<=2 & (motherAge>=20 & motherAge<=45)
+keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0
 gen fatherWhiteNonHisp = fracerec==1 & ufhisp == 0
 
@@ -510,7 +512,7 @@ replace education = . if meduc==9
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
 */ female birthMonth numPrenatal monthPrenat prePregBMI birthOrder infertTreat/*
-*/ fatherWhiteNonH
+*/ fatherWhiteNonH ART
 tempfile B2013
 save `B2013'
 
@@ -527,7 +529,7 @@ append using `B2005' `B2006' `B2007' `B2008' `B2009' `B2010' `B2011' `B2012'
 lab dat "NVSS birth data 2005-2013 (first births, white, 25-45 year olds)"
 save "$OUT/nvss2005_2013.dta", replace
 
-
+*/
 ********************************************************************************
 *** (5a) 1998 File
 ********************************************************************************
@@ -552,7 +554,7 @@ gen female      = csex==2
 gen numPrenatal = nprevis if nprevis != 99
 gen monthPrenat = monpre
 
-keep if birthOrder<=2 & (motherAge>=20 & motherAge<=45)
+keep if birthOrder<=2 & (motherAge>=15 & motherAge<=45)
 keep if mrace == 1 & ormoth == 0
 
 gen birthQuarter = ceil(birthMonth/3)
@@ -601,7 +603,7 @@ gen female      = csex==2
 gen numPrenatal = nprevis if nprevis != 99
 gen monthPrenat = monpre
 
-keep if birthOrder<=2 & (motherAge>=20 & motherAge<=45)
+keep if birthOrder<=2 & (motherAge>=15 & motherAge<=45)
 keep if mrace == 1 & ormoth == 0
 
 gen birthQuarter = ceil(birthMonth/3)
@@ -633,10 +635,10 @@ save `B1999'
 clear
 append using `B1998' `B1999'
 
-lab dat "NVSS birth data 1998-1999 (first births, white, 25-45 year olds)"
+lab dat "NVSS birth data 1998-1999 (1st and 2nd births, white, 15-45 year olds)"
 save "$OUT/nvss1998_1999.dta", replace
 
-
+exit
 ********************************************************************************
 *** (7) 1990s File
 ********************************************************************************
@@ -682,7 +684,12 @@ foreach year of numlist 1990(1)1999 {
 
     foreach var of varlist statenat stoccfip stresfip stateres {
         tostring `var', replace
+        foreach num of numlist 1(1)9 {
+            replace `var' = "0`num'" if `var'=="`num'"
+        }
     }
+        
+    
     
     keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar      /*
     */ premature motherAge education fatherAge ageGroupMan married smoker single/*
