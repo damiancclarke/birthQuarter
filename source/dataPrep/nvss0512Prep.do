@@ -70,7 +70,8 @@ replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth oldEduc numPrenatal monthPrenat birthOrder fatherWhiteNonH
+*/ female birthMonth oldEduc numPrenat monthPrenat birthOrder fatherWhiteNonH /*
+*/ oterr mrterr ocntyfips mrcnty 
 tempfile B2005
 save `B2005'
 
@@ -125,7 +126,8 @@ replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth oldEduc numPrenatal monthPrenat birthOrder fatherWhiteNonH
+*/ female birthMonth oldEduc numPrenat monthPrenat birthOrder fatherWhiteNonH /*
+*/ oterr mrterr ocntyfips mrcnty 
 tempfile B2006
 save `B2006'
 
@@ -180,7 +182,8 @@ replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth oldEduc numPrenatal monthPrenat birthOrder fatherWhiteNonH
+*/ female birthMonth oldEduc numPrenat monthPrenat birthOrder fatherWhiteNonH /*
+*/ oterr mrterr ocntyfips mrcnty 
 tempfile B2007
 save `B2007'
 
@@ -235,7 +238,8 @@ replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth oldEduc numPrenatal monthPrenat birthOrder fatherWhiteNonH
+*/ female birthMonth oldEduc numPrenat monthPrenat birthOrder fatherWhiteNonH /*
+*/ oterr mrterr ocntyfips mrcnty 
 tempfile B2008
 save `B2008'
 
@@ -264,6 +268,8 @@ gen female      = sex=="F"
 gen numPrenatal = uprevis if uprevis != 99
 gen monthPrenat = precare
 gen prePregBMI  = bmi
+gen infertTreat = rf_inftr=="Y" if rf_inftr!="U"&rf_inftr!=""
+gen ART         = rf_artec=="Y" if rf_artec!="U"&rf_artec!=""
 
 keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0
@@ -287,9 +293,10 @@ replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
 replace education = . if meduc==9
 
-keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth numPrenatal monthPrenat prePregBMI birthOrder fatherWhiteNo
+keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat  /*
+*/ premature motherAge education fatherAge ageGroupMan married smoker single   /*
+*/ female birthMonth numPrenat monthPrenat prePregBMI birthOrder fatherWhiteNo /*
+*/ oterr mrterr ocntyfips mrcnty infertTreat ART
 tempfile B2009
 save `B2009'
 
@@ -318,6 +325,8 @@ gen female      = sex=="F"
 gen numPrenatal = uprevis if uprevis != 99
 gen monthPrenat = precare
 gen prePregBMI  = bmi
+gen infertTreat = rf_inftr=="Y" if rf_inftr!="U"&rf_inftr!=""
+gen ART         = rf_artec=="Y" if rf_artec!="U"&rf_artec!=""
 
 keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0
@@ -341,9 +350,10 @@ replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
 replace education = . if meduc==9
 
-keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth numPrenatal monthPrenat prePregBMI birthOrder fatherWhiteNo
+keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat  /*
+*/ premature motherAge education fatherAge ageGroupMan married smoker single   /*
+*/ female birthMonth numPrenat monthPrenat prePregBMI birthOrder fatherWhiteNo /*
+*/ oterr mrterr ocntyfips mrcnty infertTreat ART
 tempfile B2010
 save `B2010'
 
@@ -372,6 +382,8 @@ gen female      = sex=="F"
 gen numPrenatal = uprevis if uprevis != 99
 gen monthPrenat = precare
 gen prePregBMI  = bmi
+gen infertTreat = rf_inftr=="Y" if rf_inftr!="U"&rf_inftr!=""
+gen ART         = rf_artec=="Y" if rf_artec!="U"&rf_artec!=""
 
 keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0
@@ -395,9 +407,10 @@ replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
 replace education = . if meduc==9
 
-keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth numPrenatal monthPrenat prePregBMI birthOrder fatherWhiteNo
+keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat  /*
+*/ premature motherAge education fatherAge ageGroupMan married smoker single   /*
+*/ female birthMonth numPrenat monthPrenat prePregBMI birthOrder fatherWhiteNo /*
+*/ oterr mrterr ocntyfips mrcnty infertTreat ART
 tempfile B2011
 save `B2011'
 
@@ -454,7 +467,7 @@ replace education = . if meduc==9
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
 */ female birthMonth numPrenatal monthPrenat prePregBMI birthOrder infertTreat/*
-*/ fatherWhiteNonH ART
+*/ fatherWhiteNonH ART oterr mrterr ocntyfips mrcnty 
 tempfile B2012
 save `B2012'
 
@@ -511,7 +524,7 @@ replace education = . if meduc==9
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
 */ female birthMonth numPrenatal monthPrenat prePregBMI birthOrder infertTreat/*
-*/ fatherWhiteNonH ART
+*/ fatherWhiteNonH ART oterr mrterr ocntyfips mrcnty 
 tempfile B2013
 save `B2013'
 
