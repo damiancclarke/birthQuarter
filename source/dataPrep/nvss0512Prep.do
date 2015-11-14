@@ -14,12 +14,11 @@ cap log close
 ********************************************************************************
 *** (1) globals and locals
 ********************************************************************************
-global DAT "~/database/NVSS/Births/dta"
+global DAT "~/database/nvsscdc/births/dta"
 global OUT "~/investigacion/2015/birthQuarter/data/nvss"
 global LOG "~/investigacion/2015/birthQuarter/log"
 
 log using "$LOG/nvss0512Prep.txt", text replace
-/*
 ********************************************************************************
 *** (2a) 2005 File
 ********************************************************************************
@@ -529,10 +528,11 @@ append using `B2005' `B2006' `B2007' `B2008' `B2009' `B2010' `B2011' `B2012'
 lab dat "NVSS birth data 2005-2013 (first births, white, 25-45 year olds)"
 save "$OUT/nvss2005_2013.dta", replace
 
-*/
+exit
 ********************************************************************************
 *** (5a) 1998 File
 ********************************************************************************
+global DAT "~/database/NVSS/Births/dta"
 use "$DAT/natl1998"
 
 gen married     = dmar==1
