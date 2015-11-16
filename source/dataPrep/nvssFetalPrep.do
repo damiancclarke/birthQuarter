@@ -5,8 +5,6 @@ Take raw NVSS fetal death data for years 2005-2013 and formats into a large file
 with all fetal deaths.  This is set up to have the same variables as the NVSS b-
 irth data file.
 
-*NOTE: Think about gestation and birth season.
-
 */
 
 vers 11
@@ -17,7 +15,7 @@ cap log close
 ********************************************************************************
 *** (1) globals and locals
 ********************************************************************************
-global DAT "~/database/NVSS/FetalDeaths/dta"
+global DAT "~/database/nvsscdc/deaths/dta"
 global OUT "~/investigacion/2015/birthQuarter/data/nvss"
 global LOG "~/investigacion/2015/birthQuarter/log"
 
@@ -31,7 +29,7 @@ use "$DAT/fetl2005"
 gen liveBirth   = 0
 gen married     = mar==1
 gen single      = married==0&fagerec11==11
-gen birthOrder  = lbo_rec
+gen birthOrder  = tbo_rec
 gen motherAge   = mager
 gen fatherAge   = fagerec11
 gen birthMonth  = dod_mm
@@ -54,7 +52,7 @@ gen numPrenatal = uprevis if uprevis != 99
 gen monthPrenat = mpcb if mpcb != 99
 replace monthPrenat = precare if monthPrenat == . & precare != 99
 
-keep if birthOrder==0 & (motherAge>=25 & motherAge<=45)
+keep if birthOrder<=2
 keep if mracerec == 1 & umhisp == 0
 keep if gestation >=25 & gestation<44
 
@@ -78,7 +76,8 @@ replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw gestation   /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single /*
-*/ female birthMonth oldEduc numPrenatal monthPrenat liveBirth
+*/ female birthMonth oldEduc numPrenatal monthPrenat birthOrder liveBirth    /*
+*/ ostate ocnty mrcntyfips mrstatepstl
 tempfile B2005
 save `B2005'
 
@@ -90,7 +89,7 @@ use "$DAT/fetl2006"
 gen liveBirth   = 0
 gen married     = mar==1
 gen single      = married==0&fagerec11==11
-gen birthOrder  = lbo_rec
+gen birthOrder  = tbo_rec
 gen motherAge   = mager
 gen fatherAge   = fagerec11
 gen birthMonth  = dod_mm
@@ -113,7 +112,7 @@ gen numPrenatal = uprevis if uprevis != 99
 gen monthPrenat = mpcb if mpcb != 99
 replace monthPrenat = precare if monthPrenat == . & precare != 99
 
-keep if birthOrder==0 & (motherAge>=25 & motherAge<=45)
+keep if birthOrder<=2
 keep if mracerec == 1 & umhisp == 0
 keep if gestation >=25 & gestation<44
 
@@ -137,7 +136,8 @@ replace education = . if meduc==9
 
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw gestation   /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single /*
-*/ female birthMonth oldEduc numPrenatal monthPrenat liveBirth
+*/ female birthMonth oldEduc numPrenatal monthPrenat liveBirth birthOrder    /*
+*/ ocntyfips mrcntyfips ostate mrstatepstl
 tempfile B2006
 save `B2006'
 
@@ -149,12 +149,12 @@ use "$DAT/fetl2007"
 gen liveBirth   = 0
 gen married     = mar==1
 gen single      = married==0&fagerec11==11
-gen birthOrder = lbo_rec
-gen motherAge  = mager
-gen fatherAge  = fagerec11
-gen birthMonth = dod_mm
-gen year       = dod_yy
-gen twin       = dplural
+gen birthOrder  = tbo_rec
+gen motherAge   = mager
+gen fatherAge   = fagerec11
+gen birthMonth  = dod_mm
+gen year        = dod_yy
+gen twin        = dplural
 gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
 gen vlbw        = birthweight < 1500 if birthweight != .
 gen lbw         = birthweight < 2500 if birthweight != .
@@ -163,7 +163,7 @@ gen premature   = gestation < 37 if gestation != .
 gen female      = sex=="F"
 replace female  = . if sex == "U"
 
-keep if birthOrder==0 & (motherAge>=25 & motherAge<=45)
+keep if birthOrder<=2
 keep if mracerec == 1 & umhisp == 0
 keep if gestation >=25 & gestation<44
 
@@ -177,7 +177,8 @@ gen ageGroupMan = fagerec11>6 & fagerec11 != 11
 replace ageGroupMan = ageGroupMan + 1
 
 keep birthQuarter ageGroup twin year birthweight vlbw lbw gestation premature /*
-*/ motherAge fatherAge ageGroupMan married single female birthMonth liveBirth
+*/ motherAge fatherAge ageGroupMan married single female birthMonth liveBirth /*
+*/ birthOrder ocntyfips mrcntyfips ostate mrstatepstl
 tempfile B2007
 save `B2007'
 
@@ -189,7 +190,7 @@ use "$DAT/fetl2008"
 gen liveBirth   = 0
 gen married     = mar==1
 gen single      = married==0&fagerec11==11
-gen birthOrder  = lbo_rec
+gen birthOrder  = tbo_rec
 gen motherAge   = mager
 gen fatherAge   = fagerec11
 gen birthMonth  = dod_mm
@@ -203,7 +204,7 @@ gen premature   = gestation < 37 if gestation != .
 gen female      = sex=="F"
 replace female  = . if sex == "U"
 
-keep if birthOrder==0 & (motherAge>=25 & motherAge<=45)
+keep if birthOrder<=2
 keep if mracerec == 1 & umhisp == 0
 keep if gestation >=25 & gestation<44
 
@@ -216,8 +217,9 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen ageGroupMan = fagerec11>6 & fagerec11 != 11
 replace ageGroupMan = ageGroupMan + 1
 
-keep birthQuarter ageGroup twin year birthwei vlbw lbw gestation liveBirth  /*
-*/ premature motherAge fatherAge ageGroupMan married single female birthMonth 
+keep birthQuarter ageGroup twin year birthwei vlbw lbw gestation liveBirth    /*
+*/ premature motherAge fatherAge ageGroupMan married single female birthMonth /*
+*/ birthOrder ocntyfips mrcntyfips ostate mrstatepstl
 tempfile B2008
 save `B2008'
 
@@ -229,7 +231,7 @@ use "$DAT/fetl2009"
 gen liveBirth   = 0
 gen married     = mar==1
 gen single      = married==0&fagerec11==11
-gen birthOrder  = lbo_rec
+gen birthOrder  = tbo_rec
 gen motherAge   = mager
 gen fatherAge   = fagerec11
 gen birthMonth  = dod_mm
@@ -243,7 +245,7 @@ gen premature   = gestation < 37 if gestation != .
 gen female      = sex=="F"
 replace female  = . if sex == "U"
 
-keep if birthOrder==0 & (motherAge>=25 & motherAge<=45)
+keep if birthOrder<=2
 keep if mracerec == 1 & umhisp == 0
 keep if gestation >=25 & gestation<44
 
@@ -256,8 +258,9 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen ageGroupMan = fagerec11>6 & fagerec11 != 11
 replace ageGroupMan = ageGroupMan + 1
 
-keep birthQuarter ageGroup twin year birthwei vlbw lbw gestation premature /*
-*/ motherAge fatherAge ageGroupMan married female birthMonth liveBirth single 
+keep birthQuarter ageGroup twin year birthwei vlbw lbw gestation premature    /*
+*/ motherAge fatherAge ageGroupMan married female birthMonth liveBirth single /*
+*/ birthOrder ocntyfips mrcntyfips ostate mrstatepstl
 tempfile B2009
 save `B2009'
 
@@ -269,7 +272,7 @@ use "$DAT/fetl2010"
 gen liveBirth   = 0
 gen married     = mar==1
 gen single      = married==0&fagerec11==11
-gen birthOrder  = lbo_rec
+gen birthOrder  = tbo_rec
 gen motherAge   = mager
 gen fatherAge   = fagerec11
 gen birthMonth  = dod_mm
@@ -283,7 +286,7 @@ gen premature   = gestation < 37 if gestation != .
 gen female      = sex=="F"
 replace female  = . if sex == "U"
 
-keep if birthOrder==0 & (motherAge>=25 & motherAge<=45)
+keep if birthOrder<=2
 keep if mracerec == 1 & umhisp == 0
 keep if gestation >=25 & gestation<44
 
@@ -296,8 +299,9 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen ageGroupMan = fagerec11>6 & fagerec11 != 11
 replace ageGroupMan = ageGroupMan + 1
 
-keep birthQuarter ageGroup twin year birthwei vlbw lbw gestation premature  /*
-*/ motherAge fatherAge ageGroupMan married single female birthMonth liveBirth
+keep birthQuarter ageGroup twin year birthwei vlbw lbw gestation premature    /*
+*/ motherAge fatherAge ageGroupMan married single female birthMonth liveBirth /*
+*/ birthOrder ocntyfips mrcntyfips ostate mrstatepstl
 tempfile B2010
 save `B2010'
 
@@ -309,7 +313,7 @@ use "$DAT/fetl2011"
 gen liveBirth   = 0
 gen married     = mar==1
 gen single      = married==0&fagerec11==11
-gen birthOrder  = lbo_rec
+gen birthOrder  = tbo_rec
 gen motherAge   = mager
 gen fatherAge   = fagerec11
 gen birthMonth  = dod_mm
@@ -323,7 +327,7 @@ gen premature   = gestation < 37 if gestation != .
 gen female      = sex=="F"
 replace female  = . if sex == "U"
 
-keep if birthOrder==0 & (motherAge>=25 & motherAge<=45)
+keep if birthOrder<=2
 keep if mracerec == 1 & umhisp == 0
 keep if gestation >= 25 & gestation < 44
 
@@ -336,8 +340,9 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen ageGroupMan = fagerec11>6 & fagerec11 != 11
 replace ageGroupMan = ageGroupMan + 1
 
-keep birthQuarter ageGroup twin year birthwei vlbw lbw gestation premature /*
-*/ motherAge fatherAge ageGroupMan married single female birthMonth liveBirth
+keep birthQuarter ageGroup twin year birthwei vlbw lbw gestation premature    /*
+*/ motherAge fatherAge ageGroupMan married single female birthMonth liveBirth /*
+*/ birthOrder ocntyfips mrcntyfips ostate mrstatepstl
 tempfile B2011
 save `B2011'
 
@@ -349,7 +354,7 @@ use "$DAT/fetl2012"
 gen liveBirth   = 0
 gen married     = mar==1
 gen single      = married==0&fagerec11==11
-gen birthOrder  = lbo_rec
+gen birthOrder  = tbo_rec
 gen motherAge   = mager
 gen fatherAge   = fagerec11
 gen birthMonth  = dod_mm
@@ -363,7 +368,7 @@ gen premature   = gestation < 37 if gestation != .
 gen female      = sex=="F"
 replace female  = . if sex == "U"
 
-keep if birthOrder==0 & (motherAge>=25 & motherAge<=45)
+keep if birthOrder<=2
 keep if mracerec == 1 & umhisp == 0
 keep if gestation >= 25 & gestation < 44
 
@@ -376,8 +381,9 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen ageGroupMan = fagerec11>6 & fagerec11 != 11
 replace ageGroupMan = ageGroupMan + 1
 
-keep birthQuarter ageGroup twin year birthwei vlbw lbw gestation motherAge /*
-*/ fatherAge ageGroupMan married single female birthMonth liveBirth
+keep birthQuarter ageGroup twin year birthwei vlbw lbw gestation motherAge   /*
+*/ fatherAge ageGroupMan married single female birthMonth liveBirth birthOrd /*
+*/ ocntyfips mrcntyfips ostate mrstatepstl
 tempfile B2012
 save `B2012'
 
@@ -389,7 +395,7 @@ use "$DAT/fetl2013"
 gen liveBirth   = 0
 gen married     = mar==1
 gen single      = married==0&fagerec11==11
-gen birthOrder  = lbo_rec
+gen birthOrder  = tbo_rec
 gen motherAge   = mager
 gen fatherAge   = fagerec11
 gen birthMonth  = dod_mm
@@ -403,7 +409,7 @@ gen premature   = gestation < 37 if gestation != .
 gen female      = sex=="F"
 replace female  = . if sex == "U"
 
-keep if birthOrder==0 & (motherAge>=25 & motherAge<=45)
+keep if birthOrder<=2
 keep if mracerec == 1 & umhisp == 0
 keep if gestation >= 25 & gestation < 44
 
@@ -416,8 +422,9 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen ageGroupMan = fagerec11>6 & fagerec11 != 11
 replace ageGroupMan = ageGroupMan + 1
 
-keep birthQuarter ageGroup twin year birthwei vlbw lbw gestation motherAge  /*
-*/ fatherAge ageGroupMan married single female birthMonth liveBirth
+keep birthQuarter ageGroup twin year birthwei vlbw lbw gestation motherAge   /*
+*/ fatherAge ageGroupMan married single female birthMonth liveBirth birthOrd /*
+*/ ocntyfips mrcntyfips ostate mrstatepstl
 tempfile B2013
 save `B2013'
 
