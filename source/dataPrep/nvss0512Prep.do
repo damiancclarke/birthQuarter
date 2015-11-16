@@ -24,6 +24,7 @@ log using "$LOG/nvss0512Prep.txt", text replace
 ********************************************************************************
 use "$DAT/natl2005"
 
+gen liveBirth   = 1
 gen married     = mar==1
 gen single      = married==0&fagerec11==11
 gen birthOrder  = lbo_rec
@@ -68,10 +69,15 @@ replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
 replace education = . if meduc==9
 
+gen mcounty = ocntyfips
+gen mstate  = mrterr
+gen bcounty = ocntyfips
+gen bstate  = oterr
+
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
 */ female birthMonth oldEduc numPrenat monthPrenat birthOrder fatherWhiteNonH /*
-*/ oterr mrterr ocntyfips mrcnty 
+*/ liveBirth mcounty mstate bcounty bstate 
 tempfile B2005
 save `B2005'
 
@@ -80,6 +86,7 @@ save `B2005'
 ********************************************************************************
 use "$DAT/natl2006"
 
+gen liveBirth   = 1
 gen married     = mar==1
 gen single      = married==0&fagerec11==11
 gen birthOrder  = lbo_rec
@@ -124,10 +131,15 @@ replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
 replace education = . if meduc==9
 
+gen mcounty = ocntyfips
+gen mstate  = mrterr
+gen bcounty = ocntyfips
+gen bstate  = oterr
+
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
 */ female birthMonth oldEduc numPrenat monthPrenat birthOrder fatherWhiteNonH /*
-*/ oterr mrterr ocntyfips mrcnty 
+*/ liveBirth mcounty mstate bcounty bstate
 tempfile B2006
 save `B2006'
 
@@ -136,14 +148,15 @@ save `B2006'
 ********************************************************************************
 use "$DAT/natl2007"
 
+gen liveBirth   = 1
 gen married     = mar==1
 gen single      = married==0&fagerec11==11
-gen birthOrder = lbo_rec
-gen motherAge  = mager
-gen fatherAge  = fagerec11
-gen birthMonth = dob_mm
-gen year       = dob_yy
-gen twin       = dplural
+gen birthOrder  = lbo_rec
+gen motherAge   = mager
+gen fatherAge   = fagerec11
+gen birthMonth  = dob_mm
+gen year        = dob_yy
+gen twin        = dplural
 gen birthweight = dbwt if dbwt>=500 & dbwt <= 5000
 gen vlbw        = birthweight < 1500 if birthweight != .
 gen lbw         = birthweight < 2500 if birthweight != .
@@ -180,10 +193,15 @@ replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
 replace education = . if meduc==9
 
+gen mcounty = mrcnty
+gen mstate  = mrterr
+gen bcounty = ocntyfips
+gen bstate  = oterr
+
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
 */ female birthMonth oldEduc numPrenat monthPrenat birthOrder fatherWhiteNonH /*
-*/ oterr mrterr ocntyfips mrcnty 
+*/ liveBirth mcounty mstate bcounty bstate
 tempfile B2007
 save `B2007'
 
@@ -192,6 +210,7 @@ save `B2007'
 ********************************************************************************
 use "$DAT/natl2008"
 
+gen liveBirth   = 1
 gen married     = mar==1
 gen single      = married==0&fagerec11==11
 gen birthOrder  = lbo_rec
@@ -236,10 +255,15 @@ replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
 replace education = . if meduc==9
 
+gen mcounty = mrcnty
+gen mstate  = mrterr
+gen bcounty = ocntyfips
+gen bstate  = oterr
+
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
 */ female birthMonth oldEduc numPrenat monthPrenat birthOrder fatherWhiteNonH /*
-*/ oterr mrterr ocntyfips mrcnty 
+*/ liveBirth mcounty mstate bcounty bstate
 tempfile B2008
 save `B2008'
 
@@ -248,6 +272,7 @@ save `B2008'
 ********************************************************************************
 use "$DAT/natl2009"
 
+gen liveBirth   = 1
 gen married     = mar==1
 gen single      = married==0&fagerec11==11
 gen birthOrder  = lbo_rec
@@ -293,10 +318,15 @@ replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
 replace education = . if meduc==9
 
+gen mcounty = mrcnty
+gen mstate  = mrterr
+gen bcounty = ocntyfips
+gen bstate  = oterr
+
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat  /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single   /*
 */ female birthMonth numPrenat monthPrenat prePregBMI birthOrder fatherWhiteNo /*
-*/ oterr mrterr ocntyfips mrcnty infertTreat ART
+*/ infertTreat ART liveBirth mcounty mstate bcounty bstate
 tempfile B2009
 save `B2009'
 
@@ -305,6 +335,7 @@ save `B2009'
 ********************************************************************************
 use "$DAT/natl2010"
 
+gen liveBirth   = 1
 gen married     = mar==1
 gen single      = married==0&fagerec11==11
 gen birthOrder  = lbo_rec
@@ -350,10 +381,15 @@ replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
 replace education = . if meduc==9
 
+gen mcounty = mrcnty
+gen mstate  = mrterr
+gen bcounty = ocntyfips
+gen bstate  = oterr
+
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat  /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single   /*
 */ female birthMonth numPrenat monthPrenat prePregBMI birthOrder fatherWhiteNo /*
-*/ oterr mrterr ocntyfips mrcnty infertTreat ART
+*/ infertTreat ART liveBirth mcounty mstate bcounty bstate
 tempfile B2010
 save `B2010'
 
@@ -362,6 +398,7 @@ save `B2010'
 ********************************************************************************
 use "$DAT/natl2011"
 
+gen liveBirth   = 1
 gen married     = mar==1
 gen single      = married==0&fagerec11==11
 gen birthOrder  = lbo_rec
@@ -407,10 +444,15 @@ replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
 replace education = . if meduc==9
 
+gen mcounty = mrcnty
+gen mstate  = mrterr
+gen bcounty = ocntyfips
+gen bstate  = oterr
+
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat  /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single   /*
 */ female birthMonth numPrenat monthPrenat prePregBMI birthOrder fatherWhiteNo /*
-*/ oterr mrterr ocntyfips mrcnty infertTreat ART
+*/ infertTreat ART liveBirth mcounty mstate bcounty bstate
 tempfile B2011
 save `B2011'
 
@@ -419,6 +461,7 @@ save `B2011'
 ********************************************************************************
 use "$DAT/natl2012"
 
+gen liveBirth   = 1
 gen married     = mar==1
 gen single      = married==0&fagerec11==11
 gen birthOrder  = lbo_rec
@@ -464,10 +507,15 @@ replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
 replace education = . if meduc==9
 
+gen mcounty = mrcnty
+gen mstate  = mrterr
+gen bcounty = ocntyfips
+gen bstate  = oterr
+
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
 */ female birthMonth numPrenatal monthPrenat prePregBMI birthOrder infertTreat/*
-*/ fatherWhiteNonH ART oterr mrterr ocntyfips mrcnty 
+*/ fatherWhiteNonH ART liveBirth mcounty mstate bcounty bstate
 tempfile B2012
 save `B2012'
 
@@ -476,6 +524,7 @@ save `B2012'
 ********************************************************************************
 use "$DAT/natl2013"
 
+gen liveBirth   = 1
 gen married     = mar==1
 gen single      = married==0&fagerec11==11
 gen birthOrder  = lbo_rec
@@ -521,10 +570,15 @@ replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
 replace education = . if meduc==9
 
+gen mcounty = mrcnty
+gen mstate  = mrterr
+gen bcounty = ocntyfips
+gen bstate  = oterr
+
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
 */ female birthMonth numPrenatal monthPrenat prePregBMI birthOrder infertTreat/*
-*/ fatherWhiteNonH ART oterr mrterr ocntyfips mrcnty 
+*/ fatherWhiteNonH ART liveBirth mcounty mstate bcounty bstate
 tempfile B2013
 save `B2013'
 

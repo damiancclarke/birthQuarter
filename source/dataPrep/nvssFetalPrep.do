@@ -74,10 +74,15 @@ replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
 replace education = . if meduc==9
 
+gen mcounty = mrcntyfips
+gen mstate  = mrstatepstl
+gen bcounty = ocnty
+gen bstate  = ostate
+
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw gestation   /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single /*
 */ female birthMonth oldEduc numPrenatal monthPrenat birthOrder liveBirth    /*
-*/ ostate ocnty mrcntyfips mrstatepstl
+*/ mcounty mstate bcounty bstate
 tempfile B2005
 save `B2005'
 
@@ -134,10 +139,15 @@ replace education = 5 if meduc==6
 replace education = 6 if meduc==7|meduc==8
 replace education = . if meduc==9
 
+gen mcounty = mrcntyfips
+gen mstate  = mrstatepstl
+gen bcounty = ocnty
+gen bstate  = ostate
+
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw gestation   /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single /*
 */ female birthMonth oldEduc numPrenatal monthPrenat liveBirth birthOrder    /*
-*/ ocntyfips mrcntyfips ostate mrstatepstl
+*/ mcounty mstate bcounty bstate
 tempfile B2006
 save `B2006'
 
@@ -176,9 +186,14 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen ageGroupMan = fagerec11>6 & fagerec11 != 11
 replace ageGroupMan = ageGroupMan + 1
 
+gen mcounty = mrcntyfips
+gen mstate  = mrstatepstl
+gen bcounty = ocnty
+gen bstate  = ostate
+
 keep birthQuarter ageGroup twin year birthweight vlbw lbw gestation premature /*
 */ motherAge fatherAge ageGroupMan married single female birthMonth liveBirth /*
-*/ birthOrder ocntyfips mrcntyfips ostate mrstatepstl
+*/ birthOrder mcounty mstate bcounty bstate
 tempfile B2007
 save `B2007'
 
@@ -217,9 +232,14 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen ageGroupMan = fagerec11>6 & fagerec11 != 11
 replace ageGroupMan = ageGroupMan + 1
 
+gen mcounty = mrcntyfips
+gen mstate  = mrstatepstl
+gen bcounty = ocnty
+gen bstate  = ostate
+
 keep birthQuarter ageGroup twin year birthwei vlbw lbw gestation liveBirth    /*
 */ premature motherAge fatherAge ageGroupMan married single female birthMonth /*
-*/ birthOrder ocntyfips mrcntyfips ostate mrstatepstl
+*/ birthOrder mcounty mstate bcounty bstate
 tempfile B2008
 save `B2008'
 
@@ -258,9 +278,14 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen ageGroupMan = fagerec11>6 & fagerec11 != 11
 replace ageGroupMan = ageGroupMan + 1
 
+gen mcounty = mrcntyfips
+gen mstate  = mrstatepstl
+gen bcounty = ocnty
+gen bstate  = ostate
+
 keep birthQuarter ageGroup twin year birthwei vlbw lbw gestation premature    /*
 */ motherAge fatherAge ageGroupMan married female birthMonth liveBirth single /*
-*/ birthOrder ocntyfips mrcntyfips ostate mrstatepstl
+*/ birthOrder mcounty mstate bcounty bstate
 tempfile B2009
 save `B2009'
 
@@ -299,9 +324,14 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen ageGroupMan = fagerec11>6 & fagerec11 != 11
 replace ageGroupMan = ageGroupMan + 1
 
+gen mcounty = mrcntyfips
+gen mstate  = mrstatepstl
+gen bcounty = ocnty
+gen bstate  = ostate
+
 keep birthQuarter ageGroup twin year birthwei vlbw lbw gestation premature    /*
 */ motherAge fatherAge ageGroupMan married single female birthMonth liveBirth /*
-*/ birthOrder ocntyfips mrcntyfips ostate mrstatepstl
+*/ birthOrder mcounty mstate bcounty bstate
 tempfile B2010
 save `B2010'
 
@@ -340,9 +370,14 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen ageGroupMan = fagerec11>6 & fagerec11 != 11
 replace ageGroupMan = ageGroupMan + 1
 
+gen mcounty = mrcntyfips
+gen mstate  = mrstatepstl
+gen bcounty = ocnty
+gen bstate  = ostate
+
 keep birthQuarter ageGroup twin year birthwei vlbw lbw gestation premature    /*
 */ motherAge fatherAge ageGroupMan married single female birthMonth liveBirth /*
-*/ birthOrder ocntyfips mrcntyfips ostate mrstatepstl
+*/ birthOrder mcounty mstate bcounty bstate
 tempfile B2011
 save `B2011'
 
@@ -381,9 +416,14 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen ageGroupMan = fagerec11>6 & fagerec11 != 11
 replace ageGroupMan = ageGroupMan + 1
 
+gen mcounty = mrcntyfips
+gen mstate  = mrstatepstl
+gen bcounty = ocnty
+gen bstate  = ostate
+
 keep birthQuarter ageGroup twin year birthwei vlbw lbw gestation motherAge   /*
 */ fatherAge ageGroupMan married single female birthMonth liveBirth birthOrd /*
-*/ ocntyfips mrcntyfips ostate mrstatepstl
+*/ mcounty mstate bcounty bstate
 tempfile B2012
 save `B2012'
 
@@ -422,9 +462,14 @@ replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
 gen ageGroupMan = fagerec11>6 & fagerec11 != 11
 replace ageGroupMan = ageGroupMan + 1
 
+gen mcounty = mrcntyfips
+gen mstate  = mrstatepstl
+gen bcounty = ocnty
+gen bstate  = ostate
+
 keep birthQuarter ageGroup twin year birthwei vlbw lbw gestation motherAge   /*
 */ fatherAge ageGroupMan married single female birthMonth liveBirth birthOrd /*
-*/ ocntyfips mrcntyfips ostate mrstatepstl
+*/ mcounty mstate bcounty bstate
 tempfile B2013
 save `B2013'
 
