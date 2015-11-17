@@ -19,128 +19,26 @@ cap log close
 global DAT "~/investigacion/2015/birthQuarter/data/nvss"
 global USW "~/investigacion/2015/birthQuarter/data/weather"
 global OUT "~/investigacion/2015/birthQuarter/results/nvss/regressions"
-global OUT "~/investigacion/2015/birthQuarter/results/married/regressions"
 global LOG "~/investigacion/2015/birthQuarter/log"
 
 log using "$LOG/nvssRegs.txt", text replace
 cap mkdir "$OUT"
 
-local qual birthweight lbw vlbw gestation premature apgar 
-local data nvss2005_2013
+local qual   birthweight lbw vlbw gestation premature apgar 
 local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats      /*
 */           (N, fmt(%9.0g) label(Observations))                             /*
 */           starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(none) label
 local yFE    i.year
 local se     robust
-local cnd    if twin==1 & motherAge>24 & motherAge <= 45
+local cnd    if twin==1 & motherAge>24 & motherAge <= 45 & liveBirth==1
 local keepif birthOrder==1
 
 
 ********************************************************************************
-*** (2a) Open data, setup for regressions
+*** (2a) Open data for births and deaths
 ********************************************************************************
-use "$DAT/`data'"
-keep if married==1
-
-gen birth = 1
-gen goodQuarter = birthQuarter == 2 | birthQuarter == 3
-gen badQuarter  = birthQuarter == 4  | birthQuarter == 1
-replace ageGroup  = ageGroup-1 if ageGroup>1
-
-gen highEd              = (educLevel == 1 | educLevel == 2) if educLevel!=.
-gen young               = ageGroup  == 1
-gen youngXhighEd        = young*highEd
-gen youngXbadQ          = young*(1-goodQuarter)
-gen highEdXbadQ         = highEd*(1-goodQuarter)
-gen youngXhighEdXbadQ   = young*highEd*(1-goodQuarter)
-gen youngMan            = ageGroupMan == 1
-gen youngManXbadQ       = youngMan*(1-goodQuarter)
-gen vhighEd             = educLevel == 2 if educLevel!=.
-gen youngXvhighEd       = young*vhighEd
-gen age2024             = motherAge>=20&motherAge<=24
-gen age2534             = motherAge>=25 & motherAge <35
-gen age3539             = motherAge>=35 & motherAge <40
-gen teenage             = motherAge>=15 & motherAge <20
-gen noPreVisit          = numPrenatal == 0 if numPrenatal<99
-gen prenate3months      = monthPrenat>0 & monthPrenat <= 3 if monthPrenat<99
-gen motherAge2          = motherAge^2
-gen     prematurity     = gestation - 39
-gen     monthsPrem      = round(prematurity/4)*-1
-gen     expectedMonth   = birthMonth + monthsPrem
-replace expectedMonth   = expectedMonth - 12 if expectedMonth>12
-replace expectedMonth   = expectedMonth + 12 if expectedMonth<1
-gene    expectQuarter   = ceil(expectedMonth/3) 
-gene    badExpectGood   = badQuarter==1&(expectQuar==2|expectQuar==3) if gest!=.
-gene    badExpectBad    = badQuarter==1&(expectQuar==1|expectQuar==4) if gest!=.
-gen     expectGoodQ     = expectQuarter == 2 | expectQuarter == 3 if gest!=.
-gen     expectBadQ      = expectQuarter == 4 | expectQuarter == 1 if gest!=.
-
-gen     Qgoodgood       = expectGoodQ==1 & goodQuarter==1 if gest!=.
-gen     Qgoodbad        = expectGoodQ==1 & badQuarter ==1 if gest!=.
-gen     Qbadgood        = expectBadQ==1  & goodQuarter==1 if gest!=.
-gen     Qbadbad         = expectBadQ==1  & badQuarter ==1 if gest!=.
-gen     noART           = (ART-1)*-1
-gen     noARTyoung      = noART*young
-gen     ARTage2024      = ART*age2024
-
-gen     conceptionMonth = birthMonth - round(gestation*7/30.5)
-replace conceptionMonth = conceptionMonth + 12 if conceptionMonth<1
-
-sum expectGoodQ expectBadQ
-sum Qgoodgood Qgoodbad Qbadgood Qbadbad
-
-*drop goodQuarter
-*gen goodQuarter = expectGoodQ
-
-********************************************************************************
-*** (2b) Label for clarity
-********************************************************************************
-lab def aG  1 "25-39" 2 "40-45"
-lab def gQ  0 "quarter 4(t) or quarter 1(t+1)" 1 "quarter 2(t) or quarter 3(t)"
-lab def eL  1 "No College" 2 "1-5 years" 
-lab val ageGroup    aG
-lab val goodQuarter gQ
-
-lab var goodQuarter        "Good Season"
-lab var expectGoodQ        "Good Expect"
-lab var badQuarter         "Bad Season"
-lab var highEd             "Some College +"
-lab var young              "Aged 25-39"
-lab var youngXhighEd       "College$\times$ Aged 25-39"
-lab var ageGroup           "Categorical age group"
-lab var youngXbadQ         "Young$\times$ Bad S"
-lab var highEdXbadQ        "College$\times$ Bad S"
-lab var youngXhighEdXbadQ  "Young$\times$ College$\times$ Bad S"
-lab var youngManXbadQ      "Young Man$\times$ Bad S"
-lab var vhighEd            "Complete Degree"
-lab var youngXvhighEd      "Degree$\times$ Aged 25-39"
-lab var age2534            "Aged 25-34"
-lab var age3539            "Aged 35-39"
-lab var teenage            "Aged 15-19"
-lab var married            "Married"
-lab var smoker             "Smoked in Pregnancy"
-lab var noPreVisit         "No Prenatal Visits"
-lab var prenate3months     "Prenatal 1\textsuperscript{st} Trimester"
-lab var apgar              "APGAR"
-lab var birthweight        "Birthweight"
-lab var gestation          "Gestation"
-lab var lbw                "LBW"
-lab var premature          "Premature"
-lab var vlbw               "VLBW"
-lab var prematurity        "Weeks premature"
-lab var monthsPrem         "Months Premature"
-lab var badExpectGood      "Bad Season (due in good)"
-lab var badExpectBad       "Bad Season (due in bad)"
-lab var Qgoodbad           "Bad Season (due in good)"
-lab var Qbadbad            "Bad Season (due in bad)"
-lab var Qbadgood           "Good Season (due in bad)"
-lab var motherAge          "Mother's Age (years)"
-lab var motherAge2         "Mother's Age$^2$"
-lab var noART              "Did not undergo ART"
-lab var noARTyoung         "No ART$\times$ Young"
-lab var age2024            "Aged 20-24"
-lab var ARTage2024         "Aged 20-24$\times$ ART"
-
+use          "$DAT/nvss2005_2013"
+append using "$DAT/nvssFD2005_2013"
 
 ********************************************************************************
 *** (3a) Examine missing covariates
@@ -216,24 +114,22 @@ graph export "$OUT/../graphs/missingEduc.eps", as(eps) replace;
 
 restore
 */
-/*
+
 ********************************************************************************
 *** (4a) Good Quarter Regressions
 ********************************************************************************
 #delimit ;
 local add `" ""  "(Education Interaction)" "(Complete College)" "';
 local nam Main EdInteract High;
-local add `" ""  "(Seperated by Age)" "(No September)"
-             "(younger women defined as those aged 25-34)" "(Birth Order = 2)"
-             "(Twin sample)" "';
-local nam Main Deseg NoSep Young34 Bord2 Twin;
+local add `" ""  "(No September)" "(Birth Order = 2)" "(Twin sample)" "';
+local nam Main NoSep Bord2 Twin;
 #delimit cr
 tokenize `nam'
 
 foreach type of local add {
     preserve
 
-    local age young
+    local age age2527 age3539
     local edu highEd
     local con married smoker
     local con smoker
@@ -244,10 +140,7 @@ foreach type of local add {
     local samp1 "singleton"
     local samp2 "first born"
     
-    if `"`1'"' == "Young34"    local age age2534
     if `"`1'"' == "EdInteract" local edu highEd youngXhighEd
-    if `"`1'"' == "High"  local edu vhighEd 
-    if `"`1'"' == "Deseg" local age age2534 age3539
     if `"`1'"' == "NoSep" local spcnd if birthMonth!=9
     if `"`1'"' == "Bord2" local group `cnd'&birthOrder == 2
     if `"`1'"' == "Twin"  local group if twin==2&motherAge>24&motherAge<46&`keepif'
@@ -261,6 +154,7 @@ foreach type of local add {
     eststo: areg goodQuarter `age' `edu'             if e(sample) , `se' `yab'
     eststo: areg goodQuarter `age'                   if e(sample) , `se' `yab'
     eststo:  reg goodQuarter `age'                   if e(sample) , `se'
+    keep if year>=2012
     eststo: areg goodQuarter `age' `edu' `con'       `spcnd'      , `se' `yab'
     eststo: areg goodQuarter `age' `edu' `con' noART `spcnd'      , `se' `yab'
     eststo: areg goodQuarter `age' `edu' `con' noART `ges' `spcnd', `se' `yab'
@@ -282,8 +176,9 @@ foreach type of local add {
     macro shift
     restore
 }
-*/
-keep if `keepif'
+
+
+*keep if `keepif'
 
 *eststo: areg expectGoodQ `age' `edu' `con'       `spcnd'      , `se' `yab'
 *eststo: areg expectGoodQ `age' `edu'             if e(sample) , `se' `yab'
@@ -306,8 +201,8 @@ keep if `keepif'
 *         "\end{footnotesize}}\end{tabular}\end{table}") mlabels(, depvar);
 *#delimit cr
 *estimates clear
-
-
+*/
+/*
 ********************************************************************************
 *** (4b) Age continuous, or quadratic
 ********************************************************************************
@@ -352,8 +247,39 @@ foreach AA of local names {
     macro shift
 }
 restore    
+*/
 
+********************************************************************************
+*** (4c) Good Season, Age and education interactions
+********************************************************************************
+preserve
+keep `cnd'&`keepif'
 
+eststo: areg goodQua age2534 age3539 smoker highEd age2534X age3539X, abs(year)
+eststo: areg goodQua age2534 age3539 smoker highEd if e(sample)     , abs(year)
+eststo: areg goodQua age2534 age3539 smoker        if e(sample)     , abs(year)
+
+eststo: areg goodQua motherAge smoker educCat motherAgeXeduc        , abs(year)
+eststo: areg goodQua motherAge smoker educCat       if e(sample)    , abs(year)
+eststo: areg goodQua motherAge smoker               if e(sample)    , abs(year)
+
+local kvar age2534 age3539 highEd age2534XhighEd age3539XhighEd motherAge  /*
+        */ educCat motherAgeXeduc
+
+#delimit ;
+esttab est3 est2 est1 est6 est5 est4 using "$OUT/NVSSBinaryEducAge.tex",
+replace `estopt' booktabs keep(`kvar') mlabels(, depvar)
+title("Season of Birth, Age and Education")
+postfoot("\bottomrule                                                      "
+         "\multicolumn{7}{p{20cm}}{\begin{footnotesize}Sample consists     "
+         " of singleton first-born children to non-Hispanic white women    "
+         "aged 25-45. ***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01." 
+         "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
+#delimit cr
+estimates clear
+restore
+
+exit
 
 ********************************************************************************
 *** (5) ART and Teens
@@ -386,18 +312,20 @@ postfoot("Year FE&&Y&Y&&Y&Y\\ Controls&&&Y&&&Y\\  \bottomrule          "
 #delimit cr
 estimates clear
 restore
-
+*/ 
 ********************************************************************************
 *** (6) Regressions (Quality on Age, season)
 ********************************************************************************
-local c1      twin==1 twin==2 
-local varsY   young goodQuarter highEd married smoker
+local c1      twin==1&birthOrder==1 twin==2&birthOrder==1 twin==1&birthOrder==2
+local c1      twin==1&birthOrder==2
+local varsY   age2534 age3539 goodQuarter highEd married smoker
 local varsA   motherAge goodQuarter highEd married smoker
 local varsA2  motherAge motherAge2 goodQuarter highEd married smoker
-local varsY   young goodQuarter highEd smoker
-local varsA   motherAge goodQuarter highEd smoker
-local varsA2  motherAge motherAge2 goodQuarter highEd smoker
-local names   Main Twin
+*local varsY   age2534 age3539 goodQuarter highEd smoker
+*local varsA   motherAge goodQuarter highEd smoker
+*local varsA2  motherAge motherAge2 goodQuarter highEd smoker
+local names   Main Twin Bord2
+local names   Bord2
 tokenize `names'
 
 
@@ -418,7 +346,7 @@ foreach cond of local c1 {
         #delimit ;
         esttab est1 est2 est3 est4 est5 est6 using "$OUT/NVSSQuality`1'`nT'.tex",
         replace `estopt' title("Birth Quality by Age and Season (`1' sample)")
-        keep(_cons _cons `vars`ageType'') style(tex) mlabels(, depvar) booktabs
+        keep(_cons `vars`ageType'') style(tex) mlabels(, depvar) booktabs
         postfoot("\bottomrule"
                  "\multicolumn{7}{p{17cm}}{\begin{footnotesize}Sample consists "
                  "of singleton first-born children to non-Hispanic white women "
@@ -433,6 +361,7 @@ foreach cond of local c1 {
     restore
 }
 exit
+keep if `keepif'
 ********************************************************************************
 *** (6a) Redefine bad season as bad season due to short gest, and bad season
 ********************************************************************************
@@ -503,38 +432,116 @@ estimates clear
 restore
 
 exit
+*/
 ********************************************************************************
 *** (7) Appendix including fetal deaths
 ********************************************************************************
 append using "$DAT/nvssFD2005_2013"
+keep if married==1
+replace birthOrder = 1 if liveBirth == 0
+keep `cnd'&`keepif'
+
 replace goodQuarter = 1 if liveBirth==0 & birthQuarter == 2 | birthQuarter == 3
 replace goodQuarter = 0 if liveBirth==0 & birthQuarter == 1 | birthQuarter == 4
 replace highEd      = 1 if liveBirth==0 & (educLevel == 1 | educLevel == 2)
 replace highEd      = 0 if liveBirth==0 & educLevel == 0
 replace young       = 1 if liveBirth==0 & motherAge>=24 & motherAge<=39
 replace young       = 0 if liveBirth==0 & motherAge>=40
+drop age2024 age2534 age3539 noART
+gen age2024             = motherAge>=20&motherAge<=24
+gen age2534             = motherAge>=25 & motherAge <35
+gen age3539             = motherAge>=35 & motherAge <40
+
+drop prematurity monthsPrem expectedMonth expectQuarter expectGoodQ expectBadQ
+
+gen     prematurity     = gestation - 39
+gen     monthsPrem      = round(prematurity/4)*-1
+gen     expectedMonth   = birthMonth + monthsPrem
+replace expectedMonth   = expectedMonth - 12 if expectedMonth>12
+replace expectedMonth   = expectedMonth + 12 if expectedMonth<1
+gene    expectQuarter   = ceil(expectedMonth/3) 
+gen     expectGoodQ     = expectQuarter == 2 | expectQuarter == 3 if gest!=.
+gen     expectBadQ      = expectQuarter == 4 | expectQuarter == 1 if gest!=.
+drop goodQuarter
+gen goodQuarter = expectGoodQ
 
 
-eststo: reg goodQuarter young                                   `cnd', `se'
-eststo: reg goodQuarter young                             `yFE' `cnd', `se'
-eststo: reg goodQuarter young highEd                      `yFE' `cnd', `se'
-eststo: reg goodQuarter young highEd married smoker       `yFE' `cnd', `se'
+lab var goodQuarter        "Good Season"
+lab var highEd             "Some College +"
+lab var young              "Aged 25-39"
+lab var age2534            "Aged 25-34"
+lab var age3539            "Aged 35-39"
+lab var married            "Married"
+lab var smoker             "Smoked in Pregnancy"
+lab var apgar              "APGAR"
+lab var birthweight        "Birthweight"
+lab var gestation          "Gestation"
+lab var lbw                "LBW"
+lab var premature          "Premature"
+lab var vlbw               "VLBW"
 
+
+local age age2534 age3539
+local edu highEd
+local con married smoker
+local con         smoker
+local yab abs(year)
+local ges i.gestation
+local spcnd
+
+
+eststo: areg goodQuarter `age' `edu' `con'       `spcnd'      , `se' `yab'
+eststo: areg goodQuarter `age' `edu'             if e(sample) , `se' `yab'
+eststo: areg goodQuarter `age'                   if e(sample) , `se' `yab'
+eststo:  reg goodQuarter `age'                   if e(sample) , `se'
+
+
+    
 #delimit ;
-esttab est1 est2 est3 est4 using "$OUT/NVSSBinaryFDeaths.tex",
+esttab est4 est3 est2 est1 using "$OUT/NVSSBinaryFDeaths.tex",
 replace `estopt' title("Birth Season and Age (Including Fetal Deaths)") 
-keep(_cons young highEd married smoker) style(tex) mlabels(, depvar)
-postfoot("Year FE&&Y&Y&Y\\ \bottomrule"
-         "\multicolumn{5}{p{13cm}}{\begin{footnotesize}Sample consists of all"
-         "firsts (live births and fetal deaths) of US-born, white, non-hispanic"
-         "mothers.  Fetal deaths are included if occurring between 25 and 44"
-         "weeks of gestation.  Education is recorded for fetal deaths only "
-         "prior to 2008."
+keep(_cons `age' `edu' `con') style(tex) mlabels(, depvar)
+postfoot("Year FE&&Y&Y&Y\\  \bottomrule                                      "
+         "\multicolumn{5}{p{14cm}}{\begin{footnotesize}Sample consists of all"
+         "first live births and fetal deaths of US-born, white, non-hispanic "
+         "mothers aged between 25 and 45.  Fetal deaths are included if      "
+         "occurring between 25 and 44 weeks of gestation.  Education is      "
+         "recorded for fetal deaths only prior to 2008.                      "
+         "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.              "
          "\end{footnotesize}}\end{tabular}\end{table}") booktabs ;
 #delimit cr
 estimates clear
 
-    
+
+
+local varsY   age2534 age3539 goodQuarter highEd smoker
+
+foreach y of varlist `qual' {
+    eststo: reg `y' `varsY' `yFE', `se'
+}
+
+#delimit ;
+esttab est1 est2 est3 est4 est5 est6 using "$OUT/NVSSQualityFetalDeaths.tex",
+replace `estopt' keep(_cons `varsY') style(tex) mlabels(, depvar) booktabs
+title("Birth Quality by Age and Season (Including Fetal Deaths)")
+postfoot("\bottomrule"
+         "\multicolumn{7}{p{17cm}}{\begin{footnotesize}Sample consists of all "
+         "first live births and fetal deaths of US-born, white, non-hispanic  "
+         "mothers aged between 25 and 45.  Fetal deaths are included if       "
+         "occurring between 25 and 44 weeks of gestation.  Education is       "
+         "recorded for fetal deaths only prior to 2008.                       "
+         "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.               "
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+
+
+
+
+
+
+exit
+
 local cond `cnd'&liveBirth==0
 eststo: reg goodQuarter young                                   `cond', `se'
 eststo: reg goodQuarter young                             `yFE' `cond', `se'
@@ -542,7 +549,7 @@ eststo: reg goodQuarter young highEd                      `yFE' `cond', `se'
 
 #delimit ;
 esttab est1 est2 est3 using "$OUT/NVSSBinaryFDeathsOnly.tex",
-replace `estopt' title("Birth Season and Age (Fetal Deaths Only)") 
+replace `estopt' title("Birth Season Correlates (Fetal Deaths Only)") 
 keep(_cons young highEd ) style(tex) mlabels(, depvar)
 postfoot("Year FE&&Y&Y\\ \bottomrule"
          "\multicolumn{4}{p{9cm}}{\begin{footnotesize}Sample consists of all"

@@ -36,11 +36,10 @@ local note "Quarters represent the difference between percent of yearly births"
 if c(os)=="Unix" local e eps
 if c(os)!="Unix" local e pdf
 
-local data nvss2005_2013
+local data    nvss2005_2013
 local keepif  birthOrder == 1 & motherAge > 24 & motherAge<=45
 local stateFE 0
 local twins   0
-local lyear   25
 if `twins' == 1 local app twins
 
 
@@ -48,7 +47,6 @@ if `twins' == 1 local app twins
 *** (2a) Use, descriptive graph
 ********************************************************************************
 use "$DAT/`data'"
-*keep if married==1
 keep if birthOrder==1
 
 #delimit ;
@@ -93,35 +91,16 @@ restore
 ********************************************************************************
 *** (2aii) Summary stats table
 ********************************************************************************
-gen young   = motherAge>=25&motherAge<40
-replace young = . if motherAge<25|motherAge>45
-gen college = educLevel==2 if educLevel!=.
-gen educCat = 4 if education==1
-replace educCat = 10 if education == 2
-replace educCat = 12 if education == 3
-replace educCat = 14 if education == 4
-replace educCat = 16 if education == 5
-replace educCat = 17 if education == 6
-gen goodQuarter = birthQuarter == 2 | birthQuarter == 3
-replace twin    = twin - 1
-gen     prematurity     = gestation - 39
-gen     monthsPrem      = round(prematurity/4)*-1
-*gen     expectedMonth   = birthMonth + monthsPrem
-*replace expectedMonth   = expectedMonth - 12 if expectedMonth>12
-*replace expectedMonth   = expectedMonth + 12 if expectedMonth<1
-*gene    expectQuarter   = ceil(expectedMonth/3)
-*gen     expectGoodQ     = expectQuarter == 2 | expectQuarter == 3 if gest!=.
-gen     conceptionMonth = birthMonth - round(gestation*7/30.5)
-replace conceptionMonth = conceptionMonth + 12 if conceptionMonth<1
-gen     expectedMonth   = conceptionMonth + 9
-replace expectedMonth   = expectedMonth-12 if expectedMonth>12
-gen     expectQuarter   = ceil(expectedMonth/3)
-gen     expectGoodQ     = expectQuarter == 2 | expectQuarter == 3 if gest!=.
+replace young     = . if motherAge<25|motherAge>45
+gen college       = educLevel==2 if educLevel!=.
+replace twin      = twin - 1
+generat age3      = .
+replace age3      = 1 if motherAge>=25 & motherAge<35
+replace age3      = 2 if motherAge>=35 & motherAge<40
+replace age3      = 3 if motherAge>=40 & motherAge<46
+replace educLevel = educLevel + 1
+replace educLevel = 2 if educLevel == 3
 
-generat age3            = .
-replace age3            = 1 if motherAge>=25 & motherAge<35
-replace age3            = 2 if motherAge>=35 & motherAge<40
-replace age3            = 3 if motherAge>=40 & motherAge<46
 
 lab var educCat     "Years of education"
 lab var motherAge   "Mother's Age"
@@ -171,18 +150,7 @@ foreach st in Mum Kid MumPart {
 keep if `keepif'
 if `twins'==1 keep if twin == 1
 if `twins'==0 keep if twin == 0
-
-***drop goodQuarter
-***generate goodQuarter = expectGoodQ
-***lab var goodQuarter "Good Quarter"
-
 gen birth = 1
-
-gen period = .
-replace period = 1 if year >=2005 & year<=2007
-replace period = 2 if year >=2008 & year<=2009
-replace period = 3 if year >=2010 & year<=2013
-
 
 ********************************************************************************
 *** (2c) Label for clarity
@@ -190,23 +158,16 @@ replace period = 3 if year >=2010 & year<=2013
 lab def aG  1 "Young (25-39) " 2  "Old (40-45) "
 lab def aGa 1 "Young " 2  "Old "
 lab def aG3 1 "25-34 Years " 2  "35-39 Years" 3 "40-45 Years"
-lab def pr  1 "Pre-crisis" 2 "Crisis" 3 "Post-crisis"
 lab def gQ  0 "quarter 4(t) or quarter 1(t+1)" 1 "quarter 2(t) or quarter 3(t)"
 lab def eL  1 "No College" 2 "Some College +"
 lab def mon 1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug" /*
 */ 9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec"
 
-lab val period      pr
 lab val ageGroup    aG
 lab val goodQuarter gQ
 lab val educLevel   eL
 
-lab var goodQuarter  "Binary variable for born Q 2/3 (=1) or Q4/1 (=0)"
-lab var ageGroup     "Categorical age group"
-lab var period       "Period of time considered (pre/crisis/post)"
-lab var educLevel    "Level of education obtained by mother"
 
-/*
 ********************************************************************************
 *** (3) Descriptives by month
 *******************************************************************************
@@ -227,25 +188,27 @@ graph export "$OUT/proportionMonthART.eps", as(eps) replace
 restore
 
 preserve
-keep if motherAge>=25&motherAge<=34
-drop if education>2 | conceptionMonth==.
-collapse (sum) birth, by(conceptionMonth)
+keep if motherAge>=25&motherAge<=39
+drop if education==. | conceptionMonth==.
+gen dropout = education<=2
+collapse (sum) birth, by(conceptionMonth dropout)
 lab val conceptionMon mon
-egen totalBirths = sum(birth)
-
+bys dropout: egen totalBirths = sum(birth)
 gen birthProportion = birth/totalBirths
 sort conceptionMonth
+
 #delimit ;
-twoway line birthProportion conceptionMonth, 
+twoway line birthProp conceptionM if dropout==1, lcolor(black) lpattern(dash)
+    || line birthProp conceptionM if dropout==0, lcolor(black) lwidth(thick)
 xaxis(1 2) scheme(s1mono) xtitle("Expected Month", axis(2))
-xlabel(1(1)12, valuelabels axis(1)) lcolor(black) lwidth(thick)
-xlabel(1 "Oct" 2 "Nov" 3 "Dec" 4 "Jan" 5 "Feb" 6 "Mar" 7 "Apr" 8 "May" 9 "Jun"
-10 "Jul" 11 "Aug" 12 "Sep", axis(2)) xtitle("Month of Conception")
+xlabel(1(1)12, valuelabels axis(1)) xtitle("Month of Conception")
+xlabel(1 "Oct" 2 "Nov" 3 "Dec" 4 "Jan" 5 "Feb" 6 "Mar" 7 "Apr" 8 "May"
+       9 "Jun" 10 "Jul" 11 "Aug" 12 "Sep", axis(2)) 
+legend(lab(1 "Incomplete Highschool") lab(2 "Highschool or Above"))
 ytitle("Proportion of All Births");
 #delimit cr
 graph export "$OUT/conceptionMonthDropout.eps", as(eps) replace
 restore
-exit
 
 preserve
 drop if age3==.|conceptionMonth==.
@@ -330,7 +293,7 @@ legend(label(1 "25-34 Year-olds") label(2 "35-39 Year-olds")
 graph export "$OUT/conceptionMonthART.eps", as(eps) replace;
 #delimit cr
 restore
-exit
+
 preserve
 drop if age3==.|conceptionMonth==.
 keep if ART==1
@@ -467,7 +430,7 @@ foreach A of numlist 0 1 {
     graph export "$OUT/youngMonthsART`A'.eps", as(eps) replace;
     #delimit cr
 }
-*/
+
 ********************************************************************************
 *** (4) Graph of good season by age
 ********************************************************************************
@@ -494,7 +457,6 @@ twoway line ageES ageNM in 1/15, lpattern(solid) lcolor(black) lwidth(medthick)
 graph export "$OUT/goodSeasonAge.eps", as(eps) replace;
 #delimit cr
 
-exit
 ********************************************************************************
 *** (5) Prematurity
 ********************************************************************************
@@ -532,7 +494,6 @@ exclude0 ylab(0.08(0.01)0.14);
 graph export "$OUT/prematureSeasonAge.eps", as(eps) replace;
 restore;
 #delimit cr
-
 
 ********************************************************************************
 *** (6) Sumstats all periods together
@@ -635,7 +596,7 @@ estpost tabstat _p* _A*, statistics(mean sd) columns(statistics)
 esttab using "$SUM/nvssARTPrem.tex", title("ART and Premature")/*
     */ cells("mean(fmt(2)) sd(fmt(2))") replace label noobs
 drop _p* _A*
-exit
+
 ********************************************************************************
 *** (6a) Global histogram
 ********************************************************************************
@@ -717,8 +678,6 @@ replace ageG2 = 4 if motherAge>=40 & motherAge<46
 
 replace educLevel = educLevel + 1
 replace educLevel = 2 if educLevel == 3
-gen goodQuarter = birthQuarter == 2 | birthQuarter == 3
-gen birth = 1
 
 collapse (sum) birth, by(goodQuarter ageG2)
 reshape wide birth, i(ageG2) j(goodQuarter)
@@ -751,8 +710,6 @@ replace ageG2 = 4 if motherAge>=40 & motherAge<46
 
 replace educLevel = educLevel + 1
 replace educLevel = 2 if educLevel == 3
-gen goodQuarter = birthQuarter == 2 | birthQuarter == 3
-gen birth = 1
 
 keep if ART!=.
 gen age2024 = ageG2==1
@@ -871,6 +828,8 @@ foreach outcome in `hkbirth' {
 }
 restore
 
+
+exit
 ********************************************************************************
 *** (8) Examine by geographic variation (hot/cold)
 ********************************************************************************
