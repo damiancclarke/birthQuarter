@@ -15,6 +15,7 @@ cap log close
 *** (1) globals and locals
 ********************************************************************************
 global DAT "~/database/nvsscdc/births/dta"
+global UNE "~/investigacion/2015/birthQuarter/data/employ"
 global OUT "~/investigacion/2015/birthQuarter/data/nvss"
 global LOG "~/investigacion/2015/birthQuarter/log"
 
@@ -584,20 +585,175 @@ save `B2013'
 
 
 ********************************************************************************
-*** (3) Append to 2005-2013 file
+*** (3) Append to 2005-2013 file, generate variables
 ********************************************************************************
 append using `B2005' `B2006' `B2007' `B2008' `B2009' `B2010' `B2011' `B2012'
 
+gen goodQuarter = birthQuarter == 2 | birthQuarter == 3
+gen badQuarter  = birthQuarter == 4 | birthQuarter == 1
+replace ageGroup  = ageGroup-1 if ageGroup>1
+gen college = educLevel == 2 if educLevel!=.
+gen educCat = 4 if education==1
+replace educCat = 10 if education == 2
+replace educCat = 12 if education == 3
+replace educCat = 14 if education == 4
+replace educCat = 16 if education == 5
+replace educCat = 17 if education == 6
+
+gen highEd              = (educLevel == 1 | educLevel == 2) if educLevel!=.
+gen young               = motherAge>=25 & motherAge<40 
+gen youngXhighEd        = young*highEd
+gen youngXbadQ          = young*(1-goodQuarter)
+gen highEdXbadQ         = highEd*(1-goodQuarter)
+gen youngXhighEdXbadQ   = young*highEd*(1-goodQuarter)
+gen youngMan            = ageGroupMan == 1
+gen youngManXbadQ       = youngMan*(1-goodQuarter)
+gen vhighEd             = educLevel == 2 if educLevel!=.
+gen youngXvhighEd       = young*vhighEd
+gen age2024             = motherAge>=20&motherAge<=24
+gen age2534             = motherAge>=25 & motherAge <35
+gen age2527             = motherAge>=25 & motherAge <28
+gen age2831             = motherAge>=28 & motherAge <32
+gen age3239             = motherAge>=32 & motherAge <40
+gen age3539             = motherAge>=35 & motherAge <40
+gen age2534XhighEd      = age2534*highEd
+gen age2527XhighEd      = age2527*highEd
+gen age2831XhighEd      = age2831*highEd
+gen age3239XhighEd      = age3239*highEd
+gen age3539XhighEd      = age3539*highEd
+gen teenage             = motherAge>=15 & motherAge <20
+gen noPreVisit          = numPrenatal == 0 if numPrenatal<99
+gen prenate3months      = monthPrenat>0 & monthPrenat <= 3 if monthPrenat<99
+gen motherAge2          = motherAge^2
+gen motherAgeXeduc      = motherAge*educCat
+gen     prematurity     = gestation - 39
+gen     monthsPrem      = round(prematurity/4)*-1
+gen     expectedMonth   = birthMonth + monthsPrem
+replace expectedMonth   = expectedMonth - 12 if expectedMonth>12
+replace expectedMonth   = expectedMonth + 12 if expectedMonth<1
+gene    expectQuarter   = ceil(expectedMonth/3) 
+gene    badExpectGood   = badQuarter==1&(expectQuar==2|expectQuar==3) if gest!=.
+gene    badExpectBad    = badQuarter==1&(expectQuar==1|expectQuar==4) if gest!=.
+gen     expectGoodQ     = expectQuarter == 2 | expectQuarter == 3 if gest!=.
+gen     expectBadQ      = expectQuarter == 4 | expectQuarter == 1 if gest!=.
+
+gen     Qgoodgood       = expectGoodQ==1 & goodQuarter==1 if gest!=.
+gen     Qgoodbad        = expectGoodQ==1 & badQuarter ==1 if gest!=.
+gen     Qbadgood        = expectBadQ==1  & goodQuarter==1 if gest!=.
+gen     Qbadbad         = expectBadQ==1  & badQuarter ==1 if gest!=.
+gen     noART           = (ART-1)*-1
+gen     noARTyoung      = noART*young
+gen     ARTage2024      = ART*age2024
+
+gen     conceptionMonth = birthMonth - round(gestation*7/30.5)
+replace conceptionMonth = conceptionMonth + 12 if conceptionMonth<1
+
+sum expectGoodQ expectBadQ
+sum Qgoodgood Qgoodbad Qbadgood Qbadbad
+
+drop goodQuarter badQuarter
+gen goodQuarter = expectGoodQ
+gen badQuarter  = expectBadQ
+
+local stat AK AL AR AZ CA CO CT DC DE FL GA HI IA ID IL IN KS KY LA MA MD ME /*
+*/         MI MN MO MS MT NC ND NE NH NJ NM NV NY OH OK OR PA RI SC SD TN TX /*
+*/         UT VA VT WA WI WV WY
+local fips 8  7  10 9  11 12 13 15 14 16 17 18 22 19 20 21 23 24 25 28 27 26 /*
+*/         29 30 32 31 33 40 41 34 36 37 38 	35 39 42 43 44 45 47 48 49 50 51 /*
+*/         52 54 53 56 58 57 59
+gen fips = .
+tokenize `stat'
+foreach ff of local fips {
+    dis "State: `1', FIPS = `ff'"
+    replace fips = `ff' if bstate=="`1'"
+    macro shift
+}
+
+gen period = ""
+foreach num of numlist 1(1)12 {
+    if `num'<10 {
+        replace period = "M0`num'" if conceptionMonth == `num'
+    }
+    else {
+        replace period = "M`num'"  if conceptionMonth == `num'
+    }
+}
+merge m:1 fips year period using "$UNE/unemployment"
+*MERGE = 1 are people who don't have gestation recorded so no conception month
+*MERGE = 2 are periods before the sample where unemployment is irrelevant
+*MERGE = 3 are correct merges.  This is 99.75% of the sample
+drop if _merge==2 
+drop v8 _merge notes
 
 ********************************************************************************
-*** (4) Save, clean
+*** (4) Label variables
+********************************************************************************
+lab def aG  1 "25-39" 2 "40-45"
+lab def gQ  0 "quarter 4(t) or quarter 1(t+1)" 1 "quarter 2(t) or quarter 3(t)"
+lab def eL  1 "No College" 2 "1-5 years" 
+lab val ageGroup    aG
+lab val goodQuarter gQ
+
+lab var goodQuarter        "Good Season"
+lab var expectGoodQ        "Good Expect"
+lab var badQuarter         "Bad Season"
+lab var highEd             "Some College +"
+lab var young              "Aged 25-39"
+lab var youngXhighEd       "College$\times$ Aged 25-39"
+lab var ageGroup           "Categorical age group"
+lab var youngXbadQ         "Young$\times$ Bad S"
+lab var highEdXbadQ        "College$\times$ Bad S"
+lab var youngXhighEdXbadQ  "Young$\times$ College$\times$ Bad S"
+lab var youngManXbadQ      "Young Man$\times$ Bad S"
+lab var vhighEd            "Complete Degree"
+lab var youngXvhighEd      "Degree$\times$ Aged 25-39"
+lab var age2534            "Aged 25-34"
+lab var age2527            "Aged 25-27"
+lab var age2831            "Aged 28-31"
+lab var age3239            "Aged 32-39"
+lab var age3539            "Aged 35-39"
+lab var age2534XhighEd     "Aged 25-34 $\times$ Some College"
+lab var age3539XhighEd     "Aged 35-39 $\times$ Some College"
+lab var age2527XhighEd     "Aged 25-27 $\times$ Some College"
+lab var age2831XhighEd     "Aged 28-31 $\times$ Some College"
+lab var age3239XhighEd     "Aged 32-39 $\times$ Some College"
+lab var teenage            "Aged 15-19"
+lab var married            "Married"
+lab var smoker             "Smoked in Pregnancy"
+lab var noPreVisit         "No Prenatal Visits"
+lab var prenate3months     "Prenatal 1\textsuperscript{st} Trimester"
+lab var apgar              "APGAR"
+lab var birthweight        "Birthweight"
+lab var gestation          "Gestation"
+lab var lbw                "LBW"
+lab var premature          "Premature"
+lab var vlbw               "VLBW"
+lab var prematurity        "Weeks premature"
+lab var monthsPrem         "Months Premature"
+lab var badExpectGood      "Bad Season (due in good)"
+lab var badExpectBad       "Bad Season (due in bad)"
+lab var Qgoodbad           "Bad Season (due in good)"
+lab var Qbadbad            "Bad Season (due in bad)"
+lab var Qbadgood           "Good Season (due in bad)"
+lab var motherAge          "Mother's Age (years)"
+lab var motherAge2         "Mother's Age$^2$"
+lab var noART              "Did not undergo ART"
+lab var noARTyoung         "No ART$\times$ Young"
+lab var age2024            "Aged 20-24"
+lab var ARTage2024         "Aged 20-24$\times$ ART"
+lab var motherAgeXeduc     "Mother's Age $\times$ Education"
+lab var educCat            "Years of Education"
+
+
+********************************************************************************
+*** (5) Save, clean
 ********************************************************************************
 lab dat "NVSS birth data 2005-2013 (first births, white, 25-45 year olds)"
 save "$OUT/nvss2005_2013.dta", replace
 
 exit
 ********************************************************************************
-*** (5a) 1998 File
+*** (6a) 1998 File
 ********************************************************************************
 global DAT "~/database/NVSS/Births/dta"
 use "$DAT/natl1998"
@@ -647,7 +803,7 @@ tempfile B1998
 save `B1998'
 
 ********************************************************************************
-*** (5b) 1999 File
+*** (6b) 1999 File
 ********************************************************************************
 use "$DAT/natl1999"
 
@@ -697,7 +853,7 @@ save `B1999'
 
 
 ********************************************************************************
-*** (6) Append to 1998, 1999 file, save
+*** (7) Append to 1998, 1999 file, save
 ********************************************************************************
 clear
 append using `B1998' `B1999'
@@ -707,7 +863,7 @@ save "$OUT/nvss1998_1999.dta", replace
 
 exit
 ********************************************************************************
-*** (7) 1990s File
+*** (8) 1990s File
 ********************************************************************************
 foreach year of numlist 1990(1)1999 {
     use "$DAT/natl`year'"
@@ -773,7 +929,7 @@ lab dat "NVSS birth data 1990s (first births, white, 25-45 year olds)"
 save "$OUT/nvss1990s.dta", replace
 
 ********************************************************************************
-*** (8) 1970s File
+*** (9) 1970s File
 ********************************************************************************
 foreach year of numlist 1971(1)1979 {
     use "$DAT/natl`year'"
@@ -829,7 +985,7 @@ save "$OUT/nvss1970s.dta", replace
 
     
 ********************************************************************************
-*** (9) 1980s File
+*** (10) 1980s File
 ********************************************************************************
 foreach year of numlist 1980(1)1989 {
     use "$DAT/natl`year'"
