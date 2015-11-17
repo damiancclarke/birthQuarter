@@ -42,7 +42,7 @@ local stateFE 0
 local twins   0
 if `twins' == 1 local app twins
 
-
+/*
 ********************************************************************************
 *** (2a) Use, descriptive graph
 ********************************************************************************
@@ -50,8 +50,8 @@ use "$DAT/`data'"
 keep if birthOrder==1
 
 #delimit ;
-twoway histogram motherAge if motherA>24&motherA<=45, freq color(gs0) width(1) ||
-histogram motherAge if motherAge<=24|motherAge>45, freq color(gs12) width(1)
+twoway hist motherAge if motherAge>24&motherAge<=45, freq color(gs0) width(1) ||
+       hist motherAge if motherAge<=24|motherAge>45, freq color(gs12) width(1)
     ylabel( 0 "0" 100000 "100,000" 200000 "200,000" 300000 "300,000" 400000
            "400,000" 500000 "500,000", angle(0)) xtitle("Mother's Age") 
     legend(label(1 "Estimation Sample") label(2 "<25 or >45")) scheme(s1mono);
@@ -91,16 +91,15 @@ restore
 ********************************************************************************
 *** (2aii) Summary stats table
 ********************************************************************************
-replace young     = . if motherAge<25|motherAge>45
-gen college       = educLevel==2 if educLevel!=.
-replace twin      = twin - 1
-generat age3      = .
-replace age3      = 1 if motherAge>=25 & motherAge<35
-replace age3      = 2 if motherAge>=35 & motherAge<40
-replace age3      = 3 if motherAge>=40 & motherAge<46
-replace educLevel = educLevel + 1
-replace educLevel = 2 if educLevel == 3
-
+gen college        = educLevel==2 if educLevel!=.
+replace twin       = twin - 1
+generat age3       = .
+replace age3       = 1 if motherAge>=25 & motherAge<35
+replace age3       = 2 if motherAge>=35 & motherAge<40
+replace age3       = 3 if motherAge>=40 & motherAge<46
+replace educLevel  = educLevel + 1
+replace educLevel  = 2 if educLevel == 3
+generat goodBirthQ = birthQuarter == 2 | birthQuarter == 3 
 
 lab var educCat     "Years of education"
 lab var motherAge   "Mother's Age"
@@ -115,16 +114,16 @@ lab var apgar       "APGAR (1-10)"
 lab var twin        "Twin"
 lab var female      "Female"
 lab var smoker      "Smoked during Pregnancy"
-lab var ART         "Used ART (2012-2013 only)"
+lab var ART         "Used ART (2009-2013 only)"
 lab var young       "Young (aged 25-39)"
-lab var expectGoodQ "Intended good season of birth"
-
+lab var expectGoodQ "Good season of birth (due date)"
+lab var goodBirthQ  "Good season of birth (birth date)"
 
 local Mum     motherAge married young 
 local MumPart college educCat smoker ART
 
 foreach st in Mum Kid MumPart {
-    local Kid goodQ expectGoodQ twin fem birthweight lbw gestat premature apgar
+    local Kid goodBirthQ expectGoodQ twin fem birthweight lbw gest premature apg
 
     sum ``st''
     estpost tabstat ``st'', statistics(count mean sd min max) columns(statistics)
@@ -132,7 +131,7 @@ foreach st in Mum Kid MumPart {
     */ cells("count(fmt(0)) mean(fmt(2)) sd(fmt(2)) min(fmt(0)) max(fmt(0))")  /*
     */ replace label noobs
 
-    local Kid goodQ expectGoodQ fem birthweight lbw gestat premature apgar
+    local Kid goodBirthQ expectGoodQ fem birthweight lbw gestat premature apgar
     preserve
     keep if `keepif' &married!=.&smoker!=.&college!=.&young!=.&twin==0
     sum ``st''
@@ -143,6 +142,8 @@ foreach st in Mum Kid MumPart {
     */ replace label noobs
     restore
 }
+
+replace young     = . if motherAge<25|motherAge>45
 
 ********************************************************************************
 *** (2b) Subset
@@ -155,16 +156,14 @@ gen birth = 1
 ********************************************************************************
 *** (2c) Label for clarity
 ********************************************************************************
-lab def aG  1 "Young (25-39) " 2  "Old (40-45) "
+lab def aG0 1 "Young (25-39) " 2  "Old (40-45) "
 lab def aGa 1 "Young " 2  "Old "
 lab def aG3 1 "25-34 Years " 2  "35-39 Years" 3 "40-45 Years"
-lab def gQ  0 "quarter 4(t) or quarter 1(t+1)" 1 "quarter 2(t) or quarter 3(t)"
 lab def eL  1 "No College" 2 "Some College +"
 lab def mon 1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug" /*
 */ 9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec"
 
-lab val ageGroup    aG
-lab val goodQuarter gQ
+lab val ageGroup    aG0
 lab val educLevel   eL
 
 
@@ -603,6 +602,7 @@ drop _p* _A*
 tempfile all educ
 
 preserve
+drop if goodQuarter==.
 collapse (sum) birth, by(goodQuarter ageGroup)
 reshape wide birth, i(ageGroup) j(goodQuarter)
 gen totalbirths = birth0 + birth1
@@ -621,6 +621,9 @@ restore
 *** (6b) Histogram by education level
 ********************************************************************************
 preserve
+drop if goodQuarter==.
+drop if educLevel  ==.
+
 collapse (sum) birth, by(goodQuarter ageGroup educLevel)
 reshape wide birth, i(ageGroup educLevel) j(goodQuarter)
 gen totalbirths = birth0 + birth1
@@ -678,8 +681,10 @@ replace ageG2 = 4 if motherAge>=40 & motherAge<46
 
 replace educLevel = educLevel + 1
 replace educLevel = 2 if educLevel == 3
+gen birth = 1
 
 collapse (sum) birth, by(goodQuarter ageG2)
+drop if goodQuarter == .
 reshape wide birth, i(ageG2) j(goodQuarter)
 gen totalbirths = birth0 + birth1
 replace birth0=(round(10000*birth0/totalbirths)/100)-50
@@ -687,8 +692,8 @@ replace birth1=(round(10000*birth1/totalbirths)/100)-50
 keep birth1 ageG2 
 replace birth1=birth1*2
 list
-lab def       aG2 1 "20-24" 2 "25-34" 3 "35-39" 4 "40-45"
-lab val ageG2 aG2
+lab def       aG4 1 "20-24" 2 "25-34" 3 "35-39" 4 "40-45"
+lab val ageG2 aG4
 
 
 #delimit ;
@@ -710,11 +715,9 @@ replace ageG2 = 4 if motherAge>=40 & motherAge<46
 
 replace educLevel = educLevel + 1
 replace educLevel = 2 if educLevel == 3
+gen birth = 1
 
 keep if ART!=.
-gen age2024 = ageG2==1
-gen age2534 = ageG2==2
-gen age3539 = ageG2==3
 replace goodQuarter = goodQuarter*100
 foreach Anum of numlist 0 1 {
     reg goodQuarter age2024 age2534 age3539 if ART==`Anum'
@@ -725,9 +728,8 @@ foreach Anum of numlist 0 1 {
 }
 replace goodQuarter = goodQuarter/100
 
-
-
 collapse (sum) birth, by(goodQuarter ageG2 ART)
+drop if goodQuarter==.|ageG2==.
 reshape wide birth, i(ageG2 ART) j(goodQuarter)
 gen totalbirths = birth0 + birth1
 replace birth0=(round(10000*birth0/totalbirths)/100)-50
@@ -735,8 +737,8 @@ replace birth1=(round(10000*birth1/totalbirths)/100)-50
 keep birth1 ageG2 ART
 replace birth1=birth1*2
 list
-lab def       aG2 1 "20-24" 2 "25-34" 3 "35-39" 4 "40-45"
-lab val ageG2 aG2
+lab def       aG5 1 "20-24" 2 "25-34" 3 "35-39" 4 "40-45"
+lab val ageG2 aG5
 
 gen seUp   = .
 gen seDown = .
@@ -777,6 +779,7 @@ scheme(s1mono) ytitle("% Good Season - % Bad Season");
 graph export "$OUT/birthQdiff_4Ages`app'NoART.eps", as(eps) replace;
 
 #delimit cr
+restore
 
 ********************************************************************************
 *** (7) Birth outcomes by groups
@@ -790,8 +793,9 @@ if `twins'==1 {
 tokenize `axesN'
 preserve
 collapse `hkbirth', by(goodQuarter ageGroup educLevel)
+drop if educLevel == .|goodQuarter == .
 reshape wide `hkbirth', i(ageGroup educLevel) j(goodQuarter)
-drop if educLevel == .
+
 
 foreach outcome in `hkbirth' {
     #delimit ;
@@ -829,70 +833,97 @@ foreach outcome in `hkbirth' {
 restore
 
 
-exit
 ********************************************************************************
 *** (8) Examine by geographic variation (hot/cold)
 ********************************************************************************
-use "$DAT/nvss1990s", clear
-keep if `keepif' & twin==1
-gen birth = 1
-gen young = motherAge>=25&motherAge<40
-
-
 ***NOTE: 12 is Florida (759,551 births). 31 is Nebraska (125,628 births).
 ***27 is Minnesota (350,968 births).
-keep if stoccfip=="12"|stoccfip=="27"
-gen     conceptionMonth = birthMonth - round(gestation*7/30.5)
-replace conceptionMonth = conceptionMonth + 12 if conceptionMonth<1
-gen     state = ""
-replace state = "Florida"    if stoccfip=="12"
-replace state = "Minnesota"  if stoccfip=="27"
-
 cap lab def mon 1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" /*
 */ 8 "Aug" 9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec"
+#delimit ;
+local stat AK AL AR AZ CA CO CT DC DE FL GA HI IA ID IL IN KS KY LA MA MD ME 
+           MI MN MO MS MT NC ND NE NH NJ NM NV NY OH OK OR PA RI SC SD TN TX 
+           UT VA VT WA WI WV WY;
+local snam " `"Alaska"' `"Alabama"' `"Arkansas"' `"Arizona"' `"California"'
+             `"Colorado"' `"Connecticut"' `"Washington DC"' `"Delaware"'
+             `"Florida"' `"Georgia"' `"Hawaii"' `"Iowa"' `"Idaho"' `"Illinois"'
+             `"Indiana"' `"Kansas"' `"Kentucky"' `"Louisiana"' `"Massachusetts"'
+             `"Maryland"' `"Maine"' `"Michigan"' `"Minnesota"' `"Missouri"'
+             `"Mississippi"' `"Montana"' `"North Carolina"' `"North Dakota"'
+             `"Nebraska"' `"New Hampshire"' `"New Jersey"' `"New Mexico"'
+             `"Nevada"' `"New York"' `"Ohio"' `"Oklahoma"' `"Oregon"'
+             `"Pennsylvania"' `"Rhode Island"' `"South Carolina"'
+             `"South Dakota"' `"Tennessee"' `"Texas"' `"Utah"' `"Virginia"'
+             `"Vermont"' `"Washington"' `"Wisconsin"' `"West Virginia"'
+             `"Wyoming"'";
+#delimit cr
+tokenize `stat'
+rename state stateNoSpace
+gen state = ""
+foreach sname of local snam {
+    dis "`1' <--> `sname'"
+    tab stateNoSpace if bstate=="`1'"
+    replace state="`sname'" if bstate=="`1'"
+    macro shift
+}
+
 
 
 drop if conceptionMonth==.
-collapse (sum) birth, by(conceptionMonth state young)
+collapse (sum) birth, by(conceptionMonth bstate young state)
 lab val conceptionMon mon
-bys state young: egen totalBirths = sum(birth)
+bys bstate young: egen totalBirths = sum(birth)
 gen birthProportion = birth/totalBirths
-sort conceptionMonth state
+sort conceptionMonth bstate
 
 local line1 lpattern(solid)    lcolor(black)
 local line2 lpattern(dash)     lcolor(black) 
-local cond1 state=="Florida"  
-local cond2 state=="Minnesota"
 
-#delimit ;
-twoway line birthProportion conceptionMonth if `cond1'& young==1, `line1' ||
-       line birthProportion conceptionMonth if `cond2'& young==1, `line2' 
-scheme(s1mono) xtitle("Month of Conception") ytitle("Proportion of All Births") 
-legend(label(1 "Florida") label(2 "Minnesota")) xlabel(1(1)12, valuelabels);
-graph export "$OUT/conceptionMonthFloridaMinnesota_young.eps", as(eps) replace;
+***#delimit ;
+***twoway line birthProportion conceptionMonth if `cond1'& young==1, `line1' ||
+***       line birthProportion conceptionMonth if `cond2'& young==1, `line2' 
+***scheme(s1mono) xtitle("Month of Conception") ytitle("Proportion of All Births") 
+***legend(label(1 "Florida") label(2 "Minnesota")) xlabel(1(1)12, valuelabels);
+***graph export "$OUT/conceptionMonthFloridaMinnesota_young.eps", as(eps) replace;
+***
+***twoway line birthProportion conceptionMonth if `cond1'& young==0, `line1' ||
+***       line birthProportion conceptionMonth if `cond2'& young==0, `line2' 
+***scheme(s1mono) xtitle("Month of Conception") ytitle("Proportion of All Births") 
+***legend(label(1 "Florida") label(2 "Minnesota")) xlabel(1(1)12, valuelabels);
+***graph export "$OUT/conceptionMonthFloridaMinnesota_old.eps", as(eps) replace;
+***#delimit cr
 
-twoway line birthProportion conceptionMonth if `cond1'& young==0, `line1' ||
-       line birthProportion conceptionMonth if `cond2'& young==0, `line2' 
-scheme(s1mono) xtitle("Month of Conception") ytitle("Proportion of All Births") 
-legend(label(1 "Florida") label(2 "Minnesota")) xlabel(1(1)12, valuelabels);
-graph export "$OUT/conceptionMonthFloridaMinnesota_old.eps", as(eps) replace;
-#delimit cr
-exit
+tokenize `stat'
+foreach s of local snam {
+    local cond if state=="`s'"
+    sum totalBirths `cond'&young==1
+    local Ny = r(mean)
+    sum totalBirths `cond'&young==0
+    local No = r(mean)
+    local Nt = `No'+`Ny'
+
+    #delimit ;
+    twoway line birthProportion conceptionMonth `cond'&young==1, `line1' ||
+    line birthProportion conceptionMonth `cond'&young==0, `line2' 
+    scheme(s1mono) xtitle("Month of Conception") ytitle("Proportion of All Births") 
+    legend(label(1 "Young") label(2 "Old")) xlabel(1(1)12, valuelabels) title(`s')
+    note("Total number of births is `Nt', young are `Ny' and old are `No'.");
+    graph export "$OUT/states/months`1'.eps", as(eps) replace;
+    #delimit cr
+    macro shift
+}
 */
+    
 insheet using "$USW/usaWeather.txt", delim(";") names clear
-rename fips FIPS
 destring temp, replace
 
-reshape wide temp, i(state FIPS year month) j(type) string
+reshape wide temp, i(state fips year month) j(type) string
 keep if year>1997&year<=1999
 
-collapse temptmpcst (min) temptminst (max) temptmaxst, by(state FIPS)
-tostring FIPS, replace
-foreach num in 1 2 4 5 6 8 9 {
-    replace FIPS = "0`num'" if FIPS=="`num'"
-}
-expand 2 if FIPS == "24", gen(expanded)
-replace FIPS = "11" if expanded==1
+collapse temptmpcst (min) temptminst (max) temptmaxst, by(state fips)
+expand 2 if fips == 24, gen(expanded)
+replace fips = 11 if expanded==1
+replace state= "Washington DC" if expanded==1
 drop expanded
 rename temptmpcst meanT
 rename temptminst cold
@@ -902,73 +933,71 @@ tempfile weather
 save `weather'
 
 
-use "$DAT/nvss1998_1999"
-keep if birthOrder == 1
+use "$DAT/`data'"
+replace twin=twin-1
+keep if birthOrder==1
+gen birth = 1
 drop ageGroup
 gen     ageGroup = 1 if motherAge>=15&motherAge<=19
 replace ageGroup = 2 if motherAge>=20&motherAge<=25
 replace ageGroup = 3 if motherAge>=25&motherAge<=39
 replace ageGroup = 4 if motherAge>=40&motherAge<=45
 
-gen goodSeason = birthQuarter == 2 | birthQuarter == 3
-
-collapse goodSeason, by(ageGroup stoccfip)
+keep if goodQuarter != .
+collapse goodQuarter, by(ageGroup fips state bstate)
 
 gen     young = 1 if ageGroup == 3
 replace young = 0 if ageGroup == 4
 
-gen statefips = stoccfip
-rename stoccfip FIPS
-tostring FIPS, replace
-foreach num in 1 2 4 5 6 8 9 {
-    replace FIPS = "0`num'" if FIPS=="`num'"
-}
-merge m:1 FIPS using `weather'
+merge m:1 state using `weather'
 drop _merge
 
-lab var goodSeason  "Proportion good season"
+lab var goodQuarter "Proportion good season"
 lab var cold        "Coldest monthly average (degree F)"
 lab var hot         "Warmest monthly average (degree F)"
 lab var meanT       "Mean monthly temperature (degree F)"
-
+format goodQuarter %5.2f
 foreach num of numlist 0 1 {
     local age young
     if `num'==0 local age old
-    drop if FIPS=="02"
+*    drop if fips==02
+    drop if state=="Alaska"
 
-    corr goodSeason cold if young==`num'
+    corr goodQuarter cold if young==`num'
     local ccoef = string(r(rho),"%5.3f")
-    twoway scatter goodSeason cold if young==`num', mlabel(state) ||      ///
-        lfit goodSeason cold if young==`num', scheme(s1mono) lcolor(gs0)  ///
+    twoway scatter goodQuarter cold if young==`num', mlabel(state) ||      ///
+        lfit goodQuarter cold if young==`num', scheme(s1mono) lcolor(gs0)  ///
             legend(off) lpattern(dash) note("Correlation coefficient=`ccoef'")
     graph export "$OUT/`age'TempCold.eps", as(eps) replace
-    twoway scatter goodSeason hot if young==`num', mlabel(state)  ||      ///
-        lfit goodSeason hot if young==`num', scheme(s1mono) lcolor(gs0)   ///
+    twoway scatter goodQuarter hot if young==`num', mlabel(state)  ||      ///
+        lfit goodQuarter hot if young==`num', scheme(s1mono) lcolor(gs0)   ///
             legend(off) lpattern(dash)
     graph export "$OUT/`age'TempWarm.eps", as(eps) replace
-    twoway scatter goodSeason meanT if young==`num', mlabel(state)||      ///
-        lfit goodSeason meanT if young==`num', scheme(s1mono) lcolor(gs0) ///
+    twoway scatter goodQuarter meanT if young==`num', mlabel(state)||      ///
+        lfit goodQuarter meanT if young==`num', scheme(s1mono) lcolor(gs0) ///
             legend(off) lpattern(dash)
     graph export "$OUT/`age'TempMean.eps", as(eps) replace
 }
 
-
-merge m:1 statefips using "$DAT/../maps/state_database_clean"
+drop state
+rename bstate state
+merge m:1 state using "$DAT/../maps/state_database_clean"
 drop _merge
-format goodSeason %5.3f
+format goodQuarter %5.3f
+
 
 #delimit ;
-spmap goodSeason if young==1&(FIPS!="02"&FIPS!="15") using
+spmap goodQuarter if young==1&(fips!=2&fips!=18) using
 "$DAT/../maps/state_coords_clean", id(_polygonid) fcolor(YlOrRd)
 legend(symy(*2) symx(*2) size(*2.1) position(4) rowgap(1)) legstyle(2);
 graph export "$OUT/maps/youngGoodSeason.eps", replace as(eps);
 
-spmap goodSeason if young==0&(FIPS!="02"&FIPS!="15") using
+spmap goodQuarter if young==0&(fips!=2&fips!=18) using
 "$DAT/../maps/state_coords_clean", id(_polygonid) fcolor(YlOrRd)
 legend(symy(*2) symx(*2) size(*2.1) position(4) rowgap(1)) legstyle(2);
 graph export "$OUT/maps/oldGoodSeason.eps", replace as(eps);
 
-spmap goodSeason if ageGr==1&(FIPS!="02"&FIPS!="15") using
+spmap goodQuarter if ageGr==1&(fips!=2&fips!=18) using
 "$DAT/../maps/state_coords_clean", id(_polygonid) fcolor(YlOrRd)
 legend(symy(*2) symx(*2) size(*2.1) position(4) rowgap(1)) legstyle(2);
 graph export "$OUT/maps/teenGoodSeason.eps", replace as(eps);
