@@ -960,7 +960,6 @@ format goodQuarter %5.2f
 foreach num of numlist 0 1 {
     local age young
     if `num'==0 local age old
-*    drop if fips==02
     drop if state=="Alaska"
 
     corr goodQuarter cold if young==`num'
@@ -989,7 +988,8 @@ format goodQuarter %5.3f
 #delimit ;
 spmap goodQuarter if young==1&(fips!=2&fips!=18) using
 "$DAT/../maps/state_coords_clean", id(_polygonid) fcolor(YlOrRd)
-legend(symy(*2) symx(*2) size(*2.1) position(4) rowgap(1)) legstyle(2);
+legend(symy(*2) symx(*2) size(*2.1) position(4) rowgap(1)) legstyle(2)
+clmethod(custom) clbreaks(0.505 0.515 0.52 0.525 0.53 0.535);
 graph export "$OUT/maps/youngGoodSeason.eps", replace as(eps);
 
 spmap goodQuarter if young==0&(fips!=2&fips!=18) using
