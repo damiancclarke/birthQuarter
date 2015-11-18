@@ -114,7 +114,7 @@ graph export "$OUT/../graphs/missingEduc.eps", as(eps) replace;
 
 restore
 */
-/*
+
 ********************************************************************************
 *** (4a) Good Quarter Regressions
 ********************************************************************************
@@ -285,23 +285,28 @@ postfoot("State and Year FE&&Y&Y&&Y&Y\\ Controls&&&Y&&&Y\\  \bottomrule "
 #delimit cr
 estimates clear
 restore
-*/
+
 ********************************************************************************
 *** (6) Regressions (Quality on Age, season)
 ********************************************************************************
-local c1      twin==1&birthOrder==1 twin==2&birthOrder==1 twin==1&birthOrder==2
-local varsY   age2527 age2831 age3239 goodQuarter highEd married smoker
-local varsA   motherAge goodQuarter highEd married smoker
-local varsA2  motherAge motherAge2 goodQuarter highEd married smoker
-local names   Main Twin Bord2
-local names   Bord2
+local c1      twin==1&birthOrd==1&liveBir==1 twin==2&birthOrder==1&liveBir==1 /*
+           */ twin==1&birthOrd==2&liveBir==1 twin==1&birthOrd==1
+local varsY   age2527 age2831 age3239 goodQuarter highEd married smoker value
+local varsA   motherAge goodQuarter highEd married smoker value
+local varsA2  motherAge motherAge2 goodQuarter highEd married smoker value
+local names   Main Twin Bord2 FDeaths
 tokenize `names'
 
 
 foreach cond of local c1 {
-    dis "`1'"
+    if `"`1'"'=="Main"    local title "Main Sample"
+    if `"`1'"'=="Twin"    local title "Twin Sample"
+    if `"`1'"'=="Bord2"   local title "Birth Order 2"
+    if `"`1'"'=="FDeaths" local title "Including Fetal Deaths"
+
+    dis "`1', `title'"
     preserve
-    keep if motherAge>24 & motherAge<=45 & `cond' & liveBirth == 1
+    keep if motherAge>24 & motherAge<=45 & `cond'
     
     foreach ageType in Y A A2 {
         local nT "_`ageType'"
@@ -314,7 +319,7 @@ foreach cond of local c1 {
     
         #delimit ;
         esttab est1 est2 est3 est4 est5 est6 using "$OUT/NVSSQuality`1'`nT'.tex",
-        replace `estopt' title("Birth Quality by Age and Season (`1' sample)")
+        replace `estopt' title("Birth Quality by Age and Season (`title')")
         keep(_cons `vars`ageType'') style(tex) mlabels(, depvar) booktabs
         postfoot("\bottomrule"
                  "\multicolumn{7}{p{17cm}}{\begin{footnotesize}Sample consists "
@@ -364,64 +369,9 @@ postfoot("State and Year FE&&Y&Y&Y\\  Gestation FE &&&&Y \\ \bottomrule      "
 #delimit cr
 estimates clear
 
-
-exit
-*
-*
-*
-*
-*
-
-local varsY   age2534 age3539 goodQuarter highEd smoker
-
-foreach y of varlist `qual' {
-    eststo: reg `y' `varsY' `yFE', `se'
-}
-
-#delimit ;
-esttab est1 est2 est3 est4 est5 est6 using "$OUT/NVSSQualityFetalDeaths.tex",
-replace `estopt' keep(_cons `varsY') style(tex) mlabels(, depvar) booktabs
-title("Birth Quality by Age and Season (Including Fetal Deaths)")
-postfoot("\bottomrule"
-         "\multicolumn{7}{p{17cm}}{\begin{footnotesize}Sample consists of all "
-         "first live births and fetal deaths of US-born, white, non-hispanic  "
-         "mothers aged between 25 and 45.  Fetal deaths are included if       "
-         "occurring between 25 and 44 weeks of gestation.  Education is       "
-         "recorded for fetal deaths only prior to 2008.                       "
-         "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.               "
-         "\end{footnotesize}}\end{tabular}\end{table}");
-#delimit cr
-estimates clear
-
-
-
-
-
-
 exit
 
-local cond `cnd'&liveBirth==0
-eststo: reg goodQuarter young                                   `cond', `se'
-eststo: reg goodQuarter young                             `yFE' `cond', `se'
-eststo: reg goodQuarter young highEd                      `yFE' `cond', `se'
 
-#delimit ;
-esttab est1 est2 est3 using "$OUT/NVSSBinaryFDeathsOnly.tex",
-replace `estopt' title("Birth Season Correlates (Fetal Deaths Only)") 
-keep(_cons young highEd ) style(tex) mlabels(, depvar)
-postfoot("Year FE&&Y&Y\\ \bottomrule"
-         "\multicolumn{4}{p{9cm}}{\begin{footnotesize}Sample consists of all"
-         "firsts (live births and fetal deaths) of US-born, white, non-hispanic"
-         "mothers.  Fetal deaths are included if occurring between 25 and 44"
-         "weeks of gestation.  Education is recorded for fetal deaths only "
-         "prior to 2008."
-         "\end{footnotesize}}\end{tabular}\end{table}") booktabs ;
-#delimit cr
-estimates clear
-
-
-
-*/
 ********************************************************************************
 *** (8) 1970, 1990 regs
 ********************************************************************************
