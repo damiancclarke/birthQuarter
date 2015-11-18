@@ -42,13 +42,13 @@ local stateFE 0
 local twins   0
 if `twins' == 1 local app twins
 
-/*
+
 ********************************************************************************
 *** (2a) Use, descriptive graph
 ********************************************************************************
 use "$DAT/`data'"
 keep if birthOrder==1
-
+/*
 #delimit ;
 twoway hist motherAge if motherAge>24&motherAge<=45, freq color(gs0) width(1) ||
        hist motherAge if motherAge<=24|motherAge>45, freq color(gs12) width(1)
@@ -87,7 +87,7 @@ graph export "$OUT/ARTageGroup.eps", as(eps) replace;
 restore
 
 
-
+*/
 ********************************************************************************
 *** (2aii) Summary stats table
 ********************************************************************************
@@ -118,6 +118,7 @@ lab var ART         "Used ART (2009-2013 only)"
 lab var young       "Young (aged 25-39)"
 lab var expectGoodQ "Good season of birth (due date)"
 lab var goodBirthQ  "Good season of birth (birth date)"
+/*
 
 local Mum     motherAge married young 
 local MumPart college educCat smoker ART
@@ -142,7 +143,7 @@ foreach st in Mum Kid MumPart {
     */ replace label noobs
     restore
 }
-
+*/
 replace young     = . if motherAge<25|motherAge>45
 
 ********************************************************************************
@@ -165,7 +166,7 @@ lab def mon 1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug" /*
 
 lab val ageGroup    aG0
 lab val educLevel   eL
-
+/*
 
 ********************************************************************************
 *** (3) Descriptives by month
@@ -810,13 +811,14 @@ foreach outcome in `hkbirth' {
 }
 restore
 
-
+*/
 local hkbirth birthweight lbw gestation
 local axesN   3225[25]3350 0.05[0.01]0.1 38.4[0.2]39.2
 if `twins'==1 local axesN 2300[25]2400 0.5[0.025]0.6 35[0.1]35.5 
 
 tokenize `axesN'
 preserve
+drop if goodQuarter == .
 collapse `hkbirth', by(goodQuarter ageGroup)
 reshape wide `hkbirth', i(ageGroup) j(goodQuarter)
 
@@ -878,21 +880,45 @@ sort conceptionMonth bstate
 
 local line1 lpattern(solid)    lcolor(black)
 local line2 lpattern(dash)     lcolor(black) 
+local MN    Minnesota
+local WI    Wisconsin
 
-***#delimit ;
-***twoway line birthProportion conceptionMonth if `cond1'& young==1, `line1' ||
-***       line birthProportion conceptionMonth if `cond2'& young==1, `line2' 
-***scheme(s1mono) xtitle("Month of Conception") ytitle("Proportion of All Births") 
-***legend(label(1 "Florida") label(2 "Minnesota")) xlabel(1(1)12, valuelabels);
-***graph export "$OUT/conceptionMonthFloridaMinnesota_young.eps", as(eps) replace;
-***
-***twoway line birthProportion conceptionMonth if `cond1'& young==0, `line1' ||
-***       line birthProportion conceptionMonth if `cond2'& young==0, `line2' 
-***scheme(s1mono) xtitle("Month of Conception") ytitle("Proportion of All Births") 
-***legend(label(1 "Florida") label(2 "Minnesota")) xlabel(1(1)12, valuelabels);
-***graph export "$OUT/conceptionMonthFloridaMinnesota_old.eps", as(eps) replace;
-***#delimit cr
+foreach hS in Alabama Arkansas Arizona {
+    local cond1 state=="`hS'"
+    local cond2 state=="Minnesota"
+    #delimit ;
+    twoway line birthProportion conceptionMonth if `cond1'& young==1, `line1' ||
+           line birthProportion conceptionMonth if `cond2'& young==1, `line2' 
+    scheme(s1mono) xtitle("Month of Conception") xlabel(1(1)12, valuelabels)
+    ytitle("Proportion of All Births") legend(label(1 "`hS'") label(2 "`MN'"));
+    graph export "$OUT/conceptionMonth`hS'Minnesota_young.eps", as(eps) replace;
 
+    twoway line birthProportion conceptionMonth if `cond1'& young==0, `line1' ||
+           line birthProportion conceptionMonth if `cond2'& young==0, `line2' 
+    scheme(s1mono) xtitle("Month of Conception") xlabel(1(1)12, valuelabels)
+    ytitle("Proportion of All Births") legend(label(1 "`hS'") label(2 "`MN'"));
+    graph export "$OUT/conceptionMonth`hS'Minnesota_old.eps", as(eps) replace;
+    #delimit cr
+
+    local cond2 state=="Wisconsin"
+    #delimit ;
+    twoway line birthProportion conceptionMonth if `cond1'& young==1, `line1' ||
+           line birthProportion conceptionMonth if `cond2'& young==1, `line2' 
+    scheme(s1mono) xtitle("Month of Conception") xlabel(1(1)12, valuelabels)
+    ytitle("Proportion of All Births") legend(label(1 "`hS'") label(2 "`WI'"));
+    graph export "$OUT/conceptionMonth`hS'Wisconsin_young.eps", as(eps) replace;
+
+    twoway line birthProportion conceptionMonth if `cond1'& young==0, `line1' ||
+           line birthProportion conceptionMonth if `cond2'& young==0, `line2' 
+    scheme(s1mono) xtitle("Month of Conception") xlabel(1(1)12, valuelabels)
+    ytitle("Proportion of All Births") legend(label(1 "`hS'") label(2 "`WI'"));
+    graph export "$OUT/conceptionMonth`hS'Wisconsin_old.eps", as(eps) replace;
+    #delimit cr
+}
+
+********************************************************************************
+*** (8b) All states
+********************************************************************************
 tokenize `stat'
 foreach s of local snam {
     local cond if state=="`s'"
@@ -912,7 +938,6 @@ foreach s of local snam {
     #delimit cr
     macro shift
 }
-*/
     
 insheet using "$USW/usaWeather.txt", delim(";") names clear
 destring temp, replace
@@ -988,8 +1013,7 @@ format goodQuarter %5.3f
 #delimit ;
 spmap goodQuarter if young==1&(fips!=2&fips!=18) using
 "$DAT/../maps/state_coords_clean", id(_polygonid) fcolor(YlOrRd)
-legend(symy(*2) symx(*2) size(*2.1) position(4) rowgap(1)) legstyle(2)
-clmethod(custom) clbreaks(0.505 0.515 0.52 0.525 0.53 0.535);
+legend(symy(*2) symx(*2) size(*2.1) position(4) rowgap(1)) legstyle(2);
 graph export "$OUT/maps/youngGoodSeason.eps", replace as(eps);
 
 spmap goodQuarter if young==0&(fips!=2&fips!=18) using

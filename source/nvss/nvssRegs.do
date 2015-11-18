@@ -4,8 +4,6 @@
 This file uses NVSS data on first births and runs regressions on births by quar-
 ter, allowing for additional controls, fixed effects, and so forth.
 
-Note: I still need to add state controls to the original data file.
-
 */
 
 vers 11
@@ -39,6 +37,8 @@ local keepif birthOrder==1
 ********************************************************************************
 use          "$DAT/nvss2005_2013"
 append using "$DAT/nvssFD2005_2013"
+lab var value "Unemployment Rate"
+tab year, gen(_year)
 
 ********************************************************************************
 *** (3a) Examine missing covariates
@@ -114,7 +114,7 @@ graph export "$OUT/../graphs/missingEduc.eps", as(eps) replace;
 
 restore
 */
-
+/*
 ********************************************************************************
 *** (4a) Good Quarter Regressions
 ********************************************************************************
@@ -123,9 +123,6 @@ local add `" ""  "(No September)" "(Birth Order = 2)" "(Twin sample)" "';
 local nam Main NoSep Bord2 Twin;
 #delimit cr
 tokenize `nam'
-
-lab var value "Unemployment Rate"
-tab year, gen(_year)
 
 foreach type of local add {
     preserve
@@ -237,7 +234,7 @@ local age  age2527 age2831 age3239
 local ageX age2527XhighEd age2831XhighEd age3239XhighEd
 
 
-eststo: areg goodQua `age' smoker highEd `ageX' _year              , abs(fips)
+eststo: areg goodQua `age' smoker highEd `ageX' _year*             , abs(fips)
 eststo: areg goodQua `age' smoker highEd        _year* if e(sample), abs(fips)
 eststo: areg goodQua `age' smoker               _year* if e(sample), abs(fips)
 
@@ -268,7 +265,7 @@ preserve
 keep if twin==1 & motherAge>=20 & motherAge<=45 & liveBirth==1 & `keepif'
 local con highEd married smoker value _year*
 
-eststo: areg goodQuarter age2024 ART           `con'               , abs(fips)
+eststo: areg goodQuarter age2024 ART            `con'              , abs(fips)
 eststo: areg goodQuarter age2024 ART            _year* if e(sample), abs(fips)
 eststo:  reg goodQuarter age2024 ART                   if e(sample)
 eststo: areg goodQuarter age2024 ART ARTage2024 `con'              , abs(fips)
@@ -288,12 +285,12 @@ postfoot("State and Year FE&&Y&Y&&Y&Y\\ Controls&&&Y&&&Y\\  \bottomrule "
 #delimit cr
 estimates clear
 restore
-
+*/
 ********************************************************************************
 *** (6) Regressions (Quality on Age, season)
 ********************************************************************************
 local c1      twin==1&birthOrder==1 twin==2&birthOrder==1 twin==1&birthOrder==2
-local varsY   age2527 age2731 age3239 goodQuarter highEd married smoker
+local varsY   age2527 age2831 age3239 goodQuarter highEd married smoker
 local varsA   motherAge goodQuarter highEd married smoker
 local varsA2  motherAge motherAge2 goodQuarter highEd married smoker
 local names   Main Twin Bord2
@@ -348,15 +345,15 @@ local yab abs(fips)
 local ges i.gestation
 local spcnd
 
-eststo: areg goodQuarter `age' `con' i.year i.gestation , `se' `yab'
-eststo: areg goodQuarter `age' `con' i.year             , `se' `yab'
-eststo: areg goodQuarter `age'       i.year if e(sample), `se' `yab'
+eststo: areg goodQuarter `age' `con' _year* i.gestation , `se' `yab'
+eststo: areg goodQuarter `age' `con' _year*             , `se' `yab'
+eststo: areg goodQuarter `age'       _year* if e(sample), `se' `yab'
 eststo:  reg goodQuarter `age'              if e(sample), `se'
     
 #delimit ;
-esttab est3 est2 est1 using "$OUT/NVSSBinaryFDeaths.tex",
+esttab est4 est3 est2 est1 using "$OUT/NVSSBinaryFDeaths.tex",
 replace `estopt' title("Birth Season and Age (Including Fetal Deaths)") 
-keep(_cons `age' `edu' `con') style(tex) mlabels(, depvar)
+keep(_cons `age' `con') style(tex) mlabels(, depvar)
 postfoot("State and Year FE&&Y&Y&Y\\  Gestation FE &&&&Y \\ \bottomrule      "
          "\multicolumn{5}{p{14cm}}{\begin{footnotesize}Sample consists of all"
          "first live births and fetal deaths of US-born, white, non-hispanic "
