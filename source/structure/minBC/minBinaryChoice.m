@@ -8,11 +8,13 @@
 %-------------------------------------------------------------------------------
 %--- Hardcoded parameters
 %-------------------------------------------------------------------------------
-N = 100;
-T = 10;
-X = NaN(N,T);
-X(:,1) = 0;
-BETA = 0.9;
+N        = 100;
+T        = 10;
+X        = NaN(N,T);
+X(:,1)   = 0;
+BETA     = 0.8;
+ERRORSIG = 2;
+STATESIG = 3;
 
 %-------------------------------------------------------------------------------
 %--- State variable
@@ -34,13 +36,14 @@ R1 = UCut(repmat((1:10),[N,1]),X);
 %-------------------------------------------------------------------------------
 statemin    = 0;
 statedif    = 0.1;
-statemax    = 30;
+statemax    = 40;
 grid        = [statemin:statedif:statemax]';
 VF      = [NaN(length(grid),T),zeros(length(grid),1)];
 choices = [NaN(length(grid),T)];
 
 for t = T:-1:1
-    [VF(:,t), choices(:,t)]=ValFunc(grid,t*ones(length(grid),1),VF(:,t+1),BETA);
+    [VF(:,t), choices(:,t)]=ValFunc(grid,t*ones(length(grid),1), ...
+                                    VF(:,t+1),BETA,grid,STATESIG);
 end
 
 
@@ -65,3 +68,8 @@ for t=1:T
         end
     end
 end
+
+%%NOTE: RUST (1987) STACKS INTO ONE MATRIX.  SEE NOTES TO HIS README IN
+%%NFXP ZIP FILE.  HIS CODE IS WRITTEN IN GAUSS.
+
+nansum(obschoice)
