@@ -56,6 +56,7 @@ foreach year of numlist 2007(1)2013 {
     gen birthYear     = `year'
     gen marBirth      = (anopar*12+mespar)-(anomat*12+mesmat)
     gen marrPreBirth  = married==1 & marBirth > 8
+    gen preDeaths     = mumh-numhv
     
     gen birthQuarter  = ceil(mespar/3)
     gen goodQuarter   = birthQuarter == 2 | birthQuarter == 3
@@ -76,7 +77,7 @@ foreach year of numlist 2007(1)2013 {
     rename muni     inscriptionMunicip
     rename munpar   birthMunicip
     rename propar   birthProvince
-
+    
     foreach parent in Mother Father {
         gen yrsEduc`parent' = 0 if education`parent'==1|education`parent'==2
         replace yrsEduc`parent' = 5 if education`parent'==3
@@ -111,7 +112,7 @@ foreach year of numlist 2007(1)2013 {
     keep parity multipleBirth monthBirth singleton twin premature gestation lbw
         vlbw inscription* birthM birthP married single cesarean survived1day female
         motherSp* civilStatus education* profession* age* birthQuarter goodQuarter
-        badQuarter yrs* birthweight marBirth marrPreBirth;
+        badQuarter yrs* birthweight marBirth marrPreBirth preDeaths;
     #delimit cr
 
     tempfile f`year'
