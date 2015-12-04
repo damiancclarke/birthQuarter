@@ -18,6 +18,7 @@ cap log close
 ********************************************************************************
 global ACS "~/investigacion/2015/birthQuarter/data/raw"
 global UNE "~/investigacion/2015/birthQuarter/data/employ"
+global OCC "~/investigacion/2015/birthQuarter/data/occup"
 global USW "~/investigacion/2015/birthQuarter/data/weather"
 global LOG "~/investigacion/2015/birthQuarter/log"
 
@@ -163,9 +164,58 @@ merge m:1 stateabbrev year birthQuarter using `temperature'
 drop if _merge==2
 drop _merge
 
+********************************************************************************
+*** (5) Import occupation data (codes from Blau files)
+********************************************************************************
+generat occ2 = occ
+replace occ2 = 130 if  occ2 == 135 |occ2 == 136 |occ2 == 137
+replace occ2 = 200 if  occ2 == 205
+replace occ2 = 320 if  occ2 == 430 |occ2 == 4465
+replace occ2 = 560 if  occ2 == 565 |occ2 == 3945
+replace occ2 = 620 if  occ2 == 630 |occ2 == 640 |occ2 == 650
+replace occ2 = 720 if  occ2 == 725
+replace occ2 = 730 if  occ2 == 425 |occ2 == 725 |occ2 == 735|occ2 == 740
+replace occ2 = 1000 if occ2 == 1005|occ2 == 1006|occ2 == 1106 | occ2 == 1107
+replace occ2 = 1110 if occ2 == 1007|occ2 == 1030|occ2 == 1050
+replace occ2 = 1110 if occ2 == 1105|occ2 == 1106
+replace occ2 = 1100 if occ2 == 1105|occ2 == 1106|occ2 == 1107
+replace occ2 = 1960 if occ2 == 1965
+replace occ2 = 2020 if occ2 == 2015|occ2 == 2016|occ2 == 2025
+replace occ2 = 2100 if occ2 == 2105
+replace occ2 = 2140 if occ2 == 2145
+replace occ2 = 2150 if occ2 == 2160
+replace occ2 = 2820 if occ2 == 2825
+replace occ2 = 3240 if occ2 == 3245
+replace occ2 = 3130 if occ2 == 3255|occ2 == 3256|occ2 == 3258
+replace occ2 = 3410 if occ2 == 3420
+replace occ2 = 3530 if occ2 == 3535
+replace occ2 = 3650 if occ2 == 3645|occ2 == 3646|occ2 == 3647
+replace occ2 = 3650 if occ2 == 3648|occ2 == 3649|occ2 == 3655
+replace occ2 = 3920 if occ2 == 3930
+replace occ2 = 3950 if occ2 == 3955
+replace occ2 = 4550 if occ2 == 9050|occ2 == 9415
+replace occ2 = 4960 if occ2 == 726 |occ2 == 4965
+replace occ2 = 5930 if occ2 == 5830|occ2 == 5165|occ2 == 5940
+replace occ2 = 6000 if occ2 == 6005
+replace occ2 = 6350 if occ2 == 6355
+replace occ2 = 6510 if occ2 == 6515
+replace occ2 = 6760 if occ2 == 6765
+replace occ2 = 7310 if occ2 == 7315
+replace occ2 = 7620 if occ2 == 7630
+replace occ2 = 7850 if occ2 == 7855
+replace occ2 = 8240 if occ2 == 8255|occ2 == 8256
+replace occ2 = 8960 if occ2 == 8965
+replace occ2 = occ2/10
+
+
+merge m:1 occ2 using "$OCC/OccCharacMerge", gen(_occmerge)
+exit
+keep if _occmerge==1|_occmerge==3
+drop _merge
+
 
 ********************************************************************************
-*** () Label 
+*** (6) Label 
 ********************************************************************************
 lab var goodQuarter  "Good Season"
 lab var age2024      "Aged 20-24"
@@ -174,3 +224,11 @@ lab var age2831      "Aged 28-31"
 lab var age3239      "Aged 32-39"
 lab var married      "Married"
 lab var highEduc     "Some College +"
+
+
+lab dat "ACS data from 2005-2014 with temp, occupation and employment (DCC)"
+********************************************************************************
+*** (7) Save, close
+********************************************************************************
+save "$DAT/ACS_20052014_cleaned", replace
+log close
