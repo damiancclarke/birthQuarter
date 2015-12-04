@@ -18,6 +18,7 @@ cap log close
 ********************************************************************************
 global ACS "~/investigacion/2015/birthQuarter/data/raw"
 global UNE "~/investigacion/2015/birthQuarter/data/employ"
+global USW "~/investigacion/2015/birthQuarter/data/weather"
 global LOG "~/investigacion/2015/birthQuarter/log"
 
 log using "$LOG/ipumsPrep.txt", text replace
@@ -55,7 +56,7 @@ tab statefip, gen(_state)
 
 
 ********************************************************************************
-*** (3) Import weather data
+*** (3) Import unemployment data
 ********************************************************************************
 preserve
 use "$UNE/unemployment", clear
@@ -90,19 +91,76 @@ foreach ff of local fipsB {
     macro shift
 }
 
-collapse value, by(state fips year statefip birthQuarter)
+collapse value, by(state fips year statefip birthQuarter stateabbrev)
 replace birthQuarter = birthQuarter+3
 replace year         = year+1         if birthQuarter >4 
 replace birthQuarter = birthQuarter-4 if birthQuarter >4
 
-tempfile weather
-save `weather'
+tempfile unemployment
+save `unemployment'
 restore
 
-merge m:1 statefip year birthQuarter using `weather'
+merge m:1 statefip year birthQuarter using `unemployment'
 ** Merges perfectly for all in ACS data (0 obs with _merge==1)
-** Observations for which _merge==2 is because weather data goes back very far
+** Obs for which _merge==2 is because unemployment data goes back to 1976
 keep if _merge==3
+drop _merge
+preserve
+
+********************************************************************************
+*** (4) Import temperature data
+********************************************************************************
+insheet using "$USW/usaWeather.txt", delim(";") names clear
+expand 2 if fips == 24, gen(expanded)
+replace fips = 11 if expanded==1
+replace state= "Washington DC" if expanded==1
+drop expanded
+
+destring temp, replace
+reshape wide temp, i(state fips year month) j(type) string
+gen birthQuarter = ceil(month/3)
+rename temptmpcst meanT
+rename temptminst cold
+rename temptmaxst hot
+
+
+#delimit ;
+local stat AK AL AR AZ CA CO CT DC DE FL GA HI IA ID IL IN KS KY LA MA MD ME
+           MI MN MO MS MT NC ND NE NH NJ NM NV NY OH OK OR PA RI SC SD TN TX
+           UT VA VT WA WI WV WY;
+local snam " `"Alaska"' `"Alabama"' `"Arkansas"' `"Arizona"' `"California"'
+             `"Colorado"' `"Connecticut"' `"Washington DC"' `"Delaware"'
+             `"Florida"' `"Georgia"' `"Hawaii"' `"Iowa"' `"Idaho"' `"Illinois"'
+             `"Indiana"' `"Kansas"' `"Kentucky"' `"Louisiana"' `"Massachusetts"'
+             `"Maryland"' `"Maine"' `"Michigan"' `"Minnesota"' `"Missouri"'
+             `"Mississippi"' `"Montana"' `"North Carolina"' `"North Dakota"'
+             `"Nebraska"' `"New Hampshire"' `"New Jersey"' `"New Mexico"'
+             `"Nevada"' `"New York"' `"Ohio"' `"Oklahoma"' `"Oregon"'
+             `"Pennsylvania"' `"Rhode Island"' `"South Carolina"'
+             `"South Dakota"' `"Tennessee"' `"Texas"' `"Utah"' `"Virginia"'
+             `"Vermont"' `"Washington"' `"Wisconsin"' `"West Virginia"'
+             `"Wyoming"'";
+#delimit cr
+tokenize `stat'
+gen stateabbrev = ""
+foreach sname of local snam {
+    dis "`1' <--> `sname'"
+    replace stateabbrev="`1'" if state=="`sname'"
+    macro shift
+}
+collapse meanT (min) cold (max) hot, by(state fips year birthQuarter stateabb)
+rename state stateTemp
+rename fips  fipsTemp
+
+tempfile temperature
+save `temperature'
+restore
+
+merge m:1 stateabbrev year birthQuarter using `temperature'
+** All except for 202 observations merge from IPUMS data.
+** 202 obs are from Hawaii, where no temperature data, so _merge==1
+** Observations with _merge==2 is because temperature data goes back a long way
+drop if _merge==2
 drop _merge
 
 
