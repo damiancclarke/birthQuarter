@@ -29,7 +29,7 @@ local data noallocatedagesexrelate_children__withmother_bio_reshaped_2005_2014
 ********************************************************************************
 *** (2) Open data, subset, and create variables from IPUMS
 ********************************************************************************
-use "$DAT/`data'"
+use "$ACS/`data'"
 keep if ((bpl1<150 & firstborn_1==1) | (bpl2<150 & firstborn_1==0))
 keep if race==1 & hispan==0 & twins==0
 keep if school==1
@@ -51,10 +51,6 @@ gen married     = marst==1|marst==2
 gen hhincomeSq  = hhincome^2
 gen female      = sex1==2
 gen highEduc    = educ>6 if educ<=11
-
-tab year    , gen(_year)
-tab statefip, gen(_state)
-
 
 ********************************************************************************
 *** (3) Import unemployment data
@@ -96,6 +92,7 @@ collapse value, by(state fips year statefip birthQuarter stateabbrev)
 replace birthQuarter = birthQuarter+3
 replace year         = year+1         if birthQuarter >4 
 replace birthQuarter = birthQuarter-4 if birthQuarter >4
+rename value unemployment
 
 tempfile unemployment
 save `unemployment'
@@ -209,7 +206,7 @@ replace occ2 = occ2/10
 
 
 merge m:1 occ2 using "$OCC/OccCharacMerge", gen(_occmerge)
-exit
+
 keep if _occmerge==1|_occmerge==3
 drop _merge
 
@@ -218,17 +215,33 @@ drop _merge
 *** (6) Label 
 ********************************************************************************
 lab var goodQuarter  "Good Season"
+lab var badQuarter   "Born in quarter 1 or quarter 4"
 lab var age2024      "Aged 20-24"
 lab var age2527      "Aged 25-27"
 lab var age2831      "Aged 28-31"
 lab var age3239      "Aged 32-39"
+lab var age4045      "Aged 40-45"
 lab var married      "Married"
 lab var highEduc     "Some College +"
+lab var state        "State name (string) no spaces"
+lab var fips         "State FIPS (old style, weather)"
+lab var stateabbrev  "State code (two letters)"
+lab var unemployment "Unemployment rate in quarter of conception"
+lab var stateTemp    "State names from temperature data"
+lab var fipsTemp     "FIPS codes (current) from temperature data"
+lab var meanT        "Average monthly temperature in quarter of birth"
+lab var cold         "Coldest monthly temperature in state in quarter of birth"
+lab var hot          "Warmest monthly temperature in state in quarter of birth"
+lab var N_structw    "Standardised score for structured work (Blau)"
+lab var N_timepres   "Standardised score for time pressure at work (Blau)"
+lab var N_contact    "Standardised score for contact with others at work (Blau)"
+lab var N_seven      "Standardised score for seven flexibility factores (Blau)"
+lab var N_five       "Standardised score for seven flexibility factores (Blau)"
 
 
 lab dat "ACS data from 2005-2014 with temp, occupation and employment (DCC)"
 ********************************************************************************
 *** (7) Save, close
 ********************************************************************************
-save "$DAT/ACS_20052014_cleaned", replace
+save "$ACS/ACS_20052014_cleaned", replace
 log close
