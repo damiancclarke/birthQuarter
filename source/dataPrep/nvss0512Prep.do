@@ -616,6 +616,7 @@ gen age2527             = motherAge>=25 & motherAge <28
 gen age2831             = motherAge>=28 & motherAge <32
 gen age3239             = motherAge>=32 & motherAge <40
 gen age3539             = motherAge>=35 & motherAge <40
+gen age4045             = motherAge>=40 & motherAge <46
 gen age2534XhighEd      = age2534*highEd
 gen age2527XhighEd      = age2527*highEd
 gen age2831XhighEd      = age2831*highEd
@@ -659,7 +660,7 @@ local stat AK AL AR AZ CA CO CT DC DE FL GA HI IA ID IL IN KS KY LA MA MD ME /*
 */         MI MN MO MS MT NC ND NE NH NJ NM NV NY OH OK OR PA RI SC SD TN TX /*
 */         UT VA VT WA WI WV WY
 local fips 8  7  10 9  11 12 13 15 14 16 17 18 22 19 20 21 23 24 25 28 27 26 /*
-*/         29 30 32 31 33 40 41 34 36 37 38 	35 39 42 43 44 45 47 48 49 50 51 /*
+*/         29 30 32 31 33 40 41 34 36 37 38 35 39 42 43 44 45 47 48 49 50 51 /*
 */         52 54 53 56 58 57 59
 gen fips = .
 tokenize `stat'
@@ -712,6 +713,7 @@ lab var age2527            "Aged 25-27"
 lab var age2831            "Aged 28-31"
 lab var age3239            "Aged 32-39"
 lab var age3539            "Aged 35-39"
+lab var age4045            "Aged 40-45"
 lab var age2534XhighEd     "Aged 25-34 $\times$ Some College"
 lab var age3539XhighEd     "Aged 35-39 $\times$ Some College"
 lab var age2527XhighEd     "Aged 25-27 $\times$ Some College"
