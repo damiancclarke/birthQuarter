@@ -120,7 +120,7 @@ lab var expectGoodQ "Good season of birth (due date)"
 lab var goodBirthQ  "Good season of birth (birth date)"
 /*
 
-local Mum     motherAge married young 
+local Mum     motherAge married young age2024 age2527 age2831 age3239 age4045
 local MumPart college educCat smoker ART
 
 foreach st in Mum Kid MumPart {
@@ -149,7 +149,6 @@ replace young     = . if motherAge<25|motherAge>45
 ********************************************************************************
 *** (2b) Subset
 ********************************************************************************
-keep if `keepif'
 if `twins'==1 keep if twin == 1
 if `twins'==0 keep if twin == 0
 gen birth = 1
@@ -172,6 +171,7 @@ lab val educLevel   eL
 *** (3) Descriptives by month
 *******************************************************************************
 preserve
+keep if `keepif'
 drop if ART==.|conceptionMonth==.
 collapse (sum) birth, by(conceptionMonth ART)
 reshape wide birth, i(conceptionMonth) j(ART)
@@ -211,6 +211,7 @@ graph export "$OUT/conceptionMonthDropout.eps", as(eps) replace
 restore
 
 preserve
+keep if `keepif'
 drop if age3==.|conceptionMonth==.
 collapse (sum) birth, by(conceptionMonth age3)
 lab val conceptionMon mon
@@ -238,6 +239,7 @@ graph export "$OUT/conceptionMonth.eps", as(eps) replace;
 restore
 
 preserve
+keep if `keepif'
 drop if age3==.|conceptionMonth==.
 collapse (sum) birth, by(conceptionMonth age3)
 lab val conceptionMon mon
@@ -267,6 +269,7 @@ graph export "$OUT/conceptionMonthWeighted.eps", as(eps) replace;
 restore
 
 preserve
+keep if `keepif'
 drop if age3==.|conceptionMonth==.
 keep if ART==1
 collapse (sum) birth, by(conceptionMonth age3)
@@ -295,6 +298,7 @@ graph export "$OUT/conceptionMonthART.eps", as(eps) replace;
 restore
 
 preserve
+keep if `keepif'
 drop if age3==.|conceptionMonth==.
 keep if ART==1
 collapse (sum) birth, by(conceptionMonth age3)
@@ -326,6 +330,7 @@ restore
 
 tab young
 preserve
+keep if `keepif'
 collapse (sum) birth, by(birthMonth young)
 
 bys young: egen totalBirths = sum(birth)
@@ -364,6 +369,7 @@ foreach num of numlist 0 1 {
 restore
 
 preserve
+keep if `keepif'
 collapse premature, by(birthQuarter)
 #delimit ;
 graph bar premature, ylabel(0.09(0.01)0.11, nogrid) exclude0
@@ -375,6 +381,7 @@ graph export "$OUT/prematureQOB.eps", as(eps) replace;
 restore
 
 preserve
+keep if `keepif'
 drop if age3==.
 collapse premature, by(age3)
 #delimit ;
@@ -386,6 +393,8 @@ graph export "$OUT/prematureAges.eps", as(eps) replace;
 #delimit cr
 restore
 
+preserve
+keep if `keepif'
 gen youngBeta = .
 gen youngHigh = .
 gen youngLoww = .
@@ -430,12 +439,12 @@ foreach A of numlist 0 1 {
     graph export "$OUT/youngMonthsART`A'.eps", as(eps) replace;
     #delimit cr
 }
-
+restore
 ********************************************************************************
 *** (4) Graph of good season by age
 ********************************************************************************
 tab motherAge, gen(_age)
-reg goodQuarter _age1-_age15 if motherAge>=25&motherAge<=45
+reg goodQuarter _age1-_age20 if motherAge>=20&motherAge<=45
 
 gen ageES = .
 gen ageLB = .
@@ -448,10 +457,10 @@ foreach num of numlist 1(1)15 {
     replace ageNM = `num'+24                          in `num'
 }
 #delimit ;
-twoway line ageES ageNM in 1/15, lpattern(solid) lcolor(black) lwidth(medthick)
-    || line ageLB ageNM in 1/15, lpattern(dash)  lcolor(black) lwidth(medium)
-    || line ageUB ageNM in 1/15, lpattern(dash)  lcolor(black) lwidth(medium) ||
-    scatter ageES ageNM in 1/15, mcolor(black) m(S) 
+twoway line ageES ageNM in 1/20, lpattern(solid) lcolor(black) lwidth(medthick)
+    || line ageLB ageNM in 1/20, lpattern(dash)  lcolor(black) lwidth(medium)
+    || line ageUB ageNM in 1/20, lpattern(dash)  lcolor(black) lwidth(medium) ||
+    scatter ageES ageNM in 1/20, mcolor(black) m(S) 
     scheme(s1mono) legend(order(1 "Point Estimate" 2 "95 % CI"))
     xlabel(25(1)39) xtitle("Mother's Age") ytitle("Proportion Good Season" " ");
 graph export "$OUT/goodSeasonAge.eps", as(eps) replace;
@@ -460,6 +469,7 @@ graph export "$OUT/goodSeasonAge.eps", as(eps) replace;
 ********************************************************************************
 *** (5) Prematurity
 ********************************************************************************
+keep if `keepif'
 #delimit ;
 hist gestat if gestat>24, frac scheme(s1mono) xtitle("Weeks of Gestation")
 width(1) start(25);
