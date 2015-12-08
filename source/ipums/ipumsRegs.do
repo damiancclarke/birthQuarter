@@ -1,9 +1,9 @@
 /* ipumsRegs.do v0.00            damiancclarke             yyyy-mm-dd:2015-04-09
 ----|----1----|----2----|----3----|----4----|----5----|----6----|----7----|----8
 
-This file uses raw IPUMS data on first births and runs logit regressions on bir-
-ths by quarter, allowing for additional controls, fixed effects, and so forth.
-
+This file uses cleaned IPUMS data and runs regression of birth quarter on matern
+al characteristics (including labour market) to examine season of birth choices.
+The cleaning file is located in ../dataPrep/ipumsPrep.do.
 */
 
 vers 11
@@ -15,279 +15,101 @@ cap log close
 *** (1) globals and locals
 ********************************************************************************
 global DAT "~/investigacion/2015/birthQuarter/data/raw"
+global UNE "~/investigacion/2015/birthQuarter/data/employ"
 global OUT "~/investigacion/2015/birthQuarter/results/ipums/regressions"
 global LOG "~/investigacion/2015/birthQuarter/log"
 
 log using "$LOG/ipumsRegs.txt", text replace
 cap mkdir "$OUT"
 
-local data noallocatedagesexrelate_women1549_children_01_bio_reshaped_2005_2013_nohomo_with_men
+local data   ACS_20052014_cleaned.dta
 local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats /*
-*/           (r2 N, fmt(%9.2f %9.0g) label(R-squared Observations))     /*
+*/           (N, fmt(%9.0g) label(Observations))     /*
 */           starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(none) label
 
 ********************************************************************************
-*** (2a) Open data, setup for regressions
+*** (2) Open data subset to sample of interest (from Sonia's import file)
 ********************************************************************************
 use "$DAT/`data'"
+keep if motherAge>=25&motherAge<=45
+tab year    , gen(_year)
+tab statefip, gen(_state)
 
-keep if race==1 & race1==1 & hispan==0 & hispan1==0
-keep if bpl<150 & bpl1<150
-
-gen ageGroup = age>=25 & age<=39
-replace ageGroup = 2 if age>=40 & age<=45
-drop if ageGroup == 0
-
-gen ageGroupMan = age_man>39 if age_man!=.
-replace ageGroupMan = ageGroupMan + 1
-
-gen educLevel = .
-replace educLevel = 1 if educ<=6
-replace educLevel = 2 if educ>6 & educ<=11
-
-gen birth  = 1
-gen period = .
-replace period = 1 if year>=2005&year<=2007
-replace period = 2 if year>=2008&year<=2009
-replace period = 3 if year>=2010&year<=2013
-
-gen goodQuarter = birthqtr1==2|birthqtr1==3
-
-gen married    = marst==1|marst==2
-gen hhincomeSq = hhincome^2
-gen female     = sex1==2
+lab var unemployment "Unemployment Rate"
 
 ********************************************************************************
-*** (2b) Label for clarity
+*** (3a) regressions: binary age groups
 ********************************************************************************
-lab def aG  1 "25-39" 2 "40-45"
-lab def aGM 1 "Male under 40" 2 "Male over 40"
-lab def pr  1 "Pre-crisis" 2 "Crisis" 3 "Post-crisis"
-lab def gQ  0 "quarter 4(t) or quarter 1(t+1)" 1 "quarter 2(t) or quarter 3(t)"
-lab def eL  1 "No College" 2 "1-5 years"
-
-lab val period      pr
-lab val ageGroup    aG
-lab val goodQuarter gQ
-lab val educLevel   eL
-lab val ageGroupMan aGM
-
-lab var goodQuarter  "Good Quarter"
-lab var ageGroup     "Categorical age group"
-lab var ageGroupMan  "Categorical age group (man)"
-lab var period       "Period of time considered (pre/crisis/post)"
-lab var educLevel    "Level of education obtained by mother"
-
-********************************************************************************
-*** (2c) Generate a set of empty cells for quarter*state*educ
-********************************************************************************
-preserve
-gen zero = 0
-collapse zero, by(statefip)
-expand 9
-bys statefip: gen year=2004+_n
-expand 2
-bys statefip year: gen goodQuarter=_n-1
-expand 2
-bys statefip year goodQuarter: gen ageGroup=_n
-expand 2
-bys statefip year goodQuarter ageGroup: gen educLevel=_n
-count
-
-lab val ageGroup    aG
-lab val goodQuarter gQ
-lab val educLevel   eL
-tempfile zeros znoeduc
-save `zeros'
-keep if educLevel==1
-drop educLevel
-save `znoeduc'
-restore
-
-********************************************************************************
-*** (3a) Set for binary by birthquarter by woman by educLevel
-********************************************************************************
-preserve
-collapse (sum) birth, by(year goodQuarter ageGroup statefip educLevel)
-merge 1:1 year goodQuarter ageGroup statefip educLevel using `zeros'
-replace birth = zero if _merge==2
-drop zero _merge
-
-reshape wide birth, i(statefip year ageGroup educLevel) j(goodQuarter)
-gen birthTotal = birth0 + birth1
-replace birth0 = birth0/birthTotal-0.5
-replace birth1 = birth1/birthTotal-0.5
-drop birthTotal
-reshape long birth, i(statefip year ageGroup educLevel) j(goodQuarter)
-replace birth=0 if birth==.
-
-********************************************************************************
-*** (3b) regressions
-********************************************************************************
-local se cluster(statefip)
+local se  cluster(statefip)
 local abs abs(statefip)
+local age age2527 age2831 age3239
+local edu highEduc
+local une unemployment
 
-eststo: areg birth i.educLevel#c.goodQuarter i.year if ageGroup==1, `se' `abs'
-eststo: areg birth i.educLevel#c.goodQuarter i.year if ageGroup==2, `se' `abs'
-
-#delimit ;
-esttab est1 est2 using "$OUT/IPUMSeducation.tex", replace `estopt' style(tex)
-title("Proportion of births by Quarter (IPUMS 2005-2013)") drop(20*)
-postfoot("\bottomrule\multicolumn{3}{p{9cm}}{\begin{footnotesize}All regressions"
-         "absorb state and year fixed effects. Coefficients are expressed as the "
-         "difference between the proportion of births in a given quarter and "
-         "the theoretical proportion if births were spaced evenly by quarter."
-         "\end{footnotesize}}\end{tabular}\end{table}") booktabs
-mlabels("Age 20-39" "Age 40-45") width(0.8\hsize);
-#delimit cr
-estimates clear
-restore
-
-********************************************************************************
-*** (3c) Set for binary by birthquarter by woman
-********************************************************************************
-preserve
-collapse (sum) birth, by(year goodQuarter ageGroup statefip)
-merge 1:1 year goodQuarter ageGroup statefip using `znoeduc'
-replace birth = zero if _merge==2
-drop zero _merge
-
-reshape wide birth, i(statefip year ageGroup) j(goodQuarter)
-gen birthTotal = birth0 + birth1
-replace birth0 = birth0/birthTotal-0.5
-replace birth1 = birth1/birthTotal-0.5
-drop birthTotal
-reshape long birth, i(statefip year ageGroup) j(goodQuarter)
-replace birth=0 if birth==.
-
-********************************************************************************
-*** (3d) regressions
-********************************************************************************
-foreach group of numlist 1 2 {
-    eststo: areg birth goodQuarter i.year if ageGroup==`group', `se' `abs'
-}
+eststo: areg goodQuarter `age' `edu' `une' _year* _state*     , abs(occ) `se'
+eststo: areg goodQuarter `age' `edu' `une' _year* if e(sample), `abs'    `se'
+eststo: areg goodQuarter `age' `edu'       _year* if e(sample), `abs'    `se'
+eststo: areg goodQuarter `age'             _year* if e(sample), `abs'    `se'
+eststo:  reg goodQuarter `age'                    if e(sample),          `se'
 
 #delimit ;
-esttab est1 est2 using "$OUT/IPUMSAll.tex", replace `estopt' style(tex)
-title("Proportion of births by Quarter (IPUMS 2005-2013)") drop(20*)
-postfoot("\bottomrule\multicolumn{3}{p{9cm}}{\begin{footnotesize}"
-         "All regressions absorb state and year fixed effects. Coefficients are"
-         "expressed as the difference between the proportion of births in a"
-         "given quarter and the theoretical proportion if births were spaced"
-         "evenly by quarter.\end{footnotesize}}\end{tabular}\end{table}")
-booktabs mlabels("Age 20-39" " Age 40-45") width(0.8\hsize);
-#delimit cr
-estimates clear
-
-foreach group of numlist 1 2 {
-    eststo: areg birth i.year#c.goodQuarter if ageGroup==`group', `se' `abs'
-}
-
-#delimit ;
-esttab est1 est2 using "$OUT/IPUMSTime.tex", replace `estopt' style(tex)
-title("Proportion of births by Quarter (IPUMS 2005-2013)") 
-postfoot("\bottomrule\multicolumn{3}{p{9cm}}{\begin{footnotesize}"
-         "All regressions absorb state and year fixed effects. Coefficients are"
-         "expressed as the difference between the proportion of births in a given"
-         "quarter and the theoretical proportion if births were spaced evenly by"
-         "quarter. \end{footnotesize}}\end{tabular}\end{table}")
-mlabels("Age 20-39" "Age 40-45") booktabs width(0.8\hsize);
-#delimit cr
-restore
-estimates clear
-
-********************************************************************************
-*** (4) regressions of good season of birth
-********************************************************************************
-set matsize 3000
-local ctrls hhincome married i.occ1990
-local yFE   i.year
-local sFE   i.statefip
-local sxyFE i.year##i.statefip
-local wt    [pw=perwt]
-
-gen highEd = educLevel == 2
-gen young  = ageGroup  == 1
-gen youngXhighEd = young*highEd
-gen youngMan     = ageGroupMan == 1 if ageGroupMan!=.
-
-lab var goodQuarter "Good S"
-lab var highEd      "College Educ"
-lab var young       "Aged 25-39"
-lab var youngXhigh  "College$\times$ Aged 25-39"
-lab var female      "Female child"
-lab var hhincomeSq  "household income squared"  
-lab var married     "Married"
-
-eststo: reg goodQuarter young                             `wt', `se'
-eststo: reg goodQuarter young         `yFE'               `wt', `se' 
-eststo: reg goodQuarter young         `yFE' `sFE'         `wt', `se'
-eststo: reg goodQuarter young           `sxyFE'           `wt', `se'
-eststo: reg goodQuarter young highEd    `sxyFE'           `wt', `se'
-eststo: reg goodQuarter young highEd    `sxyFE'   `ctrls' `wt', `se'
-
-#delimit ;
-esttab est1 est2 est3 est4 est5 est6 using "$OUT/IPUMSBinary.tex",
-replace `estopt' title("Proportion of births by Season (IPUMS 2005-2013)")
-keep(_cons young highEd hhinc* marr*) style(tex) booktabs mlabels(, depvar) 
-postfoot("\midrule Year FE&&Y&Y&Y&Y&Y\\ State FE&&&Y&Y&Y&Y\\"
-        "State$\times$ Year FE&&&&Y&Y&Y\\ Occupation FE &&&&&&Y\\ \bottomrule"
-        "\multicolumn{7}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
-         "first born children of US-born, white, non-hispanic mothers."
-         "Standard errors are clustered by state, and inverse probability"
-         "weights are used.  The outcome variable is a binary variable"
-         "equal to 1 for individuals born in birth quarters 2 or 3 (good"
-         "season). Linear probability models are estimated by OLS."
+esttab est5 est4 est3 est2 est1 using "$OUT/IPUMSBinary.tex",
+replace `estopt' title("Season of Birth Correlates (IPUMS 2005-2014)")
+keep(_cons `age' `edu' `une') style(tex) booktabs mlabels(, depvar) 
+postfoot("State and Year FE&&Y&Y&Y&Y\\ Occupation FE&&&&&Y\\ \bottomrule       "
+        "\multicolumn{5}{p{16.8cm}}{\begin{footnotesize}Sample consists of all "
+         "first born children of US-born, white, non-hispanic mothers aged 25- "
+         "45 included in ACS data. Standard errors are clustered by state.     "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
 
-local ageY young youngMan
+********************************************************************************
+*** (3b) regressions: age continuous
+********************************************************************************
+gen motherAge2 = motherAge*motherAge
+lab var motherAge  "Mother's Age (years)"
+lab var motherAge2 "Mother's Age\textsuperscript{2}"
 
-eststo: reg goodQuarter `ageY'                             `wt', `se'
-eststo: reg goodQuarter `ageY'         `yFE'               `wt', `se' 
-eststo: reg goodQuarter `ageY'         `yFE' `sFE'         `wt', `se'
-eststo: reg goodQuarter `ageY'           `sxyFE'           `wt', `se'
-eststo: reg goodQuarter `ageY' highEd    `sxyFE'           `wt', `se'
-eststo: reg goodQuarter `ageY' highEd    `sxyFE'   `ctrls' `wt', `se'
+local age motherAge
+
+eststo: areg goodQuarter `age' `edu' `une' _year* _state*     , abs(occ) `se'
+eststo: areg goodQuarter `age' `edu' `une' _year* if e(sample), `abs'    `se'
+eststo: areg goodQuarter `age' `edu'       _year* if e(sample), `abs'    `se'
+eststo: areg goodQuarter `age'             _year* if e(sample), `abs'    `se'
+eststo:  reg goodQuarter `age'                    if e(sample),          `se'
 
 #delimit ;
-esttab est1 est2 est3 est4 est5 est6 using "$OUT/IPUMSBinaryM.tex",
-replace `estopt' title("Proportion of births by Season, M/F (IPUMS 2005-2013)")
-keep(_cons `ageY' highEd hhinc* mar*) style(tex) booktabs mlabels(, depvar) 
-postfoot("\midrule Year FE&&Y&Y&Y&Y&Y\\ State FE&&&Y&Y&Y&Y\\"
-        "State$\times$ Year FE&&&&Y&Y&Y\\"
-        "Occupation FE &&&&&&Y\\ \bottomrule"
-        "\multicolumn{7}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
-         "first born children of US-born, white, non-hispanic mothers with male"
-         "partners. Standard errors are clustered by state, and inverse probability"
-         "weights are used.  The outcome variable is a binary variable"
-         "equal to 1 for individuals born in birth quarters 2 or 3 (good"
-         "season). Linear probability models are estimated by OLS."
+esttab est5 est4 est3 est2 est1 using "$OUT/goodQuarter_Years.tex",
+replace `estopt' title("Season of Birth Correlates (Continuous Age)")
+keep(_cons `age' `edu' `une') style(tex) booktabs mlabels(, depvar) 
+postfoot("State and Year FE&&Y&Y&Y&Y\\ Occupation FE&&&&&Y\\ \bottomrule       "
+        "\multicolumn{5}{p{16.8cm}}{\begin{footnotesize}Sample consists of all "
+         "first born children of US-born, white, non-hispanic mothers aged 25- "
+         "45 included in ACS data. Standard errors are clustered by state.     "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
 
-local cond if _merge==1
-eststo: reg goodQuarter young                             `wt' `cond', `se'
-eststo: reg goodQuarter young         `yFE'               `wt' `cond', `se' 
-eststo: reg goodQuarter young         `yFE' `sFE'         `wt' `cond', `se'
-eststo: reg goodQuarter young           `sxyFE'           `wt' `cond', `se'
-eststo: reg goodQuarter young highEd    `sxyFE'           `wt' `cond', `se'
-eststo: reg goodQuarter young highEd    `sxyFE'   `ctrls' `wt' `cond', `se'
+********************************************************************************
+*** (3b) regressions: age quadratic
+********************************************************************************
+local age motherAge motherAge2
+
+eststo: areg goodQuarter `age' `edu' `une' _year* _state*     , abs(occ) `se'
+eststo: areg goodQuarter `age' `edu' `une' _year* if e(sample), `abs'    `se'
+eststo: areg goodQuarter `age' `edu'       _year* if e(sample), `abs'    `se'
+eststo: areg goodQuarter `age'             _year* if e(sample), `abs'    `se'
+eststo:  reg goodQuarter `age'                    if e(sample),          `se'
 
 #delimit ;
-esttab est1 est2 est3 est4 est5 est6 using "$OUT/IPUMSBinarySingle.tex",
-replace `estopt' title("Proportion of births by Season (Single Women)")
-keep(_cons young highEd hhinc* marr*) style(tex) booktabs mlabels(, depvar) 
-postfoot("\midrule Year FE&&Y&Y&Y&Y&Y\\ State FE&&&Y&Y&Y&Y\\"
-        "State$\times$ Year FE&&&&Y&Y&Y\\ Occupation FE &&&&&&Y\\ \bottomrule"
-        "\multicolumn{7}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
-         "first born children of US-born, white, non-hispanic mothers with no"
-         "partners.  Standard errors are clustered by state, and inverse"
-         "probability weights are used.  The outcome variable is a binary"
-         "variable equal to 1 for individuals born in birth quarters 2 or 3"
-         "(good season). Linear probability models are estimated by OLS."
+esttab est5 est4 est3 est2 est1 using "$OUT/goodQuarter_YearsSquared.tex",
+replace `estopt' title("Season of Birth Correlates (Age and Age Squared)")
+keep(_cons `age' `edu' `une') style(tex) booktabs mlabels(, depvar) 
+postfoot("State and Year FE&&Y&Y&Y&Y\\ Occupation FE&&&&&Y\\ \bottomrule       "
+        "\multicolumn{5}{p{16.8cm}}{\begin{footnotesize}Sample consists of all "
+         "first born children of US-born, white, non-hispanic mothers aged 25- "
+         "45 included in ACS data. Standard errors are clustered by state.     "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
