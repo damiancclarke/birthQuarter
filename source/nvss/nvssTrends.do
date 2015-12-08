@@ -36,7 +36,7 @@ local stateFE 0
 local twins   0
 if `twins' == 1 local app twins
 
-/*
+
 ********************************************************************************
 *** (2a) Use, descriptive graph
 ********************************************************************************
@@ -138,7 +138,6 @@ foreach st in Mum Kid MumPart {
     */ replace label noobs
     restore
 }
-
 replace young     = . if motherAge<25|motherAge>45
 
 ********************************************************************************
@@ -161,7 +160,6 @@ lab def mon 1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug" /*
 lab val ageGroup    aG0
 lab val educLevel   eL
 
-
 ********************************************************************************
 *** (3) Descriptives by month
 *******************************************************************************
@@ -183,28 +181,49 @@ graph export "$OUT/proportionMonthART.eps", as(eps) replace
 restore
 
 preserve
-keep if motherAge>=25&motherAge<=39
+generat youngOld = 1 if motherAge>=28&motherAge<=31
+replace youngOld = 2 if motherAge>=40&motherAge<=45
+keep if youngOld != .
 drop if education==. | conceptionMonth==.
-gen dropout = education<=2
-collapse (sum) birth, by(conceptionMonth dropout)
+
+generat educlevels = 1 if education<=2
+replace educlevels = 2 if education>2&education<5
+replace educlevels = 3 if education>=5
+
+collapse (sum) birth, by(conceptionMonth youngOld educlevels)
 lab val conceptionMon mon
-bys dropout: egen totalBirths = sum(birth)
+bys educlevels youngOld: egen totalBirths = sum(birth)
 gen birthProportion = birth/totalBirths
 sort conceptionMonth
 
-#delimit ;
-twoway line birthProp conceptionM if dropout==1, lcolor(black) lpattern(dash)
-    || line birthProp conceptionM if dropout==0, lcolor(black) lwidth(thick)
-xaxis(1 2) scheme(s1mono) xtitle("Expected Month", axis(2))
-xlabel(1(1)12, valuelabels axis(1)) xtitle("Month of Conception")
-xlabel(1 "Oct" 2 "Nov" 3 "Dec" 4 "Jan" 5 "Feb" 6 "Mar" 7 "Apr" 8 "May"
-       9 "Jun" 10 "Jul" 11 "Aug" 12 "Sep", axis(2)) 
-legend(lab(1 "Incomplete Highschool") lab(2 "Highschool or Above"))
-ytitle("Proportion of All Births");
-#delimit cr
-graph export "$OUT/conceptionMonthDropout.eps", as(eps) replace
-restore
+local line1 lcolor(black) lpattern(dash) lwidth(thin)
+local line2 lcolor(black) lwidth(medium) lpattern(longdash)
+local line3 lcolor(black) lwidth(thick)
 
+#delimit ;
+twoway line birthProp conceptionM if educlevels==1&youngOld==1, `line1' 
+    || line birthProp conceptionM if educlevels==2&youngOld==1, `line2' 
+    || line birthProp conceptionM if educlevels==3&youngOld==1, `line3'
+xaxis(1 2) scheme(s1mono) xtitle("Month of Conception", axis(2))
+xlabel(1(1)12, valuelabels axis(2))
+xlabel(1 "Oct" 2 "Nov" 3 "Dec" 4 "Jan" 5 "Feb" 6 "Mar" 7 "Apr" 8 "May"
+       9 "Jun" 10 "Jul" 11 "Aug" 12 "Sep", axis(1)) xtitle("Expected Month")
+legend(lab(1 "Incomplete Highschool") lab(2 "Highschool,Incomplete College")
+lab(3 "Complete College")) ytitle("Proportion of All Births");
+graph export "$OUT/conceptionMonthEducYoung.eps", as(eps) replace;
+
+twoway line birthProp conceptionM if educlevels==1&youngOld==2, `line1' 
+    || line birthProp conceptionM if educlevels==2&youngOld==2, `line2' 
+    || line birthProp conceptionM if educlevels==3&youngOld==2, `line3'
+xaxis(1 2) scheme(s1mono) xtitle("Month of Conception", axis(2))
+xlabel(1(1)12, valuelabels axis(2))
+xlabel(1 "Oct" 2 "Nov" 3 "Dec" 4 "Jan" 5 "Feb" 6 "Mar" 7 "Apr" 8 "May"
+       9 "Jun" 10 "Jul" 11 "Aug" 12 "Sep", axis(1)) xtitle("Expected Month")
+legend(lab(1 "Incomplete Highschool") lab(2 "Highschool or Incomplete College")
+lab(3 "Complete College")) ytitle("Proportion of All Births");
+graph export "$OUT/conceptionMonthEducOld.eps", as(eps) replace;
+#delimit cr
+restore
 
 preserve
 keep if `keepif'
@@ -267,8 +286,6 @@ graph export "$OUT/conceptionMonthART.eps", as(eps) replace;
 restore
 
 
-
-tab young
 preserve
 keep if `keepif'
 collapse (sum) birth, by(birthMonth young)
