@@ -43,7 +43,6 @@ if `twins' == 1 local app twins
 use "$DAT/`data'"
 keep if birthOrder==1
 
-/*
 #delimit ;
 twoway hist motherAge if motherAge>24&motherAge<=45, freq color(gs0) width(1) ||
        hist motherAge if motherAge<=24|motherAge>45, freq color(gs12) width(1)
@@ -52,9 +51,9 @@ twoway hist motherAge if motherAge>24&motherAge<=45, freq color(gs0) width(1) ||
     legend(label(1 "Estimation Sample") label(2 "<25 or >45")) scheme(s1mono);
                                         #delimit cr
 graph export "$OUT/ageDescriptive.eps", as(eps) replace
-*/
+
 keep if twin<3
-/*
+
 preserve
 keep if `keepif'
 collapse ART, by(motherAge)
@@ -83,7 +82,7 @@ graph export "$OUT/ARTageGroup.eps", as(eps) replace;
 #delimit cr
 restore
 
-*/
+
 ********************************************************************************
 *** (2aii) Summary stats table
 ********************************************************************************
@@ -115,7 +114,7 @@ lab var young       "Young (aged 25-39)"
 lab var expectGoodQ "Good season of birth (due date)"
 lab var goodBirthQ  "Good season of birth (birth date)"
 
-/*
+
 local Mum     motherAge married young age2024 age2527 age2831 age3239 age4045
 local MumPart college educCat smoker ART
 
@@ -141,7 +140,7 @@ foreach st in Mum Kid MumPart {
 }
 
 replace young     = . if motherAge<25|motherAge>45
-*/
+
 ********************************************************************************
 *** (2b) Subset
 ********************************************************************************
@@ -162,7 +161,7 @@ lab def mon 1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug" /*
 lab val ageGroup    aG0
 lab val educLevel   eL
 
-/*
+
 ********************************************************************************
 *** (3) Descriptives by month
 *******************************************************************************
@@ -206,7 +205,7 @@ ytitle("Proportion of All Births");
 graph export "$OUT/conceptionMonthDropout.eps", as(eps) replace
 restore
 
-*/
+
 preserve
 keep if `keepif'
 generat youngOld = 1 if motherAge>=28&motherAge<=31
@@ -267,7 +266,7 @@ graph export "$OUT/conceptionMonthART.eps", as(eps) replace;
 #delimit cr
 restore
 
-exit
+
 
 tab young
 preserve
@@ -333,11 +332,11 @@ collapse premature, by(ageG2)
 graph bar premature, ylabel(0.07(0.01)0.14, nogrid) exclude0
 over(ageG2, relabel(1 "20-24" 2 "25-27" 3 "28-31" 4 "32-39" 5 "40-45"))
 bar(1, bcolor(gs0)) bar(2, bcolor(gs0)) bar(3, bcolor(gs0))
-scheme(s1mono) ytitle("% Premature");
+scheme(s1mono) ytitle("% Premature") xtitle("Age Groups"); 
 graph export "$OUT/prematureAges.eps", as(eps) replace;
 #delimit cr
 restore
-*/
+
 preserve
 keep if `keepif'
 gen youngBeta = .
@@ -387,12 +386,13 @@ foreach A of numlist 0 1 {
     graph export "$OUT/youngMonthsART`A'.eps", as(eps) replace;
     #delimit cr
 }
-exit
+
 ********************************************************************************
 *** (4) Graph of good season by age
 ********************************************************************************
 tab motherAge, gen(_age)
 reg goodQuarter _age1-_age15 if motherAge>=25&motherAge<=45
+reg expectGoodQ _age1-_age15 if motherAge>=25&motherAge<=45
 
 gen ageES = .
 gen ageLB = .
@@ -520,7 +520,7 @@ drop educLevel
 outsheet using "$SUM/JustEduc`app'.txt", delimiter("&") replace noquote
 restore
 
-*/
+
 preserve
 drop if educLevel==.|goodQuarter==.|motherAge<20|motherAge>45
 gen ageG2 = motherAge>=20 & motherAge<25
@@ -787,7 +787,7 @@ foreach outcome in `hkbirth' {
 }
 restore
 
-*/
+
 local hkbirth birthweight lbw gestation
 local axesN   3225[25]3350 0.05[0.01]0.1 38.4[0.2]39.2
 if `twins'==1 local axesN 2300[25]2400 0.5[0.025]0.6 35[0.1]35.5 
@@ -809,7 +809,6 @@ foreach outcome in `hkbirth' {
     macro shift
 }
 restore
-
 
 ********************************************************************************
 *** (8) Examine by geographic variation (hot/cold)
@@ -848,9 +847,11 @@ foreach sname of local snam {
 
 
 drop if conceptionMonth==.
-collapse (sum) birth, by(conceptionMonth bstate young state)
+generat youngOld = 1 if motherAge>=28&motherAge<=31
+replace youngOld = 2 if motherAge>=40&motherAge<=45
+collapse (sum) birth, by(conceptionMonth bstate youngOld state)
 lab val conceptionMon mon
-bys bstate young: egen totalBirths = sum(birth)
+bys bstate youngOld: egen totalBirths = sum(birth)
 gen birthProportion = birth/totalBirths
 sort conceptionMonth bstate
 
@@ -863,14 +864,14 @@ foreach hS in Alabama Arkansas Arizona {
     local cond1 state=="`hS'"
     local cond2 state=="Minnesota"
     #delimit ;
-    twoway line birthProportion conceptionMonth if `cond1'& young==1, `line1' ||
-           line birthProportion conceptionMonth if `cond2'& young==1, `line2' 
+    twoway line birthProportion conceptionMonth if `cond1'& youngO==1, `line1' ||
+           line birthProportion conceptionMonth if `cond2'& youngO==1, `line2' 
     scheme(s1mono) xtitle("Month of Conception") xlabel(1(1)12, valuelabels)
     ytitle("Proportion of All Births") legend(label(1 "`hS'") label(2 "`MN'"));
     graph export "$OUT/conceptionMonth`hS'Minnesota_young.eps", as(eps) replace;
 
-    twoway line birthProportion conceptionMonth if `cond1'& young==0, `line1' ||
-           line birthProportion conceptionMonth if `cond2'& young==0, `line2' 
+    twoway line birthProportion conceptionMonth if `cond1'& youngO==2, `line1' ||
+           line birthProportion conceptionMonth if `cond2'& youngO==2, `line2' 
     scheme(s1mono) xtitle("Month of Conception") xlabel(1(1)12, valuelabels)
     ytitle("Proportion of All Births") legend(label(1 "`hS'") label(2 "`MN'"));
     graph export "$OUT/conceptionMonth`hS'Minnesota_old.eps", as(eps) replace;
@@ -878,14 +879,14 @@ foreach hS in Alabama Arkansas Arizona {
 
     local cond2 state=="Wisconsin"
     #delimit ;
-    twoway line birthProportion conceptionMonth if `cond1'& young==1, `line1' ||
-           line birthProportion conceptionMonth if `cond2'& young==1, `line2' 
+    twoway line birthProportion conceptionMonth if `cond1'& youngO==1, `line1' ||
+           line birthProportion conceptionMonth if `cond2'& youngO==1, `line2' 
     scheme(s1mono) xtitle("Month of Conception") xlabel(1(1)12, valuelabels)
     ytitle("Proportion of All Births") legend(label(1 "`hS'") label(2 "`WI'"));
     graph export "$OUT/conceptionMonth`hS'Wisconsin_young.eps", as(eps) replace;
 
-    twoway line birthProportion conceptionMonth if `cond1'& young==0, `line1' ||
-           line birthProportion conceptionMonth if `cond2'& young==0, `line2' 
+    twoway line birthProportion conceptionMonth if `cond1'& youngO==2, `line1' ||
+           line birthProportion conceptionMonth if `cond2'& youngO==2, `line2' 
     scheme(s1mono) xtitle("Month of Conception") xlabel(1(1)12, valuelabels)
     ytitle("Proportion of All Births") legend(label(1 "`hS'") label(2 "`WI'"));
     graph export "$OUT/conceptionMonth`hS'Wisconsin_old.eps", as(eps) replace;
@@ -914,7 +915,7 @@ foreach s of local snam {
     #delimit cr
     macro shift
 }
-    
+
 insheet using "$USW/usaWeather.txt", delim(";") names clear
 destring temp, replace
 
@@ -936,19 +937,22 @@ save `weather'
 
 use "$DAT/`data'"
 replace twin=twin-1
-keep if birthOrder==1
+keep if birthOrder==1&motherAge>19&motherAge<=45
 gen birth = 1
-drop ageGroup
-gen     ageGroup = 1 if motherAge>=15&motherAge<=19
-replace ageGroup = 2 if motherAge>=20&motherAge<=25
-replace ageGroup = 3 if motherAge>=25&motherAge<=39
-replace ageGroup = 4 if motherAge>=40&motherAge<=45
+drop ageGroup young
+gen     ageGroup = 1 if motherAge>=20&motherAge<=24
+replace ageGroup = 2 if motherAge>=25&motherAge<=27
+replace ageGroup = 3 if motherAge>=28&motherAge<=31
+replace ageGroup = 4 if motherAge>=32&motherAge<=39
+replace ageGroup = 5 if motherAge>=40&motherAge<=45
 
 keep if goodQuarter != .
-collapse goodQuarter, by(ageGroup fips state bstate)
+gen     young = 1 if ageGroup == 2|ageGroup==3|ageGroup==4
+replace young = 0 if ageGroup == 5
 
-gen     young = 1 if ageGroup == 3
-replace young = 0 if ageGroup == 4
+preserve
+collapse goodQuarter, by(young fips state bstate)
+
 
 merge m:1 state using `weather'
 drop _merge
@@ -979,6 +983,11 @@ foreach num of numlist 0 1 {
     graph export "$OUT/`age'TempMean.eps", as(eps) replace
 }
 
+restore
+collapse expectGoodQ, by(ageGroup fips state bstate)
+merge m:1 state using `weather'
+drop _merge
+
 drop state
 rename bstate state
 merge m:1 state using "$DAT/../maps/state_database_clean"
@@ -987,21 +996,15 @@ format goodQuarter %5.3f
 
 
 #delimit ;
-spmap goodQuarter if young==1&(fips!=2&fips!=18) using
+spmap goodQuarter if ageGroup==3&(fips!=2&fips!=18) using
 "$DAT/../maps/state_coords_clean", id(_polygonid) fcolor(YlOrRd)
 legend(symy(*2) symx(*2) size(*2.1) position(4) rowgap(1)) legstyle(2);
 graph export "$OUT/maps/youngGoodSeason.eps", replace as(eps);
 
-spmap goodQuarter if young==0&(fips!=2&fips!=18) using
+spmap goodQuarter if ageGroup==5&(fips!=2&fips!=18) using
 "$DAT/../maps/state_coords_clean", id(_polygonid) fcolor(YlOrRd)
 legend(symy(*2) symx(*2) size(*2.1) position(4) rowgap(1)) legstyle(2);
 graph export "$OUT/maps/oldGoodSeason.eps", replace as(eps);
-
-spmap goodQuarter if ageGr==1&(fips!=2&fips!=18) using
-"$DAT/../maps/state_coords_clean", id(_polygonid) fcolor(YlOrRd)
-legend(symy(*2) symx(*2) size(*2.1) position(4) rowgap(1)) legstyle(2);
-graph export "$OUT/maps/teenGoodSeason.eps", replace as(eps);
-
 #delimit cr
 
 
