@@ -36,7 +36,7 @@ local stateFE 0
 local twins   0
 if `twins' == 1 local app twins
 
-
+/*
 ********************************************************************************
 *** (2a) Use, descriptive graph
 ********************************************************************************
@@ -332,7 +332,7 @@ collapse premature, by(ageG2)
 graph bar premature, ylabel(0.07(0.01)0.14, nogrid) exclude0
 over(ageG2, relabel(1 "20-24" 2 "25-27" 3 "28-31" 4 "32-39" 5 "40-45"))
 bar(1, bcolor(gs0)) bar(2, bcolor(gs0)) bar(3, bcolor(gs0))
-scheme(s1mono) ytitle("% Premature") xtitle("Age Groups"); 
+scheme(s1mono) ytitle("% Premature"); 
 graph export "$OUT/prematureAges.eps", as(eps) replace;
 #delimit cr
 restore
@@ -915,7 +915,7 @@ foreach s of local snam {
     #delimit cr
     macro shift
 }
-
+*/
 insheet using "$USW/usaWeather.txt", delim(";") names clear
 destring temp, replace
 
@@ -950,8 +950,7 @@ keep if goodQuarter != .
 gen     young = 1 if ageGroup == 2|ageGroup==3|ageGroup==4
 replace young = 0 if ageGroup == 5
 
-preserve
-collapse goodQuarter, by(young fips state bstate)
+collapse goodQuarter expectGoodQ, by(ageGroup fips state bstate)
 
 
 merge m:1 state using `weather'
@@ -962,46 +961,41 @@ lab var cold        "Coldest monthly average (degree F)"
 lab var hot         "Warmest monthly average (degree F)"
 lab var meanT       "Mean monthly temperature (degree F)"
 format goodQuarter %5.2f
-foreach num of numlist 0 1 {
+foreach num of numlist 3 5 {
     local age young
-    if `num'==0 local age old
+    if `num'==5 local age old
     drop if state=="Alaska"
 
-    corr goodQuarter cold if young==`num'
+    corr goodQuarter cold if ageGroup==`num'
     local ccoef = string(r(rho),"%5.3f")
-    twoway scatter goodQuarter cold if young==`num', mlabel(state) ||      ///
-        lfit goodQuarter cold if young==`num', scheme(s1mono) lcolor(gs0)  ///
+    twoway scatter goodQuarter cold if ageGroup==`num', mlabel(state) ||      ///
+        lfit goodQuarter cold if ageGroup==`num', scheme(s1mono) lcolor(gs0)  ///
             legend(off) lpattern(dash) note("Correlation coefficient=`ccoef'")
     graph export "$OUT/`age'TempCold.eps", as(eps) replace
-    twoway scatter goodQuarter hot if young==`num', mlabel(state)  ||      ///
-        lfit goodQuarter hot if young==`num', scheme(s1mono) lcolor(gs0)   ///
+    twoway scatter goodQuarter hot if ageGroup==`num', mlabel(state)  ||      ///
+        lfit goodQuarter hot if ageGroup==`num', scheme(s1mono) lcolor(gs0)   ///
             legend(off) lpattern(dash)
     graph export "$OUT/`age'TempWarm.eps", as(eps) replace
-    twoway scatter goodQuarter meanT if young==`num', mlabel(state)||      ///
-        lfit goodQuarter meanT if young==`num', scheme(s1mono) lcolor(gs0) ///
+    twoway scatter goodQuarter meanT if ageGroup==`num', mlabel(state)||      ///
+        lfit goodQuarter meanT if ageGroup==`num', scheme(s1mono) lcolor(gs0) ///
             legend(off) lpattern(dash)
     graph export "$OUT/`age'TempMean.eps", as(eps) replace
 }
-
-restore
-collapse expectGoodQ, by(ageGroup fips state bstate)
-merge m:1 state using `weather'
-drop _merge
 
 drop state
 rename bstate state
 merge m:1 state using "$DAT/../maps/state_database_clean"
 drop _merge
-format goodQuarter %5.3f
+format expectGoodQ %5.3f
 
 
 #delimit ;
-spmap goodQuarter if ageGroup==3&(fips!=2&fips!=18) using
+spmap expectGoodQ if ageGroup==3&(fips!=2&fips!=18) using
 "$DAT/../maps/state_coords_clean", id(_polygonid) fcolor(YlOrRd)
 legend(symy(*2) symx(*2) size(*2.1) position(4) rowgap(1)) legstyle(2);
 graph export "$OUT/maps/youngGoodSeason.eps", replace as(eps);
 
-spmap goodQuarter if ageGroup==5&(fips!=2&fips!=18) using
+spmap expectGoodQ if ageGroup==5&(fips!=2&fips!=18) using
 "$DAT/../maps/state_coords_clean", id(_polygonid) fcolor(YlOrRd)
 legend(symy(*2) symx(*2) size(*2.1) position(4) rowgap(1)) legstyle(2);
 graph export "$OUT/maps/oldGoodSeason.eps", replace as(eps);
