@@ -219,22 +219,28 @@ sumT.write(NV[1]+'\\\\ \n'+NV[2]+'\\\\ \n'+NV[3]+'\\\\ \n'
            "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
            "\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
            NVj[1]+'\\\\ \n'+
-           NVj[2]+'\\\\ \n &&&& \\\\'
+           NVj[2]+'\\\\ \n'+
+           NVj[3]+'\\\\ \n &&&& \\\\'
            "\multicolumn{5}{l}{\\textsc{Panel C: By Age and Education}}\\\\"
            "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
            "\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
            NVe[1]+'\\\\ \n'+
            NVe[2]+'\\\\ \n'+
            NVe[3]+'\\\\ \n'+
-           NVe[4]+'\\\\ \n &&&& \\\\'
+           NVe[4]+'\\\\ \n'+
+           NVe[5]+'\\\\ \n'+
+           NVe[6]+'\\\\ \n &&&& \\\\'
            )
     
     
 sumT.write('\n'+mr+mc1+twid[6]+tcm[6]+mc3+
-           "Good season refers to birth quarters 2 and 3 (Apr-Jun and "
-           "Jul-Sept).  Bad season refers to quarters 1 and 4 (Jan-Mar "
-           "and Oct-Dec).  `Young' refers to 25-39 year olds,"
-           " `Old' refers to 40-45 year olds. \n"
+           "Good season refers to birth quarters 2 and 3 (Apr-Jun and      " 
+           "Jul-Sept).  Bad season refers to quarters 1 and 4 (Jan-Mar     "
+           "and Oct-Dec).  `Young' refers to 25-39 year olds,              "
+           " `Old' refers to 40-45 year olds. 3,910 mothers in the data    " 
+           "are aged 40-45. Of these, 641 have no college education, 740   "
+           "have some college education, and the remaining 2,529 completed "
+           "college.\n"
            "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}"
            "\\end{center}\\end{table}")
     
