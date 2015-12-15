@@ -42,7 +42,7 @@ if `twins' == 1 local app twins
 ********************************************************************************
 use "$DAT/`data'"
 keep if birthOrder==1
-
+/*
 #delimit ;
 twoway hist motherAge if motherAge>24&motherAge<=45, freq color(gs0) width(1) ||
        hist motherAge if motherAge<=24|motherAge>45, freq color(gs12) width(1)
@@ -51,9 +51,9 @@ twoway hist motherAge if motherAge>24&motherAge<=45, freq color(gs0) width(1) ||
     legend(label(1 "Estimation Sample") label(2 "<25 or >45")) scheme(s1mono);
                                         #delimit cr
 graph export "$OUT/ageDescriptive.eps", as(eps) replace
-
+*/
 keep if twin<3
-
+/*
 preserve
 keep if `keepif'
 collapse ART, by(motherAge)
@@ -72,7 +72,7 @@ replace ageG2 = 4 if motherAge>=32 & motherAge<40
 replace ageG2 = 5 if motherAge>=40 & motherAge<46
 keep if motherAge>=20&motherAge<=45
 collapse ART, by(ageG2)
-lab def       aG2 1 "20-24" 2 "25-37" 3 "28-31" 4 "32-39" 5 "40-45"
+lab def       aG2 1 "20-24" 2 "25-27" 3 "28-31" 4 "32-39" 5 "40-45"
 lab val ageG2 aG2
 #delimit ;
 graph bar ART, over(ageG2)  ylabel(, nogrid) exclude0
@@ -81,7 +81,7 @@ bar(4, bcolor(ltblue)) scheme(s1mono) ytitle("Proportion ART");
 graph export "$OUT/ARTageGroup.eps", as(eps) replace;
 #delimit cr
 restore
-
+*/
 
 ********************************************************************************
 *** (2aii) Summary stats table
@@ -114,7 +114,7 @@ lab var young       "Young (aged 25-39)"
 lab var expectGoodQ "Good season of birth (due date)"
 lab var goodBirthQ  "Good season of birth (birth date)"
 
-
+/*
 local Mum     motherAge married young age2024 age2527 age2831 age3239 age4045
 local MumPart college educCat smoker ART
 
@@ -138,6 +138,7 @@ foreach st in Mum Kid MumPart {
     */ replace label noobs
     restore
 }
+*/
 replace young     = . if motherAge<25|motherAge>45
 
 ********************************************************************************
@@ -159,7 +160,7 @@ lab def mon 1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug" /*
 
 lab val ageGroup    aG0
 lab val educLevel   eL
-
+/*
 ********************************************************************************
 *** (3) Descriptives by month
 *******************************************************************************
@@ -353,7 +354,7 @@ scheme(s1mono) ytitle("% Premature");
 graph export "$OUT/prematureAges.eps", as(eps) replace;
 #delimit cr
 restore
-
+*/
 preserve
 keep if `keepif'
 gen youngBeta = .
@@ -379,10 +380,16 @@ lab val conceptionMonth Month
 #delimit ;
 twoway line youngBeta youngMont || rcap youngLoww youngHigh youngMont,
 scheme(s1mono) yline(0, lpattern(dash) lcolor(red)) ytitle("Young-Old")
-legend(order(1 "Young-Old" 2 "95% CI")) xlabel(1(1)12, valuelabels)
-xtitle("Month");
+xaxis(1 2) xtitle("Month of Conception", axis(2))
+xlabel(1(1)12, valuelabels axis(2)) legend(order(1 "Young-Old" 2 "95% CI"))
+xlabel(1 "Oct" 2 "Nov" 3 "Dec" 4 "Jan" 5 "Feb" 6 "Mar" 7 "Apr" 8 "May"
+       9 "Jun" 10 "Jul" 11 "Aug" 12 "Sep", axis(1)) xtitle("Expected Month");
 graph export "$OUT/youngMonths.eps", as(eps) replace;
 #delimit cr
+
+drop Xvar
+generat Xvar = 1 if motherAge>=28&motherAge<=39
+replace Xvar = 0 if motherAge>=40&motherAge<=45
 
 foreach A of numlist 0 1 {
     foreach num of numlist 1(1)12 {
@@ -398,12 +405,15 @@ foreach A of numlist 0 1 {
     #delimit ;
     twoway line youngBeta youngMont || rcap youngLoww youngHigh youngMont,
     scheme(s1mono) yline(0, lpattern(dash) lcolor(red)) ytitle("Young-Old")
-    legend(order(1 "Young-Old" 2 "95% CI")) xlabel(1(1)12, valuelabels)
-    xtitle("Month");
+    xaxis(1 2) xtitle("Month of Conception", axis(2))
+    xlabel(1(1)12, valuelabels axis(2))
+    xlabel(1 "Oct" 2 "Nov" 3 "Dec" 4 "Jan" 5 "Feb" 6 "Mar" 7 "Apr" 8 "May"
+           9 "Jun" 10 "Jul" 11 "Aug" 12 "Sep", axis(1))
+    xtitle("Expected Month") legend(order(1 "Young-Old" 2 "95% CI"));
     graph export "$OUT/youngMonthsART`A'.eps", as(eps) replace;
     #delimit cr
 }
-
+exit
 ********************************************************************************
 *** (4) Graph of good season by age
 ********************************************************************************
@@ -502,6 +512,7 @@ drop totalbirths diff rati birth* ave*
 decode ageGroup, gen(ag)
 replace ag = "Young " if ag == "Young (25-39) "
 replace ag = "Old "   if ag == "Old (40-45) "
+keep if ag =="Young "| ag == "Old " 
 decode educLevel, gen(el)
 egen group=concat(ag el)
 order group
@@ -537,7 +548,6 @@ drop educLevel
 outsheet using "$SUM/JustEduc`app'.txt", delimiter("&") replace noquote
 restore
 
-
 preserve
 drop if educLevel==.|goodQuarter==.|motherAge<20|motherAge>45
 gen ageG2 = motherAge>=20 & motherAge<25
@@ -547,7 +557,7 @@ replace ageG2 = 4 if motherAge>=32 & motherAge<40
 replace ageG2 = 5 if motherAge>=40 & motherAge<46
 
 collapse premature ART (sum) birth, by(goodQuarter ageG2)
-lab def ag_2 1 "20-24 Years Old" 2 "25-37 Years Old" 3 "28-31 Years Old" /*
+lab def ag_2 1 "20-24 Years Old" 2 "25-27 Years Old" 3 "28-31 Years Old" /*
 */ 4 "32-39 Years Old" 5 "40-45 Years Old"
 lab val ageG2 ag_2
 
