@@ -30,8 +30,8 @@ local data noallocatedagesexrelate_children__withmother_bio_reshaped_2005_2014
 *** (2) Open data, subset, and create variables from IPUMS
 ********************************************************************************
 use "$ACS/`data'"
-keep if ((bpl1<150 & firstborn_1==1) | (bpl2<150 & firstborn_1==0))
-keep if race==1 & hispan==0 & twins==0
+keep if (bpl1<150 & firstborn_1==1) | (bpl2<150 & firstborn_1==0)
+keep if race==1 & hispan==0 
 keep if school==1
 keep if ((nchild==1)|(nchild==2 & twins==1)|(nchild==2&twins==0&firstborn_1==0))
 keep if age>19&age<46
