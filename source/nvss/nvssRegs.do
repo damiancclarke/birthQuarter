@@ -114,7 +114,7 @@ graph export "$OUT/../graphs/missingEduc.eps", as(eps) replace;
 
 restore
 */
-
+/*
 ********************************************************************************
 *** (4a) Good Quarter Regressions
 ********************************************************************************
@@ -223,27 +223,29 @@ foreach AA of local names {
     macro shift
     restore
 }
-
+*/
 
 ********************************************************************************
 *** (4c) Good Season, Age and education interactions
 ********************************************************************************
-preserve
+*preserve
 keep `cnd'&`keepif'
-local age  age2527 age2831 age3239
-local ageX age2527XhighEd age2831XhighEd age3239XhighEd
+local age1  age2527 age2831 age3239
+local age1X age2527XhighEd age2831XhighEd age3239XhighEd
+eststo: areg goodQua `age1' smoker highEd `age1X' _year*             , abs(fips)
+eststo: areg goodQua `age1' smoker highEd         _year* if e(sample), abs(fips)
+eststo: areg goodQua `age1' smoker                _year* if e(sample), abs(fips)
 
+gen motherAge2Xeduc = motherAge2*educCat
+lab var motherAge2Xeduc "Mother's Age$^2$ $\times$ Education"
 
-eststo: areg goodQua `age' smoker highEd `ageX' _year*             , abs(fips)
-eststo: areg goodQua `age' smoker highEd        _year* if e(sample), abs(fips)
-eststo: areg goodQua `age' smoker               _year* if e(sample), abs(fips)
+local age2  motherAge motherAge2
+local age2X motherAgeXeduc motherAge2Xeduc
+eststo: areg goodQua `age2' smoker educCat `age2X' _year*            , abs(fips)
+eststo: areg goodQua `age2' smoker educCat        _year* if e(sample), abs(fips)
+eststo: areg goodQua `age2' smoker                _year* if e(sample), abs(fips)
 
-eststo: areg goodQua motherAge smoker educCat _year* motherAgeXeduc   , abs(fips)
-eststo: areg goodQua motherAge smoker educCat _year*      if e(sample), abs(fips)
-eststo: areg goodQua motherAge smoker         _year*      if e(sample), abs(fips)
-
-local kvar `age' highEd `ageX' motherAge educCat motherAgeXeduc
-
+local kvar `age1' highEd `age1X' `age2' educCat `age2X'
 #delimit ;
 esttab est3 est2 est1 est6 est5 est4 using "$OUT/NVSSBinaryEducAge.tex",
 replace `estopt' booktabs keep(`kvar') mlabels(, depvar)
@@ -255,8 +257,8 @@ postfoot("\bottomrule                                                      "
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
-restore
-
+*restore
+exit
 ********************************************************************************
 *** (5) ART and Teens
 ********************************************************************************
