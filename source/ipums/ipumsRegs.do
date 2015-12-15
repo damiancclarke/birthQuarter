@@ -59,9 +59,11 @@ esttab est5 est4 est3 est2 est1 using "$OUT/IPUMSBinary.tex",
 replace `estopt' title("Season of Birth Correlates (IPUMS 2005-2014)")
 keep(_cons `age' `edu' `une') style(tex) booktabs mlabels(, depvar) 
 postfoot("State and Year FE&&Y&Y&Y&Y\\ Occupation FE&&&&&Y\\ \bottomrule       "
-        "\multicolumn{6}{p{17.2cm}}{\begin{footnotesize}Sample consists of all "
-         "first born children of US-born, white, non-hispanic mothers aged 25- "
-         "45 included in ACS data. Standard errors are clustered by state.     "
+         "\multicolumn{6}{p{17.2cm}}{\begin{footnotesize}Sample consists of all"
+         " first born children in the USA to white, non-hispanic mothers aged  "
+         "25-45 included in ACS data where the mother is either the head of the"
+         " household or the partner (married or unmarried) of the head of the  "
+         "household. Standard errors are clustered by state.  "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -86,9 +88,11 @@ esttab est5 est4 est3 est2 est1 using "$OUT/goodQuarter_Years.tex",
 replace `estopt' title("Season of Birth Correlates (Continuous Age)")
 keep(_cons `age' `edu' `une') style(tex) booktabs mlabels(, depvar) 
 postfoot("State and Year FE&&Y&Y&Y&Y\\ Occupation FE&&&&&Y\\ \bottomrule       "
-        "\multicolumn{6}{p{17.2cm}}{\begin{footnotesize}Sample consists of all "
-         "first born children of US-born, white, non-hispanic mothers aged 25- "
-         "45 included in ACS data. Standard errors are clustered by state.     "
+         "\multicolumn{6}{p{17.2cm}}{\begin{footnotesize}Sample consists of all"
+         " first born children in the USA to white, non-hispanic mothers aged  "
+         "25-45 included in ACS data where the mother is either the head of the"
+         " household or the partner (married or unmarried) of the head of the  "
+         "household. Standard errors are clustered by state.  "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -109,25 +113,27 @@ esttab est5 est4 est3 est2 est1 using "$OUT/goodQuarter_YearsSquared.tex",
 replace `estopt' title("Season of Birth Correlates (Age and Age Squared)")
 keep(_cons `age' `edu' `une') style(tex) booktabs mlabels(, depvar) 
 postfoot("State and Year FE&&Y&Y&Y&Y\\ Occupation FE&&&&&Y\\ \bottomrule       "
-        "\multicolumn{6}{p{17.2cm}}{\begin{footnotesize}Sample consists of all "
-         "first born children of US-born, white, non-hispanic mothers aged 25- "
-         "45 included in ACS data. Standard errors are clustered by state.     "
+         "\multicolumn{6}{p{17.2cm}}{\begin{footnotesize}Sample consists of all"
+         " first born children in the USA to white, non-hispanic mothers aged  "
+         "25-45 included in ACS data where the mother is either the head of the"
+         " household or the partner (married or unmarried) of the head of the  "
+         "household. Standard errors are clustered by state.  "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
+
 */
-
-
 ********************************************************************************
 *** (4) Sumstats of good season by various levels
 ********************************************************************************
-use "$DAT/`data'"
-generat ageGroup = 1 if motherAge>=25&motherAge<40
-replace ageGroup = 2 if motherAge>=40&motherAge<45
-gen educLevel = highEduc
+use "$DAT/`data'", clear
+generat ageGroup        = 1 if motherAge>=25&motherAge<40
+replace ageGroup        = 2 if motherAge>=40&motherAge<45
+generat educLevel       = highEduc
+replace educLevel       = 2 if educd>=101
 
 lab def ag 1 "Young (25-39) " 2 "Old (40-45) "
-lab def ed 0 "No College" 1 "Some College +"
+lab def ed 0 "No College" 1 "Some College" 2 "Complete College"
 lab val ageGroup ag
 lab val educLevel ed
 
@@ -190,7 +196,7 @@ replace ageG2 = 4 if motherAge>=32 & motherAge<40
 replace ageG2 = 5 if motherAge>=40 & motherAge<46
 
 collapse (sum) birth, by(goodQuarter ageG2)
-lab def ag_2 1 "20-24 Years Old" 2 "25-37 Years Old" 3 "28-31 Years Old" /*
+lab def ag_2 1 "20-24 Years Old" 2 "25-27 Years Old" 3 "28-31 Years Old" /*
 */ 4 "32-39 Years Old" 5 "40-45 Years Old"
 lab val ageG2 ag_2
 
@@ -206,3 +212,24 @@ drop totalbirths diff rati
 
 outsheet using "$SUM/FullSample.txt", delimiter("&") replace noquote
 restore
+
+
+********************************************************************************
+*** (5) Sumstats (all)
+********************************************************************************
+gen young   = motherAge <=39
+
+local rd (1=2) (2=6) (3=9) (4=10) (5=11) (6=12) (7=13) (8=14) (10=15) (11=16)
+recode educ `rd', gen(educYrs)
+ 
+
+#delimit ;
+estpost tabstat motherAge married young age2527 age2831 age3239 age4045
+                highEduc educYrs goodQuarter,
+statistics(count mean sd min max) columns(statistics);
+
+esttab using "$SUM/IPUMSstats.tex", title("Descriptive Statistics (NVSS)")
+  cells("count(fmt(0)) mean(fmt(2)) sd(fmt(2)) min(fmt(0)) max(fmt(0))")
+  replace label noobs;
+#delimit cr
+
