@@ -421,6 +421,137 @@ graph export "$GRA/birthQuarterEducOld.eps", as(eps) replace;
 restore
 
 
+********************************************************************************
+*** (6e) Figure 6-8
+********************************************************************************
+preserve
+cap drop youngOld
+generat youngOld = 1 if motherAge>=28&motherAge<=31
+replace youngOld = 2 if motherAge>=40&motherAge<=45
+bys state: gen statecount = _N
+keep if youngOld != .
+
+collapse goodQuarter (min) cold, by(youngOld statefip state fips state*)
+
+lab var goodQuarter "Proportion good season"
+lab var cold        "Coldest monthly average (degree F)"
+local cc statecount>500
+
+format goodQuarter %5.2f
+foreach num of numlist 1 2 {
+    local age young
+    if `num'==2 local age old
+    drop if state=="Alaska"
+    
+    corr goodQuarter cold if youngOld==`num' & `cc'
+    local ccoef = string(r(rho),"%5.3f")
+    #delimit ;
+    twoway scatter goodQuarter cold if youngOld==`num'& `cc', mlabel(state) ||      
+        lfit goodQuarter cold if youngOld==`num'& `cc', scheme(s1mono)
+        lcolor(gs0) legend(off) lpattern(dash)
+    note("Correlation coefficient=`ccoef'");
+    graph export "$GRA/`age'TempCold.eps", as(eps) replace;
+    #delimit cr
+}
+
+drop state
+rename stateabbrev state
+merge m:1 state using "$DAT/../maps/state_database_clean"
+drop _merge
+
+
+#delimit ;
+spmap goodQuarter if youngOld==1&(statefip!=2&statefip!=15) using
+"$DAT/../maps/state_coords_clean", id(_polygonid) fcolor(YlOrRd)
+legend(symy(*2) symx(*2) size(*2.1) position(4) rowgap(1)) legstyle(2);
+graph export "$GRA/youngGoodSeason.eps", replace as(eps);
+
+spmap goodQuarter if youngOld==2&(statefip!=2&statefip!=15) using
+"$DAT/../maps/state_coords_clean", id(_polygonid) fcolor(YlOrRd)
+legend(symy(*2) symx(*2) size(*2.1) position(4) rowgap(1)) legstyle(2);
+graph export "$GRA/oldGoodSeason.eps", replace as(eps);
+#delimit cr
+restore
+
+********************************************************************************
+*** (6f) Figure 11
+********************************************************************************
+preserve
+gen ageG2 = motherAge>=20 & motherAge<25
+replace ageG2 = 2 if motherAge>=25 & motherAge<28
+replace ageG2 = 3 if motherAge>=28 & motherAge<32
+replace ageG2 = 4 if motherAge>=32 & motherAge<40
+replace ageG2 = 5 if motherAge>=40 & motherAge<46
+
+collapse (sum) birth, by(goodQuarter ageG2)
+drop if goodQuarter == .
+reshape wide birth, i(ageG2) j(goodQuarter)
+gen totalbirths = birth0 + birth1
+replace birth0=(round(10000*birth0/totalbirths)/100)-50
+replace birth1=(round(10000*birth1/totalbirths)/100)-50
+keep birth1 ageG2
+replace birth1=birth1*2
+list
+lab def       aG4 1 "20-24" 2 "25-27" 3 "28-31" 4 "35-39" 5 "40-45"
+lab val ageG2 aG4
+
+#delimit ;
+graph bar birth1, over(ageG2)  ylabel(, nogrid) yline(0, lpattern("_"))
+bar(1, bcolor(ltblue)) bar(2, bcolor(ltblue)) bar(3, bcolor(ltblue))
+bar(4, bcolor(ltblue)) scheme(s1mono) ytitle("% Good Season - % Bad Season");
+graph export "$GRA/birthQdiff_4Ages.eps", as(eps) replace;
+#delimit cr
+restore
+
+********************************************************************************
+*** (6g) Figure 11
+********************************************************************************
+generat youngOld = 1 if motherAge>=28&motherAge<=31
+replace youngOld = 2 if motherAge>=40&motherAge<=45
+collapse (sum) birth, by(birthQuarter state youngOld)
+lab val birthQuarter mon
+bys state youngOld: egen totalBirths = sum(birth)
+gen birthProportion = birth/totalBirths
+sort birthQuarter state
+
+local line1 lpattern(solid)    lcolor(black)
+local line2 lpattern(dash)     lcolor(black)
+local MN    Minnesota
+local WI    Wisconsin
+
+foreach hS in Alabama Arkansas Arizona {
+    local cond1 state=="`hS'"
+    local cond2 state=="Minnesota"
+    #delimit ;
+    twoway line birthProportion birthQuarter if `cond1'& youngO==1, `line1' ||
+           line birthProportion birthQuarter if `cond2'& youngO==1, `line2'
+    scheme(s1mono) xtitle("Birth Quarter") xlabel(1(1)4, valuelabels)
+    ytitle("Proportion of All Births") legend(label(1 "`hS'") label(2 "`MN'"));
+    graph export "$GRA/birthQuarter`hS'Minnesota_young.eps", as(eps) replace;
+
+    twoway line birthProportion birthQuarter if `cond1'& youngO==2, `line1' ||
+           line birthProportion birthQuarter if `cond2'& youngO==2, `line2'
+    scheme(s1mono) xtitle("Birth Quarter") xlabel(1(1)4, valuelabels)
+    ytitle("Proportion of All Births") legend(label(1 "`hS'") label(2 "`MN'"));
+    graph export "$GRA/birthQuarter`hS'Minnesota_old.eps", as(eps) replace;
+    #delimit cr
+
+    local cond2 state=="Wisconsin"
+    #delimit ;
+    twoway line birthProportion birthQuarter if `cond1'& youngO==1, `line1' ||
+           line birthProportion birthQuarter if `cond2'& youngO==1, `line2'
+    scheme(s1mono) xtitle("Birth Quarter") xlabel(1(1)4, valuelabels)
+    ytitle("Proportion of All Births") legend(label(1 "`hS'") label(2 "`WI'"));
+    graph export "$GRA/birthQuarter`hS'Wisconsin_young.eps", as(eps) replace;
+
+    twoway line birthProportion birthQuarter if `cond1'& youngO==2, `line1' ||
+           line birthProportion birthQuarter if `cond2'& youngO==2, `line2'
+    scheme(s1mono) xtitle("Birth Quarter") xlabel(1(1)4, valuelabels)
+    ytitle("Proportion of All Births") legend(label(1 "`hS'") label(2 "`WI'"));
+    graph export "$GRA/birthQuarter`hS'Wisconsin_old.eps", as(eps) replace;
+    #delimit cr
+}
+
 exit
 
 ********************************************************************************
