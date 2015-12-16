@@ -29,7 +29,6 @@ local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats /*
 */           (N, fmt(%9.0g) label(Observations))     /*
 */           starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(none) label
 
-/*
 ********************************************************************************
 *** (2) Open data subset to sample of interest (from Sonia's import file)
 ********************************************************************************
@@ -171,9 +170,43 @@ postfoot("\bottomrule                                                      "
 #delimit cr
 estimates clear
 
+********************************************************************************
+*** (3e) Twin regression
+********************************************************************************
+use "$DAT/`data'", clear
+keep if motherAge>=25&motherAge<=45&twins==1
+tab year    , gen(_year)
+tab statefip, gen(_state)
 
-    
-*/
+lab var unemployment "Unemployment Rate"
+
+local se  cluster(statefip)
+local abs abs(statefip)
+local age age2527 age2831 age3239
+local edu highEduc
+local une unemployment
+
+eststo: areg goodQuarter `age' `edu' `une' _year* _state*     , abs(occ) `se'
+eststo: areg goodQuarter `age' `edu' `une' _year* if e(sample), `abs'    `se'
+eststo: areg goodQuarter `age' `edu'       _year* if e(sample), `abs'    `se'
+eststo: areg goodQuarter `age'             _year* if e(sample), `abs'    `se'
+eststo:  reg goodQuarter `age'                    if e(sample),          `se'
+
+#delimit ;
+esttab est5 est4 est3 est2 est1 using "$OUT/IPUMSBinaryTwin.tex",
+replace `estopt' title("Season of Birth Correlates (IPUMS Twins)")
+keep(_cons `age' `edu' `une') style(tex) booktabs mlabels(, depvar) 
+postfoot("State and Year FE&&Y&Y&Y&Y\\ Occupation FE&&&&&Y\\ \bottomrule       "
+         "\multicolumn{6}{p{17.2cm}}{\begin{footnotesize}Sample consists of all"
+         " first born twin children from ACS data who were born to white,      "
+         "non-hispanic mothers aged 25-45, where the mother is either the head "
+         "of the  household or the partner (married or unmarried) of the head  "
+         "of the household. Standard errors are clustered by state.  "
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+
+
 ********************************************************************************
 *** (4) Sumstats of good season by various levels
 ********************************************************************************
@@ -552,40 +585,9 @@ foreach hS in Alabama Arkansas Arizona {
     #delimit cr
 }
 
-exit
 
 ********************************************************************************
-*** (7) Twin regression
+*** (X) Close
 ********************************************************************************
-use "$DAT/`data'", clear
-keep if motherAge>=25&motherAge<=45&twins==1
-tab year    , gen(_year)
-tab statefip, gen(_state)
-
-lab var unemployment "Unemployment Rate"
-
-local se  cluster(statefip)
-local abs abs(statefip)
-local age age2527 age2831 age3239
-local edu highEduc
-local une unemployment
-
-eststo: areg goodQuarter `age' `edu' `une' _year* _state*     , abs(occ) `se'
-eststo: areg goodQuarter `age' `edu' `une' _year* if e(sample), `abs'    `se'
-eststo: areg goodQuarter `age' `edu'       _year* if e(sample), `abs'    `se'
-eststo: areg goodQuarter `age'             _year* if e(sample), `abs'    `se'
-eststo:  reg goodQuarter `age'                    if e(sample),          `se'
-
-#delimit ;
-esttab est5 est4 est3 est2 est1 using "$OUT/IPUMSBinaryTwin.tex",
-replace `estopt' title("Season of Birth Correlates (IPUMS Twins)")
-keep(_cons `age' `edu' `une') style(tex) booktabs mlabels(, depvar) 
-postfoot("State and Year FE&&Y&Y&Y&Y\\ Occupation FE&&&&&Y\\ \bottomrule       "
-         "\multicolumn{6}{p{17.2cm}}{\begin{footnotesize}Sample consists of all"
-         " first born twin children from ACS data who were born to white,      "
-         "non-hispanic mothers aged 25-45, where the mother is either the head "
-         "of the  household or the partner (married or unmarried) of the head  "
-         "of the household. Standard errors are clustered by state.  "
-         "\end{footnotesize}}\end{tabular}\end{table}");
-#delimit cr
-estimates clear
+log close
+dis _newline(5) " Terminated without Error" _newline(5)
