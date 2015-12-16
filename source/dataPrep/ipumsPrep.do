@@ -164,6 +164,61 @@ drop _merge
 ********************************************************************************
 *** (5) Import occupation data (codes from Blau files)
 ********************************************************************************
+#delimit ;
+local l1 " `"Management, Professional and Related Occupations"'
+           `"Service Occupations"' `"Sales and Office Occupations"'
+           `"Construction, Extraction and Maintenance Occupations"'
+           `"Production, Transportation and Material Moving Occupations"'";
+local n1   occ2010>=10&occ2010<=3540   occ2010>=3600&occ2010<=4650
+           occ2010>=4700&occ2010<=6130 occ2010>=6200&occ2010<=7630
+           occ2010>=7700&occ2010<=9920;
+local l2 " `"Management Occupations"' `"Business Operations Specialists"'
+           `"Financial Specialists"' `"Computer and Mathematical Occupations"'
+           `"Architecture and Engineering Occpations"'
+           `"Life, Physical, and Social Science Occupations"'
+           `"Community and Social Services Occupations"'
+           `"Arts, Design, Entertainment, Sports, and Media Occupations"'
+           `"Healthcare Practitioners and Technical Occupations"'
+           `"Healthcare Support Occupations"' `"Protective Service Occupations"'
+           `"Food Preparation and Serving Occupations"'
+           `"Building and Grounds Cleaning and Maintenance Occupations"'
+           `"Personal Care and Service Occupations"' `"Sales Occupations"'
+           `"Office and Administrative Support Occupations"'
+           `"Farming, Fishing, and Forestry Occupations"'
+           `"Construction Trades"' `"Extraction Workers"'
+           `"Installation, Maintenance, and Repair Workers"'
+           `"Production Occupations"'
+           `"Transportation and Material Moving Occupations"'
+           `"Military Specific Occupations"'";
+local n2   occ2010>0&occ2010<=430      occ2010>=500&occ2010<=730
+           occ2010>=800&occ2010<=950   occ2010>=1000&occ2010<=1240
+           occ2010>=1300&occ2010<=1560 occ2010>=1600&occ2010<=1960
+           occ2010>=2000&occ2010<=2550 occ2010>=2600&occ2010<=2960
+           occ2010>=3000&occ2010<=3540 occ2010>=3600&occ2010<=3650
+           occ2010>=3700&occ2010<=3950 occ2010>=4000&occ2010<=4160
+           occ2010>=4200&occ2010<=4250 occ2010>=4300&occ2010<=4650
+           occ2010>=4700&occ2010<=4965 occ2010>=5000&occ2010<=5940
+           occ2010>=6000&occ2010<=6130 occ2010>=6200&occ2010<=6765
+           occ2010>=6800&occ2010<=6940 occ2010>=7000&occ2010<=7630
+           occ2010>=7700&occ2010<=8965 occ2010>=9000&occ2010<=9750
+           occ2010>=9800&occ2010<=9920;
+#delimit cr
+
+gen oneLevelOcc = "" 
+gen twoLevelOcc = ""
+
+tokenize `n1'
+foreach job of local l1 {
+    replace oneLevelOcc = "`job'" if `1'
+    macro shift
+}
+
+tokenize `n2'
+foreach job of local l2 {
+    replace twoLevelOcc = "`job'" if `1'
+    macro shift
+}
+
 generat occ2 = occ
 replace occ2 = 130 if  occ2 == 135 |occ2 == 136 |occ2 == 137
 replace occ2 = 200 if  occ2 == 205
