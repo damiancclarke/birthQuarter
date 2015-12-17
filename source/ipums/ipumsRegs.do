@@ -171,7 +171,42 @@ postfoot("\bottomrule                                                      "
 estimates clear
 
 ********************************************************************************
-*** (3e) Twin regression
+*** (3e) regressions: industry
+********************************************************************************
+tab oneLevelOcc, gen(_1occ)
+tab twoLevelOcc, gen(_2occ)
+
+local se  cluster(statefip)
+local abs abs(statefip)
+local age age2527 age2831 age3239
+local edu highEduc
+local une unemployment
+local lv1 _1occ*
+local lv2 _2occ*
+
+eststo: areg goodQuarter `age' `edu' `une' _year*       , abs(occ) `se'
+eststo: areg goodQuarter `age' `edu' `une' _year* `lv2' ,          `se'
+eststo: areg goodQuarter `age' `edu' `une' _year* `lv1' ,          `se'
+eststo: areg goodQuarter `age' `edu' `une' _year*       ,          `se'
+
+#delimit ;
+esttab est4 est3 est2 est1 using "$OUT/IPUMSIndustry.tex",
+replace `estopt' title("Season of Birth and Industry")
+keep(_cons `age' `edu' `une' `lv1' `lv2') style(tex) booktabs mlabels(, depvar) 
+postfoot("Industry Codes &&1&2&3Y\\ \bottomrule       "
+         "\multicolumn{5}{p{13.2cm}}{\begin{footnotesize}Sample consists of all"
+         " first born children in the USA to white, non-hispanic mothers aged  "
+         "25-45 included in ACS data where the mother is either the head of the"
+         " household or the partner (married or unmarried) of the head of the  "
+         "household. Standard errors are clustered by state. Industry codes    "
+         "refer to the level of occupation codes (1 digit, 2 digit, or 3 digit)"
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+    
+
+********************************************************************************
+*** (3f) Twin regression
 ********************************************************************************
 use "$DAT/`data'", clear
 keep if motherAge>=25&motherAge<=45&twins==1
@@ -212,7 +247,7 @@ estimates clear
 ********************************************************************************
 use "$DAT/`data'", clear
 generat ageGroup        = 1 if motherAge>=25&motherAge<40
-replace ageGroup        = 2 if motherAge>=40&motherAge<45
+replace ageGroup        = 2 if motherAge>=40&motherAge<=45
 generat educLevel       = highEduc
 replace educLevel       = 2 if educd>=101
 
@@ -237,6 +272,7 @@ gen str5 b0         = string(birth0, "%05.2f")
 gen str5 b1         = string(birth1, "%05.2f")
 gen str4 difference = string(diff, "%04.2f")
 gen str4 ratio      = string(rati, "%04.2f")
+
 drop totalbirths diff rati birth*
 
 decode ageGroup, gen(ag)
@@ -301,7 +337,9 @@ restore
 ********************************************************************************
 *** (5) Sumstats (all)
 ********************************************************************************
-gen young   = motherAge <=39
+preserve
+keep if motherAge>=25&motherAge<=45&twins==0
+generat young     =   motherAge <=39
 
 local rd (1=2) (2=6) (3=9) (4=10) (5=11) (6=12) (7=13) (8=14) (10=15) (11=16)
 recode educ `rd', gen(educYrs)
@@ -323,6 +361,7 @@ esttab using "$SUM/IPUMSstats.tex", title("Descriptive Statistics (NVSS)")
   cells("count(fmt(0)) mean(fmt(2)) sd(fmt(2)) min(fmt(0)) max(fmt(0))")
   replace label noobs;
 #delimit cr
+restore
 
 ********************************************************************************
 *** (6a) Figure 1
