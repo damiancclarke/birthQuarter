@@ -229,35 +229,72 @@ estimates clear
 ********************************************************************************
 *** (3f) regressions: Using Goldin's occupation classes
 ********************************************************************************
-tab GoldinClass, gen(_gclass)
+tab GoldinClass, gen(_gc)
+local se  cluster(statefip)
+local abs abs(statefip)
+local age age2527 age2831 age3239
+local edu highEduc
+local une unemployment
+local ind _gc1 _gc2 _gc3 _gc4
+
+eststo: areg goodQuarter `ind' `age' `edu' `une' _year*  `wt', `abs' `se'
+eststo: areg goodQuarter `ind' `age' `edu' `une' _year*  `wt', `abs' `se'
+eststo: areg goodQuarter `ind' `age' `edu'       _year*  `wt', `abs' `se'
+eststo: areg goodQuarter `ind' `age'             _year*  `wt', `abs' `se'
+eststo:  reg goodQuarter `ind' `age'                     `wt',       `se'
+
+#delimit ;
+esttab est5 est4 est3 est2 est1 using "$OUT/IPUMSIndustryGoldin.tex",
+replace `estopt' title("Season of Birth and Occupation (Goldin's Classification)")
+keep(_cons `ind' `age' `edu' `une') style(tex) booktabs mlabels(, depvar) 
+postfoot("State and Year FE&&Y&Y&Y&Y\\                       \bottomrule       "
+         "\multicolumn{6}{p{17.2cm}}{\begin{footnotesize}Sample consists of all"
+         " first born children in the USA to white, non-hispanic mothers aged  "
+         "25-45 included in ACS data where the mother is either the head of the"
+         " household or the partner (married or unmarried) of the head of the  "
+         "household. Standard errors are clustered by state. Occupations are   "
+         "categorised as in Goldin (2014) table A1.  The omitted category is   "
+         "Other Occupations."
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+
+********************************************************************************
+*** (3g) regressions: Teachers
+********************************************************************************
 local se  cluster(statefip)
 local abs abs(statefip)
 local age age2527 age2831 age3239
 local edu highEduc
 local une unemployment
 
-eststo: areg goodQuarter _gclass* `age' `edu' `une' _year*  `wt', `abs' `se'
-eststo: areg goodQuarter _gclass* `age' `edu' `une' _year*  `wt', `abs' `se'
-eststo: areg goodQuarter _gclass* `age' `edu'       _year*  `wt', `abs' `se'
-eststo: areg goodQuarter _gclass* `age'             _year*  `wt', `abs' `se'
-eststo:  reg goodQuarter _gclass* `age'                     `wt',       `se'
+gen teachers = occ2010>=2300&occ2010<=2330
+lab var teachers "School Teachers"
+
+eststo: areg goodQuarter teachers `age' `edu' `une' _year*  `wt', `abs' `se'
+eststo: areg goodQuarter teachers `age' `edu' `une' _year*  `wt', `abs' `se'
+eststo: areg goodQuarter teachers `age' `edu'       _year*  `wt', `abs' `se'
+eststo: areg goodQuarter teachers `age'             _year*  `wt', `abs' `se'
+eststo:  reg goodQuarter teachers `age'                     `wt',       `se'
 
 #delimit ;
-esttab est5 est4 est3 est2 est1 using "$OUT/IPUMSIndustryGoldin.tex",
-replace `estopt' title("Season of Birth and Occupation (Goldin's Classification)")
-keep(_cons _gclass* `age' `edu' `une') style(tex) booktabs mlabels(, depvar) 
+esttab est5 est4 est3 est2 est1 using "$OUT/IPUMSTeachers.tex",
+replace `estopt' title("Season of Birth and Occupation (Teachers)")
+keep(_cons teachers `age' `edu' `une') style(tex) booktabs mlabels(, depvar) 
 postfoot("State and Year FE&&Y&Y&Y&Y\\                       \bottomrule       "
          "\multicolumn{6}{p{17.2cm}}{\begin{footnotesize}Sample consists of all"
          " first born children in the USA to white, non-hispanic mothers aged  "
          "25-45 included in ACS data where the mother is either the head of the"
          " household or the partner (married or unmarried) of the head of the  "
-         "household. Standard errors are clustered by state.  "
+         "household. Standard errors are clustered by state. School teachers   "
+         "include Pre-school, Elementary, Middle, Secondary and Special        "
+         "Education levels (occ codes 2300-2330)."
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
 
 ********************************************************************************
-*** (3g) Twin regression
+*** (3h) Twin regression
 ********************************************************************************
 use "$DAT/`data'", clear
 keep if motherAge>=25&motherAge<=45&twins==1
