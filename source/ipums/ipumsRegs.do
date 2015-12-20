@@ -10,6 +10,7 @@ vers 11
 clear all
 set more off
 cap log close
+set matsize 2000
 
 ********************************************************************************
 *** (1) globals and locals
@@ -28,6 +29,7 @@ local data   ACS_20052014_cleaned.dta
 local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats /*
 */           (N, fmt(%9.0g) label(Observations))     /*
 */           starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(none) label
+local wt     [pw=perwt]
 
 ********************************************************************************
 *** (2) Open data subset to sample of interest (from Sonia's import file)
@@ -48,11 +50,11 @@ local age age2527 age2831 age3239
 local edu highEduc
 local une unemployment
 
-eststo: areg goodQuarter `age' `edu' `une' _year* _state*     , abs(occ) `se'
-eststo: areg goodQuarter `age' `edu' `une' _year* if e(sample), `abs'    `se'
-eststo: areg goodQuarter `age' `edu'       _year* if e(sample), `abs'    `se'
-eststo: areg goodQuarter `age'             _year* if e(sample), `abs'    `se'
-eststo:  reg goodQuarter `age'                    if e(sample),          `se'
+eststo: areg goodQuarter `age' `edu' `une' _year* _state*      `wt', abs(occ) `se'
+eststo: areg goodQuarter `age' `edu' `une' _year* if e(sample) `wt', `abs'    `se'
+eststo: areg goodQuarter `age' `edu'       _year* if e(sample) `wt', `abs'    `se'
+eststo: areg goodQuarter `age'             _year* if e(sample) `wt', `abs'    `se'
+eststo:  reg goodQuarter `age'                    if e(sample) `wt',          `se'
 
 #delimit ;
 esttab est5 est4 est3 est2 est1 using "$OUT/IPUMSBinary.tex",
@@ -77,11 +79,11 @@ lab var motherAge2 "Mother's Age\textsuperscript{2}"
 
 local age motherAge
 
-eststo: areg goodQuarter `age' `edu' `une' _year* _state*     , abs(occ) `se'
-eststo: areg goodQuarter `age' `edu' `une' _year* if e(sample), `abs'    `se'
-eststo: areg goodQuarter `age' `edu'       _year* if e(sample), `abs'    `se'
-eststo: areg goodQuarter `age'             _year* if e(sample), `abs'    `se'
-eststo:  reg goodQuarter `age'                    if e(sample),          `se'
+eststo: areg goodQuarter `age' `edu' `une' _year* _state*      `wt', abs(occ) `se'
+eststo: areg goodQuarter `age' `edu' `une' _year* if e(sample) `wt', `abs'    `se'
+eststo: areg goodQuarter `age' `edu'       _year* if e(sample) `wt', `abs'    `se'
+eststo: areg goodQuarter `age'             _year* if e(sample) `wt', `abs'    `se'
+eststo:  reg goodQuarter `age'                    if e(sample) `wt',          `se'
 
 #delimit ;
 esttab est5 est4 est3 est2 est1 using "$OUT/goodQuarter_Years.tex",
@@ -102,11 +104,11 @@ estimates clear
 ********************************************************************************
 local age motherAge motherAge2
 
-eststo: areg goodQuarter `age' `edu' `une' _year* _state*     , abs(occ) `se'
-eststo: areg goodQuarter `age' `edu' `une' _year* if e(sample), `abs'    `se'
-eststo: areg goodQuarter `age' `edu'       _year* if e(sample), `abs'    `se'
-eststo: areg goodQuarter `age'             _year* if e(sample), `abs'    `se'
-eststo:  reg goodQuarter `age'                    if e(sample),          `se'
+eststo: areg goodQuarter `age' `edu' `une' _year* _state*      `wt', abs(occ) `se'
+eststo: areg goodQuarter `age' `edu' `une' _year* if e(sample) `wt', `abs'    `se'
+eststo: areg goodQuarter `age' `edu'       _year* if e(sample) `wt', `abs'    `se'
+eststo: areg goodQuarter `age'             _year* if e(sample) `wt', `abs'    `se'
+eststo:  reg goodQuarter `age'                    if e(sample) `wt',          `se'
 
 #delimit ;
 esttab est5 est4 est3 est2 est1 using "$OUT/goodQuarter_YearsSquared.tex",
@@ -138,9 +140,9 @@ lab var age3239XhighEd "Aged 32-39 $\times$ Some College"
     
 local age1  age2527 age2831 age3239
 local age1X age2527XhighEd age2831XhighEd age3239XhighEd
-eststo: areg goodQua `age1' highEduc `age1X' _year*             , `abs' `se'
-eststo: areg goodQua `age1' highEduc         _year* if e(sample), `abs' `se'
-eststo: areg goodQua `age1'                  _year* if e(sample), `abs' `se'
+eststo: areg goodQua `age1' highEduc `age1X' _year*              `wt', `abs' `se'
+eststo: areg goodQua `age1' highEduc         _year* if e(sample) `wt', `abs' `se'
+eststo: areg goodQua `age1'                  _year* if e(sample) `wt', `abs' `se'
 
 local rd (1=2) (2=6) (3=9) (4=10) (5=11) (6=12) (7=13) (8=14) (10=15) (11=16)
 recode educ `rd', gen(educYrs)
@@ -153,9 +155,9 @@ lab var motherAge2Xeduc "Mother's Age$2$ $\times$ Education"
 
 local age2  motherAge motherAge2
 local age2X motherAgeXeduc motherAge2Xeduc
-eststo: areg goodQua `age2' educYrs `age2X' _year*            , `abs' `se'
-eststo: areg goodQua `age2' educYrs        _year* if e(sample), `abs' `se'
-eststo: areg goodQua `age2'                _year* if e(sample), `abs' `se'
+eststo: areg goodQua `age2' educYrs `age2X' _year*             `wt', `abs' `se'
+eststo: areg goodQua `age2' educYrs        _year* if e(sample) `wt', `abs' `se'
+eststo: areg goodQua `age2'                _year* if e(sample) `wt', `abs' `se'
 
 local kvar `age1' highEduc `age1X' `age2' educYrs `age2X'
 #delimit ;
@@ -175,6 +177,7 @@ estimates clear
 ********************************************************************************
 tab oneLevelOcc, gen(_1occ)
 tab twoLevelOcc, gen(_2occ)
+tab occ        , gen(_occ)
 
 local se  cluster(statefip)
 local abs abs(statefip)
@@ -183,30 +186,78 @@ local edu highEduc
 local une unemployment
 local lv1 _1occ*
 local lv2 _2occ*
+local lv3 _occ*
 
-eststo: areg goodQuarter `age' `edu' `une' _year*       , abs(occ) `se'
-eststo: areg goodQuarter `age' `edu' `une' _year* `lv2' ,          `se'
-eststo: areg goodQuarter `age' `edu' `une' _year* `lv1' ,          `se'
-eststo: areg goodQuarter `age' `edu' `une' _year*       ,          `se'
+eststo: areg goodQuarter `age' `edu' `une' _year* `lv3' `wt', `se' `abs'
+ds _occ*
+local tvar `r(varlist)'
+test `tvar'
+local F3 = round(r(p)*1000)/1000
+if `F3' == 0 local F3 0.000
+
+eststo:  areg goodQuarter `age' `edu' `une' _year* `lv2' `wt', `se' `abs'
+ds _2occ*
+local tvar `r(varlist)'
+test `tvar'
+local F2 = round(r(p)*1000)/1000
+if `F2' == 0 local F2 0.000
+
+eststo:  areg goodQuarter `age' `edu' `une' _year* `lv1' `wt', `se' `abs'
+ds _1occ*
+local tvar `r(varlist)'
+test `tvar'
+local F1 = round(r(p)*1000)/1000
+
+eststo:  areg goodQuarter `age' `edu' `une' _year*       `wt', `se' `abs'
 
 #delimit ;
 esttab est4 est3 est2 est1 using "$OUT/IPUMSIndustry.tex",
 replace `estopt' title("Season of Birth and Industry")
 keep(_cons `age' `edu' `une' `lv1' `lv2') style(tex) booktabs mlabels(, depvar) 
-postfoot("Industry Codes &&1&2&3Y\\ \bottomrule       "
-         "\multicolumn{5}{p{13.2cm}}{\begin{footnotesize}Sample consists of all"
+postfoot("Occupation Codes (level) &&1&2&3\\                                   "
+         "p-value on F-test of Occupation Dummies&&`F1'&`F2'&`F3'\\ \bottomrule"
+         "\multicolumn{5}{p{20.2cm}}{\begin{footnotesize}Sample consists of all"
          " first born children in the USA to white, non-hispanic mothers aged  "
          "25-45 included in ACS data where the mother is either the head of the"
          " household or the partner (married or unmarried) of the head of the  "
-         "household. Standard errors are clustered by state. Industry codes    "
-         "refer to the level of occupation codes (1 digit, 2 digit, or 3 digit)"
+         "household. Industry codes refer to the level of occupation codes (1  "
+         "digit, 2 digit, or 3 digit)"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-    
 
 ********************************************************************************
-*** (3f) Twin regression
+*** (3f) regressions: Using Goldin's occupation classes
+********************************************************************************
+tab GoldinClass, gen(_gclass)
+local se  cluster(statefip)
+local abs abs(statefip)
+local age age2527 age2831 age3239
+local edu highEduc
+local une unemployment
+
+eststo: areg goodQuarter _gclass* `age' `edu' `une' _year*  `wt', `abs' `se'
+eststo: areg goodQuarter _gclass* `age' `edu' `une' _year*  `wt', `abs' `se'
+eststo: areg goodQuarter _gclass* `age' `edu'       _year*  `wt', `abs' `se'
+eststo: areg goodQuarter _gclass* `age'             _year*  `wt', `abs' `se'
+eststo:  reg goodQuarter _gclass* `age'                     `wt',       `se'
+
+#delimit ;
+esttab est5 est4 est3 est2 est1 using "$OUT/IPUMSIndustryGoldin.tex",
+replace `estopt' title("Season of Birth and Occupation (Goldin's Classification)")
+keep(_cons _gclass* `age' `edu' `une') style(tex) booktabs mlabels(, depvar) 
+postfoot("State and Year FE&&Y&Y&Y&Y\\                       \bottomrule       "
+         "\multicolumn{6}{p{17.2cm}}{\begin{footnotesize}Sample consists of all"
+         " first born children in the USA to white, non-hispanic mothers aged  "
+         "25-45 included in ACS data where the mother is either the head of the"
+         " household or the partner (married or unmarried) of the head of the  "
+         "household. Standard errors are clustered by state.  "
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+
+********************************************************************************
+*** (3g) Twin regression
 ********************************************************************************
 use "$DAT/`data'", clear
 keep if motherAge>=25&motherAge<=45&twins==1
@@ -221,11 +272,11 @@ local age age2527 age2831 age3239
 local edu highEduc
 local une unemployment
 
-eststo: areg goodQuarter `age' `edu' `une' _year* _state*     , abs(occ) `se'
-eststo: areg goodQuarter `age' `edu' `une' _year* if e(sample), `abs'    `se'
-eststo: areg goodQuarter `age' `edu'       _year* if e(sample), `abs'    `se'
-eststo: areg goodQuarter `age'             _year* if e(sample), `abs'    `se'
-eststo:  reg goodQuarter `age'                    if e(sample),          `se'
+eststo: areg goodQuarter `age' `edu' `une' _year* _state*      `wt', abs(occ) `se'
+eststo: areg goodQuarter `age' `edu' `une' _year* if e(sample) `wt', `abs'    `se'
+eststo: areg goodQuarter `age' `edu'       _year* if e(sample) `wt', `abs'    `se'
+eststo: areg goodQuarter `age'             _year* if e(sample) `wt', `abs'    `se'
+eststo:  reg goodQuarter `age'                    if e(sample) `wt',          `se'
 
 #delimit ;
 esttab est5 est4 est3 est2 est1 using "$OUT/IPUMSBinaryTwin.tex",
@@ -241,7 +292,7 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\ Occupation FE&&&&&Y\\ \bottomrule       "
 #delimit cr
 estimates clear
 
-
+exit
 ********************************************************************************
 *** (4) Sumstats of good season by various levels
 ********************************************************************************
