@@ -45,6 +45,7 @@ sumNVSS = RES + ftype + '/sumStats/nvssSum.tex'
 MumNVSS = RES + ftype + '/sumStats/nvssMum.tex'
 MumPNVSS= RES + ftype + '/sumStats/nvssMumPart.tex'
 KidNVSS = RES + ftype + '/sumStats/nvssKid.tex'
+sumIPUMS= RES + 'ipums/sumStats/IPUMSstats.tex'
 
 MumNVSS2 = RES + ftype + '/sumStats/sampMum.tex'
 MumPNVSS2= RES + ftype + '/sumStats/sampMumPart.tex'
@@ -57,6 +58,8 @@ KidSpain = RES + 'spain' + '/sumStats/SpainsumK.tex'
 NVSSGoodE =  RES + ftype + '/regressions/NVSSBinaryExpectGood.tex'
 NVSSBadE  =  RES + ftype + '/regressions/NVSSBinaryExpectBad.tex'
 
+IPUMSind  = RES + 'ipums/regressions/IPUMSIndustry.tex' 
+IPUMSindG = RES + 'ipums/regressions/IPUMSIndustryGoldin.tex' 
 #==============================================================================
 #== (1b) shortcuts
 #==============================================================================
@@ -68,9 +71,9 @@ tr   = '\\toprule'
 br   = '\\bottomrule'
 mc1  = '\\multicolumn{'
 mc2  = '}}'
-twid = ['10','6','7','7','7','6','5']
-tcm  = ['}{p{16.6cm}}','}{p{14.2cm}}','}{p{15.6cm}}','}{p{17.6cm}}'
-        ,'}{p{12.8cm}}','}{p{12.2cm}}','}{p{10.2cm}}']
+twid = ['10','6','7','7','7','6','5','6']
+tcm  = ['}{p{16.6cm}}','}{p{14.2cm}}','}{p{15.6cm}}','}{p{17.6cm}}',
+        '}{p{12.8cm}}','}{p{12.2cm}}','}{p{10.2cm}}','}{p{12.2cm}}']
 mc3  = '{\\begin{footnotesize}\\textsc{Notes:} '
 lname = "Fertility$\\times$desire"
 tname = "Twin$\\times$desire"
@@ -248,7 +251,7 @@ sumT.close()
 
 
 #==============================================================================
-#== (3) Basic Sum stats (NVSS)
+#== (3a) Basic Sum stats (NVSS)
 #==============================================================================
 sumT = open(TAB + 'sumStats'+ftype+'.tex', 'w')
 sumT.write('\\begin{table}[htpb!] \n \\begin{center} \n' 
@@ -370,6 +373,63 @@ sumT.write('\n'+mr+mc1+twid[1]+tcm[1]+mc3+
            "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}\\end{center}"
            "\\end{table}")
 sumT.close()
+
+#==============================================================================
+#== (3c) Basic Sum stats (IPUMS)
+#==============================================================================
+sumT = open(TAB + 'sumStatsIPUMS.tex', 'w')
+SI = open(sumIPUMS, 'r').readlines()
+
+sumT.write('\\begin{table}[htpb!] \n \\begin{center} \n' 
+'\\caption{Descriptive Statistics (IPUMS 2005-2014)}\n '
+'\\label{bqTab:SumStatsIPUM}'
+'\\begin{tabular}{lccccc} '
+'\n \\toprule\\toprule \\vspace{5mm} \n'
+'& N & Mean & Std. Dev. & Min. & Max. \\\\ \\midrule \n')
+
+for i,line in enumerate(SI):
+    if i>8 and i<19:
+        line = line.replace('\\hline','\\midrule')
+        line = line.replace('Quarter','season of birth')
+        sumT.write(line)
+
+sumT.write('\n'+mr+mc1+twid[7]+tcm[7]+mc3+
+           "Sample consists of all singleton first-born children from the ACS "
+           "born in the USA to white non-hispanic mothers aged 25-45 who are  "
+           "either the head of their household or the partner (married or     "
+           "unmarried) of the head of the household. Good season refers to    "
+           "children born in birth quarters 2 and 3 (Apr-Jun and Jul-Sept).    "
+           "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}\\end{center}"
+           "\\end{table}")
+sumT.close()
+
+#==============================================================================
+#== (4) IPUMS Industry clean
+#==============================================================================
+ipoT = open(TAB + 'IPUMSIndustry.tex', 'w')
+ipiT = open(IPUMSind, 'r').readlines()
+
+for i,line in enumerate(ipiT):
+    line = line.replace('oneLevelOcc==','')
+    line = line.replace('twoLevelOcc==','')
+    line = line.replace('Occupations','')
+    line = line.replace('Occpations==','')
+    line = line.replace('\\end{footnotesize}}\\end{tabular}\\end{table}',
+                        '\\end{footnotesize}}\\end{tabular}}\\end{table}')
+    line = line.replace('\\begin{tabular}{l*{4}{c}}',
+                        '\\scalebox{0.6}{\\begin{tabular}{l*{4}{c}}')
+    ipoT.write(line)
+
+
+ipoT.close()
+
+ipoT = open(TAB + 'IPUMSIndustryGoldin.tex', 'w')
+ipiT = open(IPUMSindG, 'r').readlines()
+
+for i,line in enumerate(ipiT):
+    line = line.replace('GoldinClass==','')
+    ipoT.write(line)
+ipoT.close()
 
 ##==============================================================================
 ##== (4a) Heterogeneity table (birth quarter)

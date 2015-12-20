@@ -157,6 +157,7 @@ lab def aG3 1 "25-34 Years " 2  "35-39 Years" 3 "40-45 Years"
 lab def eL  1 "No College" 2 "Some College +"
 lab def mon 1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug" /*
 */ 9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec"
+lab def Qua 1 "Q1 (Jan-Mar)" 2 "Q2 (Apr-Jun)" 3 "Q3 (Jul-Sep)" 4 "Q4 (Oct-Dec)"
 
 lab val ageGroup    aG0
 lab val educLevel   eL
@@ -225,7 +226,47 @@ lab(3 "Complete College")) ytitle("Proportion of All Births");
 graph export "$OUT/conceptionMonthEducOld.eps", as(eps) replace;
 #delimit cr
 restore
+*/
+preserve
+cap drop youngOld
+generat youngOld = 1 if motherAge>=28&motherAge<=31  
+replace youngOld = 2 if motherAge>=40&motherAge<=45
+keep if youngOld != .
+generat educlevels = 1 if education<=2
+replace educlevels = 2 if education>2&education<5
+replace educlevels = 3 if education>=5
 
+collapse (sum) birth, by(birthQuarter youngOld educlevels)
+lab val birthQuarter Qua
+bys educlevels youngOld: egen totalBirths = sum(birth)
+gen birthProportion = birth/totalBirths
+sort birthQuarter
+
+local line1 lcolor(black) lpattern(dash) lwidth(thin)
+local line2 lcolor(black) lwidth(medium) lpattern(longdash)
+local line3 lcolor(black) lwidth(thick)
+
+#delimit ;
+twoway line birthProp birthQuarter if educlevels==1&youngOld==1, `line1'
+    || line birthProp birthQuarter if educlevels==2&youngOld==1, `line2'
+    || line birthProp birthQuarter if educlevels==3&youngOld==1, `line3'
+scheme(s1mono) xtitle("Birth Quarter") xlabel(1(1)4, valuelabels)
+legend(lab(1 "Incomplete Highschool") lab(2 "Highschool,Incomplete College")
+       lab(3 "Complete College")) ytitle("Proportion of All Births");
+graph export "$OUT/birthQuarterEducYoungComparison.eps", as(eps) replace;
+
+twoway line birthProp birthQuarter if educlevels==1&youngOld==2, `line1'
+    || line birthProp birthQuarter if educlevels==2&youngOld==2, `line2'
+    || line birthProp birthQuarter if educlevels==3&youngOld==2, `line3'
+scheme(s1mono) xtitle("Birth Quarter") xlabel(1(1)4, valuelabels)
+ylabel(0.23 0.24 0.25 0.26 0.27)
+legend(lab(1 "Incomplete Highschool") lab(2 "Highschool or Incomplete College")
+       lab(3 "Complete College")) ytitle("Proportion of All Births");
+graph export "$OUT/birthQuarterEducOldComparison.eps", as(eps) replace;
+#delimit cr
+restore
+
+/*
 preserve
 keep if `keepif'
 generat youngOld = 1 if motherAge>=28&motherAge<=31
@@ -254,8 +295,34 @@ ytitle("Proportion of All Births");
 graph export "$OUT/conceptionMonth.eps", as(eps) replace;
 #delimit cr
 restore
+*/
 
+preserve
+generat youngOld = 1 if motherAge>=28&motherAge<=31
+replace youngOld = 2 if motherAge>=40&motherAge<=45
 
+drop if youngOld==.
+
+collapse (sum) birth, by(birthQuarter youngOld)
+lab val birthQuarter Qua
+bys youngOld: egen totalBirths = sum(birth)
+gen birthProportion = birth/totalBirths
+sort birthQuarter youngOld
+
+local line1 lpattern(solid)    lcolor(black) lwidth(thick)
+local line2 lpattern(dash)     lcolor(black) lwidth(medium)
+
+#delimit ;
+twoway line birthProportion birthQuarter if youngOld==1, `line1' ||
+           line birthProportion birthQuarter if youngOld==2, `line2'
+scheme(s1mono) xtitle("Quarter of Birth") xlabel(1(1)4, valuelabels)
+legend(label(1 "28-31 Year-olds") label(2 "40-45 Year-olds"))
+ytitle("Proportion of All Births");
+graph export "$OUT/birthQuarterAgesComparison.eps", as(eps) replace;
+#delimit cr
+restore
+
+/*
 preserve
 keep if `keepif'
 generat youngOld = 1 if motherAge>=28&motherAge<=39
@@ -354,7 +421,7 @@ scheme(s1mono) ytitle("% Premature");
 graph export "$OUT/prematureAges.eps", as(eps) replace;
 #delimit cr
 restore
-*/
+
 preserve
 keep if `keepif'
 gen youngBeta = .
@@ -413,6 +480,35 @@ foreach A of numlist 0 1 {
     graph export "$OUT/youngMonthsART`A'.eps", as(eps) replace;
     #delimit cr
 }
+restore
+*/
+preserve
+keep if `keepif'
+gen youngBeta = .
+gen youngHigh = .
+gen youngLoww = .
+gen youngQuar = .
+
+generat Xvar = 1 if motherAge>=28&motherAge<=31
+replace Xvar = 0 if motherAge>=40&motherAge<=45
+foreach num of numlist 1(1)4 {
+    gen quarter`num' = birthQuarter == `num'
+    qui reg quarter`num' Xvar
+    replace youngBeta = _b[Xvar] in `num'
+    replace youngHigh = _b[Xvar] + 1.96*_se[Xvar] in `num'
+    replace youngLoww = _b[Xvar] - 1.96*_se[Xvar] in `num'
+    replace youngQuar = `num' in `num'
+}
+lab val youngQuar       Qua 
+
+#delimit ;
+twoway line youngBeta youngQuar || rcap youngLoww youngHigh youngQuar,
+scheme(s1mono) yline(0, lpattern(dash) lcolor(red)) ytitle("Young-Old")
+xtitle("Quarter of Birth") xlabel(1(1)4, valuelabels)
+legend(order(1 "Young-Old" 2 "95% CI"));
+graph export "$OUT/youngQuarterComparison.eps", as(eps) replace;  
+#delimit cr
+
 exit
 ********************************************************************************
 *** (4) Graph of good season by age
@@ -689,7 +785,7 @@ reshape wide birth, i(ageG2) j(goodQuarter)
 gen totalbirths = birth0 + birth1
 replace birth0=(round(10000*birth0/totalbirths)/100)-50
 replace birth1=(round(10000*birth1/totalbirths)/100)-50
-keep birth1 ageG2 
+keep birth1 ageG2
 replace birth1=birth1*2
 list
 lab def       aG4 1 "20-24" 2 "25-27" 3 "28-31" 4 "35-39" 5 "40-45"

@@ -147,25 +147,26 @@ eststo: areg goodQua `age1'                  _year* if e(sample) `wt', `abs' `se
 local rd (1=2) (2=6) (3=9) (4=10) (5=11) (6=12) (7=13) (8=14) (10=15) (11=16)
 recode educ `rd', gen(educYrs)
  
-gen motherAgeXeduc  = motherAge*educYrs
-gen motherAge2Xeduc = motherAge2*educYrs
+gen motherAgeXeduc  = motherAge*highEd
+gen motherAge2Xeduc = motherAge2*highEd
 
 lab var educYrs         "Years of education"
-lab var motherAge2Xeduc "Mother's Age$2$ $\times$ Education"
+lab var motherAgeXeduc  "Mother's Age $\times$ Some College"
+lab var motherAge2Xeduc "Mother's Age$^2$ $\times$ Some College"
 
 local age2  motherAge motherAge2
 local age2X motherAgeXeduc motherAge2Xeduc
-eststo: areg goodQua `age2' educYrs `age2X' _year*             `wt', `abs' `se'
-eststo: areg goodQua `age2' educYrs        _year* if e(sample) `wt', `abs' `se'
-eststo: areg goodQua `age2'                _year* if e(sample) `wt', `abs' `se'
+eststo: areg goodQua `age2' highEduc `age2X' _year* `wt', `abs' `se'
+eststo: areg goodQua `age2' highEduc         _year* `wt', `abs' `se'
+eststo: areg goodQua `age2'                  _year* `wt', `abs' `se'
 
-local kvar `age1' highEduc `age1X' `age2' educYrs `age2X'
+local kvar `age1' highEduc `age1X' `age2' `age2X'
 #delimit ;
 esttab est3 est2 est1 est6 est5 est4 using "$OUT/IPUMSBinaryEducAge.tex",
 replace `estopt' booktabs keep(`kvar') mlabels(, depvar)
 title("Season of Birth, Age and Education")
 postfoot("\bottomrule                                                      "
-         "\multicolumn{7}{p{20cm}}{\begin{footnotesize}Sample consists     "
+         "\multicolumn{7}{p{21.4cm}}{\begin{footnotesize}Sample consists   "
          " of singleton first-born children to non-Hispanic white women    "
          "aged 25-45. ***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01."
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
@@ -338,6 +339,8 @@ generat ageGroup        = 1 if motherAge>=25&motherAge<40
 replace ageGroup        = 2 if motherAge>=40&motherAge<=45
 generat educLevel       = highEduc
 replace educLevel       = 2 if educd>=101
+gen teachers = occ2010>=2300&occ2010<=2330
+lab var teachers "School Teachers"
 
 lab def ag 1 "Young (25-39) " 2 "Old (40-45) "
 lab def ed 0 "No College" 1 "Some College" 2 "Complete College"
@@ -454,6 +457,7 @@ restore
 ********************************************************************************
 *** (6a) Figure 1
 ********************************************************************************
+preserve
 gen youngBeta = .
 gen youngHigh = .
 gen youngLoww = .
@@ -479,7 +483,36 @@ xtitle("Quarter of Birth") xlabel(1(1)4, valuelabels)
 legend(order(1 "Young-Old" 2 "95% CI"));
 graph export "$GRA/youngQuarter.eps", as(eps) replace;
 #delimit cr
+restore
 
+preserve
+keep if teachers==1
+gen youngBeta = .
+gen youngHigh = .
+gen youngLoww = .
+gen youngQuar = .
+
+generat Xvar = 1 if motherAge>=28&motherAge<=31
+replace Xvar = 0 if motherAge>=40&motherAge<=45
+foreach num of numlist 1(1)4 {
+    gen quarter`num' = birthQuarter == `num'
+    qui reg quarter`num' Xvar
+    replace youngBeta = _b[Xvar] in `num'
+    replace youngHigh = _b[Xvar] + 1.96*_se[Xvar] in `num'
+    replace youngLoww = _b[Xvar] - 1.96*_se[Xvar] in `num'
+    replace youngQuar = `num' in `num'
+}
+lab def Qua 1 "Q1 (Jan-Mar)" 2 "Q2 (Apr-Jun)" 3 "Q3 (Jul-Sep)" 4 "Q4 (Oct-Dec)"
+lab val youngQuar       Qua
+
+#delimit ;
+twoway line youngBeta youngQuar || rcap youngLoww youngHigh youngQuar,
+scheme(s1mono) yline(0, lpattern(dash) lcolor(red)) ytitle("Young-Old")
+xtitle("Quarter of Birth") xlabel(1(1)4, valuelabels)
+legend(order(1 "Young-Old" 2 "95% CI"));
+graph export "$GRA/youngQuarterTeachers.eps", as(eps) replace;
+#delimit cr
+restore
 
 ********************************************************************************
 *** (6b) Figure 3 (NVSS)
@@ -538,6 +571,32 @@ graph export "$GRA/birthQuarterAges.eps", as(eps) replace;
 #delimit cr
 restore
 
+preserve
+keep if teachers==1
+generat youngOld = 1 if motherAge>=28&motherAge<=31
+replace youngOld = 2 if motherAge>=40&motherAge<=45
+
+drop if youngOld==.
+
+collapse (sum) birth, by(birthQuarter youngOld)
+lab val birthQuarter Qua
+bys youngOld: egen totalBirths = sum(birth)
+gen birthProportion = birth/totalBirths
+sort birthQuarter youngOld
+
+local line1 lpattern(solid)    lcolor(black) lwidth(thick)
+local line2 lpattern(dash)     lcolor(black) lwidth(medium)
+
+#delimit ;
+twoway line birthProportion birthQuarter if youngOld==1, `line1' ||
+       line birthProportion birthQuarter if youngOld==2, `line2'
+scheme(s1mono) xtitle("Quarter of Birth") xlabel(1(1)4, valuelabels)
+legend(label(1 "28-31 Year-olds") label(2 "40-45 Year-olds"))
+ytitle("Proportion of All Births");
+graph export "$GRA/birthQuarterAgesTeachers.eps", as(eps) replace;
+#delimit cr
+restore
+exit
 ********************************************************************************
 *** (6d) Figure 5a
 ********************************************************************************
@@ -714,7 +773,47 @@ foreach hS in Alabama Arkansas Arizona {
 
 
 ********************************************************************************
+*** (7) Occupations
+********************************************************************************
+use "$DAT/`data'", clear
+generat ageGroup        = 1 if motherAge>=25&motherAge<40
+replace ageGroup        = 2 if motherAge>=40&motherAge<=45
+generat educLevel       = highEduc
+replace educLevel       = 2 if educd>=101
+
+lab def ag 1 "Young (25-39) " 2 "Old (40-45) "
+lab def ed 0 "No College" 1 "Some College" 2 "Complete College"
+lab val ageGroup ag
+lab val educLevel ed
+
+generat occAlt = 1 if twoL=="Personal Care and Service Occupations"
+replace occAlt = 1 if twoL=="Sales Related"
+replace occAlt = 1 if twoL=="Office and Administrative Support Occupations"
+replace occAlt = 1 if twoL=="Food Preparation and Serving Occupations"
+replace occAlt = 2 if twoL=="Healthcare Practitioners and Technical Occupations"
+replace occAlt = 2 if twoL=="Legal Occupations"
+replace occAlt = 2 if twoL=="Management Occupations"
+replace occAlt = 2 if twoL=="Life, Physical, and Social Science Occupations"
+replace occAlt = 2 if twoL=="Financial Specialists"
+replace occAlt = 3 if twoL=="Education, Training, and Library Occupations"
+
+collapse (sum) birth, by(birthQuarter occAlt)
+drop if occAlt == .
+bys occAlt: egen totalbirth = sum(birth)
+gen birthProportion = birth/totalbirth
+
+#delimit ;
+graph bar birthProportion, over(birthQuar, relabel(1 "Q1" 2 "Q2" 3 "Q3" 4 "Q4"))
+over(occAlt, relabel(1 "Group 1" 2 "Group 2" 3 "Group 3")) scheme(s1mono)
+exclude0 ytitle("Proportion of Births in Quarter"); 
+graph export "$GRA/birthsOccupation.eps", as(eps) replace;
+#delimit cr
+
+
+********************************************************************************
 *** (X) Close
 ********************************************************************************
 log close
 dis _newline(5) " Terminated without Error" _newline(5)
+
+
