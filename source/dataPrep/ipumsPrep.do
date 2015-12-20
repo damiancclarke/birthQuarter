@@ -174,9 +174,11 @@ local n1   occ2010>=10&occ2010<=3540   occ2010>=3600&occ2010<=4650
            occ2010>=7700&occ2010<=9920;
 local l2 " `"Management Occupations"' `"Business Operations Specialists"'
            `"Financial Specialists"' `"Computer and Mathematical Occupations"'
-           `"Architecture and Engineering Occpations"'
+           `"Architecture and Engineering Occupations"'
            `"Life, Physical, and Social Science Occupations"'
            `"Community and Social Services Occupations"'
+           `"Legal Occupations"'
+           `"Education, Training, and Library Occupations"'
            `"Arts, Design, Entertainment, Sports, and Media Occupations"'
            `"Healthcare Practitioners and Technical Occupations"'
            `"Healthcare Support Occupations"' `"Protective Service Occupations"'
@@ -193,7 +195,8 @@ local l2 " `"Management Occupations"' `"Business Operations Specialists"'
 local n2   occ2010>0&occ2010<=430      occ2010>=500&occ2010<=730
            occ2010>=800&occ2010<=950   occ2010>=1000&occ2010<=1240
            occ2010>=1300&occ2010<=1560 occ2010>=1600&occ2010<=1960
-           occ2010>=2000&occ2010<=2550 occ2010>=2600&occ2010<=2960
+           occ2010>=2000&occ2010<=2060 occ2010>=2100&occ2010<=2150
+           occ2010>=2200&occ2010<=2550 occ2010>=2600&occ2010<=2960
            occ2010>=3000&occ2010<=3540 occ2010>=3600&occ2010<=3650
            occ2010>=3700&occ2010<=3950 occ2010>=4000&occ2010<=4160
            occ2010>=4200&occ2010<=4250 occ2010>=4300&occ2010<=4650
