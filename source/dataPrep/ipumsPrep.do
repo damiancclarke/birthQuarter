@@ -3,8 +3,8 @@
 
 Takes raw ACS data from 2005-2014 (exported in Sonia's IPUMS file) and generates
 additional variables.  Along with variables from the IPUMS data, unemployment da
-ta and weather in quarter of conception is added, and occupation classes from Bl
-au's AER (2014) are added.
+ta and weather in quarter of conception is added, and occupation classes from Go
+ldin's AER (2014) are added.
 
 */
 
@@ -219,52 +219,36 @@ foreach job of local l2 {
     macro shift
 }
 
-generat occ2 = occ
-replace occ2 = 130 if  occ2 == 135 |occ2 == 136 |occ2 == 137
-replace occ2 = 200 if  occ2 == 205
-replace occ2 = 320 if  occ2 == 430 |occ2 == 4465
-replace occ2 = 560 if  occ2 == 565 |occ2 == 3945
-replace occ2 = 620 if  occ2 == 630 |occ2 == 640 |occ2 == 650
-replace occ2 = 720 if  occ2 == 725
-replace occ2 = 730 if  occ2 == 425 |occ2 == 725 |occ2 == 735|occ2 == 740
-replace occ2 = 1000 if occ2 == 1005|occ2 == 1006|occ2 == 1106 | occ2 == 1107
-replace occ2 = 1110 if occ2 == 1007|occ2 == 1030|occ2 == 1050
-replace occ2 = 1110 if occ2 == 1105|occ2 == 1106
-replace occ2 = 1100 if occ2 == 1105|occ2 == 1106|occ2 == 1107
-replace occ2 = 1960 if occ2 == 1965
-replace occ2 = 2020 if occ2 == 2015|occ2 == 2016|occ2 == 2025
-replace occ2 = 2100 if occ2 == 2105
-replace occ2 = 2140 if occ2 == 2145
-replace occ2 = 2150 if occ2 == 2160
-replace occ2 = 2820 if occ2 == 2825
-replace occ2 = 3240 if occ2 == 3245
-replace occ2 = 3130 if occ2 == 3255|occ2 == 3256|occ2 == 3258
-replace occ2 = 3410 if occ2 == 3420
-replace occ2 = 3530 if occ2 == 3535
-replace occ2 = 3650 if occ2 == 3645|occ2 == 3646|occ2 == 3647
-replace occ2 = 3650 if occ2 == 3648|occ2 == 3649|occ2 == 3655
-replace occ2 = 3920 if occ2 == 3930
-replace occ2 = 3950 if occ2 == 3955
-replace occ2 = 4550 if occ2 == 9050|occ2 == 9415
-replace occ2 = 4960 if occ2 == 726 |occ2 == 4965
-replace occ2 = 5930 if occ2 == 5830|occ2 == 5165|occ2 == 5940
-replace occ2 = 6000 if occ2 == 6005
-replace occ2 = 6350 if occ2 == 6355
-replace occ2 = 6510 if occ2 == 6515
-replace occ2 = 6760 if occ2 == 6765
-replace occ2 = 7310 if occ2 == 7315
-replace occ2 = 7620 if occ2 == 7630
-replace occ2 = 7850 if occ2 == 7855
-replace occ2 = 8240 if occ2 == 8255|occ2 == 8256
-replace occ2 = 8960 if occ2 == 8965
-replace occ2 = occ2/10
 
-
-merge m:1 occ2 using "$OCC/OccCharacMerge", gen(_occmerge)
-
-keep if _occmerge==1|_occmerge==3
-drop _merge
-
+gen GoldinClass = .
+#delimit ;
+replace GoldinCla = 1 if occ2010==110|occ2010==300|occ2010==1000|occ2010==1010|
+         occ2010==1020|occ2010==1050|occ2010==1100|occ2010==1200|occ2010==1220|
+         occ2010==1320|occ2010==1350|occ2010==1360|occ2010==1400|occ2010==1410|
+        occ2010==1420|occ2010==1430|occ2010==1440|occ2010==1450|occ2010==1460|
+         occ2010==1450|occ2010==1520|occ2010==1530|occ2010==1550|occ2010==2840|
+         occ2010==4930|occ2010==9030;
+replace GoldinCla = 2 if occ2010==10|occ2010==20  |occ2010==30  |occ2010==100 |
+         occ2010==120 |occ2010==130 |occ2010==140 |occ2010==150 |occ2010==600 |
+         occ2010==710 |occ2010==720 |occ2010==730 |occ2010==800 |occ2010==810 |
+         occ2010==820 |occ2010==830 |occ2010==840 |occ2010==850 |occ2010==860 |
+         occ2010==900 |occ2010==910 |occ2010==950 |occ2010==1060|occ2010==1800|
+         occ2010==4810|occ2010==4820|occ2010==4840|occ2010==4850|occ2010==5200;
+replace GoldinCla = 3 if occ2010==350|occ2010==360|occ2010==1820|occ2010==3000|
+         occ2010==3010|occ2010==3040|occ2010==3050|occ2010==3060|occ2010==3110|
+         occ2010==3120|occ2010==3130|occ2010==3140|occ2010==3150|occ2010==3160|
+         occ2010==3200|occ2010==3210|occ2010==3220|occ2010==3240|occ2010==3250|
+         occ2010==3260;
+replace GoldinC = 4 if occ2010==1240|occ2010==1650|occ2010==1700|occ2010==1710|
+         occ2010==1720|occ2010==1740|occ2010==1760;
+replace GoldinCla = 5 if occ2010==220|occ2010==230|occ2010==320 |occ2010==430 |
+         occ2010==560 |occ2010==1300|occ2010==1840|occ2010==2100|occ2010==2200|
+         occ2010==2710|occ2010==2825|occ2010==3710|occ2010==3820|occ2010==5000|
+         occ2010==4900|occ2010==4965|occ2010==9040;
+lab def jobs 1 "Technology Occupations" 2 "Business Occupations"
+           3 "Health Occupations" 4 "Science Occupations" 5 "Other Occupations";
+lab val GoldinClass jobs;
+#delimit cr
 
 ********************************************************************************
 *** (6) Label 
@@ -287,11 +271,7 @@ lab var fipsTemp     "FIPS codes (current) from temperature data"
 lab var meanT        "Average monthly temperature in quarter of birth"
 lab var cold         "Coldest monthly temperature in state in quarter of birth"
 lab var hot          "Warmest monthly temperature in state in quarter of birth"
-lab var N_structw    "Standardised score for structured work (Blau)"
-lab var N_timepres   "Standardised score for time pressure at work (Blau)"
-lab var N_contact    "Standardised score for contact with others at work (Blau)"
-lab var N_seven      "Standardised score for seven flexibility factores (Blau)"
-lab var N_five       "Standardised score for seven flexibility factores (Blau)"
+lab var GoldinClass  "Occupation grouping from Goldin (2014)"
 
 
 lab dat "ACS data from 2005-2014 with temp, occupation and employment (DCC)"
