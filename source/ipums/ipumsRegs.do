@@ -29,7 +29,7 @@ local data   ACS_20052014_cleaned.dta
 local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats /*
 */           (N, fmt(%9.0g) label(Observations))     /*
 */           starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(none) label
-local wt     [pw=perwt]
+local wt     [pw=hhwt]
 
 ********************************************************************************
 *** (2) Open data subset to sample of interest (from Sonia's import file)
@@ -49,7 +49,7 @@ local abs abs(statefip)
 local age age2527 age2831 age3239
 local edu highEduc
 local une unemployment
-
+/*
 eststo: areg goodQuarter `age' `edu' `une' _year* _state*      `wt', abs(occ) `se'
 eststo: areg goodQuarter `age' `edu' `une' _year* if e(sample) `wt', `abs'    `se'
 eststo: areg goodQuarter `age' `edu'       _year* if e(sample) `wt', `abs'    `se'
@@ -172,7 +172,7 @@ postfoot("\bottomrule                                                      "
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
-
+*/
 ********************************************************************************
 *** (3e) regressions: industry
 ********************************************************************************
@@ -213,7 +213,7 @@ eststo:  areg goodQuarter `age' `edu' `une' _year*       `wt', `se' `abs'
 
 #delimit ;
 esttab est4 est3 est2 est1 using "$OUT/IPUMSIndustry.tex",
-replace `estopt' title("Season of Birth and Industry")
+replace `estopt' title("Season of Birth and Occupation")
 keep(_cons `age' `edu' `une' `lv1' `lv2') style(tex) booktabs mlabels(, depvar) 
 postfoot("Occupation Codes (level) &&1&2&3\\                                   "
          "p-value on F-test of Occupation Dummies&&`F1'&`F2'&`F3'\\ \bottomrule"
@@ -221,8 +221,8 @@ postfoot("Occupation Codes (level) &&1&2&3\\                                   "
          " first born children in the USA to white, non-hispanic mothers aged  "
          "25-45 included in ACS data where the mother is either the head of the"
          " household or the partner (married or unmarried) of the head of the  "
-         "household. Industry codes refer to the level of occupation codes (1  "
-         "digit, 2 digit, or 3 digit)"
+         "household. Occupation codes refer to the level of occupation codes (1"
+         " digit, 2 digit, or 3 digit)"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -230,13 +230,15 @@ estimates clear
 ********************************************************************************
 *** (3f) regressions: Using Goldin's occupation classes
 ********************************************************************************
+replace GoldinClass = . if GoldinClass==5
 tab GoldinClass, gen(_gc)
+
 local se  cluster(statefip)
 local abs abs(statefip)
 local age age2527 age2831 age3239
 local edu highEduc
 local une unemployment
-local ind _gc1 _gc2 _gc3 _gc4
+local ind _gc1 _gc3 _gc4
 
 eststo: areg goodQuarter `ind' `age' `edu' `une' _year*  `wt', `abs' `se'
 eststo: areg goodQuarter `ind' `age' `edu' `une' _year*  `wt', `abs' `se'
@@ -246,7 +248,8 @@ eststo:  reg goodQuarter `ind' `age'                     `wt',       `se'
 
 #delimit ;
 esttab est5 est4 est3 est2 est1 using "$OUT/IPUMSIndustryGoldin.tex",
-replace `estopt' title("Season of Birth and Occupation (Goldin's Classification)")
+replace `estopt'
+title("Season of Birth and Occupation (\citeauthor{Goldin2014}'s Classification)")
 keep(_cons `ind' `age' `edu' `une') style(tex) booktabs mlabels(, depvar) 
 postfoot("State and Year FE&&Y&Y&Y&Y\\                       \bottomrule       "
          "\multicolumn{6}{p{17.2cm}}{\begin{footnotesize}Sample consists of all"
@@ -254,12 +257,13 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\                       \bottomrule       "
          "25-45 included in ACS data where the mother is either the head of the"
          " household or the partner (married or unmarried) of the head of the  "
          "household. Standard errors are clustered by state. Occupations are   "
-         "categorised as in Goldin (2014) table A1.  The omitted category is   "
-         "Other Occupations."
+         "categorised as in \citet{Goldin2014} table A1.  The omitted category "
+         "is Business Occupations, and Other Occupations (heterogeneous) are   "
+         "excluded."
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-
+exit
 ********************************************************************************
 *** (3g) regressions: Teachers
 ********************************************************************************
