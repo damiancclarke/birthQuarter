@@ -40,6 +40,9 @@ tab year    , gen(_year)
 tab statefip, gen(_state)
 
 lab var unemployment "Unemployment Rate"
+bys twoLevelOcc: gen counter = _N
+keep if counter>500
+drop counter
 
 ********************************************************************************
 *** (3a) regressions: binary age groups
@@ -49,7 +52,7 @@ local abs abs(statefip)
 local age age2527 age2831 age3239
 local edu highEduc
 local une unemployment
-/*
+
 eststo: areg goodQuarter `age' `edu' `une' _year* _state*      `wt', abs(occ) `se'
 eststo: areg goodQuarter `age' `edu' `une' _year* if e(sample) `wt', `abs'    `se'
 eststo: areg goodQuarter `age' `edu'       _year* if e(sample) `wt', `abs'    `se'
@@ -65,7 +68,8 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\ Occupation FE&&&&&Y\\ \bottomrule       "
          " first born children in the USA to white, non-hispanic mothers aged  "
          "25-45 included in ACS data where the mother is either the head of the"
          " household or the partner (married or unmarried) of the head of the  "
-         "household. Standard errors are clustered by state.  "
+         "household and works in an occupation with at least 500 workers in the"
+         "sample. Standard errors are clustered by state.  "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -94,7 +98,8 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\ Occupation FE&&&&&Y\\ \bottomrule       "
          " first born children in the USA to white, non-hispanic mothers aged  "
          "25-45 included in ACS data where the mother is either the head of the"
          " household or the partner (married or unmarried) of the head of the  "
-         "household. Standard errors are clustered by state.  "
+         "household and works in an occupation with at least 500 workers in the"
+         "sample. Standard errors are clustered by state.  "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -119,7 +124,8 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\ Occupation FE&&&&&Y\\ \bottomrule       "
          " first born children in the USA to white, non-hispanic mothers aged  "
          "25-45 included in ACS data where the mother is either the head of the"
          " household or the partner (married or unmarried) of the head of the  "
-         "household. Standard errors are clustered by state.  "
+         "household and works in an occupation with at least 500 workers in the"
+         "sample. Standard errors are clustered by state.  "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -165,14 +171,18 @@ local kvar `age1' highEduc `age1X' `age2' `age2X'
 esttab est3 est2 est1 est6 est5 est4 using "$OUT/IPUMSBinaryEducAge.tex",
 replace `estopt' booktabs keep(`kvar') mlabels(, depvar)
 title("Season of Birth, Age and Education")
-postfoot("\bottomrule                                                      "
-         "\multicolumn{7}{p{21.4cm}}{\begin{footnotesize}Sample consists   "
-         " of singleton first-born children to non-Hispanic white women    "
-         "aged 25-45. ***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01."
+postfoot("\bottomrule\multicolumn{7}{p{21.4cm}}{\begin{footnotesize}           "
+         "Sample consists of all first born children in the USA to white,      "
+         "non-hispanic mothers aged 25-45 included in ACS data where the mother"
+         " is either the head of the household or the partner (married or      "
+         "unmarried) of the head of the household and works in an occupation   "
+         " with at least 500 workers in the sample. Standard errors are        "
+         " clustered by state."
+         "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01."
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
-*/
+
 ********************************************************************************
 *** (3e) regressions: industry
 ********************************************************************************
@@ -221,7 +231,8 @@ postfoot("Occupation Codes (level) &&1&2&3\\                                   "
          " first born children in the USA to white, non-hispanic mothers aged  "
          "25-45 included in ACS data where the mother is either the head of the"
          " household or the partner (married or unmarried) of the head of the  "
-         "household. Occupation codes refer to the level of occupation codes (1"
+         "household and works in an occupation with at least 500 workers in the"
+         "sample. Occupation codes refer to the level of occupation codes (1   "
          " digit, 2 digit, or 3 digit)"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
@@ -256,14 +267,15 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\                       \bottomrule       "
          " first born children in the USA to white, non-hispanic mothers aged  "
          "25-45 included in ACS data where the mother is either the head of the"
          " household or the partner (married or unmarried) of the head of the  "
-         "household. Standard errors are clustered by state. Occupations are   "
+         "household and works in an occupation with at least 500 workers in the"
+         "sample. Standard errors are clustered by state. Occupations are      "
          "categorised as in \citet{Goldin2014} table A1.  The omitted category "
          "is Business Occupations, and Other Occupations (heterogeneous) are   "
          "excluded."
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-exit
+
 ********************************************************************************
 *** (3g) regressions: Teachers
 ********************************************************************************
@@ -291,7 +303,8 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\                       \bottomrule       "
          " first born children in the USA to white, non-hispanic mothers aged  "
          "25-45 included in ACS data where the mother is either the head of the"
          " household or the partner (married or unmarried) of the head of the  "
-         "household. Standard errors are clustered by state. School teachers   "
+         "household and works in an occupation with at least 500 workers in the"
+         "sample. Standard errors are clustered by state. School teachers      "
          "include Pre-school, Elementary, Middle, Secondary and Special        "
          "Education levels (occ codes 2300-2330)."
          "\end{footnotesize}}\end{tabular}\end{table}");
@@ -329,12 +342,12 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\ Occupation FE&&&&&Y\\ \bottomrule       "
          " first born twin children from ACS data who were born to white,      "
          "non-hispanic mothers aged 25-45, where the mother is either the head "
          "of the  household or the partner (married or unmarried) of the head  "
-         "of the household. Standard errors are clustered by state.  "
+         "of the household. Standard errors are clustered by state.            "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
 
-exit
+
 ********************************************************************************
 *** (4) Sumstats of good season by various levels
 ********************************************************************************
@@ -345,6 +358,10 @@ generat educLevel       = highEduc
 replace educLevel       = 2 if educd>=101
 gen teachers = occ2010>=2300&occ2010<=2330
 lab var teachers "School Teachers"
+bys twoLevelOcc: gen counter = _N
+keep if counter>500
+drop counter
+
 
 lab def ag 1 "Young (25-39) " 2 "Old (40-45) "
 lab def ed 0 "No College" 1 "Some College" 2 "Complete College"
@@ -600,7 +617,7 @@ ytitle("Proportion of All Births");
 graph export "$GRA/birthQuarterAgesTeachers.eps", as(eps) replace;
 #delimit cr
 restore
-exit
+
 ********************************************************************************
 *** (6d) Figure 5a
 ********************************************************************************
@@ -780,6 +797,10 @@ foreach hS in Alabama Arkansas Arizona {
 *** (7) Occupations
 ********************************************************************************
 use "$DAT/`data'", clear
+bys twoLevelOcc: gen counter = _N
+keep if counter>500
+drop counter
+
 generat ageGroup        = 1 if motherAge>=25&motherAge<40
 replace ageGroup        = 2 if motherAge>=40&motherAge<=45
 generat educLevel       = highEduc
