@@ -29,7 +29,7 @@ local data   ACS_20052014_cleaned.dta
 local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats /*
 */           (N, fmt(%9.0g) label(Observations))     /*
 */           starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(none) label
-local wt     [pw=hhwt]
+local wt     [pw=perwt]
 
 ********************************************************************************
 *** (2) Open data subset to sample of interest (from Sonia's import file)
@@ -44,12 +44,16 @@ bys twoLevelOcc: gen counter = _N
 keep if counter>500
 drop counter
 
+gen young = motherAge>=25&motherAge<=39
+lab var young "Aged 25-39"
+/*
 ********************************************************************************
 *** (3a) regressions: binary age groups
 ********************************************************************************
 local se  cluster(statefip)
 local abs abs(statefip)
 local age age2527 age2831 age3239
+local age young
 local edu highEduc
 local une unemployment
 
@@ -193,6 +197,7 @@ tab occ        , gen(_occ)
 local se  cluster(statefip)
 local abs abs(statefip)
 local age age2527 age2831 age3239
+local age young
 local edu highEduc
 local une unemployment
 local lv1 _1occ*
@@ -222,21 +227,62 @@ local F1 = round(r(p)*1000)/1000
 eststo:  areg goodQuarter `age' `edu' `une' _year*       `wt', `se' `abs'
 
 #delimit ;
-esttab est4 est3 est2 est1 using "$OUT/IPUMSIndustry.tex",
+esttab est4 est2 est1 using "$OUT/IPUMSIndustry.tex",
 replace `estopt' title("Season of Birth and Occupation")
-keep(_cons `age' `edu' `une' `lv1' `lv2') style(tex) booktabs mlabels(, depvar) 
-postfoot("Occupation Codes (level) &&1&2&3\\                                   "
-         "p-value on F-test of Occupation Dummies&&`F1'&`F2'&`F3'\\ \bottomrule"
-         "\multicolumn{5}{p{20.2cm}}{\begin{footnotesize}Sample consists of all"
+keep(_cons `age' `edu' `une' `lv2') style(tex) booktabs mlabels(, depvar) 
+postfoot("Occupation Codes (level) &&2&3\\                                     "
+         "p-value on F-test of Occupation Dummies&&`F2'&`F3'\\ \bottomrule     "
+         "\multicolumn{4}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
          " first born children in the USA to white, non-hispanic mothers aged  "
          "25-45 included in ACS data where the mother is either the head of the"
          " household or the partner (married or unmarried) of the head of the  "
          "household and works in an occupation with at least 500 workers in the"
-         "sample. Occupation codes refer to the level of occupation codes (1   "
-         " digit, 2 digit, or 3 digit)"
+         "sample. Occupation codes refer to the level of occupation codes (2   "
+         "digit, or 3 digit)"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
+
+preserve
+replace GoldinClass = . if GoldinClass==5
+drop if GoldinClass==.
+bys twoLevelOcc: gen counter = _N
+keep if counter>200
+drop counter
+
+eststo: areg goodQuarter `age' `edu' `une' _year* `lv3' `wt', `se' `abs'
+ds _occ*
+local tvar `r(varlist)'
+test `tvar'
+local F3 = round(r(p)*1000)/1000
+if `F3' == 0 local F3 0.000
+
+eststo:  areg goodQuarter `age' `edu' `une' _year* `lv2' `wt', `se' `abs'
+ds _2occ*
+local tvar `r(varlist)'
+test `tvar'
+local F2 = round(r(p)*1000)/1000
+if `F2' == 0 local F2 0.000
+
+eststo:  areg goodQuarter `age' `edu' `une' _year*       `wt', `se' `abs'
+
+#delimit ;
+esttab est3 est2 est1 using "$OUT/IPUMSIndustry_GSample.tex",
+replace `estopt' title("Season of Birth and Occupation (Goldin's Sample)")
+keep(_cons `age' `edu' `une' `lv2') style(tex) booktabs mlabels(, depvar) 
+postfoot("Occupation Codes (level) &&2&3\\                                     "
+         "p-value on F-test of Occupation Dummies&&`F2'&`F3'\\ \bottomrule     "
+         "\multicolumn{4}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
+         " first born children in the USA to white, non-hispanic mothers aged  "
+         "25-45 included in ACS data where the mother is either the head of the"
+         " household or the partner (married or unmarried) of the head of the  "
+         "household and works in an occupation with at least 500 workers in the"
+         "sample. Occupation codes refer to the level of occupation codes (2   "
+         "digit, or 3 digit)"
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+restore
 
 ********************************************************************************
 *** (3f) regressions: Using Goldin's occupation classes
@@ -247,6 +293,7 @@ tab GoldinClass, gen(_gc)
 local se  cluster(statefip)
 local abs abs(statefip)
 local age age2527 age2831 age3239
+local age young
 local edu highEduc
 local une unemployment
 local ind _gc1 _gc3 _gc4
@@ -276,41 +323,116 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\                       \bottomrule       "
 #delimit cr
 estimates clear
 
+gen _gc5 = twoLevelOcc=="Education, Training, and Library Occupations"
+lab var _gc5 "Education, Training, and Library"
+replace _gc1=0 if _gc5==1
+replace _gc2=0 if _gc5==1
+replace _gc3=0 if _gc5==1
+replace _gc4=0 if _gc5==1
+
+local ind _gc1 _gc3 _gc4 _gc5
+
+eststo: areg goodQuarter `ind' `age' `edu' `une' _year*  `wt', `abs' `se'
+eststo: areg goodQuarter `ind' `age' `edu' `une' _year*  `wt', `abs' `se'
+eststo: areg goodQuarter `ind' `age' `edu'       _year*  `wt', `abs' `se'
+eststo: areg goodQuarter `ind' `age'             _year*  `wt', `abs' `se'
+eststo:  reg goodQuarter `ind' `age'                     `wt',       `se'
+
+#delimit ;
+esttab est5 est4 est3 est2 est1 using "$OUT/IPUMSIndustryGoldinTeachers.tex",
+replace `estopt'
+title("Season of Birth and Occupation (\citeauthor{Goldin2014}'s Classification)")
+keep(_cons `ind' `age' `edu' `une') style(tex) booktabs mlabels(, depvar) 
+postfoot("State and Year FE&&Y&Y&Y&Y\\                       \bottomrule       "
+         "\multicolumn{6}{p{18.8cm}}{\begin{footnotesize}Sample consists of all"
+         " first born children in the USA to white, non-hispanic mothers aged  "
+         "25-45 included in ACS data where the mother is either the head of the"
+         " household or the partner (married or unmarried) of the head of the  "
+         "household and works in an occupation with at least 500 workers in the"
+         "sample. Standard errors are clustered by state. Occupations are      "
+         "categorised as in \citet{Goldin2014} table A1.  The omitted category "
+         "is Business Occupations, and Other Occupations (heterogeneous) are   "
+         "excluded.  The category Education, Traingin and Library Occupations  "
+         "has been added."
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+
 ********************************************************************************
 *** (3g) regressions: Teachers
 ********************************************************************************
 local se  cluster(statefip)
 local abs abs(statefip)
 local age age2527 age2831 age3239
+local age young
+local agI young youngXteachers
 local edu highEduc
 local une unemployment
 
-gen teachers = occ2010>=2300&occ2010<=2330
-lab var teachers "School Teachers"
+*gen teachers = occ2010>=2300&occ2010<=2330
+*lab var teachers "School Teachers"
+gen teachers = twoLevelOcc=="Education, Training, and Library Occupations"
+lab var teachers "Education, Library, Training"
+gen youngXteachers = young*teachers
+lab var youngXteachers "Aged 25-39$\times$ Education Occup"
+gen quarter2 = birthQuarter == 2
+lab var quarter "Quarter II"
 
+eststo: areg goodQuarter teachers `agI' `edu' `une' _year*  `wt', `abs' `se'
 eststo: areg goodQuarter teachers `age' `edu' `une' _year*  `wt', `abs' `se'
 eststo: areg goodQuarter teachers `age' `edu' `une' _year*  `wt', `abs' `se'
 eststo: areg goodQuarter teachers `age' `edu'       _year*  `wt', `abs' `se'
 eststo: areg goodQuarter teachers `age'             _year*  `wt', `abs' `se'
 eststo:  reg goodQuarter teachers `age'                     `wt',       `se'
 
+
+
 #delimit ;
-esttab est5 est4 est3 est2 est1 using "$OUT/IPUMSTeachers.tex",
+esttab est6 est5 est4 est3 est2 est1 using "$OUT/IPUMSTeachers.tex",
 replace `estopt' title("Season of Birth and Occupation (Teachers)")
-keep(_cons teachers `age' `edu' `une') style(tex) booktabs mlabels(, depvar) 
-postfoot("State and Year FE&&Y&Y&Y&Y\\                       \bottomrule       "
-         "\multicolumn{6}{p{17.2cm}}{\begin{footnotesize}Sample consists of all"
+keep(_cons teachers `agI' `edu' `une') style(tex) booktabs mlabels(, depvar) 
+postfoot("State and Year FE&&Y&Y&Y&Y&Y\\                        \bottomrule    "
+         "\multicolumn{7}{p{21.8cm}}{\begin{footnotesize}Sample consists of all"
          " first born children in the USA to white, non-hispanic mothers aged  "
          "25-45 included in ACS data where the mother is either the head of the"
          " household or the partner (married or unmarried) of the head of the  "
          "household and works in an occupation with at least 500 workers in the"
-         "sample. Standard errors are clustered by state. School teachers      "
-         "include Pre-school, Elementary, Middle, Secondary and Special        "
-         "Education levels (occ codes 2300-2330)."
+         "sample. Standard errors are clustered by state. Education, Library,  "
+         "Training refers to individuals employed in this occupation (occ codes"
+         " 2200-2550)."
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
 
+
+eststo: areg quarter2 teachers `agI' `edu' `une' _year*  `wt', `abs' `se'
+eststo: areg quarter2 teachers `age' `edu' `une' _year*  `wt', `abs' `se'
+eststo: areg quarter2 teachers `age' `edu' `une' _year*  `wt', `abs' `se'
+eststo: areg quarter2 teachers `age' `edu'       _year*  `wt', `abs' `se'
+eststo: areg quarter2 teachers `age'             _year*  `wt', `abs' `se'
+eststo:  reg quarter2 teachers `age'                     `wt',       `se'
+
+#delimit ;
+esttab est6 est5 est4 est3 est2 est1 using "$OUT/IPUMSTeachersQ2.tex",
+replace `estopt' title("Season of Birth and Occupation (Teachers)")
+keep(_cons teachers `agI' `edu' `une') style(tex) booktabs mlabels(, depvar) 
+postfoot("State and Year FE&&Y&Y&Y&Y&Y\\                        \bottomrule    "
+         "\multicolumn{7}{p{18.8cm}}{\begin{footnotesize}Sample consists of all"
+         " first born children in the USA to white, non-hispanic mothers aged  "
+         "25-45 included in ACS data where the mother is either the head of the"
+         " household or the partner (married or unmarried) of the head of the  "
+         "household and works in an occupation with at least 500 workers in the"
+         "sample. Standard errors are clustered by state. Education, Library,  "
+         "Training refers to individuals employed in this occupation (occ codes"
+         " 2200-2550)."
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+
+exit
+*"School teachers      "
+*"include Pre-school, Elementary, Middle, Secondary and Special        "
+*"Education levels (occ codes 2300-2330)"
 ********************************************************************************
 *** (3h) Twin regression
 ********************************************************************************
@@ -318,12 +440,15 @@ use "$DAT/`data'", clear
 keep if motherAge>=25&motherAge<=45&twins==1
 tab year    , gen(_year)
 tab statefip, gen(_state)
+gen young = motherAge>=25&motherAge<=39
+lab var young "Aged 25-39"
 
 lab var unemployment "Unemployment Rate"
 
 local se  cluster(statefip)
 local abs abs(statefip)
 local age age2527 age2831 age3239
+local age young
 local edu highEduc
 local une unemployment
 
@@ -347,7 +472,7 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\ Occupation FE&&&&&Y\\ \bottomrule       "
 #delimit cr
 estimates clear
 
-
+exit
 ********************************************************************************
 *** (4) Sumstats of good season by various levels
 ********************************************************************************
@@ -792,7 +917,7 @@ foreach hS in Alabama Arkansas Arizona {
     #delimit cr
 }
 
-
+*/
 ********************************************************************************
 *** (7) Occupations
 ********************************************************************************
@@ -822,10 +947,12 @@ replace occAlt = 2 if twoL=="Life, Physical, and Social Science Occupations"
 replace occAlt = 2 if twoL=="Financial Specialists"
 replace occAlt = 3 if twoL=="Education, Training, and Library Occupations"
 
+preserve
 collapse (sum) birth, by(birthQuarter occAlt)
 drop if occAlt == .
 bys occAlt: egen totalbirth = sum(birth)
 gen birthProportion = birth/totalbirth
+
 
 #delimit ;
 graph bar birthProportion, over(birthQuar, relabel(1 "Q1" 2 "Q2" 3 "Q3" 4 "Q4"))
@@ -833,6 +960,55 @@ over(occAlt, relabel(1 "Group 1" 2 "Group 2" 3 "Group 3")) scheme(s1mono)
 exclude0 ytitle("Proportion of Births in Quarter"); 
 graph export "$GRA/birthsOccupation.eps", as(eps) replace;
 #delimit cr
+restore
+
+cap mkdir "$GRA/occ"
+
+preserve
+collapse (sum) birth, by(birthQuarter twoLevelOcc)
+bys twoLevelOcc: egen totalbirth = sum(birth)
+gen birthProp = birth/totalbirth
+
+levelsof twoLevelOcc, local(occs)
+local j=1
+foreach occ of local occs {
+    dis "`occ'"
+    sum totalbirth if twoLevelOcc=="`occ'"
+    local N = `r(mean)'
+    #delimit ;
+    graph bar birthProp if twoLevelOcc=="`occ'",
+    over(birthQuarte, relabel(1 "Q1" 2 "Q2" 3 "Q3" 4 "Q4")) scheme(s1mono)
+    exclude0 ytitle("Proportion of Births in Quarter") ylabel(0.22 0.24 0.26 0.28)
+    note("Occupation: `occ' has `N' mothers in the sample") title("`occ'");
+    graph export "$GRA/occ/twolevelProportion`j'.eps", as(eps) replace;
+    #delimit cr
+    local ++j
+}
+restore
+
+preserve
+drop if GoldinClass == .
+decode GoldinClass, gen(GClass)
+collapse (sum) birth, by(birthQuarter GClass)
+bys GClass: egen totalbirth = sum(birth)
+gen birthProp = birth/totalbirth
+
+levelsof GClass, local(occs)
+local j=1
+foreach occ of local occs {
+    dis "`occ'"
+    sum totalbirth if GClass=="`occ'"
+    local N = `r(mean)'
+    #delimit ;
+    graph bar birthProp if GClass=="`occ'",
+    over(birthQuarte, relabel(1 "Q1" 2 "Q2" 3 "Q3" 4 "Q4")) scheme(s1mono)
+    exclude0 ytitle("Proportion of Births in Quarter") ylabel(0.22 0.24 0.26 0.28)
+    note("Occupation: `occ' has `N' mothers in the sample") title("`occ'");
+    graph export "$GRA/occ/GoldinClassProportion`j'.eps", as(eps) replace;
+    #delimit cr
+    local ++j
+}
+restore
 
 
 ********************************************************************************

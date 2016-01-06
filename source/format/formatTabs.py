@@ -59,7 +59,9 @@ NVSSGoodE =  RES + ftype + '/regressions/NVSSBinaryExpectGood.tex'
 NVSSBadE  =  RES + ftype + '/regressions/NVSSBinaryExpectBad.tex'
 
 IPUMSind  = RES + 'ipums/regressions/IPUMSIndustry.tex' 
+IPUMSind2 = RES + 'ipums/regressions/IPUMSIndustry_GSample.tex' 
 IPUMSindG = RES + 'ipums/regressions/IPUMSIndustryGoldin.tex' 
+IPUMSindG2= RES + 'ipums/regressions/IPUMSIndustryGoldinTeachers.tex' 
 #==============================================================================
 #== (1b) shortcuts
 #==============================================================================
@@ -397,8 +399,10 @@ sumT.write('\n'+mr+mc1+twid[7]+tcm[7]+mc3+
            "Sample consists of all singleton first-born children from the ACS "
            "born in the USA to white non-hispanic mothers aged 25-45 who are  "
            "either the head of their household or the partner (married or     "
-           "unmarried) of the head of the household. Good season refers to    "
-           "children born in birth quarters 2 and 3 (Apr-Jun and Jul-Sept).    "
+           "unmarried) of the head of the household, and who work in an       "
+           "occupation with at least 500 workers in the sample. Good season   "
+           "refers to children born in birth quarters 2 and 3 (Apr-Jun and    "
+           "Jul-Sept)."
            "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}\\end{center}"
            "\\end{table}")
 sumT.close()
@@ -416,15 +420,35 @@ for i,line in enumerate(ipiT):
     line = line.replace('Occpations==','')
     line = line.replace('\\end{footnotesize}}\\end{tabular}\\end{table}',
                         '\\end{footnotesize}}\\end{tabular}}\\end{table}')
-    line = line.replace('\\begin{tabular}{l*{4}{c}}',
-                        '\\scalebox{0.6}{\\begin{tabular}{l*{4}{c}}')
+    line = line.replace('\\begin{tabular}{l*{3}{c}}',
+                        '\\scalebox{0.75}{\\begin{tabular}{l*{3}{c}}')
     ipoT.write(line)
 
 
 ipoT.close()
 
+ipoT = open(TAB + 'IPUMSIndustry_GSample.tex', 'w')
+ipiT = open(IPUMSind2, 'r').readlines()
+
+for i,line in enumerate(ipiT):
+    line = line.replace('oneLevelOcc==','')
+    line = line.replace('twoLevelOcc==','')
+    line = line.replace('Occupations','')
+    line = line.replace('Occpations==','')
+    ipoT.write(line)
+ipoT.close()
+
+
 ipoT = open(TAB + 'IPUMSIndustryGoldin.tex', 'w')
 ipiT = open(IPUMSindG, 'r').readlines()
+
+for i,line in enumerate(ipiT):
+    line = line.replace('GoldinClass==','')
+    ipoT.write(line)
+ipoT.close()
+
+ipoT = open(TAB + 'IPUMSIndustryGoldinTeachers.tex', 'w')
+ipiT = open(IPUMSindG2, 'r').readlines()
 
 for i,line in enumerate(ipiT):
     line = line.replace('GoldinClass==','')
