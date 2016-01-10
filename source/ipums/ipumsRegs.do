@@ -31,7 +31,6 @@ local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats /*
 */           starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(none) label
 local wt     [pw=perwt]
 
-/*
 ********************************************************************************
 *** (2) Open data subset to sample of interest (from Sonia's import file)
 ********************************************************************************
@@ -48,7 +47,7 @@ drop counter
 
 gen young = motherAge>=25&motherAge<=39
 lab var young "Aged 25-39"
-
+/*
 ********************************************************************************
 *** (3a) regressions: binary age groups
 ********************************************************************************
@@ -195,6 +194,13 @@ tab oneLevelOcc, gen(_1occ)
 tab twoLevelOcc, gen(_2occ)
 tab occ        , gen(_occ)
 
+gen significantOccs   = _2occ7==1|_2occ15==1
+gen insignificantOccs = _2occ7!=1&_2occ15!=1
+replace insignificantOccs = 0 if _2occ2==1    
+lab var   significantOccs "Significant 2 level occupations"
+lab var insignificantOccs "Insignificant 2 level occupations"
+
+
 local se  robust
 local abs abs(statefip)
 local age age2527 age2831 age3239
@@ -203,7 +209,10 @@ local une unemployment
 local lv1 _1occ*
 local lv2 _2occ*
 local lv3 _occ*
+local sig significantOccs insignificantOccs
 
+
+eststo:  areg goodQuarter `age' `edu' `une' _year* `sig' `wt', `se' `abs'
 eststo: areg goodQuarter `age' `edu' `une' _year* `lv3' `wt', `se' `abs'
 ds _occ*
 local tvar `r(varlist)'
@@ -228,22 +237,26 @@ local F1 = round(r(p)*1000)/1000
 eststo:  areg goodQuarter `age' `edu' `une' _year*       `wt', `se' `abs'
 
 #delimit ;
-esttab est4 est2 est1 using "$OUT/IPUMSIndustry.tex",
+esttab est5 est3 est2 est1 using "$OUT/IPUMSIndustry.tex",
 replace `estopt' title("Season of Birth and Occupation")
-keep(_cons `age' `edu' `une' `lv2') style(tex) booktabs mlabels(, depvar) 
-postfoot("Occupation Codes (level) &&2&3\\                                     "
-         "p-value on F-test of Occupation Dummies&&`F2'&`F3'\\ \bottomrule     "
-         "\multicolumn{4}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
+keep(_cons `age' `edu' `une' `lv2' `sig') style(tex) booktabs mlabels(, depvar) 
+postfoot("Occupation Codes (level) &&2&3&\\                                    "
+         "p-value on F-test of Occupation Dummies&&`F2'&`F3'&\\ \bottomrule    "
+         "\multicolumn{5}{p{20.2cm}}{\begin{footnotesize}Sample consists of all"
          " first born children in the USA to white, non-hispanic mothers aged  "
          "25-45 included in ACS data where the mother is either the head of the"
          " household or the partner (married or unmarried) of the head of the  "
          "household and works in an occupation with at least 500 workers in the"
          "sample. Occupation codes refer to the level of occupation codes (2   "
-         "digit, or 3 digit)"
+         "digit, or 3 digit). The omitted occupational category in column 2 and"
+         "column 4 is Arts, Design, Entertainment, Sports, and Media, as this  "
+         "occupation has good quarter=0.500(0.500).  All occupation codes refer"
+         "to IPUMS occ2010 codes, available at:                                "
+         "https://usa.ipums.org/usa/volii/acs_occtooccsoc.shtml"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-
+exit
 preserve
 replace GoldinClass = . if GoldinClass==5
 drop if GoldinClass==.
@@ -284,19 +297,26 @@ postfoot("Occupation Codes (level) &&2&3\\                                     "
 #delimit cr
 estimates clear
 restore
-
+*/
 ********************************************************************************
 *** (3f) regressions: Using Goldin's occupation classes
 ********************************************************************************
 replace GoldinClass = . if GoldinClass==5
-tab GoldinClass, gen(_gc)
+*tab GoldinClass, gen(_gc)
+
+gen _gc1 = GoldinClass==1|GoldinClass==2 if GoldinClass!=.
+gen _gc2 = GoldinClass==3 if GoldinClass!=.
+gen _gc3 = GoldinClass==4 if GoldinClass!=.
+
+lab var _gc1 "Technology and Business"
+lab var _gc2 "Health Occupations"
 
 local se  robust
 local abs abs(statefip)
 local age age2527 age2831 age3239
 local edu highEduc
 local une unemployment
-local ind _gc1 _gc3 _gc4
+local ind _gc1 _gc2
 
 eststo: areg goodQuarter `ind' `age' `edu' `une' _year*  `wt', `abs' `se'
 eststo: areg goodQuarter `ind' `age' `edu' `une' _year*  `wt', `abs' `se'
@@ -328,9 +348,9 @@ lab var _gc5 "Education, Training, and Library"
 replace _gc1=0 if _gc5==1
 replace _gc2=0 if _gc5==1
 replace _gc3=0 if _gc5==1
-replace _gc4=0 if _gc5==1
 
-local ind _gc1 _gc3 _gc4 _gc5
+
+local ind _gc1 _gc2 _gc5
 
 eststo: areg goodQuarter `ind' `age' `edu' `une' _year*  `wt', `abs' `se'
 eststo: areg goodQuarter `ind' `age' `edu' `une' _year*  `wt', `abs' `se'
@@ -357,7 +377,7 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\                       \bottomrule       "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-
+exit
 ********************************************************************************
 *** (3g) regressions: Teachers
 ********************************************************************************
