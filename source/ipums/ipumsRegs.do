@@ -75,7 +75,8 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\ Occupation FE&&&&&Y\\ \bottomrule       "
          "25-45 included in ACS data where the mother is either the head of the"
          " household or the partner (married or unmarried) of the head of the  "
          "household and works in an occupation with at least 500 workers in the"
-         "sample. Heteroscedasticity robust standard errors are reported.      "
+         "sample. Age 40-45 is the omitted base category. Heteroscedasticity   "
+         "robust standard errors are reported.                                 "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -339,8 +340,8 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\                       \bottomrule       "
          "household and works in an occupation with at least 500 workers in the"
          "sample. Heteroscedasticity robust standard errors are reported.      "
          "Occupations are categorised as in \citet{Goldin2014} table A1.  The  "
-         "omitted category is Business Occupations, and Other Occupations      "
-         "(heterogeneous) are excluded.                                        "
+         "omitted category is Health and Science Occupations, and Other        "
+         "Occupations (heterogeneous) are excluded.                            "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -424,7 +425,9 @@ postfoot("State and Year FE&&Y&Y&Y&Y&Y\\                        \bottomrule    "
          "household and works in an occupation with at least 500 workers in the"
          "sample. Heteroscedasticity robust standard errors are reported.      "
          "Education, Library, Training refers to individuals employed in this  "
-         "occupation (occ codes 2200-2550)."
+         "occupation (occ codes 2200-2550).  The omitted occupational category "
+         "is all non-educational occupations, and the omitted age category is  "
+         "40-45 year old women."
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -449,7 +452,9 @@ postfoot("State and Year FE&&Y&Y&Y&Y&Y\\                        \bottomrule    "
          "household and works in an occupation with at least 500 workers in the"
          "sample. Heteroscedasticity robust standard errors are reported.      "
          "Education, Library, Training refers to individuals employed in this  "
-         "occupation (occ codes 2200-2550)."
+         "occupation (occ codes 2200-2550).  The omitted occupational category "
+         "is all non-educational occupations, and the omitted age category is  "
+         "40-45 year old women."
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -488,8 +493,8 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\ Occupation FE&&&&&Y\\ \bottomrule       "
          " first born twin children from ACS data who were born to white,      "
          "non-hispanic mothers aged 25-45, where the mother is either the head "
          "of the  household or the partner (married or unmarried) of the head  "
-         "of the household. Heteroscedasticity robust standard errors are      "
-         "reported."
+         "of the household.  The omitted age category is 40-45 year old women  "
+         "Heteroscedasticity robust standard errors are reported.              "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear

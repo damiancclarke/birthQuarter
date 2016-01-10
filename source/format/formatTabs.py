@@ -420,8 +420,8 @@ for i,line in enumerate(ipiT):
     line = line.replace('Occpations==','')
     line = line.replace('\\end{footnotesize}}\\end{tabular}\\end{table}',
                         '\\end{footnotesize}}\\end{tabular}}\\end{table}')
-    line = line.replace('\\begin{tabular}{l*{3}{c}}',
-                        '\\scalebox{0.75}{\\begin{tabular}{l*{3}{c}}')
+    line = line.replace('\\begin{tabular}{l*{4}{c}}',
+                        '\\scalebox{0.7}{\\begin{tabular}{l*{4}{c}}')
     ipoT.write(line)
 
 
