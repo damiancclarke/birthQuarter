@@ -24,6 +24,8 @@ global LOG "~/investigacion/2015/birthQuarter/log"
 
 log using "$LOG/ipumsRegs.txt", text replace
 cap mkdir "$OUT"
+cap mkdir "$GRA"
+cap mkdir "$SUM"
 
 local data   ACS_20052014_cleaned.dta
 local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats /*
@@ -47,7 +49,7 @@ drop counter
 
 gen young = motherAge>=25&motherAge<=39
 lab var young "Aged 25-39"
-/*
+
 ********************************************************************************
 *** (3a) regressions: binary age groups
 ********************************************************************************
@@ -256,7 +258,7 @@ postfoot("Occupation Codes (level) &&2&3&\\                                    "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-exit
+
 preserve
 replace GoldinClass = . if GoldinClass==5
 drop if GoldinClass==.
@@ -297,7 +299,7 @@ postfoot("Occupation Codes (level) &&2&3\\                                     "
 #delimit cr
 estimates clear
 restore
-*/
+
 ********************************************************************************
 *** (3f) regressions: Using Goldin's occupation classes
 ********************************************************************************
@@ -316,7 +318,7 @@ local abs abs(statefip)
 local age age2527 age2831 age3239
 local edu highEduc
 local une unemployment
-local ind _gc1 _gc2
+local ind _gc1
 
 eststo: areg goodQuarter `ind' `age' `edu' `une' _year*  `wt', `abs' `se'
 eststo: areg goodQuarter `ind' `age' `edu' `une' _year*  `wt', `abs' `se'
@@ -343,14 +345,16 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\                       \bottomrule       "
 #delimit cr
 estimates clear
 
+drop _gc*
+tab GoldinClass, gen(_gc)
 gen _gc5 = twoLevelOcc=="Education, Training, and Library Occupations"
 lab var _gc5 "Education, Training, and Library"
 replace _gc1=0 if _gc5==1
-replace _gc2=0 if _gc5==1
 replace _gc3=0 if _gc5==1
+replace _gc4=0 if _gc5==1
 
 
-local ind _gc1 _gc2 _gc5
+local ind _gc1 _gc3 _gc4 _gc5
 
 eststo: areg goodQuarter `ind' `age' `edu' `une' _year*  `wt', `abs' `se'
 eststo: areg goodQuarter `ind' `age' `edu' `une' _year*  `wt', `abs' `se'
@@ -377,7 +381,7 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\                       \bottomrule       "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-exit
+
 ********************************************************************************
 *** (3g) regressions: Teachers
 ********************************************************************************
@@ -450,14 +454,11 @@ postfoot("State and Year FE&&Y&Y&Y&Y&Y\\                        \bottomrule    "
 #delimit cr
 estimates clear
 
-
-*"School teachers      "
-*"include Pre-school, Elementary, Middle, Secondary and Special        "
-*"Education levels (occ codes 2300-2330)"
 ********************************************************************************
 *** (3h) Twin regression
 ********************************************************************************
 use "$DAT/`data'", clear
+
 keep if motherAge>=25&motherAge<=45&twins==1
 tab year    , gen(_year)
 tab statefip, gen(_state)
@@ -493,11 +494,13 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\ Occupation FE&&&&&Y\\ \bottomrule       "
 #delimit cr
 estimates clear
 
-exit
+
 ********************************************************************************
 *** (4) Sumstats of good season by various levels
 ********************************************************************************
 use "$DAT/`data'", clear
+
+
 generat ageGroup        = 1 if motherAge>=25&motherAge<40
 replace ageGroup        = 2 if motherAge>=40&motherAge<=45
 generat educLevel       = highEduc
@@ -517,7 +520,7 @@ lab val educLevel ed
 preserve
 drop if ageGroup==.
 
-collapse (sum) birth, by(goodQuarter educLevel ageGroup)
+collapse (sum) birth `wt', by(goodQuarter educLevel ageGroup)
 reshape wide birth, i(educLevel ageGroup) j(goodQuarter)
 
 gen totalbirths = birth0 + birth1
@@ -546,7 +549,7 @@ restore
 
 
 preserve
-collapse (sum) birth, by(goodQuarter educLevel)
+collapse (sum) birth `wt', by(goodQuarter educLevel)
 reshape wide birth, i(educLevel) j(goodQuarter)
 gen totalbirths = birth0 + birth1
 replace birth0=round(10000*birth0/totalbirths)/100
@@ -573,7 +576,7 @@ replace ageG2 = 3 if motherAge>=28 & motherAge<32
 replace ageG2 = 4 if motherAge>=32 & motherAge<40
 replace ageG2 = 5 if motherAge>=40 & motherAge<46
 
-collapse (sum) birth, by(goodQuarter ageG2)
+collapse (sum) birth `wt', by(goodQuarter ageG2)
 lab def ag_2 1 "20-24 Years Old" 2 "25-27 Years Old" 3 "28-31 Years Old" /*
 */ 4 "32-39 Years Old" 5 "40-45 Years Old"
 lab val ageG2 ag_2
@@ -634,7 +637,7 @@ generat Xvar = 1 if motherAge>=28&motherAge<=31
 replace Xvar = 0 if motherAge>=40&motherAge<=45
 foreach num of numlist 1(1)4 {
     gen quarter`num' = birthQuarter == `num'
-    qui reg quarter`num' Xvar
+    qui reg quarter`num' Xvar `wt'
     replace youngBeta = _b[Xvar] in `num'
     replace youngHigh = _b[Xvar] + 1.96*_se[Xvar] in `num'
     replace youngLoww = _b[Xvar] - 1.96*_se[Xvar] in `num'
@@ -663,7 +666,7 @@ generat Xvar = 1 if motherAge>=28&motherAge<=31
 replace Xvar = 0 if motherAge>=40&motherAge<=45
 foreach num of numlist 1(1)4 {
     gen quarter`num' = birthQuarter == `num'
-    qui reg quarter`num' Xvar
+    qui reg quarter`num' Xvar `wt'
     replace youngBeta = _b[Xvar] in `num'
     replace youngHigh = _b[Xvar] + 1.96*_se[Xvar] in `num'
     replace youngLoww = _b[Xvar] - 1.96*_se[Xvar] in `num'
@@ -687,7 +690,7 @@ restore
 preserve
 keep if motherAge>=25
 tab motherAge, gen(_age)
-reg goodQuarter _age1-_age15 if motherAge>=25&motherAge<=45
+reg goodQuarter _age1-_age15 `wt' if motherAge>=25&motherAge<=45
 
 gen ageES = .
 gen ageLB = .
@@ -719,7 +722,7 @@ replace youngOld = 2 if motherAge>=40&motherAge<=45
 
 drop if youngOld==.
 
-collapse (sum) birth, by(birthQuarter youngOld)
+collapse (sum) birth `wt', by(birthQuarter youngOld)
 lab val birthQuarter Qua
 bys youngOld: egen totalBirths = sum(birth)
 gen birthProportion = birth/totalBirths
@@ -745,7 +748,7 @@ replace youngOld = 2 if motherAge>=40&motherAge<=45
 
 drop if youngOld==.
 
-collapse (sum) birth, by(birthQuarter youngOld)
+collapse (sum) birth `wt', by(birthQuarter youngOld)
 lab val birthQuarter Qua
 bys youngOld: egen totalBirths = sum(birth)
 gen birthProportion = birth/totalBirths
@@ -776,7 +779,7 @@ generat educlevels = 1 if highEduc==0
 replace educlevels = 2 if highEduc==1
 replace educlevels = 3 if educd>=101
 
-collapse (sum) birth, by(birthQuarter youngOld educlevels)
+collapse (sum) birth `wt', by(birthQuarter youngOld educlevels)
 lab val birthQuarter Qua
 bys educlevels youngOld: egen totalBirths = sum(birth)
 gen birthProportion = birth/totalBirths
@@ -869,7 +872,7 @@ replace ageG2 = 3 if motherAge>=28 & motherAge<32
 replace ageG2 = 4 if motherAge>=32 & motherAge<40
 replace ageG2 = 5 if motherAge>=40 & motherAge<46
 
-collapse (sum) birth, by(goodQuarter ageG2)
+collapse (sum) birth `wt', by(goodQuarter ageG2)
 drop if goodQuarter == .
 reshape wide birth, i(ageG2) j(goodQuarter)
 gen totalbirths = birth0 + birth1
@@ -938,11 +941,11 @@ foreach hS in Alabama Arkansas Arizona {
     #delimit cr
 }
 
-
 ********************************************************************************
 *** (7) Occupations
 ********************************************************************************
 use "$DAT/`data'", clear
+
 bys twoLevelOcc: gen counter = _N
 keep if counter>500
 drop counter
@@ -969,7 +972,7 @@ replace occAlt = 2 if twoL=="Financial Specialists"
 replace occAlt = 3 if twoL=="Education, Training, and Library Occupations"
 
 preserve
-collapse (sum) birth, by(birthQuarter occAlt)
+collapse (sum) birth `wt', by(birthQuarter occAlt)
 drop if occAlt == .
 bys occAlt: egen totalbirth = sum(birth)
 gen birthProportion = birth/totalbirth
@@ -982,6 +985,28 @@ exclude0 ytitle("Proportion of Births in Quarter");
 graph export "$GRA/birthsOccupation.eps", as(eps) replace;
 #delimit cr
 restore
+
+
+generat occAlt2 = 1 if GoldinClass==1|GoldinClass==2
+replace occAlt2 = 2 if twoL=="Education, Training, and Library Occupations"
+replace occAlt2 = 3 if twoL=="Office and Administrative Support Occupations"
+
+preserve
+collapse (sum) birth, by(birthQuarter occAlt2)
+drop if occAlt == .
+bys occAlt: egen totalbirth = sum(birth)
+gen birthProportion = birth/totalbirth
+
+
+#delimit ;
+graph bar birthProportion, over(birthQuar, relabel(1 "Q1" 2 "Q2" 3 "Q3" 4 "Q4"))
+over(occAlt, relabel(1 "Business & Tech" 2 "Education" 3 "Office Admin"))
+scheme(s1mono) exclude0 ytitle("Proportion of Births in Quarter"); 
+graph export "$GRA/birthsOccupation2.eps", as(eps) replace;
+#delimit cr
+restore
+
+
 
 cap mkdir "$GRA/occ"
 
@@ -1034,8 +1059,8 @@ restore
 ********************************************************************************
 *** (8) Income
 ********************************************************************************
-*/
-use "$DAT/`data'"
+use "$DAT/`data'", clear
+
 keep if motherAge>=25&motherAge<=45&twins==0
 drop if occ2010 == 9920
 tab year    , gen(_year)
@@ -1053,7 +1078,7 @@ xtile income10 = hhincome, nq(5)
 tab income5, gen(_inc)
 sum goodQuarter if _inc1==1
 
-areg goodQ _inc2-_inc5 age2527 age2831 age3239 i.year, robus abs(statefip)
+areg goodQ _inc2-_inc5 age2527 age2831 age3239 i.year `wt', robus abs(statefip)
 
 gen IncomeQuantile  = .
 gen percentGood     = .
@@ -1116,8 +1141,8 @@ ytitle("Proportion Good Season") xtitle("Total Household Income (1000s)");
 graph export "$GRA/incomeSeasonLowess.eps", as(eps) replace
 
 tab birthQuarter, gen(_bq)
-collapse goodQuarter _bq1 _bq2 _bq3 _bq4 /*
-*/ (semean) segQ=goodQ sebQ1=_bq1 sebQ2=_bq2 sebQ3=_bq3 sebQ4=_bq4, by(income5)
+collapse goodQuarter _bq1 _bq2 _bq3 _bq4 (semean) segQ=goodQ sebQ1=_bq1 /*
+*/ sebQ2=_bq2 sebQ3=_bq3 sebQ4=_bq4, by(income5)
 reshape long _bq sebQ, i(income5) j(season)
 gen highbq = _bq+1.65*sebQ
 gen lowbq  = _bq-1.65*sebQ
