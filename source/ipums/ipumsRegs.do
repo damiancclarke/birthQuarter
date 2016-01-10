@@ -31,11 +31,13 @@ local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats /*
 */           starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(none) label
 local wt     [pw=perwt]
 
+/*
 ********************************************************************************
 *** (2) Open data subset to sample of interest (from Sonia's import file)
 ********************************************************************************
 use "$DAT/`data'"
 keep if motherAge>=25&motherAge<=45&twins==0
+drop if occ2010 == 9920
 tab year    , gen(_year)
 tab statefip, gen(_state)
 
@@ -46,14 +48,13 @@ drop counter
 
 gen young = motherAge>=25&motherAge<=39
 lab var young "Aged 25-39"
-/*
+
 ********************************************************************************
 *** (3a) regressions: binary age groups
 ********************************************************************************
-local se  cluster(statefip)
+local se  robust
 local abs abs(statefip)
 local age age2527 age2831 age3239
-local age young
 local edu highEduc
 local une unemployment
 
@@ -73,7 +74,7 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\ Occupation FE&&&&&Y\\ \bottomrule       "
          "25-45 included in ACS data where the mother is either the head of the"
          " household or the partner (married or unmarried) of the head of the  "
          "household and works in an occupation with at least 500 workers in the"
-         "sample. Standard errors are clustered by state.  "
+         "sample. Heteroscedasticity robust standard errors are reported.      "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -103,7 +104,7 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\ Occupation FE&&&&&Y\\ \bottomrule       "
          "25-45 included in ACS data where the mother is either the head of the"
          " household or the partner (married or unmarried) of the head of the  "
          "household and works in an occupation with at least 500 workers in the"
-         "sample. Standard errors are clustered by state.  "
+         "sample. Heteroscedasticity robust standard errors are reported.      "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -129,7 +130,7 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\ Occupation FE&&&&&Y\\ \bottomrule       "
          "25-45 included in ACS data where the mother is either the head of the"
          " household or the partner (married or unmarried) of the head of the  "
          "household and works in an occupation with at least 500 workers in the"
-         "sample. Standard errors are clustered by state.  "
+         "sample. Heteroscedasticity robust standard errors are reported.      "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -137,7 +138,7 @@ estimates clear
 ********************************************************************************
 *** (3d) regressions: good season and education interaction
 ********************************************************************************
-local se  cluster(statefip)
+local se  robust
 local abs abs(statefip)
 
 gen age2527XhighEd=age2527*highEduc
@@ -180,8 +181,8 @@ postfoot("\bottomrule\multicolumn{7}{p{21.4cm}}{\begin{footnotesize}           "
          "non-hispanic mothers aged 25-45 included in ACS data where the mother"
          " is either the head of the household or the partner (married or      "
          "unmarried) of the head of the household and works in an occupation   "
-         " with at least 500 workers in the sample. Standard errors are        "
-         " clustered by state."
+         " with at least 500 workers in the sample. Heteroscedasticity robust  "
+         "standard errors are reported.                                        "
          "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01."
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
@@ -194,10 +195,9 @@ tab oneLevelOcc, gen(_1occ)
 tab twoLevelOcc, gen(_2occ)
 tab occ        , gen(_occ)
 
-local se  cluster(statefip)
+local se  robust
 local abs abs(statefip)
 local age age2527 age2831 age3239
-local age young
 local edu highEduc
 local une unemployment
 local lv1 _1occ*
@@ -211,6 +211,7 @@ test `tvar'
 local F3 = round(r(p)*1000)/1000
 if `F3' == 0 local F3 0.000
 
+drop _2occ2
 eststo:  areg goodQuarter `age' `edu' `une' _year* `lv2' `wt', `se' `abs'
 ds _2occ*
 local tvar `r(varlist)'
@@ -290,10 +291,9 @@ restore
 replace GoldinClass = . if GoldinClass==5
 tab GoldinClass, gen(_gc)
 
-local se  cluster(statefip)
+local se  robust
 local abs abs(statefip)
 local age age2527 age2831 age3239
-local age young
 local edu highEduc
 local une unemployment
 local ind _gc1 _gc3 _gc4
@@ -315,10 +315,10 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\                       \bottomrule       "
          "25-45 included in ACS data where the mother is either the head of the"
          " household or the partner (married or unmarried) of the head of the  "
          "household and works in an occupation with at least 500 workers in the"
-         "sample. Standard errors are clustered by state. Occupations are      "
-         "categorised as in \citet{Goldin2014} table A1.  The omitted category "
-         "is Business Occupations, and Other Occupations (heterogeneous) are   "
-         "excluded."
+         "sample. Heteroscedasticity robust standard errors are reported.      "
+         "Occupations are categorised as in \citet{Goldin2014} table A1.  The  "
+         "omitted category is Business Occupations, and Other Occupations      "
+         "(heterogeneous) are excluded.                                        "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -349,11 +349,11 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\                       \bottomrule       "
          "25-45 included in ACS data where the mother is either the head of the"
          " household or the partner (married or unmarried) of the head of the  "
          "household and works in an occupation with at least 500 workers in the"
-         "sample. Standard errors are clustered by state. Occupations are      "
-         "categorised as in \citet{Goldin2014} table A1.  The omitted category "
-         "is Business Occupations, and Other Occupations (heterogeneous) are   "
-         "excluded.  The category Education, Traingin and Library Occupations  "
-         "has been added."
+         "sample. Heteroscedasticity robust standard errors are reported.      "
+         "Occupations are categorised as in \citet{Goldin2014} table A1.  The  "
+         "omitted category is Business Occupations, and Other Occupations      "
+         "(heterogeneous) are excluded.  The category Education, Training and  "
+         "Library Occupations has been added."
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -361,11 +361,10 @@ estimates clear
 ********************************************************************************
 *** (3g) regressions: Teachers
 ********************************************************************************
-local se  cluster(statefip)
+local se  robust
 local abs abs(statefip)
 local age age2527 age2831 age3239
-local age young
-local agI young youngXteachers
+local agI age2527 age2831 age3239 age2527XTeach age2831XTeach age3239XTeach
 local edu highEduc
 local une unemployment
 
@@ -373,8 +372,10 @@ local une unemployment
 *lab var teachers "School Teachers"
 gen teachers = twoLevelOcc=="Education, Training, and Library Occupations"
 lab var teachers "Education, Library, Training"
-gen youngXteachers = young*teachers
-lab var youngXteachers "Aged 25-39$\times$ Education Occup"
+foreach age in 2527 2831 3239 {
+    gen age`age'XTeach = age`age'*teachers
+    lab var age`age'XTeach "Aged `age' $\times$ Education Occup"
+}
 gen quarter2 = birthQuarter == 2
 lab var quarter "Quarter II"
 
@@ -397,9 +398,9 @@ postfoot("State and Year FE&&Y&Y&Y&Y&Y\\                        \bottomrule    "
          "25-45 included in ACS data where the mother is either the head of the"
          " household or the partner (married or unmarried) of the head of the  "
          "household and works in an occupation with at least 500 workers in the"
-         "sample. Standard errors are clustered by state. Education, Library,  "
-         "Training refers to individuals employed in this occupation (occ codes"
-         " 2200-2550)."
+         "sample. Heteroscedasticity robust standard errors are reported.      "
+         "Education, Library, Training refers to individuals employed in this  "
+         "occupation (occ codes 2200-2550)."
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -422,14 +423,14 @@ postfoot("State and Year FE&&Y&Y&Y&Y&Y\\                        \bottomrule    "
          "25-45 included in ACS data where the mother is either the head of the"
          " household or the partner (married or unmarried) of the head of the  "
          "household and works in an occupation with at least 500 workers in the"
-         "sample. Standard errors are clustered by state. Education, Library,  "
-         "Training refers to individuals employed in this occupation (occ codes"
-         " 2200-2550)."
+         "sample. Heteroscedasticity robust standard errors are reported.      "
+         "Education, Library, Training refers to individuals employed in this  "
+         "occupation (occ codes 2200-2550)."
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
 
-exit
+
 *"School teachers      "
 *"include Pre-school, Elementary, Middle, Secondary and Special        "
 *"Education levels (occ codes 2300-2330)"
@@ -445,10 +446,9 @@ lab var young "Aged 25-39"
 
 lab var unemployment "Unemployment Rate"
 
-local se  cluster(statefip)
+local se  robust 
 local abs abs(statefip)
 local age age2527 age2831 age3239
-local age young
 local edu highEduc
 local une unemployment
 
@@ -467,7 +467,8 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\ Occupation FE&&&&&Y\\ \bottomrule       "
          " first born twin children from ACS data who were born to white,      "
          "non-hispanic mothers aged 25-45, where the mother is either the head "
          "of the  household or the partner (married or unmarried) of the head  "
-         "of the household. Standard errors are clustered by state.            "
+         "of the household. Heteroscedasticity robust standard errors are      "
+         "reported."
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -917,7 +918,7 @@ foreach hS in Alabama Arkansas Arizona {
     #delimit cr
 }
 
-*/
+
 ********************************************************************************
 *** (7) Occupations
 ********************************************************************************
@@ -1009,6 +1010,121 @@ foreach occ of local occs {
     local ++j
 }
 restore
+
+********************************************************************************
+*** (8) Income
+********************************************************************************
+*/
+use "$DAT/`data'"
+keep if motherAge>=25&motherAge<=45&twins==0
+drop if occ2010 == 9920
+tab year    , gen(_year)
+tab statefip, gen(_state)
+bys twoLevelOcc: gen counter = _N
+keep if counter>500
+drop counter
+
+sum hhincome,d
+keep if hhincome > `r(p5)' & hhincome < `r(p95)'
+
+xtile income5  = hhincome, nq(5)
+xtile income10 = hhincome, nq(5)
+
+tab income5, gen(_inc)
+sum goodQuarter if _inc1==1
+
+areg goodQ _inc2-_inc5 age2527 age2831 age3239 i.year, robus abs(statefip)
+
+gen IncomeQuantile  = .
+gen percentGood     = .
+gen lowpercentGood  = .
+gen highpercentGood = .
+
+foreach q of numlist 2 3 4 5 {
+    replace percentGood     = _b[_inc`q'] in `q'
+    replace lowpercentGood  = _b[_inc`q'] - 1.65*_se[_inc`q'] in `q'
+    replace highpercentGood = _b[_inc`q'] + 1.65*_se[_inc`q'] in `q'
+    replace IncomeQuantile  = `q' in `q'
+}
+
+#delimit ;
+twoway scatter percentGood IncomeQuantile in 2/5, msymbol(D) mcolor(black)
+    || rcap highpercentGood lowpercentGood IncomeQuantile in 2/5, lcolor(black)
+ytitle("Proportion Good Season") xtitle("Income Quantile") scheme(s1mono)
+yline(0, lwidth(thick) lcolor(red))
+legend(lab(1 "Mean Good Season") lab(2 "95% CI"));
+*note("All estimates are compared to quantile 1.  `n1'");
+#delimit cr
+graph export "$GRA/incomeGoodSeason.eps", as(eps) replace
+drop IncomeQuantile percentGood lowpercentGood highpercentGood
+
+gen age2539 = motherAge>=25&motherAge<=39
+foreach group in 2539 4045 {
+    sum goodQuarter if _inc1==1 & age`group'==1
+    areg goodQ _inc2-_inc5 i.year if age`group'==1, robus abs(statefip)
+
+    gen IncomeQuantile  = .
+    gen percentGood     = .
+    gen lowpercentGood  = .
+    gen highpercentGood = .
+
+    foreach q of numlist 2 3 4 5 {
+        replace percentGood     = _b[_inc`q'] in `q'
+        replace lowpercentGood  = _b[_inc`q'] - 1.65*_se[_inc`q'] in `q'
+        replace highpercentGood = _b[_inc`q'] + 1.65*_se[_inc`q'] in `q'
+        replace IncomeQuantile  = `q' in `q'
+    }
+
+    #delimit ;
+    twoway scatter percentGood IncomeQuantile in 2/5, msymbol(D) mcolor(black)
+    || rcap highpercentGood lowpercentGood IncomeQuantile in 2/5, lcolor(black)
+    ytitle("Proportion Good Season") xtitle("Income Quantile") scheme(s1mono)
+    yline(0, lwidth(thick) lcolor(red))
+    legend(lab(1 "Mean Good Season") lab(2 "95% CI"));
+    #delimit cr
+    graph export "$GRA/incomeGoodSeason`group'.eps", as(eps) replace
+    drop IncomeQuantile percentGood lowpercentGood highpercentGood
+}
+
+replace hhincome = hhincome/1000
+#delimit ;
+twoway lowess goodQuarter hhincome if age2831 == 1, lwidth(thick) lcolor(black)
+||     lowess goodQuarter hhincome if age4045 == 1, lcolor(black) lpattern(dash)
+scheme(s1mono) legend(lab(1 "Ages 28-31") lab(2 "Ages 40-45"))
+ytitle("Proportion Good Season") xtitle("Total Household Income (1000s)");
+#delimit cr
+graph export "$GRA/incomeSeasonLowess.eps", as(eps) replace
+
+tab birthQuarter, gen(_bq)
+collapse goodQuarter _bq1 _bq2 _bq3 _bq4 /*
+*/ (semean) segQ=goodQ sebQ1=_bq1 sebQ2=_bq2 sebQ3=_bq3 sebQ4=_bq4, by(income5)
+reshape long _bq sebQ, i(income5) j(season)
+gen highbq = _bq+1.65*sebQ
+gen lowbq  = _bq-1.65*sebQ
+
+
+
+gen seasonIncome     = income5    if season == 1
+replace seasonIncome = income5+5  if season == 2
+replace seasonIncome = income5+10 if season == 3
+replace seasonIncome = income5+15 if season == 4
+
+#delimit ;
+twoway (bar _bq seasonIncome if season==1) (bar _bq seasonIncome if season==2)
+       (bar _bq seasonIncome if season==3) (bar _bq seasonIncome if season==4)
+       (rcap highbq lowbq seasonIncome),
+legend(off) scheme(s1mono)
+xlabel(3 "Birth Quarter 1" 8 "Birth Quarter 2" 13 "Birth Quarter 3" 18
+       "Birth Quarter 4",  noticks);
+graph export "$GRA/incomeSeasonsSEs.eps", as(eps) replace;
+
+graph bar _bq, over(income5)
+over(season, relabel(1 "Birth Quarter 1" 2 "Birth Quarter 2"
+                     3 "Birth Quarter 3" 4 "Birth Quarter 4")) exclude0
+scheme(s1mono) bar(1, bcolor(ltblue)) bar(2, bcolor(ltblue))
+bar(3, bcolor(ltblue)) bar(4, bcolor(ltblue)) ytitle("Proportion of Births");
+#delimit cr
+graph export "$GRA/incomeSeasons.eps", as(eps) replace
 
 
 ********************************************************************************
