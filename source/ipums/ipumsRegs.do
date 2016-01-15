@@ -38,6 +38,7 @@ local wt     [pw=perwt]
 ********************************************************************************
 use "$DAT/`data'"
 keep if motherAge>=25&motherAge<=45&twins==0
+keep if marst==1
 drop if occ2010 == 9920
 tab year    , gen(_year)
 tab statefip, gen(_state)
@@ -215,7 +216,6 @@ local lv3 _occ*
 local sig significantOccs insignificantOccs
 
 
-eststo:  areg goodQuarter `age' `edu' `une' _year* `sig' `wt', `se' `abs'
 eststo: areg goodQuarter `age' `edu' `une' _year* `lv3' `wt', `se' `abs'
 ds _occ*
 local tvar `r(varlist)'
@@ -240,12 +240,12 @@ local F1 = round(r(p)*1000)/1000
 eststo:  areg goodQuarter `age' `edu' `une' _year*       `wt', `se' `abs'
 
 #delimit ;
-esttab est5 est3 est2 est1 using "$OUT/IPUMSIndustry.tex",
+esttab est4 est2 est1 using "$OUT/IPUMSIndustry.tex",
 replace `estopt' title("Season of Birth and Occupation")
-keep(_cons `age' `edu' `une' `lv2' `sig') style(tex) booktabs mlabels(, depvar) 
-postfoot("Occupation Codes (level) &&2&3&\\                                    "
-         "p-value on F-test of Occupation Dummies&&`F2'&`F3'&\\ \bottomrule    "
-         "\multicolumn{5}{p{20.2cm}}{\begin{footnotesize}Sample consists of all"
+keep(_cons `age' `edu' `une' `lv2') style(tex) booktabs mlabels(, depvar) 
+postfoot("Occupation Codes (level) &-&2&3\\                                    "
+         "p-value on F-test of Occupation Dummies&-&`F2'&`F3'&\\ \bottomrule   "
+         "\multicolumn{4}{p{17.2cm}}{\begin{footnotesize}Sample consists of all"
          " first born children in the USA to white, non-hispanic mothers aged  "
          "25-45 included in ACS data where the mother is either the head of the"
          " household or the partner (married or unmarried) of the head of the  "
@@ -259,6 +259,134 @@ postfoot("Occupation Codes (level) &&2&3&\\                                    "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
+
+eststo: areg goodQuarter `age' `une' _year* `lv3' `wt', `se' `abs'
+ds _occ*
+local tvar `r(varlist)'
+test `tvar'
+local F3 = round(r(p)*1000)/1000
+if `F3' == 0 local F3 0.000
+
+drop _2occ2
+eststo:  areg goodQuarter `age' `une' _year* `lv2' `wt', `se' `abs'
+ds _2occ*
+local tvar `r(varlist)'
+test `tvar'
+local F2 = round(r(p)*1000)/1000
+if `F2' == 0 local F2 0.000
+
+eststo:  areg goodQuarter `age' `une' _year* `lv1' `wt', `se' `abs'
+ds _1occ*
+local tvar `r(varlist)'
+test `tvar'
+local F1 = round(r(p)*1000)/1000
+
+eststo:  areg goodQuarter `age' `une' _year*       `wt', `se' `abs'
+
+#delimit ;
+esttab est4 est2 est1 using "$OUT/IPUMSIndustry_NoEduc.tex",
+replace `estopt' title("Season of Birth and Occupation (No Education Control)")
+keep(_cons `age' `une' `lv2') style(tex) booktabs mlabels(, depvar) 
+postfoot("Occupation Codes (level) &-&2&3\\                                    "
+         "p-value on F-test of Occupation Dummies&-&`F2'&`F3'&\\ \bottomrule   "
+         "\multicolumn{4}{p{17.2cm}}{\begin{footnotesize}Sample consists of all"
+         " first born children in the USA to white, non-hispanic mothers aged  "
+         "25-45 included in ACS data where the mother is either the head of the"
+         " household or the partner (married or unmarried) of the head of the  "
+         "household and works in an occupation with at least 500 workers in the"
+         "sample. Occupation codes refer to the level of occupation codes (2   "
+         "digit, or 3 digit). The omitted occupational category in column 2 and"
+         "column 4 is Arts, Design, Entertainment, Sports, and Media, as this  "
+         "occupation has good quarter=0.500(0.500).  All occupation codes refer"
+         "to IPUMS occ2010 codes, available at:                                "
+         "https://usa.ipums.org/usa/volii/acs_occtooccsoc.shtml"
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+
+gen logInc = log(hhincome)
+lab var logInc "log(household income)"
+local inc logInc
+
+eststo: areg goodQuarter `age' `inc' `une' _year* `lv3' `wt', `se' `abs'
+ds _occ*
+local tvar `r(varlist)'
+test `tvar'
+local F3 = round(r(p)*1000)/1000
+if `F3' == 0 local F3 0.000
+
+drop _2occ2
+eststo:  areg goodQuarter `age' `inc' `une' _year* `lv2' `wt', `se' `abs'
+ds _2occ*
+local tvar `r(varlist)'
+test `tvar'
+local F2 = round(r(p)*1000)/1000
+if `F2' == 0 local F2 0.000
+
+eststo:  areg goodQuarter `age' `inc' `une' _year*       `wt', `se' `abs'
+
+#delimit ;
+esttab est4 est3 est2 est1 using "$OUT/IPUMSIndustry_Income.tex",
+replace `estopt' title("Season of Birth and Occupation (Income Control)")
+keep(_cons `age' `inc' `une' `lv2') style(tex) booktabs mlabels(, depvar) 
+postfoot("Occupation Codes (level) &-&2&3\\                                    "
+         "p-value on F-test of Occupation Dummies&-&`F2'&`F3'&\\ \bottomrule   "
+         "\multicolumn{4}{p{17.2cm}}{\begin{footnotesize}Sample consists of all"
+         " first born children in the USA to white, non-hispanic mothers aged  "
+         "25-45 included in ACS data where the mother is either the head of the"
+         " household or the partner (married or unmarried) of the head of the  "
+         "household and works in an occupation with at least 500 workers in the"
+         "sample. Occupation codes refer to the level of occupation codes (2   "
+         "digit, or 3 digit). The omitted occupational category in column 2 and"
+         "column 4 is Arts, Design, Entertainment, Sports, and Media, as this  "
+         "occupation has good quarter=0.500(0.500).  All occupation codes refer"
+         "to IPUMS occ2010 codes, available at:                                "
+         "https://usa.ipums.org/usa/volii/acs_occtooccsoc.shtml"
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+
+
+local inc logInc highEduc
+
+eststo: areg goodQuarter `age' `inc' `une' _year* `lv3' `wt', `se' `abs'
+ds _occ*
+local tvar `r(varlist)'
+test `tvar'
+local F3 = round(r(p)*1000)/1000
+if `F3' == 0 local F3 0.000
+
+drop _2occ2
+eststo:  areg goodQuarter `age' `inc' `une' _year* `lv2' `wt', `se' `abs'
+ds _2occ*
+local tvar `r(varlist)'
+test `tvar'
+local F2 = round(r(p)*1000)/1000
+if `F2' == 0 local F2 0.000
+
+eststo:  areg goodQuarter `age' `inc' `une' _year*       `wt', `se' `abs'
+
+#delimit ;
+esttab est4 est3 est2 est1 using "$OUT/IPUMSIndustry_IncEduc.tex",
+replace `estopt' title("Season of Birth and Occupation (Income/Education Controls)")
+keep(_cons `age' `inc' `une' `lv2') style(tex) booktabs mlabels(, depvar) 
+postfoot("Occupation Codes (level) &-&2&3\\                                    "
+         "p-value on F-test of Occupation Dummies&-&`F2'&`F3'&\\ \bottomrule   "
+         "\multicolumn{4}{p{17.2cm}}{\begin{footnotesize}Sample consists of all"
+         " first born children in the USA to white, non-hispanic mothers aged  "
+         "25-45 included in ACS data where the mother is either the head of the"
+         " household or the partner (married or unmarried) of the head of the  "
+         "household and works in an occupation with at least 500 workers in the"
+         "sample. Occupation codes refer to the level of occupation codes (2   "
+         "digit, or 3 digit). The omitted occupational category in column 2 and"
+         "column 4 is Arts, Design, Entertainment, Sports, and Media, as this  "
+         "occupation has good quarter=0.500(0.500).  All occupation codes refer"
+         "to IPUMS occ2010 codes, available at:                                "
+         "https://usa.ipums.org/usa/volii/acs_occtooccsoc.shtml"
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+
 
 preserve
 replace GoldinClass = . if GoldinClass==5
@@ -406,17 +534,17 @@ lab var quarter "Quarter II"
 
 eststo: areg goodQuarter teachers `agI' `edu' `une' _year*  `wt', `abs' `se'
 eststo: areg goodQuarter teachers `age' `edu' `une' _year*  `wt', `abs' `se'
-eststo: areg goodQuarter teachers `age' `edu' `une' _year*  `wt', `abs' `se'
-eststo: areg goodQuarter teachers `age' `edu'       _year*  `wt', `abs' `se'
-eststo: areg goodQuarter teachers `age'             _year*  `wt', `abs' `se'
-eststo:  reg goodQuarter teachers `age'                     `wt',       `se'
+eststo: areg goodQuarter teachers       `edu' `une' _year*  `wt', `abs' `se'
+eststo: areg goodQuarter teachers       `edu'       _year*  `wt', `abs' `se'
+eststo: areg goodQuarter teachers                   _year*  `wt', `abs' `se'
+eststo:  reg goodQuarter teachers                           `wt',       `se'
 
 
 
 #delimit ;
 esttab est6 est5 est4 est3 est2 est1 using "$OUT/IPUMSTeachers.tex",
 replace `estopt' title("Season of Birth and Occupation (Teachers)")
-keep(_cons teachers `agI' `edu' `une') style(tex) booktabs mlabels(, depvar) 
+keep(_cons teachers `agI' `age' `edu' `une') style(tex) booktabs mlabels(, depvar) 
 postfoot("State and Year FE&&Y&Y&Y&Y&Y\\                        \bottomrule    "
          "\multicolumn{7}{p{21.8cm}}{\begin{footnotesize}Sample consists of all"
          " first born children in the USA to white, non-hispanic mothers aged  "
@@ -463,7 +591,7 @@ estimates clear
 *** (3h) Twin regression
 ********************************************************************************
 use "$DAT/`data'", clear
-
+keep if marst==1
 keep if motherAge>=25&motherAge<=45&twins==1
 tab year    , gen(_year)
 tab statefip, gen(_state)
@@ -504,7 +632,7 @@ estimates clear
 *** (4) Sumstats of good season by various levels
 ********************************************************************************
 use "$DAT/`data'", clear
-
+keep if marst==1
 
 generat ageGroup        = 1 if motherAge>=25&motherAge<40
 replace ageGroup        = 2 if motherAge>=40&motherAge<=45
@@ -950,6 +1078,7 @@ foreach hS in Alabama Arkansas Arizona {
 *** (7) Occupations
 ********************************************************************************
 use "$DAT/`data'", clear
+keep if marst==1
 
 bys twoLevelOcc: gen counter = _N
 keep if counter>500
@@ -1065,6 +1194,7 @@ restore
 *** (8) Income
 ********************************************************************************
 use "$DAT/`data'", clear
+keep if marst==1
 
 keep if motherAge>=25&motherAge<=45&twins==0
 drop if occ2010 == 9920
