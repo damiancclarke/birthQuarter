@@ -50,7 +50,7 @@ drop counter
 
 gen young = motherAge>=25&motherAge<=39
 lab var young "Aged 25-39"
-
+/*
 ********************************************************************************
 *** (3a) regressions: binary age groups
 ********************************************************************************
@@ -198,7 +198,7 @@ tab oneLevelOcc, gen(_1occ)
 tab twoLevelOcc, gen(_2occ)
 tab occ        , gen(_occ)
 
-gen significantOccs   = _2occ7==1|_2occ15==1
+gen significantOccs =_2occ6==1|_2occ8==1|_2occ9==1|_2occ13==1|_2occ14==1|_2occ15==1
 gen insignificantOccs = _2occ7!=1&_2occ15!=1
 replace insignificantOccs = 0 if _2occ2==1    
 lab var   significantOccs "Significant 2 level occupations"
@@ -267,7 +267,7 @@ test `tvar'
 local F3 = round(r(p)*1000)/1000
 if `F3' == 0 local F3 0.000
 
-drop _2occ2
+
 eststo:  areg goodQuarter `age' `une' _year* `lv2' `wt', `se' `abs'
 ds _2occ*
 local tvar `r(varlist)'
@@ -315,7 +315,6 @@ test `tvar'
 local F3 = round(r(p)*1000)/1000
 if `F3' == 0 local F3 0.000
 
-drop _2occ2
 eststo:  areg goodQuarter `age' `inc' `une' _year* `lv2' `wt', `se' `abs'
 ds _2occ*
 local tvar `r(varlist)'
@@ -326,7 +325,7 @@ if `F2' == 0 local F2 0.000
 eststo:  areg goodQuarter `age' `inc' `une' _year*       `wt', `se' `abs'
 
 #delimit ;
-esttab est4 est3 est2 est1 using "$OUT/IPUMSIndustry_Income.tex",
+esttab est3 est2 est1 using "$OUT/IPUMSIndustry_Income.tex",
 replace `estopt' title("Season of Birth and Occupation (Income Control)")
 keep(_cons `age' `inc' `une' `lv2') style(tex) booktabs mlabels(, depvar) 
 postfoot("Occupation Codes (level) &-&2&3\\                                    "
@@ -356,7 +355,7 @@ test `tvar'
 local F3 = round(r(p)*1000)/1000
 if `F3' == 0 local F3 0.000
 
-drop _2occ2
+
 eststo:  areg goodQuarter `age' `inc' `une' _year* `lv2' `wt', `se' `abs'
 ds _2occ*
 local tvar `r(varlist)'
@@ -367,7 +366,7 @@ if `F2' == 0 local F2 0.000
 eststo:  areg goodQuarter `age' `inc' `une' _year*       `wt', `se' `abs'
 
 #delimit ;
-esttab est4 est3 est2 est1 using "$OUT/IPUMSIndustry_IncEduc.tex",
+esttab est3 est2 est1 using "$OUT/IPUMSIndustry_IncEduc.tex",
 replace `estopt' title("Season of Birth and Occupation (Income/Education Controls)")
 keep(_cons `age' `inc' `une' `lv2') style(tex) booktabs mlabels(, depvar) 
 postfoot("Occupation Codes (level) &-&2&3\\                                    "
@@ -510,13 +509,13 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\                       \bottomrule       "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-
+*/
 ********************************************************************************
 *** (3g) regressions: Teachers
 ********************************************************************************
 local se  robust
 local abs abs(statefip)
-local age age2527 age2831 age3239
+local ag2 age2527 age2831 age3239
 local agI age2527 age2831 age3239 age2527XTeach age2831XTeach age3239XTeach
 local edu highEduc
 local une unemployment
@@ -533,7 +532,7 @@ gen quarter2 = birthQuarter == 2
 lab var quarter "Quarter II"
 
 eststo: areg goodQuarter teachers `agI' `edu' `une' _year*  `wt', `abs' `se'
-eststo: areg goodQuarter teachers `age' `edu' `une' _year*  `wt', `abs' `se'
+eststo: areg goodQuarter teachers `ag2' `edu' `une' _year*  `wt', `abs' `se'
 eststo: areg goodQuarter teachers       `edu' `une' _year*  `wt', `abs' `se'
 eststo: areg goodQuarter teachers       `edu'       _year*  `wt', `abs' `se'
 eststo: areg goodQuarter teachers                   _year*  `wt', `abs' `se'
@@ -544,7 +543,7 @@ eststo:  reg goodQuarter teachers                           `wt',       `se'
 #delimit ;
 esttab est6 est5 est4 est3 est2 est1 using "$OUT/IPUMSTeachers.tex",
 replace `estopt' title("Season of Birth and Occupation (Teachers)")
-keep(_cons teachers `agI' `age' `edu' `une') style(tex) booktabs mlabels(, depvar) 
+keep(_cons teachers `agI' `ag2' `edu' `une') style(tex) booktabs mlabels(, depvar) 
 postfoot("State and Year FE&&Y&Y&Y&Y&Y\\                        \bottomrule    "
          "\multicolumn{7}{p{21.8cm}}{\begin{footnotesize}Sample consists of all"
          " first born children in the USA to white, non-hispanic mothers aged  "
@@ -562,16 +561,16 @@ estimates clear
 
 
 eststo: areg quarter2 teachers `agI' `edu' `une' _year*  `wt', `abs' `se'
-eststo: areg quarter2 teachers `age' `edu' `une' _year*  `wt', `abs' `se'
-eststo: areg quarter2 teachers `age' `edu' `une' _year*  `wt', `abs' `se'
-eststo: areg quarter2 teachers `age' `edu'       _year*  `wt', `abs' `se'
-eststo: areg quarter2 teachers `age'             _year*  `wt', `abs' `se'
-eststo:  reg quarter2 teachers `age'                     `wt',       `se'
+eststo: areg quarter2 teachers `ag2' `edu' `une' _year*  `wt', `abs' `se'
+eststo: areg quarter2 teachers       `edu' `une' _year*  `wt', `abs' `se'
+eststo: areg quarter2 teachers       `edu'       _year*  `wt', `abs' `se'
+eststo: areg quarter2 teachers                   _year*  `wt', `abs' `se'
+eststo:  reg quarter2 teachers                           `wt',       `se'
 
 #delimit ;
 esttab est6 est5 est4 est3 est2 est1 using "$OUT/IPUMSTeachersQ2.tex",
 replace `estopt' title("Season of Birth and Occupation (Teachers)")
-keep(_cons teachers `agI' `edu' `une') style(tex) booktabs mlabels(, depvar) 
+keep(_cons teachers `agI' `ag2' `edu' `une') style(tex) booktabs mlabels(, depvar) 
 postfoot("State and Year FE&&Y&Y&Y&Y&Y\\                        \bottomrule    "
          "\multicolumn{7}{p{18.8cm}}{\begin{footnotesize}Sample consists of all"
          " first born children in the USA to white, non-hispanic mothers aged  "
@@ -586,7 +585,7 @@ postfoot("State and Year FE&&Y&Y&Y&Y&Y\\                        \bottomrule    "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-
+exit
 ********************************************************************************
 *** (3h) Twin regression
 ********************************************************************************
@@ -1120,10 +1119,14 @@ graph export "$GRA/birthsOccupation.eps", as(eps) replace;
 #delimit cr
 restore
 
+tab twoLevelOcc, gen(_2occ)
+gen sigOccs =_2occ6==1|_2occ8==1|_2occ9==1|_2occ13==1|_2occ14==1|_2occ15==1
 
-generat occAlt2 = 1 if GoldinClass==1|GoldinClass==2
-replace occAlt2 = 2 if twoL=="Education, Training, and Library Occupations"
-replace occAlt2 = 3 if twoL=="Office and Administrative Support Occupations"
+
+generat occAlt2 = 1 if twoL=="Education, Training, and Library Occupations"
+replace occAlt2 = 2 if sigOccs==1
+replace occAlt2 = 3 if twoL=="Architecture and Engineering Occupations"
+
 
 preserve
 collapse (sum) birth, by(birthQuarter occAlt2)
@@ -1134,7 +1137,7 @@ gen birthProportion = birth/totalbirth
 
 #delimit ;
 graph bar birthProportion, over(birthQuar, relabel(1 "Q1" 2 "Q2" 3 "Q3" 4 "Q4"))
-over(occAlt, relabel(1 "Business & Tech" 2 "Education" 3 "Office Admin"))
+over(occAlt, relabel(1 "Education" 2 "Significant" 3 "Architecture/Engineering"))
 scheme(s1mono) exclude0 ytitle("Proportion of Births in Quarter"); 
 graph export "$GRA/birthsOccupation2.eps", as(eps) replace;
 #delimit cr

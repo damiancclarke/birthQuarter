@@ -410,22 +410,26 @@ sumT.close()
 #==============================================================================
 #== (4) IPUMS Industry clean
 #==============================================================================
-ipoT = open(TAB + 'IPUMSIndustry.tex', 'w')
-ipiT = open(IPUMSind, 'r').readlines()
+IndTabs = ['IPUMSIndustry_IncEduc.tex','IPUMSIndustry.tex',
+           'IPUMSIndustry_Income.tex','IPUMSIndustry_NoEduc.tex']
+for table in IndTabs:
+    IPUMSind  = RES + 'ipums/regressions/'+table
 
-for i,line in enumerate(ipiT):
-    line = line.replace('oneLevelOcc==','')
-    line = line.replace('twoLevelOcc==','')
-    line = line.replace('Occupations','')
-    line = line.replace('Occpations==','')
-    line = line.replace('\\end{footnotesize}}\\end{tabular}\\end{table}',
-                        '\\end{footnotesize}}\\end{tabular}}\\end{table}')
-    line = line.replace('\\begin{tabular}{l*{4}{c}}',
-                        '\\scalebox{0.7}{\\begin{tabular}{l*{4}{c}}')
-    ipoT.write(line)
+    ipoT = open(TAB + table, 'w')
+    ipiT = open(IPUMSind, 'r').readlines()
 
+    for i,line in enumerate(ipiT):
+        line = line.replace('oneLevelOcc==','')
+        line = line.replace('twoLevelOcc==','')
+        line = line.replace('Occupations','')
+        line = line.replace('Occpations==','')
+        line = line.replace('\\end{footnotesize}}\\end{tabular}\\end{table}',
+                            '\\end{footnotesize}}\\end{tabular}}\\end{table}')
+        line = line.replace('\\begin{tabular}{l*{3}{c}}',
+                            '\\scalebox{0.7}{\\begin{tabular}{l*{3}{c}}')
+        ipoT.write(line)
 
-ipoT.close()
+    ipoT.close()
 
 ipoT = open(TAB + 'IPUMSIndustry_GSample.tex', 'w')
 ipiT = open(IPUMSind2, 'r').readlines()
