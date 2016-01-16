@@ -32,7 +32,7 @@ local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats /*
 */           (N, fmt(%9.0g) label(Observations))     /*
 */           starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(none) label
 local wt     [pw=perwt]
-
+/*
 ********************************************************************************
 *** (2) Open data subset to sample of interest (from Sonia's import file)
 ********************************************************************************
@@ -50,7 +50,7 @@ drop counter
 
 gen young = motherAge>=25&motherAge<=39
 lab var young "Aged 25-39"
-/*
+
 ********************************************************************************
 *** (3a) regressions: binary age groups
 ********************************************************************************
@@ -509,7 +509,7 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\                       \bottomrule       "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-*/
+
 ********************************************************************************
 *** (3g) regressions: Teachers
 ********************************************************************************
@@ -1192,12 +1192,14 @@ foreach occ of local occs {
     local ++j
 }
 restore
-
+*/
 ********************************************************************************
 *** (8) Income
 ********************************************************************************
 use "$DAT/`data'", clear
 keep if marst==1
+local incvar hhincome
+local incvar inctot
 
 keep if motherAge>=25&motherAge<=45&twins==0
 drop if occ2010 == 9920
@@ -1207,11 +1209,11 @@ bys twoLevelOcc: gen counter = _N
 keep if counter>500
 drop counter
 
-sum hhincome,d
-keep if hhincome > `r(p5)' & hhincome < `r(p95)'
+sum `incvar',d
+keep if `incvar' > `r(p5)' & `incvar' < `r(p95)'
 
-xtile income5  = hhincome, nq(5)
-xtile income10 = hhincome, nq(5)
+xtile income5  = `incvar', nq(5)
+xtile income10 = `incvar', nq(5)
 
 tab income5, gen(_inc)
 sum goodQuarter if _inc1==1
@@ -1269,10 +1271,10 @@ foreach group in 2539 4045 {
     drop IncomeQuantile percentGood lowpercentGood highpercentGood
 }
 
-replace hhincome = hhincome/1000
+replace `incvar' = `incvar'/1000
 #delimit ;
-twoway lowess goodQuarter hhincome if age2831 == 1, lwidth(thick) lcolor(black)
-||     lowess goodQuarter hhincome if age4045 == 1, lcolor(black) lpattern(dash)
+twoway lowess goodQuarter `incvar' if age2831 == 1, lwidth(thick) lcolor(black)
+||     lowess goodQuarter `incvar' if age4045 == 1, lcolor(black) lpattern(dash)
 scheme(s1mono) legend(lab(1 "Ages 28-31") lab(2 "Ages 40-45"))
 ytitle("Proportion Good Season") xtitle("Total Household Income (1000s)");
 #delimit cr
