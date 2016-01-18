@@ -655,6 +655,7 @@ sum Qgoodgood Qgoodbad Qbadgood Qbadbad
 drop goodQuarter badQuarter
 gen goodQuarter = expectGoodQ
 gen badQuarter  = expectBadQ
+tab year, gen(_year)
 
 local stat AK AL AR AZ CA CO CT DC DE FL GA HI IA ID IL IN KS KY LA MA MD ME /*
 */         MI MN MO MS MT NC ND NE NH NJ NM NV NY OH OK OR PA RI SC SD TN TX /*
@@ -745,7 +746,7 @@ lab var age2024            "Aged 20-24"
 lab var ARTage2024         "Aged 20-24$\times$ ART"
 lab var motherAgeXeduc     "Mother's Age $\times$ Education"
 lab var educCat            "Years of Education"
-
+lab var value              "Unemployment Rate"
 
 ********************************************************************************
 *** (5) Save, clean
