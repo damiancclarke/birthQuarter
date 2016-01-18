@@ -1,0 +1,103 @@
+\documentclass[a4paper, 12 pt]{article}
+
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{appendix}
+\usepackage{bm}
+\usepackage{booktabs}
+\usepackage[usenames, dvipsnames]{color}
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\epstopdfsetup{update}
+\usepackage{helvet}
+\usepackage{hyperref}
+\usepackage{indentfirst}
+\usepackage{lscape}
+\usepackage{morefloats}
+\usepackage{natbib} \bibliographystyle{ecta}
+\usepackage{setspace}
+\usepackage{subcaption}
+\usepackage[capposition=top]{floatrow}
+\usepackage{subfloat}
+\usepackage[latin1]{inputenc}
+\usepackage{tikz}
+
+
+\usetikzlibrary{trees}
+\usetikzlibrary{decorations.markings}
+
+
+\theoremstyle{plain}
+\newtheorem{thm}{Theorem}
+\newtheorem{cor}{Corollary}
+\newtheorem{lem}[thm]{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+
+%MARGINS
+ \topmargin   =  0.0in
+ \headheight  =  -0.3in
+ \headsep     =  0.7in
+ \oddsidemargin= 0.0in
+ \evensidemargin=0.0in
+ \textheight  =  9.0in
+ \textwidth   =  6.45in
+%\setlength{\parindent}{4em}
+%\setlength{\parskip}{1em}
+
+\newcommand{\fmt}{.eps}
+%\newcommand{\fmt}{.png}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=BlueViolet,
+    citecolor=BlueViolet,
+    filecolor=BlueViolet,
+    urlcolor=BlueViolet
+}
+
+
+\renewcommand\figurename{Appendix Figure}
+\renewcommand\tablename{Appendix Table}
+\renewcommand\thesection{\Alph{section}}
+\renewcommand*{\thepage}{A\arabic{page}}
+
+
+
+\setcounter{page}{0}
+\begin{document}
+\begin{spacing}{1.4}
+\begin{center}
+\textbf{ONLINE APPENDICES} \\
+\vspace{4mm}
+From the paper: \\
+\vspace{6mm}
+{\large \textsc{Choosing Season of Birth:
+The Role of Biological and Economic Constraints}} \\
+Damian Clarke, Sonia Oreffice and Climent Quintana-Domeque
+\end{center}
+
+\tableofcontents
+
+
+\setlength\parindent{0.25in}
+\setlength\parskip{0.25in}
+
+
+
+
+\newpage
+\section{Replicating Results with Married and Unmarried}
+\subsection{Tables}
+\input{./../tables/tablesnvss.tex}
+\newpage
+\subsection{Figures}
+\input{./figures.tex}
+
+\bibliography{./refs}
+
+
+
+\end{spacing}
+\end{document}
