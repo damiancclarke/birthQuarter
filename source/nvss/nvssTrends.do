@@ -18,21 +18,26 @@ clear all
 set more off
 cap log close
 
+local allobs 0
+
 ********************************************************************************
 *** (1) Globals and locals
 ********************************************************************************
+if `allobs'==0 local f nvss
+if `allobs'==1 local f nvssall
+
 global DAT "~/investigacion/2015/birthQuarter/data/nvss"
-global OUT "~/investigacion/2015/birthQuarter/results/nvss/graphs"
-global SUM "~/investigacion/2015/birthQuarter/results/nvss/sumStats"
+global OUT "~/investigacion/2015/birthQuarter/results/`f'/graphs"
+global SUM "~/investigacion/2015/birthQuarter/results/`f'/sumStats"
 global LOG "~/investigacion/2015/birthQuarter/log"
 global USW "~/investigacion/2015/birthQuarter/data/weather"
 
 log using "$LOG/nvssTrends.txt", text replace
 cap mkdir "$SUM"
+cap mkdir "$OUT"
 
 local data    nvss2005_2013
 local keepif  birthOrder == 1 & motherAge > 24 & motherAge<=45
-local stateFE 0
 local twins   0
 if `twins' == 1 local app twins
 
@@ -42,7 +47,8 @@ if `twins' == 1 local app twins
 ********************************************************************************
 use "$DAT/`data'"
 keep if birthOrder==1
-/*
+if `allobs'==0 keep if married==1
+
 #delimit ;
 twoway hist motherAge if motherAge>24&motherAge<=45, freq color(gs0) width(1) ||
        hist motherAge if motherAge<=24|motherAge>45, freq color(gs12) width(1)
@@ -51,9 +57,8 @@ twoway hist motherAge if motherAge>24&motherAge<=45, freq color(gs0) width(1) ||
     legend(label(1 "Estimation Sample") label(2 "<25 or >45")) scheme(s1mono);
                                         #delimit cr
 graph export "$OUT/ageDescriptive.eps", as(eps) replace
-*/
+
 keep if twin<3
-/*
 preserve
 keep if `keepif'
 collapse ART, by(motherAge)
@@ -81,7 +86,6 @@ bar(4, bcolor(ltblue)) scheme(s1mono) ytitle("Proportion ART");
 graph export "$OUT/ARTageGroup.eps", as(eps) replace;
 #delimit cr
 restore
-*/
 
 ********************************************************************************
 *** (2aii) Summary stats table
@@ -114,7 +118,7 @@ lab var young       "Young (aged 25-39)"
 lab var expectGoodQ "Good season of birth (due date)"
 lab var goodBirthQ  "Good season of birth (birth date)"
 
-/*
+
 local Mum     motherAge married young age2024 age2527 age2831 age3239 age4045
 local MumPart college educCat smoker ART
 
@@ -130,6 +134,7 @@ foreach st in Mum Kid MumPart {
     local Kid goodBirthQ expectGoodQ fem birthweight lbw gestat premature apgar
     preserve
     keep if `keepif' &married!=.&smoker!=.&college!=.&young!=.&twin==0
+    if `allobs'==0 keep if married==1
     sum ``st''
     estpost tabstat ``st'', statistics(count mean sd min max)               /*
     */ columns(statistics)
@@ -138,7 +143,6 @@ foreach st in Mum Kid MumPart {
     */ replace label noobs
     restore
 }
-*/
 replace young     = . if motherAge<25|motherAge>45
 
 ********************************************************************************
@@ -146,6 +150,7 @@ replace young     = . if motherAge<25|motherAge>45
 ********************************************************************************
 if `twins'==1 keep if twin == 1
 if `twins'==0 keep if twin == 0
+if `allobs'==0 keep if married==1
 gen birth = 1
 
 ********************************************************************************
@@ -161,7 +166,7 @@ lab def Qua 1 "Q1 (Jan-Mar)" 2 "Q2 (Apr-Jun)" 3 "Q3 (Jul-Sep)" 4 "Q4 (Oct-Dec)"
 
 lab val ageGroup    aG0
 lab val educLevel   eL
-/*
+
 ********************************************************************************
 *** (3) Descriptives by month
 *******************************************************************************
@@ -226,7 +231,7 @@ lab(3 "Complete College")) ytitle("Proportion of All Births");
 graph export "$OUT/conceptionMonthEducOld.eps", as(eps) replace;
 #delimit cr
 restore
-*/
+
 preserve
 cap drop youngOld
 generat youngOld = 1 if motherAge>=28&motherAge<=31  
@@ -266,7 +271,7 @@ graph export "$OUT/birthQuarterEducOldComparison.eps", as(eps) replace;
 #delimit cr
 restore
 
-/*
+
 preserve
 keep if `keepif'
 generat youngOld = 1 if motherAge>=28&motherAge<=31
@@ -295,7 +300,7 @@ ytitle("Proportion of All Births");
 graph export "$OUT/conceptionMonth.eps", as(eps) replace;
 #delimit cr
 restore
-*/
+
 
 preserve
 generat youngOld = 1 if motherAge>=28&motherAge<=31
@@ -322,7 +327,7 @@ graph export "$OUT/birthQuarterAgesComparison.eps", as(eps) replace;
 #delimit cr
 restore
 
-/*
+
 preserve
 keep if `keepif'
 generat youngOld = 1 if motherAge>=28&motherAge<=39
@@ -481,7 +486,7 @@ foreach A of numlist 0 1 {
     #delimit cr
 }
 restore
-*/
+
 preserve
 keep if `keepif'
 gen youngBeta = .
@@ -509,7 +514,7 @@ legend(order(1 "Young-Old" 2 "95% CI"));
 graph export "$OUT/youngQuarterComparison.eps", as(eps) replace;  
 #delimit cr
 
-exit
+
 ********************************************************************************
 *** (4) Graph of good season by age
 ********************************************************************************
@@ -749,7 +754,6 @@ replace educLevel = educLevel + 1
 lab def eL2  1 "All" 2 "No College" 3 "Some College +"
 lab val educLevel   eL2
 
-list
 reshape wide birth1, i(educLevel) j(ageGroup)
 
 #delimit ;
@@ -767,6 +771,7 @@ restore
 ********************************************************************************
 preserve
 use "$DAT/`data'", clear
+if `allobs'==0 keep if married==1
 keep if birthOrder==1&educLevel!=.&motherAge>=20&motherAge<=45
 
 gen ageG2 = motherAge>=20 & motherAge<25
@@ -802,6 +807,7 @@ restore
 
 preserve
 use "$DAT/`data'", clear
+if `allobs'==0 keep if married==1
 keep if birthOrder==1&educLevel!=.&motherAge>=20&motherAge<=45
 
 gen ageG2 = motherAge>=20 & motherAge<25
@@ -1038,7 +1044,7 @@ foreach s of local snam {
     #delimit cr
     macro shift
 }
-*/
+
 insheet using "$USW/usaWeather.txt", delim(";") names clear
 destring temp, replace
 
@@ -1059,6 +1065,7 @@ save `weather'
 
 
 use "$DAT/`data'"
+if `allobs'==0 keep if married==1
 replace twin=twin-1
 keep if birthOrder==1&motherAge>19&motherAge<=45
 gen birth = 1

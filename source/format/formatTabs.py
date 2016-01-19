@@ -75,7 +75,7 @@ mc1  = '\\multicolumn{'
 mc2  = '}}'
 twid = ['10','6','7','7','7','6','5','6']
 tcm  = ['}{p{16.6cm}}','}{p{14.2cm}}','}{p{15.6cm}}','}{p{17.6cm}}',
-        '}{p{12.8cm}}','}{p{12.2cm}}','}{p{10.2cm}}','}{p{12.2cm}}']
+        '}{p{11.8cm}}','}{p{12.2cm}}','}{p{10.2cm}}','}{p{12.2cm}}']
 mc3  = '{\\begin{footnotesize}\\textsc{Notes:} '
 lname = "Fertility$\\times$desire"
 tname = "Twin$\\times$desire"
@@ -129,13 +129,13 @@ for parity in ['single']:
                "\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
                NVj[1]+'\\\\ \n'+
                NVj[2]+'\\\\ \n &&&& \\\\'
-               "\multicolumn{7}{l}{\\textsc{Panel C: By Age and Education}}\\\\"
-               "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
-               "\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
-               NVe[1]+'\\\\ \n'+
-               NVe[2]+'\\\\ \n'+
-               NVe[3]+'\\\\ \n'+
-               NVe[4]+'\\\\ \n &&&& \\\\'
+               ##"\multicolumn{7}{l}{\\textsc{Panel C: By Age and Education}}\\\\"
+               ##"\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
+               ##"\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
+               ##NVe[1]+'\\\\ \n'+
+               ##NVe[2]+'\\\\ \n'+
+               ##NVe[3]+'\\\\ \n'+
+               ##NVe[4]+'\\\\ \n &&&& \\\\'
                )
     
     
@@ -177,13 +177,13 @@ sumT.write(NV[1]+'\\\\ \n'
            "\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
            NVj[1]+'\\\\ \n'+
            NVj[2]+'\\\\ \n &&&&& \\\\'
-           "\multicolumn{6}{l}{\\textsc{Panel C: By Age and Education}}\\\\"
-           "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*5+
-           "\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
-           NVe[1]+'\\\\ \n'+
-           NVe[2]+'\\\\ \n'+
-           NVe[3]+'\\\\ \n'+
-           NVe[4]+'\\\\ \n &&&&& \\\\'
+           ##"\multicolumn{6}{l}{\\textsc{Panel C: By Age and Education}}\\\\"
+           ##"\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*5+
+           ##"\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
+           ##NVe[1]+'\\\\ \n'+
+           ##NVe[2]+'\\\\ \n'+
+           ##NVe[3]+'\\\\ \n'+
+           ##NVe[4]+'\\\\ \n &&&&& \\\\'
            )
     
     
@@ -226,15 +226,15 @@ sumT.write(NV[1]+'\\\\ \n'+NV[2]+'\\\\ \n'+NV[3]+'\\\\ \n'
            NVj[1]+'\\\\ \n'+
            NVj[2]+'\\\\ \n'+
            NVj[3]+'\\\\ \n &&&& \\\\'
-           "\multicolumn{5}{l}{\\textsc{Panel C: By Age and Education}}\\\\"
-           "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
-           "\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
-           NVe[1]+'\\\\ \n'+
-           NVe[2]+'\\\\ \n'+
-           NVe[3]+'\\\\ \n'+
-           NVe[4]+'\\\\ \n'+
-           NVe[5]+'\\\\ \n'+
-           NVe[6]+'\\\\ \n &&&& \\\\'
+           ##"\multicolumn{5}{l}{\\textsc{Panel C: By Age and Education}}\\\\"
+           ##"\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
+           ##"\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
+           ##NVe[1]+'\\\\ \n'+
+           ##NVe[2]+'\\\\ \n'+
+           ##NVe[3]+'\\\\ \n'+
+           ##NVe[4]+'\\\\ \n'+
+           ##NVe[5]+'\\\\ \n'+
+           ##NVe[6]+'\\\\ \n &&&& \\\\'
            )
     
     
@@ -775,7 +775,7 @@ TABLES = [loc2 +'NVSSBinaryBord2.tex'        ,
           loc2 +'NVSSBinaryNoSep.tex'        , 
           loc2 +'NVSSQualityBord2.tex'       ,
           loc2 +'NVSSQualityTwin.tex'        , 
-          loc2 +'NVSSQualityFetalDeaths.tex' , 
+          loc2 +'NVSSQualityFDeaths.tex'     , 
           loc1 +'sumStatsSpain.tex'          ,
           loc1 +'sumSpain.tex'               ,
           loc3 +'spainBinary.tex'            , 

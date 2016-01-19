@@ -16,7 +16,7 @@ clear all
 set more off
 cap log close
 
-local allobs 0
+local allobs 1
 
 ********************************************************************************
 *** (1) globals and locals
@@ -33,7 +33,7 @@ log using "$LOG/nvssRegs.txt", text replace
 cap mkdir "$OUT"
 
 #delimit ;
-local qual   birthweight lbw vlbw gestation premature apgar 
+local qual   birthweight lbw vlbw gestation premature apgar;
 local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats        
              (N, fmt(%9.0g) label(Observations))                               
              starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(none) label;
@@ -207,13 +207,13 @@ test `age1'
 local F1 = round(r(p)*1000)/1000
 if   `F1' == 0 local F1 0.000
 
-foreach num of numist 2(1)5 {
+foreach num of numlist 2(1)5 {
     eststo: areg goodQua `v`num'' if e(sample), abs(fips)
     if `num'< 4 test `age1'
     if `num'> 3 test `age2'
     
     local F`num' = round(r(p)*1000)/1000
-    if   `F`num'' == 0 local F`num' 0.000
+    if  `F`num'' == 0 local F`num' 0.000
 }
 
 local kvar `age1' highEd `age1X' `age2' educCat
