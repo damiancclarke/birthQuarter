@@ -47,20 +47,27 @@ if `twins' == 1 local app twins
 ********************************************************************************
 use "$DAT/`data'"
 keep if birthOrder==1
+/*
+preserve
 if `allobs'==0 keep if married==1
-
 #delimit ;
+if `allobs'==0 local nlab 0 "0" 100000 "100,000" 200000 "200,000"
+                                300000 "300,000" 400000 "400,000";
+if `allobs'==1 local nlab 0 "0" 100000 "100,000" 200000 "200,000" 300000
+                               "300,000" 400000 "400,000" 500000 "500,000";
 twoway hist motherAge if motherAge>24&motherAge<=45, freq color(gs0) width(1) ||
        hist motherAge if motherAge<=24|motherAge>45, freq color(gs12) width(1)
-    ylabel( 0 "0" 100000 "100,000" 200000 "200,000" 300000 "300,000" 400000
-           "400,000" 500000 "500,000", angle(0)) xtitle("Mother's Age") 
+    ylabel(`nlab', angle(0)) xtitle("Mother's Age") 
     legend(label(1 "Estimation Sample") label(2 "<25 or >45")) scheme(s1mono);
                                         #delimit cr
 graph export "$OUT/ageDescriptive.eps", as(eps) replace
-
+restore
+*/
 keep if twin<3
+/*
 preserve
 keep if `keepif'
+if `allobs'==0 keep if married==1
 collapse ART, by(motherAge)
 #delimit ;
 twoway line ART motherAge, xtitle("Mother's Age") scheme(s1mono)
@@ -70,6 +77,7 @@ graph export "$OUT/ART.eps", as(eps) replace
 restore
 
 preserve
+if `allobs'==0 keep if married==1
 gen ageG2 = motherAge>=20 & motherAge<25
 replace ageG2 = 2 if motherAge>=25 & motherAge<28
 replace ageG2 = 3 if motherAge>=28 & motherAge<32
@@ -86,11 +94,10 @@ bar(4, bcolor(ltblue)) scheme(s1mono) ytitle("Proportion ART");
 graph export "$OUT/ARTageGroup.eps", as(eps) replace;
 #delimit cr
 restore
-
+*/
 ********************************************************************************
 *** (2aii) Summary stats table
 ********************************************************************************
-gen college        = educLevel==2 if educLevel!=.
 replace twin       = twin - 1
 generat age3       = .
 replace age3       = 1 if motherAge>=25 & motherAge<35
@@ -226,7 +233,7 @@ xaxis(1 2) scheme(s1mono) xtitle("Month of Conception", axis(2))
 xlabel(1(1)12, valuelabels axis(2))
 xlabel(1 "Oct" 2 "Nov" 3 "Dec" 4 "Jan" 5 "Feb" 6 "Mar" 7 "Apr" 8 "May"
        9 "Jun" 10 "Jul" 11 "Aug" 12 "Sep", axis(1)) xtitle("Expected Month")
-legend(lab(1 "Incomplete Highschool") lab(2 "Highschool or Incomplete College")
+legend(lab(1 "Incomplete Highschool") lab(2 "Highschool,Incomplete College")
 lab(3 "Complete College")) ytitle("Proportion of All Births");
 graph export "$OUT/conceptionMonthEducOld.eps", as(eps) replace;
 #delimit cr
@@ -1026,6 +1033,7 @@ foreach hS in Alabama Arkansas Arizona {
 *** (8b) All states
 ********************************************************************************
 tokenize `stat'
+cap mkdir "$OUT/states"
 foreach s of local snam {
     local cond if state=="`s'"
     sum totalBirths `cond'&young==1
@@ -1118,7 +1126,7 @@ merge m:1 state using "$DAT/../maps/state_database_clean"
 drop _merge
 format expectGoodQ %5.3f
 
-
+mkdir "$OUT/maps"
 #delimit ;
 spmap expectGoodQ if ageGroup==3&(fips!=2&fips!=18) using
 "$DAT/../maps/state_coords_clean", id(_polygonid) fcolor(YlOrRd)
