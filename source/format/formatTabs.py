@@ -75,7 +75,7 @@ mc1  = '\\multicolumn{'
 mc2  = '}}'
 twid = ['10','6','7','7','7','6','5','6']
 tcm  = ['}{p{16.6cm}}','}{p{14.2cm}}','}{p{15.6cm}}','}{p{17.6cm}}',
-        '}{p{11.8cm}}','}{p{12.2cm}}','}{p{10.2cm}}','}{p{12.2cm}}']
+        '}{p{11.8cm}}','}{p{11.4cm}}','}{p{9.0cm}}','}{p{12.2cm}}']
 mc3  = '{\\begin{footnotesize}\\textsc{Notes:} '
 lname = "Fertility$\\times$desire"
 tname = "Twin$\\times$desire"
@@ -240,11 +240,7 @@ sumT.write(NV[1]+'\\\\ \n'+NV[2]+'\\\\ \n'+NV[3]+'\\\\ \n'
 sumT.write('\n'+mr+mc1+twid[6]+tcm[6]+mc3+
            "Good season refers to birth quarters 2 and 3 (Apr-Jun and      " 
            "Jul-Sept).  Bad season refers to quarters 1 and 4 (Jan-Mar     "
-           "and Oct-Dec).  `Young' refers to 25-39 year olds,              "
-           " `Old' refers to 40-45 year olds. 3,910 mothers in the data    " 
-           "are aged 40-45. Of these, 641 have no college education, 740   "
-           "have some college education, and the remaining 2,529 completed "
-           "college.\n"
+           "and Oct-Dec). \n"
            "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}"
            "\\end{center}\\end{table}")
     
@@ -400,9 +396,9 @@ for i,line in enumerate(SI):
 
 sumT.write('\n'+mr+mc1+twid[7]+tcm[7]+mc3+
            "Sample consists of all singleton first-born children from the ACS "
-           "born in the USA to white non-hispanic mothers aged 25-45 who are  "
-           "either the head of their household or the partner (married or     "
-           "unmarried) of the head of the household, and who work in an       "
+           "born in the USA to white non-hispanic married mothers aged 25-45  "
+           "who are either the head of their household or the partner         "
+           "           of the head of the household, and who work in an       "
            "occupation with at least 500 workers in the sample. Good season   "
            "refers to children born in birth quarters 2 and 3 (Apr-Jun and    "
            "Jul-Sept)."
@@ -744,8 +740,8 @@ final = open(TAB + "tables"+ ftype +".tex", 'w')
 
 TABLES = [loc1+'sumStats'+ftype+'.tex', loc1 + 'sumStatsSamp'+ftype+'.tex',
 loc1 + 'sumsingle'+ftype+'.tex'       , loc2 + 'NVSSBinaryMain.tex'       ,
-loc2 + 'NVSSBinaryEducAge.tex'        , loc2 + 'ART2024.tex'              ,
-loc2 + 'NVSSQualityMain.tex'          ]
+loc2 + 'NVSSBinaryMain_robust.tex'    , loc2 + 'NVSSBinaryEducAge.tex'    ,
+loc2 + 'ART2024.tex'                  , loc2 + 'NVSSQualityMain.tex'      ]
           
 i = 1
 
