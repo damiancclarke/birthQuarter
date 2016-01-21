@@ -143,8 +143,7 @@ for parity in ['single']:
                "Good season refers to birth quarters 2 and 3 (Apr-Jun and "
                "Jul-Sept).  Bad season refers to quarters 1 and 4 (Jan-Mar "
                "and Oct-Dec).  Values reflect the percent of yearly births "
-               "each season from 2005-2013. `Young' refers to 25-39 year olds,"
-               " `Old' refers to 40-45 year olds. \n"
+               "each season from 2005-2013. \n"
                "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}"
                "\\end{center}\\end{table}\\end{landscape}")
     
@@ -295,8 +294,12 @@ sumT.write('\n'+mr+mc1+twid[1]+tcm[1]+mc3+
            "\\end{table}")
 sumT.close()
 
+if ftype == 'nvss':
+    mnote = ' married '
+elif ftype == 'nvssall':
+    mnote = ' '
 
-sumT = open(TAB + 'sumStatsSamp.tex', 'w')
+sumT = open(TAB + 'sumStatsSamp'+ftype+'.tex', 'w')
 sumT.write('\\begin{table}[htpb!] \n \\begin{center} \n' 
 '\\caption{Descriptive Statistics Main Sample (NVSS 2005-2013)}\n '
 '\\label{bqTab:SumStatsMain}'
@@ -331,10 +334,10 @@ for i,line in enumerate(Ki2):
         sumT.write(line)
 
 sumT.write('\n'+mr+mc1+twid[1]+tcm[1]+mc3+
-           "Each sample consists of all first-born children born to white, "
-           "non-hispanic mothers aged between 25-45 for whom education,    "
-           "smoking, and marital status is recorded. This is the main      "
-           "estimation sample. Good season refers to birth quarters 2 and 3"
+           "Each sample consists of all first-born children born to" + mnote  +
+           "white, non-hispanic mothers aged between 25-45 for whom education,"
+           " smoking, and marital status is recorded. This is the main        "
+           "estimation sample. Good season refers to birth quarters 2 and 3   "
            " (Apr-Jun and Jul-Sept)."
            "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}\\end{center}"
            "\\end{table}")
@@ -739,9 +742,9 @@ loc2  = './../results/'+ftype+'/regressions/'
 loc3  = './../results/spain/regressions/'
 final = open(TAB + "tables"+ ftype +".tex", 'w')
 
-TABLES = [loc1+'sumStats'+ftype+'.tex', loc1 + 'sumStatsSamp.tex'        ,
-loc1 + 'sumsingle'+ftype+'.tex'       , loc2 + 'NVSSBinaryMain.tex'      ,
-loc2 + 'NVSSBinaryEducAge.tex'        , loc2 + 'ART2024.tex'             ,
+TABLES = [loc1+'sumStats'+ftype+'.tex', loc1 + 'sumStatsSamp'+ftype+'.tex',
+loc1 + 'sumsingle'+ftype+'.tex'       , loc2 + 'NVSSBinaryMain.tex'       ,
+loc2 + 'NVSSBinaryEducAge.tex'        , loc2 + 'ART2024.tex'              ,
 loc2 + 'NVSSQualityMain.tex'          ]
           
 i = 1
@@ -767,29 +770,50 @@ loctw = './../results/nvss/regressions/'
 spain = './../results/spain/regressions/'
 final = open(TAB + ftype + 'AppendixTables.tex', 'w')
 
-TABLES = [loc2 +'NVSSBinaryBord2.tex'        ,
-          loc2 +'NVSSBinaryTwin.tex'         ,
-          loc2 +'NVSSBinaryFDeaths.tex'      , 
-          loc2 +'NVSSBinaryMain_A.tex'       , 
-          loc2 +'NVSSBinaryMain_A2.tex'      , 
-          loc2 +'NVSSBinaryNoSep.tex'        , 
-          loc2 +'NVSSQualityBord2.tex'       ,
-          loc2 +'NVSSQualityTwin.tex'        , 
-          loc2 +'NVSSQualityFDeaths.tex'     , 
-          loc1 +'sumStatsSpain.tex'          ,
-          loc1 +'sumSpain.tex'               ,
-          loc3 +'spainBinary.tex'            , 
-          loc3 +'spainQualityEduc.tex'       ,
-          spain+'spainBinaryLForce.tex'
-]
+if ftype == 'nvss':
+    TABLES = [loc2 +'NVSSBinaryBord2.tex'        ,
+              loc2 +'NVSSBinaryTwin.tex'         ,
+              loc2 +'NVSSBinaryFDeaths.tex'      , 
+              loc2 +'NVSSBinaryMain_A.tex'       , 
+              loc2 +'NVSSBinaryNoSep.tex'        , 
+              loc2 +'NVSSQualityBord2.tex'       ,
+              loc2 +'NVSSQualityTwin.tex'        , 
+              loc2 +'NVSSQualityFDeaths.tex'     , 
+              loc1 +'sumStatsSpain.tex'          ,
+              loc1 +'sumSpain.tex'               ,
+              loc3 +'spainBinary.tex'            , 
+              loc3 +'spainQualityEduc.tex'       ,
+              spain+'spainBinaryLForce.tex'
+              ]
 
-i = 1
-for table in TABLES:
-    if i==3 or i==10 or i==11:
-        final.write('\\input{'
-                    +table+'}\n')
-    else:
-        final.write('\\begin{landscape}\n\\input{'
-                    +table+'}\n\\end{landscape}\n')
-    i = i+1
+    i = 1
+    for table in TABLES:
+        if i==3 or i==9 or i==10:
+            final.write('\\input{'
+                        +table+'}\n')
+        else:
+            final.write('\\begin{landscape}\n\\input{'
+                        +table+'}\n\\end{landscape}\n')
+        i = i+1
+elif ftype == 'nvssall':
+    TABLES = [loc2 +'NVSSBinaryBord2.tex'        ,
+              loc2 +'NVSSBinaryTwin.tex'         ,
+              loc2 +'NVSSBinaryFDeaths.tex'      , 
+              loc2 +'NVSSBinaryMain_A.tex'       , 
+              loc2 +'NVSSBinaryNoSep.tex'        , 
+              loc2 +'NVSSQualityBord2.tex'       ,
+              loc2 +'NVSSQualityTwin.tex'        , 
+              loc2 +'NVSSQualityFDeaths.tex'     , 
+              ]
+
+    i = 1
+    for table in TABLES:
+        if i==3:
+            final.write('\\input{'
+                        +table+'}\n')
+        else:
+            final.write('\\begin{landscape}\n\\input{'
+                        +table+'}\n\\end{landscape}\n')
+        i = i+1
+
 final.close()

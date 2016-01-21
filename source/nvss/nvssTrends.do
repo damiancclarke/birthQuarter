@@ -41,7 +41,7 @@ local keepif  birthOrder == 1 & motherAge > 24 & motherAge<=45
 local twins   0
 if `twins' == 1 local app twins
 
-
+/*
 ********************************************************************************
 *** (2a) Use, descriptive graph
 ********************************************************************************
@@ -1052,7 +1052,7 @@ foreach s of local snam {
     #delimit cr
     macro shift
 }
-
+*/
 insheet using "$USW/usaWeather.txt", delim(";") names clear
 destring temp, replace
 
@@ -1119,7 +1119,7 @@ foreach num of numlist 3 5 {
             legend(off) lpattern(dash)
     graph export "$OUT/`age'TempMean.eps", as(eps) replace
 }
-
+exit
 drop state
 rename bstate state
 merge m:1 state using "$DAT/../maps/state_database_clean"
