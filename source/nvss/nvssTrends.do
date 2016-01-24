@@ -31,6 +31,7 @@ global OUT "~/investigacion/2015/birthQuarter/results/`f'/graphs"
 global SUM "~/investigacion/2015/birthQuarter/results/`f'/sumStats"
 global LOG "~/investigacion/2015/birthQuarter/log"
 global USW "~/investigacion/2015/birthQuarter/data/weather"
+global RAW "~/database/NVSS/Births/dta"
 
 log using "$LOG/nvssTrends.txt", text replace
 cap mkdir "$SUM"
@@ -47,7 +48,7 @@ if `twins' == 1 local app twins
 ********************************************************************************
 use "$DAT/`data'"
 keep if birthOrder==1
-/*
+
 preserve
 if `allobs'==0 keep if married==1
 #delimit ;
@@ -62,9 +63,9 @@ twoway hist motherAge if motherAge>24&motherAge<=45, freq color(gs0) width(1) ||
                                         #delimit cr
 graph export "$OUT/ageDescriptive.eps", as(eps) replace
 restore
-*/
+
 keep if twin<3
-/*
+
 preserve
 keep if `keepif'
 if `allobs'==0 keep if married==1
@@ -94,7 +95,7 @@ bar(4, bcolor(ltblue)) scheme(s1mono) ytitle("Proportion ART");
 graph export "$OUT/ARTageGroup.eps", as(eps) replace;
 #delimit cr
 restore
-*/
+
 ********************************************************************************
 *** (2aii) Summary stats table
 ********************************************************************************
@@ -1052,7 +1053,7 @@ foreach s of local snam {
     #delimit cr
     macro shift
 }
-*/
+
 insheet using "$USW/usaWeather.txt", delim(";") names clear
 destring temp, replace
 
@@ -1139,6 +1140,92 @@ legend(symy(*2) symx(*2) size(*2.1) position(4) rowgap(1)) legstyle(2);
 graph export "$OUT/maps/oldGoodSeason.eps", replace as(eps);
 #delimit cr
 
+*/
+
+************************************************************************************
+*** (9) Evolution
+************************************************************************************
+local tfiles
+foreach y of numlist 1968(1)2013 {
+    use "$RAW/natl`y'", clear
+    tempfile f`y'
+    if `y'<2003 rename dlivord lbo
+    if `y'==2003 {
+        drop mrace
+        rename mracerec mrace
+        rename umagerpt dmage
+        rename dob_mm birmon
+    }
+    if `y'>2003 {
+        drop mrace
+        rename mracerec mrace
+        rename mager dmage
+        rename dob_mm birmon
+    }
+    keep if lbo==1&mrace==1&dmage>=25&dmage<=45
+    gen goodSeason = birmon>3 & birmon<=9
+    collapse goodSeason (semean) se=goodSeason
+    save `f`y''
+        
+    use "$RAW/natl`y'", clear
+    if `y'<2003 rename dlivord lbo
+    if `y'==2003 {
+        drop mrace
+        rename mracerec mrace
+        rename umagerpt dmage
+        rename dob_mm birmon
+    }
+    if `y'>2003 {
+        drop mrace
+        rename mracerec mrace
+        rename mager dmage
+        rename dob_mm birmon
+    }
+
+    keep if lbo==1&mrace==1&dmage>=25&dmage<=45
+    gen goodSeason = birmon>3 & birmon<=9
+    gen     ageGroup = 1 if dmage>=25&dmage<28
+    replace ageGroup = 2 if dmage>=28&dmage<32
+    replace ageGroup = 3 if dmage>=32&dmage<40
+    replace ageGroup = 4 if dmage>=40&dmage<46
+    collapse goodSeason (semean) se=goodSeason, by(ageGroup)
+    append using `f`y''
+    gen year = `y'
+    save `f`y'', replace
+
+    list
+    local tfiles `tfiles' `f`y''
+}
+clear
+append using `tfiles'
+gen lbound = goodSeason - 1.96*se
+gen ubound = goodSeason + 1.96*se
+
+local l1 lcolor(black) msymbol(o)  mcolor(black)
+local l2 lcolor(black) msymbol(Dh) mcolor(black)
+local l3 lcolor(black) msymbol(Th) mcolor(black)
+local l4 lcolor(black) msymbol(s)  mcolor(black)
+
+#delimit;
+twoway line goodSeason year if ageGroup==., lcolor(black) lwidth(thick) ||
+       rcap ubound lbound year if ageGroup==., lcolor(black)
+   ytitle("Proportion Good Season of Birth") xtitle("Year") scheme(s1mono);
+graph export "$OUT/longRun.eps";
+
+twoway connected goodSeason year if ageGroup==1, `l1'          ||
+twoway connected goodSeason year if ageGroup==2, `l2'          ||
+twoway connected goodSeason year if ageGroup==3, `l3'          ||
+twoway connected goodSeason year if ageGroup==4, `l4'          ||
+         rcap ubound lbound year if ageGroup==1, lcolor(black) ||
+         rcap ubound lbound year if ageGroup==2, lcolor(black) ||
+         rcap ubound lbound year if ageGroup==3, lcolor(black) ||
+         rcap ubound lbound year if ageGroup==4, lcolor(black) ||
+   ytitle("Proportion Good Season of Birth") xtitle("Year") scheme(s1mono)
+   legend(order(1 "25-27" 2 "28-31" 3 "32-39" 4 "40-45"), title("Mother's Age"));
+graph export "$OUT/longRunAges.eps";
+
+
+#delimit cr
 
 
 ************************************************************************************
