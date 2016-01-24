@@ -1153,7 +1153,7 @@ foreach y of numlist 1968(1)2013 {
     if `y'==2003 {
         drop mrace
         rename mracerec mrace
-        rename umagerpt dmage
+        gen dmage = mager41 + 13
         rename dob_mm birmon
     }
     if `y'>2003 {
@@ -1172,7 +1172,7 @@ foreach y of numlist 1968(1)2013 {
     if `y'==2003 {
         drop mrace
         rename mracerec mrace
-        rename umagerpt dmage
+        gen dmage = mager41 + 13
         rename dob_mm birmon
     }
     if `y'>2003 {
@@ -1200,6 +1200,8 @@ clear
 append using `tfiles'
 gen lbound = goodSeason - 1.96*se
 gen ubound = goodSeason + 1.96*se
+save "$DAT/proportionTime", replace
+use "$DAT/proportionTime", clear
 
 local l1 lcolor(black) msymbol(o)  mcolor(black)
 local l2 lcolor(black) msymbol(Dh) mcolor(black)
@@ -1207,15 +1209,16 @@ local l3 lcolor(black) msymbol(Th) mcolor(black)
 local l4 lcolor(black) msymbol(s)  mcolor(black)
 
 #delimit;
-twoway line goodSeason year if ageGroup==., lcolor(black) lwidth(thick) ||
-       rcap ubound lbound year if ageGroup==., lcolor(black)
-   ytitle("Proportion Good Season of Birth") xtitle("Year") scheme(s1mono);
+twoway line goodSeason year if ageGroup==., lcolor(black) ||
+    rcap ubound lbound year if ageGroup==., lcolor(black)
+   ytitle("Proportion Good Season of Birth") xtitle("Year") scheme(s1mono)
+   yline(0.50, lpattern(dash));
 graph export "$OUT/longRun.eps";
 
 twoway connected goodSeason year if ageGroup==1, `l1'          ||
-twoway connected goodSeason year if ageGroup==2, `l2'          ||
-twoway connected goodSeason year if ageGroup==3, `l3'          ||
-twoway connected goodSeason year if ageGroup==4, `l4'          ||
+       connected goodSeason year if ageGroup==2, `l2'          ||
+       connected goodSeason year if ageGroup==3, `l3'          ||
+       connected goodSeason year if ageGroup==4, `l4'          ||
          rcap ubound lbound year if ageGroup==1, lcolor(black) ||
          rcap ubound lbound year if ageGroup==2, lcolor(black) ||
          rcap ubound lbound year if ageGroup==3, lcolor(black) ||
