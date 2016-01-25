@@ -113,6 +113,7 @@ expand 2 if fips == 24, gen(expanded)
 replace fips = 11 if expanded==1
 replace state= "Washington DC" if expanded==1
 drop expanded
+keep if year>1997&year<=1999
 
 destring temp, replace
 reshape wide temp, i(state fips year month) j(type) string
@@ -146,7 +147,7 @@ foreach sname of local snam {
     replace stateabbrev="`1'" if state=="`sname'"
     macro shift
 }
-collapse meanT (min) cold (max) hot, by(state fips year birthQuarter stateabb)
+collapse meanT (min) cold (max) hot, by(state fips stateabb)
 rename state stateTemp
 rename fips  fipsTemp
 
@@ -154,15 +155,15 @@ tempfile temperature
 save `temperature'
 restore
 
-merge m:1 stateabbrev year birthQuarter using `temperature'
-** All except for 202 observations merge from IPUMS data.
-** 202 obs are from Hawaii, where no temperature data, so _merge==1
+merge m:1 stateabbrev using `temperature'
+** All except for 208 observations merge from IPUMS data.
+** 208 obs are from Hawaii, where no temperature data, so _merge==1
 ** Observations with _merge==2 is because temperature data goes back a long way
 drop if _merge==2
 drop _merge
 
 ********************************************************************************
-*** (5) Import occupation data (codes from Blau files)
+*** (5) Import occupation data (codes from Goldin files)
 ********************************************************************************
 #delimit ;
 local l1 " `"Management, Professional and Related Occupations"'
@@ -191,7 +192,7 @@ local l2 " `"Management Occupations"' `"Business Operations Specialists"'
            `"Installation, Maintenance, and Repair Workers"'
            `"Production Occupations"'
            `"Transportation and Material Moving Occupations"'
-           `"Military Specific Occupations"'";
+           `"Military Specific Occupations"' `"Unemployed"' ";
 local n2   occ2010>0&occ2010<=430      occ2010>=500&occ2010<=730
            occ2010>=800&occ2010<=950   occ2010>=1000&occ2010<=1240
            occ2010>=1300&occ2010<=1560 occ2010>=1600&occ2010<=1960
@@ -204,7 +205,7 @@ local n2   occ2010>0&occ2010<=430      occ2010>=500&occ2010<=730
            occ2010>=6000&occ2010<=6130 occ2010>=6200&occ2010<=6765
            occ2010>=6800&occ2010<=6940 occ2010>=7000&occ2010<=7630
            occ2010>=7700&occ2010<=8965 occ2010>=9000&occ2010<=9750
-           occ2010>=9800&occ2010<=9920;
+           occ2010>=9800&occ2010<9920  occ2010==9920;
 #delimit cr
 
 gen oneLevelOcc = "" 
@@ -271,9 +272,9 @@ lab var stateabbrev  "State code (two letters)"
 lab var unemployment "Unemployment rate in quarter of conception"
 lab var stateTemp    "State names from temperature data"
 lab var fipsTemp     "FIPS codes (current) from temperature data"
-lab var meanT        "Average monthly temperature in quarter of birth"
-lab var cold         "Coldest monthly temperature in state in quarter of birth"
-lab var hot          "Warmest monthly temperature in state in quarter of birth"
+lab var meanT        "Average monthly temperature in state"
+lab var cold         "Coldest monthly temperature in state"
+lab var hot          "Warmest monthly temperature in state"
 lab var GoldinClass  "Occupation grouping from Goldin (2014)"
 
 
