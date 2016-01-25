@@ -1162,8 +1162,9 @@ foreach y of numlist 1968(1)2013 {
         rename mager dmage
         rename dob_mm birmon
     }
+    tab birmon
     keep if lbo==1&mrace==1&dmage>=25&dmage<=45
-    gen goodSeason = birmon>3 & birmon<=9
+    qui gen goodSeason = birmon>3 & birmon<=9
     collapse goodSeason (semean) se=goodSeason
     save `f`y''
         
@@ -1183,14 +1184,14 @@ foreach y of numlist 1968(1)2013 {
     }
 
     keep if lbo==1&mrace==1&dmage>=25&dmage<=45
-    gen goodSeason = birmon>3 & birmon<=9
-    gen     ageGroup = 1 if dmage>=25&dmage<28
-    replace ageGroup = 2 if dmage>=28&dmage<32
-    replace ageGroup = 3 if dmage>=32&dmage<40
-    replace ageGroup = 4 if dmage>=40&dmage<46
+    qui gen goodSeason = birmon>3 & birmon<=9
+    qui gen     ageGroup = 1 if dmage>=25&dmage<28
+    qui replace ageGroup = 2 if dmage>=28&dmage<32
+    qui replace ageGroup = 3 if dmage>=32&dmage<40
+    qui replace ageGroup = 4 if dmage>=40&dmage<46
     collapse goodSeason (semean) se=goodSeason, by(ageGroup)
     append using `f`y''
-    gen year = `y'
+    qui gen year = `y'
     save `f`y'', replace
 
     list
@@ -1213,8 +1214,22 @@ twoway line goodSeason year if ageGroup==., lcolor(black) ||
     rcap ubound lbound year if ageGroup==., lcolor(black)
    ytitle("Proportion Good Season of Birth") xtitle("Year") scheme(s1mono)
    yline(0.50, lpattern(dash));
-graph export "$OUT/longRun.eps";
+graph export "$OUT/longRun.eps", as(eps) replace;
+#delimit cr
 
+local ages 25-27 28-31 32-39 40-45
+tokenize `ages'
+foreach num of numlist 1 2 3 4 {
+    #delimit;
+    twoway line goodSeason year if ageGroup==`num', lcolor(black) ||
+        rcap ubound lbound year if ageGroup==`num', lcolor(black)
+        ytitle("Proportion Good Season of Birth") xtitle("Year") scheme(s1mono)
+        yline(0.50, lpattern(dash));
+    graph export "$OUT/longRun_``num''.eps", as(eps) replace;
+    #delimit cr
+}
+
+#delimit;
 twoway connected goodSeason year if ageGroup==1, `l1'          ||
        connected goodSeason year if ageGroup==2, `l2'          ||
        connected goodSeason year if ageGroup==3, `l3'          ||
@@ -1222,10 +1237,10 @@ twoway connected goodSeason year if ageGroup==1, `l1'          ||
          rcap ubound lbound year if ageGroup==1, lcolor(black) ||
          rcap ubound lbound year if ageGroup==2, lcolor(black) ||
          rcap ubound lbound year if ageGroup==3, lcolor(black) ||
-         rcap ubound lbound year if ageGroup==4, lcolor(black) ||
+         rcap ubound lbound year if ageGroup==4, lcolor(black) 
    ytitle("Proportion Good Season of Birth") xtitle("Year") scheme(s1mono)
-   legend(order(1 "25-27" 2 "28-31" 3 "32-39" 4 "40-45"), title("Mother's Age"));
-graph export "$OUT/longRunAges.eps";
+   legend(order(1 "25-27" 2 "28-31" 3 "32-39" 4 "40-45") title("Mother's Age"));
+graph export "$OUT/longRunAges.eps", as(eps) replace;
 
 
 #delimit cr
