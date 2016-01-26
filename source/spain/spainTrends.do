@@ -85,7 +85,7 @@ foreach st in Mum Kid MumPart {
     restore
 }
 
-
+keep if married == 1
 ********************************************************************************
 *** (2c) Good season table
 ********************************************************************************
@@ -209,9 +209,157 @@ esttab using "$SUM/spainPrem.tex", title("Premature")/*
 */ cells("mean(fmt(2)) sd(fmt(2))") replace label noobs
 drop _p*
 
-exit
+
 ********************************************************************************
-*** (3) Summary stats
+*** (3) Good Season Figure by month
+********************************************************************************
+gen youngBeta = .
+gen youngHigh = .
+gen youngLoww = .
+gen youngMont = .
+
+generat Xvar = 1 if motherAge>=28&motherAge<=31
+replace Xvar = 0 if motherAge>=40&motherAge<=45
+
+foreach num of numlist 1(1)12 {
+    gen month`num' = conceptionMonth == `num'
+    qui reg month`num' Xvar
+    replace youngBeta = _b[Xvar] in `num'
+    replace youngHigh = _b[Xvar] + 1.96*_se[Xvar] in `num'
+    replace youngLoww = _b[Xvar] - 1.96*_se[Xvar] in `num'
+    replace youngMont = `num' in `num'
+}
+lab def Month   1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun"  /*
+             */ 7 "Jul" 8 "Aug" 9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec"
+lab def seasn   0 "Q2 or Q3 (Good)" 1 "Q1 or Q4 (Bad)"
+lab val youngMont Month
+lab val conceptionMonth Month
+lab val goodQuarter seasn
+
+#delimit ;
+twoway line youngBeta youngMont || rcap youngLoww youngHigh youngMont,
+scheme(s1mono) yline(0, lpattern(dash) lcolor(red)) ytitle("Young-Old")
+xaxis(1 2) xtitle("Month of Conception", axis(2))
+xlabel(1(1)12, valuelabels axis(2)) legend(order(1 "Young-Old" 2 "95% CI"))
+xlabel(1 "Oct" 2 "Nov" 3 "Dec" 4 "Jan" 5 "Feb" 6 "Mar" 7 "Apr" 8 "May"
+        9 "Jun" 10 "Jul" 11 "Aug" 12 "Sep", axis(1)) xtitle("Expected Month");
+graph export "$OUT/youngMonths.eps", as(eps) replace;
+#delimit cr
+
+********************************************************************************
+*** (4) Graph of good season by age
+********************************************************************************
+keep if motherAge>=25&motherAge<=45
+
+tab motherAge, gen(_age)
+reg goodQuarter _age1-_age15
+reg expectGoodQ _age1-_age15
+
+gen ageES = .
+gen ageLB = .
+gen ageUB = .
+gen ageNM = .
+foreach num of numlist 1(1)15 {
+    replace ageES = _b[_age`num']                     in `num'
+    replace ageLB = _b[_age`num']-1.96*_se[_age`num'] in `num'
+    replace ageUB = _b[_age`num']+1.96*_se[_age`num'] in `num'
+    replace ageNM = `num'+24                          in `num'
+}
+
+#delimit ;
+twoway line ageES ageNM in 1/15, lpattern(solid) lcolor(black) lwidth(medthick)
+|| line ageLB ageNM in 1/15, lpattern(dash)  lcolor(black) lwidth(medium)
+|| line ageUB ageNM in 1/15, lpattern(dash)  lcolor(black) lwidth(medium) ||
+    scatter ageES ageNM in 1/15, mcolor(black) m(S)
+scheme(s1mono) legend(order(1 "Point Estimate" 2 "95 % CI"))
+xlabel(25(1)39) xtitle("Mother's Age") ytitle("Proportion Good Season" " ");
+graph export "$OUT/goodSeasonAge.eps", as(eps) replace;
+#delimit cr
+
+
+********************************************************************************
+*** (5) Proportion of conceptions
+********************************************************************************
+preserve
+generat youngOld = 1 if motherAge>=25&motherAge<=31
+replace youngOld = 2 if motherAge>=40&motherAge<=45
+
+drop if youngOld==.|conceptionMonth==.
+
+collapse (sum) birth, by(conceptionMonth youngOld)
+lab val conceptionMonth Month
+bys youngOld: egen totalBirths = sum(birth)
+gen birthProportion = birth/totalBirths
+sort conceptionMonth youngOld
+
+local line1 lpattern(solid)    lcolor(black) lwidth(thick)
+local line2 lpattern(dash)     lcolor(black) lwidth(medium)
+
+#delimit ;
+twoway line birthProportion conceptionMonth if youngOld==1, `line1' ||
+    line birthProportion conceptionMonth if youngOld==2, `line2'
+xaxis(1 2) scheme(s1mono) xtitle("Month of Conception", axis(2))
+xlabel(1(1)12, valuelabels axis(2))
+xlabel(1 "Oct" 2 "Nov" 3 "Dec" 4 "Jan" 5 "Feb" 6 "Mar" 7 "Apr" 8 "May" 9 "Jun"
+       10 "Jul" 11 "Aug" 12 "Sep", axis(1)) xtitle("Expected Month")
+legend(label(1 "28-31 Year-olds") label(2 "40-45 Year-olds"))
+ytitle("Proportion of All Births");
+graph export "$OUT/conceptionMonth.eps", as(eps) replace;
+#delimit cr
+restore
+
+
+
+********************************************************************************
+*** (6) Proportion of conceptions by education
+********************************************************************************
+preserve
+generat youngOld = 1 if motherAge>=28&motherAge<=31
+replace youngOld = 2 if motherAge>=40&motherAge<=45
+keep if youngOld != .
+drop if educationM==0 | educationM==. | conceptionMonth==.
+
+generat educlevels = 1 if educationM<=4
+replace educlevels = 2 if educationM>4&educationM<7
+replace educlevels = 3 if educationM>=7
+
+collapse (sum) birth, by(conceptionMonth youngOld educlevels)
+lab val conceptionMonth Month
+bys educlevels youngOld: egen totalBirths = sum(birth)
+gen birthProportion = birth/totalBirths
+sort conceptionMonth
+
+local line1 lcolor(black) lpattern(dash) lwidth(thin)
+local line2 lcolor(black) lwidth(medium) lpattern(longdash)
+local line3 lcolor(black) lwidth(thick)
+
+#delimit ;
+twoway line birthProp conceptionM if educlevels==1&youngOld==1, `line1'
+|| line birthProp conceptionM if educlevels==2&youngOld==1, `line2'
+|| line birthProp conceptionM if educlevels==3&youngOld==1, `line3'
+xaxis(1 2) scheme(s1mono) xtitle("Month of Conception", axis(2))
+xlabel(1(1)12, valuelabels axis(2))
+xlabel(1 "Oct" 2 "Nov" 3 "Dec" 4 "Jan" 5 "Feb" 6 "Mar" 7 "Apr" 8 "May"
+       9 "Jun" 10 "Jul" 11 "Aug" 12 "Sep", axis(1)) xtitle("Expected Month")
+legend(lab(1 "Incomplete Highschool") lab(2 "Highschool,Incomplete College")
+       lab(3 "Complete College")) ytitle("Proportion of All Births");
+graph export "$OUT/conceptionMonthEducYoung.eps", as(eps) replace;
+
+twoway line birthProp conceptionM if educlevels==1&youngOld==2, `line1'
+|| line birthProp conceptionM if educlevels==2&youngOld==2, `line2'
+|| line birthProp conceptionM if educlevels==3&youngOld==2, `line3'
+xaxis(1 2) scheme(s1mono) xtitle("Month of Conception", axis(2))
+xlabel(1(1)12, valuelabels axis(2))
+xlabel(1 "Oct" 2 "Nov" 3 "Dec" 4 "Jan" 5 "Feb" 6 "Mar" 7 "Apr" 8 "May"
+       9 "Jun" 10 "Jul" 11 "Aug" 12 "Sep", axis(1)) xtitle("Expected Month")
+legend(lab(1 "Incomplete Highschool") lab(2 "Highschool,Incomplete College")
+       lab(3 "Complete College")) ytitle("Proportion of All Births");
+graph export "$OUT/conceptionMonthEducOld.eps", as(eps) replace;
+#delimit cr
+restore
+
+********************************************************************************
+*** (7) Weather plots
 ********************************************************************************
 preserve
 collapse goodQuarter cold hot meanTemp,  by(id name young)
@@ -242,40 +390,66 @@ foreach num of numlist 0 1 {
 restore
     
 
-    
 ********************************************************************************
-*** (4) Good Season by month
+*** (8) Age Histogram
 ********************************************************************************
-gen youngBeta = .
-gen youngHigh = .
-gen youngLoww = .
-gen youngMont = .
-foreach num of numlist 1(1)12 {
-    gen month`num' = monthBirth == `num'
-    qui reg month`num' young
-    replace youngBeta = _b[young] in `num'
-    replace youngHigh = _b[young] + 1.96*_se[young] in `num'
-    replace youngLoww = _b[young] - 1.96*_se[young] in `num'
-    replace youngMont = `num' in `num'
-}
-lab def Month   1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun"  /*
-             */ 7 "Jul" 8 "Aug" 9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec"
-lab def seasn   0 "Q2 or Q3 (Good)" 1 "Q1 or Q4 (Bad)"
-lab val youngMont Month
-lab val monthBirth Month
-lab val goodQuarter seasn
+preserve
+cap drop ageG2
+gen ageG2 = motherAge>=20 & motherAge<25
+replace ageG2 = 2 if motherAge>=25 & motherAge<28
+replace ageG2 = 3 if motherAge>=28 & motherAge<32
+replace ageG2 = 4 if motherAge>=32 & motherAge<40
+replace ageG2 = 5 if motherAge>=40 & motherAge<46
 
+replace educLevel = educLevel + 1
+replace educLevel = 2 if educLevel == 3
+cap drop birth
+gen birth = 1
+
+collapse (sum) birth, by(goodQuarter ageG2)
+drop if goodQuarter == .
+reshape wide birth, i(ageG2) j(goodQuarter)
+gen totalbirths = birth0 + birth1
+replace birth0=(round(10000*birth0/totalbirths)/100)-50
+replace birth1=(round(10000*birth1/totalbirths)/100)-50
+keep birth1 ageG2
+replace birth1=birth1*2
+list
+lab def       aG4 1 "20-24" 2 "25-27" 3 "28-31" 4 "35-39" 5 "40-45"
+lab val ageG2 aG4
+
+
+                                        #delimit ;
+graph bar birth1, over(ageG2)  ylabel(, nogrid) yline(0, lpattern("_"))
+bar(1, bcolor(ltblue)) bar(2, bcolor(ltblue)) bar(3, bcolor(ltblue))
+bar(4, bcolor(ltblue)) scheme(s1mono) ytitle("% Good Season - % Bad Season");
+graph export "$OUT/birthQdiff_4Ages`app'.eps", as(eps) replace;
+                                        #delimit cr
+restore
+
+********************************************************************************
+*** (9) Prematurity histogram
+********************************************************************************
+preserve
+cap drop ageG2
+gen ageG2 = motherAge>=20 & motherAge<46
+replace ageG2 = 2 if motherAge>=25 & motherAge<28
+replace ageG2 = 3 if motherAge>=28 & motherAge<32
+replace ageG2 = 4 if motherAge>=32 & motherAge<40
+replace ageG2 = 5 if motherAge>=40 & motherAge<46
+keep if motherAge>=20&motherAge<=45
+collapse premature, by(ageG2)
 #delimit ;
-twoway line youngBeta youngMont || rcap youngLoww youngHigh youngMont,
-scheme(s1mono) yline(0, lpattern(dash) lcolor(red))  xtitle("Month")
-legend(order(1 "Young-Old" 2 "95% CI")) xlabel(1(1)12, valuelabels)
-ytitle("Young-Old");
-graph export "$OUT/youngMonths.eps", as(eps) replace;
+graph bar premature, ylabel(0.03(0.01)0.09, nogrid) exclude0
+over(ageG2, relabel(1 "20-24" 2 "25-27" 3 "28-31" 4 "32-39" 5 "40-45"))
+bar(1, bcolor(gs0)) bar(2, bcolor(gs0)) bar(3, bcolor(gs0))
+scheme(s1mono) ytitle("% Premature");
+graph export "$OUT/prematureAges.eps", as(eps) replace;
 #delimit cr
-
+restore
 
 ********************************************************************************
-*** (5) Prematurity
+*** (10) Other Prematurity
 ********************************************************************************
 #delimit ;
 hist gestat if gestat>24, frac scheme(s1mono) xtitle("Weeks of Gestation")
