@@ -21,8 +21,8 @@ print('\n\n Producing tex files for output tables.\n\n')
 #==============================================================================
 #== (1a) File names (comes from Stata do files)
 #==============================================================================
-RES   = "/home/damiancclarke/investigacion/2015/birthQuarter/results/"
-TAB   = "/home/damiancclarke/investigacion/2015/birthQuarter/tables/"
+RES   = "/home/damian/investigacion/2015/birthQuarter/results/"
+TAB   = "/home/damian/investigacion/2015/birthQuarter/tables/"
 ftype = 'nvss'
 dloc  = './../'
 
@@ -52,8 +52,12 @@ MumPNVSS2= RES + ftype + '/sumStats/sampMumPart.tex'
 KidNVSS2 = RES + ftype + '/sumStats/sampKid.tex'
 
 
-MumSpain = RES + 'spain' + '/sumStats/SpainsumM.tex'
-KidSpain = RES + 'spain' + '/sumStats/SpainsumK.tex'
+MumSpain  = RES + 'spain' + '/sumStats/SpainMum.tex'
+MumPSpain = RES + 'spain' + '/sumStats/SpainMumPart.tex'
+KidSpain  = RES + 'spain' + '/sumStats/SpainKid.tex'
+MumSpain2 = RES + 'spain' + '/sumStats/SpainSmpMum.tex'
+MumPSpain2= RES + 'spain' + '/sumStats/SpainSmpMumPart.tex'
+KidSpain2 = RES + 'spain' + '/sumStats/SpainSmpKid.tex'
 
 NVSSGoodE =  RES + ftype + '/regressions/NVSSBinaryExpectGood.tex'
 NVSSBadE  =  RES + ftype + '/regressions/NVSSBinaryExpectBad.tex'
@@ -123,12 +127,12 @@ for parity in ['single']:
                "\\begin{footnotesize}\\end{footnotesize}\\\\ \n")
     
     sumT.write(NV[1]+'\\\\ \n'+NV[2]+'\\\\ \n'+NV[3]+'\\\\ \n'
-               +NV[4]+'\\\\ \n'+NV[5]+'\\\\ \n &&&& \\\\'
+               +NV[4]+'\\\\ \n'+NV[5]+'\\\\ \n &&&&&& \\\\'
                "\multicolumn{7}{l}{\\textsc{Panel B: By Education}}\\\\"
                "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
                "\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
                NVj[1]+'\\\\ \n'+
-               NVj[2]+'\\\\ \n &&&& \\\\'
+               NVj[2]+'\\\\ \n &&&&&& \\\\'
                ##"\multicolumn{7}{l}{\\textsc{Panel C: By Age and Education}}\\\\"
                ##"\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
                ##"\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
@@ -169,8 +173,8 @@ sumT.write("\\begin{table}[htpb!]"
            "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*5+
            "\\begin{footnotesize}\\end{footnotesize}\\\\ \n")
     
-sumT.write(NV[1]+'\\\\ \n'
-           +NV[2]+'\\\\ \n &&&&& \\\\'
+sumT.write(NV[1]+'\\\\ \n'+NV[2]+'\\\\ \n'+NV[3]+'\\\\ \n'
+           +NV[4]+'\\\\ \n'+NV[5]+'\\\\ \n &&&&& \\\\'
            "\multicolumn{6}{l}{\\textsc{Panel B: By Education}}\\\\"
            "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*5+
            "\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
@@ -187,10 +191,10 @@ sumT.write(NV[1]+'\\\\ \n'
     
     
 sumT.write('\n'+mr+mc1+twid[5]+tcm[5]+mc3+
-           "Good season refers to birth quarters 2 and 3 (Apr-Jun and "
-           "Jul-Sept).  Bad season refers to quarters 1 and 4 (Jan-Mar "
-           "and Oct-Dec).  `Young' refers to 25-39 year olds,"
-           " `Old' refers to 40-45 year olds. \n"
+           "Good season refers to birth quarters 2 and 3 (Apr-Jun and    "
+           "Jul-Sept).  Bad season refers to quarters 1 and 4 (Jan-Mar   "
+           "and Oct-Dec).  Values reflect the percent of yearly births   "
+           "each season from 2007-2013.\n"
            "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}"
            "\\end{center}\\end{table}")
     
@@ -339,38 +343,86 @@ sumT.write('\n'+mr+mc1+twid[1]+tcm[1]+mc3+
            "\\end{table}")
 sumT.close()
 
-
 #==============================================================================
 #== (3b) Basic Sum stats (Spain)
 #==============================================================================
 sumT = open(TAB + 'sumStatsSpain.tex', 'w')
 sumT.write('\\begin{table}[htpb!] \n \\begin{center} \n' 
-'\\caption{Descriptive Statistics (Spain 2013)}\n '
-'\\label{bqTab:SumStatsSpain}'
-'\\begin{tabular}{lccccc} '
-'\n \\toprule\\toprule \\vspace{5mm} \n'
-'& N & Mean & Std. Dev. & Min. & Max. \\\\ \\midrule \n'
-'\multicolumn{6}{l}{\\textbf{Panel A: Mother}} \\\\ \n')
+           '\\caption{Descriptive Statistics All Ages (Spain 2007-2013)}\n '
+           '\\label{bqTab:SumStatsSpain}'
+           '\\begin{tabular}{lccccc} '
+           '\n \\toprule\\toprule \\vspace{5mm} \n'
+           '& N & Mean & Std. Dev. & Min. & Max. \\\\ \\midrule \n'
+           '\multicolumn{6}{l}{\\textbf{Panel A: Mother}} \\\\ \n')
 
 Mu  = open(MumSpain,  'r').readlines()
+MP  = open(MumPSpain, 'r').readlines()
 Ki  = open(KidSpain,  'r').readlines()
 
 for i,line in enumerate(Mu):
-    if i>8 and i<15:
+    if i>8 and i<17:
         line = line.replace('\\hline','\\midrule')
+        sumT.write(line)
+for i,line in enumerate(MP):
+    if i>8 and i<11:
+        line = line.replace('\\hline','\\midrule')
+        line = line.replace('At least some college','Some College +')
         sumT.write(line)
 
 sumT.write(' \n \\multicolumn{6}{l}{\\textbf{Panel B: Child}}\\\\ \n ')
 for i,line in enumerate(Ki):
-    if i>8 and i<17:
+    if i>8 and i<16:
         line = line.replace('\\hline','\\midrule')
         line = line.replace('Quarter','season of birth')
         sumT.write(line)
 
 sumT.write('\n'+mr+mc1+twid[1]+tcm[1]+mc3+
-           "Sample consists of all singleton first-born children of Spanish   "
-           "mothers. Good season refers to birth quarters 2 and 3 (Apr-Jun and"
-           " Jul-Sept)."
+           "Each sample consists of all first-born children born to Spanish "
+           "mothers of any age ocurring in the Spanish birth register. Good "
+           " season refers to birth quarters 2 and 3 (Apr-Jun and Jul-Sept)."
+           "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}\\end{center}"
+           "\\end{table}")
+sumT.close()
+
+
+sumT = open(TAB + 'sumStatsSampSpain.tex', 'w')
+sumT.write('\\begin{table}[htpb!] \n \\begin{center} \n' 
+           '\\caption{Descriptive Statistics Main Sample (Spain 2007-2013)}\n '
+           '\\label{bqTab:SumStatsMainSpain}'
+           '\\begin{tabular}{lccccc} '
+           '\n \\toprule\\toprule \\vspace{5mm} \n'
+           '& N & Mean & Std. Dev. & Min. & Max. \\\\ \\midrule \n'
+           '\multicolumn{6}{l}{\\textbf{Panel A: Mother}} \\\\ \n')
+
+Mu2  = open(MumSpain2,  'r').readlines()
+MP2  = open(MumPSpain2, 'r').readlines()
+Ki2  = open(KidSpain2,  'r').readlines()
+
+for i,line in enumerate(Mu2):
+    if i>8 and i<12:
+        line = line.replace('\\hline','\\midrule')
+        sumT.write(line)
+    if i>12 and i<17:
+        line = line.replace('\\hline','\\midrule')
+        sumT.write(line)
+for i,line in enumerate(MP2):
+    if i>8 and i<11:
+        line = line.replace('\\hline','\\midrule')
+        line = line.replace('At least some college','Some College +')
+        sumT.write(line)
+
+sumT.write(' \n \\multicolumn{6}{l}{\\textbf{Panel B: Child}}\\\\ \n ')
+for i,line in enumerate(Ki2):
+    if i>8 and i<16:
+        line = line.replace('\\hline','\\midrule')
+        line = line.replace('Quarter','season of birth')
+        sumT.write(line)
+
+sumT.write('\n'+mr+mc1+twid[1]+tcm[1]+mc3+
+           "Each sample consists of all first-born children born to married   "
+           "Spanish mothers aged between 25-45.  This is the main estimation  "
+           "sample. Good season refers to birth quarters 2 and 3              "
+           " (Apr-Jun and Jul-Sept)."
            "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}\\end{center}"
            "\\end{table}")
 sumT.close()
@@ -766,50 +818,45 @@ loctw = './../results/nvss/regressions/'
 spain = './../results/spain/regressions/'
 final = open(TAB + ftype + 'AppendixTables.tex', 'w')
 
-if ftype == 'nvss':
-    TABLES = [loc2 +'NVSSBinaryBord2.tex'        ,
-              loc2 +'NVSSBinaryTwin.tex'         ,
-              loc2 +'NVSSBinaryFDeaths.tex'      , 
-              loc2 +'NVSSBinaryMain_A.tex'       , 
-              loc2 +'NVSSBinaryNoSep.tex'        , 
-              loc2 +'NVSSQualityBord2.tex'       ,
-              loc2 +'NVSSQualityTwin.tex'        , 
-              loc2 +'NVSSQualityFDeaths.tex'     , 
-              loc1 +'sumStatsSpain.tex'          ,
-              loc1 +'sumSpain.tex'               ,
-              loc3 +'spainBinary.tex'            , 
-              loc3 +'spainQualityEduc.tex'       ,
-              spain+'spainBinaryLForce.tex'
-              ]
+TABLES = [loc2 +'NVSSBinaryBord2.tex'        ,
+          loc2 +'NVSSBinaryTwin.tex'         ,
+          loc2 +'NVSSBinaryFDeaths.tex'      , 
+          loc2 +'NVSSBinaryMain_A.tex'       , 
+          loc2 +'NVSSBinaryNoSep.tex'        , 
+          loc2 +'NVSSQualityBord2.tex'       ,
+          loc2 +'NVSSQualityTwin.tex'        , 
+          loc2 +'NVSSQualityFDeaths.tex'     ]
 
-    i = 1
-    for table in TABLES:
-        if i==3 or i==9 or i==10:
-            final.write('\\input{'
-                        +table+'}\n')
-        else:
-            final.write('\\begin{landscape}\n\\input{'
-                        +table+'}\n\\end{landscape}\n')
-        i = i+1
-elif ftype == 'nvssall':
-    TABLES = [loc2 +'NVSSBinaryBord2.tex'        ,
-              loc2 +'NVSSBinaryTwin.tex'         ,
-              loc2 +'NVSSBinaryFDeaths.tex'      , 
-              loc2 +'NVSSBinaryMain_A.tex'       , 
-              loc2 +'NVSSBinaryNoSep.tex'        , 
-              loc2 +'NVSSQualityBord2.tex'       ,
-              loc2 +'NVSSQualityTwin.tex'        , 
-              loc2 +'NVSSQualityFDeaths.tex'     , 
-              ]
+i = 1
+for table in TABLES:
+    if i==3:
+        final.write('\\input{'+table+'}\n')
+    else:
+        final.write('\\begin{landscape}\n\\input{'
+                    +table+'}\n\\end{landscape}\n')
+    i = i+1
 
-    i = 1
-    for table in TABLES:
-        if i==3:
-            final.write('\\input{'
-                        +table+'}\n')
-        else:
-            final.write('\\begin{landscape}\n\\input{'
-                        +table+'}\n\\end{landscape}\n')
-        i = i+1
+final.close()
 
+#==============================================================================
+#== (X) write SpainTables.tex file
+#==============================================================================
+final = open(TAB + 'SpainTables.tex', 'w')
+
+TABLES = [loc1 +'sumStatsSpain.tex'          ,
+          loc1 +'sumStatsSampSpain.tex'      ,
+          loc1 +'sumSpain.tex'               ,
+          loc3 +'spainBinary.tex'            , 
+          loc3 +'spainQualityEduc.tex'       ,
+          spain+'spainBinaryLForce.tex'      ]
+
+i = 1
+for table in TABLES:
+    if i==1 or i==2:
+        final.write('\\input{'
+                    +table+'}\n')
+    else:
+        final.write('\\begin{landscape}\n\\input{'
+                    +table+'}\n\\end{landscape}\n')
+    i = i+1
 final.close()
