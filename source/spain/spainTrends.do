@@ -249,6 +249,7 @@ graph export "$OUT/youngMonths.eps", as(eps) replace;
 ********************************************************************************
 *** (4) Graph of good season by age
 ********************************************************************************
+preserve
 keep if motherAge>=25&motherAge<=45
 
 tab motherAge, gen(_age)
@@ -276,11 +277,12 @@ xlabel(25(1)39) xtitle("Mother's Age") ytitle("Proportion Good Season" " ");
 graph export "$OUT/goodSeasonAge.eps", as(eps) replace;
 #delimit cr
 
-
+restore
 ********************************************************************************
 *** (5) Proportion of conceptions
 ********************************************************************************
 preserve
+keep if motherAge>=25&motherAge<=45
 generat youngOld = 1 if motherAge>=25&motherAge<=31
 replace youngOld = 2 if motherAge>=40&motherAge<=45
 
@@ -309,11 +311,11 @@ graph export "$OUT/conceptionMonth.eps", as(eps) replace;
 restore
 
 
-
 ********************************************************************************
 *** (6) Proportion of conceptions by education
 ********************************************************************************
 preserve
+keep if motherAge>=25&motherAge<=45
 generat youngOld = 1 if motherAge>=28&motherAge<=31
 replace youngOld = 2 if motherAge>=40&motherAge<=45
 keep if youngOld != .
@@ -362,6 +364,7 @@ restore
 *** (7) Weather plots
 ********************************************************************************
 preserve
+keep if motherAge>=25&motherAge<=45
 collapse goodQuarter cold hot meanTemp,  by(id name young)
 lab var goodQuarter "Proportion good season"
 lab var cold        "Coldest monthly average"
@@ -394,6 +397,7 @@ restore
 *** (8) Age Histogram
 ********************************************************************************
 preserve
+keep if motherAge>=20&motherAge<=45
 cap drop ageG2
 gen ageG2 = motherAge>=20 & motherAge<25
 replace ageG2 = 2 if motherAge>=25 & motherAge<28
@@ -431,6 +435,7 @@ restore
 *** (9) Prematurity histogram
 ********************************************************************************
 preserve
+keep if motherAge>=20&motherAge<=45
 cap drop ageG2
 gen ageG2 = motherAge>=20 & motherAge<46
 replace ageG2 = 2 if motherAge>=25 & motherAge<28
@@ -451,14 +456,15 @@ restore
 ********************************************************************************
 *** (10) Other Prematurity
 ********************************************************************************
+keep if motherAge>=25&motherAge<=45
 #delimit ;
 hist gestat if gestat>24, frac scheme(s1mono) xtitle("Weeks of Gestation")
 width(1) start(25);
 graph export "$OUT/gestWeeks.eps", as(eps) replace;
 
 preserve;
-collapse premature, by(monthBirth);
-twoway bar premature monthBirth, bcolor(black) scheme(s1mono)                
+collapse premature, by(birthMonth);
+twoway bar premature birthMonth, bcolor(black) scheme(s1mono)                
 xtitle("Month of Birth") xlabel(1(1)12, valuelabels)                         
 ytitle("Proportion of Premature Births") ylabel(0.055(0.0025)0.0625);
 graph export "$OUT/prematureMonth.eps", as(eps) replace;
@@ -470,17 +476,6 @@ twoway bar premature goodQuarter, bcolor(black) scheme(s1mono)
 xtitle("Season of Birth") xlabel(1 2, valuelabels)                         
 ytitle("Proportion of Premature Births") ylabel(0.055(0.0025)0.065);
 graph export "$OUT/prematureSeason.eps", as(eps) replace;
-restore;
-
-preserve;
-collapse premature, by(goodQuarter ageGroup);
-reshape wide premature, i(ageGroup) j(goodQuarter);
-
-graph bar premature*, over(ageGroup)
-scheme(s1mono) legend(label(1 "Bad Season") label(2 "Good Season"))
-bar(2, bcolor(gs0)) bar(1, bcolor(white) lcolor(gs0)) ylabel(, nogrid)
-exclude0 ylab(0.05(0.01)0.09);
-graph export "$OUT/prematureSeasonAge.eps", as(eps) replace;
 restore;
 #delimit cr
 

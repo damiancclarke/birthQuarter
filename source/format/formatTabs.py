@@ -65,7 +65,10 @@ NVSSBadE  =  RES + ftype + '/regressions/NVSSBinaryExpectBad.tex'
 IPUMSind  = RES + 'ipums/regressions/IPUMSIndustry.tex' 
 IPUMSind2 = RES + 'ipums/regressions/IPUMSIndustry_GSample.tex' 
 IPUMSindG = RES + 'ipums/regressions/IPUMSIndustryGoldin.tex' 
-IPUMSindG2= RES + 'ipums/regressions/IPUMSIndustryGoldinTeachers.tex' 
+IPUMSindG2= RES + 'ipums/regressions/IPUMSIndustryGoldinTeachers.tex'
+
+SpainInd  = RES + 'spain/regressions/SpainIndustry.tex' 
+
 #==============================================================================
 #== (1b) shortcuts
 #==============================================================================
@@ -510,6 +513,16 @@ for i,line in enumerate(ipiT):
     ipoT.write(line)
 ipoT.close()
 
+
+ipoT = open(TAB + 'SpainIndustry.tex', 'w')
+ipiT = open(SpainInd, 'r').readlines()
+
+for i,line in enumerate(ipiT):
+    line = line.replace('professionMother==','')
+    ipoT.write(line)
+ipoT.close()
+
+
 ##==============================================================================
 ##== (4a) Heterogeneity table (birth quarter)
 ##==============================================================================
@@ -847,12 +860,13 @@ TABLES = [loc1 +'sumStatsSpain.tex'          ,
           loc1 +'sumStatsSampSpain.tex'      ,
           loc1 +'sumSpain.tex'               ,
           loc3 +'spainBinary.tex'            , 
-          loc3 +'spainQualityEduc.tex'       ,
-          spain+'spainBinaryLForce.tex'      ]
+          loc3 +'SpainBinaryEducAge.tex'     ,
+          spain+'spainQuality.tex'           ,
+          loc1 +'SpainIndustry.tex'          ]
 
 i = 1
 for table in TABLES:
-    if i==1 or i==2:
+    if i==1 or i==2 or i==7:
         final.write('\\input{'
                     +table+'}\n')
     else:
@@ -860,3 +874,4 @@ for table in TABLES:
                     +table+'}\n\\end{landscape}\n')
     i = i+1
 final.close()
+
