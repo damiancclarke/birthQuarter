@@ -389,19 +389,21 @@ The effects of season of birth on newborn and adult socioeconomic outcomes have 
 \newpage
 \section*{Tables}
 \input{./../tables/tablesnvss.tex}
+\input{./../tables/tablesipums.tex}
 
 \newpage
 \section*{Figures}
 \input{./figures.tex}
+\input{./figuresIPUMS.tex}
 
-\clearpage
+%\clearpage
 \appendix
 \section{Appendix Tables}
 \input{./../tables/nvssAppendixTables.tex}
 
 \clearpage
-\section{Appendix Figures}
-\input{./appendixFigures.tex}
+%\section{Appendix Figures}
+%\input{./appendixFigures.tex}
 
 
 \section{Data Appendix}
@@ -480,13 +482,141 @@ meteorological stations, from which we calculate monthly average, minima and
 maxima.
 
 
-\section{Tables and Figures Using IPUMS Data (2005-2014)}
-\setcounter{figure}{0}  
-\renewcommand\thefigure{A.\arabic{figure}}
-\setcounter{table}{0}
-\renewcommand\thetable{A.\arabic{table}}
-\input{./../tables/tablesipums.tex}
-\input{./figuresIPUMS.tex}
+\section{Teacher Temperature Results}
+\begin{figure}[htpb!]
+\begin{center}
+\caption{Minimum Monthly Temperature in the State and Birth Frequency (All)}
+\label{bqFig:coldTeach}
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.55]{./../results/ipums/graphs/teachersTempCold.eps}
+  \caption{Education Workers}
+  \label{fig:Educ}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.55]{./../results/ipums/graphs/nonteachersTempCold.eps}
+  \caption{Non-Education Workers}
+  \label{fig:NonEduc}
+\end{subfigure}
+\end{center}
+\floatfoot{\textsc{Notes to figure}: State averages of good season are plotted against the
+coldest average monthly temperature in the state. Panel A includes all workers who are in
+``Education, Training and Library Occupations'', while Panel B includes all other workers.
+}
+\end{figure}
+
+\begin{figure}[htpb!]
+\begin{center}
+\caption{Minimum Monthly Temperature in the State and Birth Frequency (28-31)}
+\label{bqFig:coldTeach}
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.55]{./../results/ipums/graphs/teachersTempCold_2831.eps}
+  \caption{Education Workers}
+  \label{fig:Educ}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.55]{./../results/ipums/graphs/nonteachersTempCold_2831.eps}
+  \caption{Non-Education Workers}
+  \label{fig:NonEduc}
+\end{subfigure}
+\end{center}
+\floatfoot{\textsc{Notes to figure}: State averages of good season are plotted against the
+coldest average monthly temperature in the state.  Only women aged 28-31 are included in the
+sample. Panel A includes all workers who are in ``Education, Training and Library 
+Occupations'', while Panel B includes all other workers.
+}
+\end{figure}
+
+
+\begin{landscape}
+\input{../results/ipums/regressions/IPUMSTeachersCold.tex}
+\end{landscape}
+
+
+\section{Additional Results}
+\begin{enumerate}
+\item Table for black mothers only
+\item Table for girl children only
+\item Table for boy children only
+\item Temperature graphs for boys and girl
+\end{enumerate}
+\begin{landscape}
+\input{../results/nvss/regressions/NVSSBinaryBlack.tex}
+\end{landscape}
+\begin{landscape}
+\input{../results/nvss/regressions/NVSSBinarygirls.tex}
+\end{landscape}
+\begin{landscape}
+\input{../results/nvss/regressions/NVSSBinaryboys.tex}
+\end{landscape}
+
+\begin{figure}[htpb!]
+\begin{center}
+\caption{Minimum Monthly Temperature in the State and Birth Frequency (Females)}
+\label{bqFig:coldTeach}
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.55]{./../results/nvss/graphs/youngTempCold_female.eps}
+  \caption{Young Mothers (28-31)}
+  \label{fig:Educ}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.55]{./../results/nvss/graphs/oldTempCold_female.eps}
+  \caption{Older Mothers (40-45)}
+  \label{fig:NonEduc}
+\end{subfigure}
+\end{center}
+\floatfoot{\textsc{Notes to figure}: State averages of good season are plotted against the
+coldest average monthly temperature in the state.  The sample consists of only births where
+the child is female.}
+\end{figure}
+
+\begin{figure}[htpb!]
+\begin{center}
+\caption{Minimum Monthly Temperature in the State and Birth Frequency (Males)}
+\label{bqFig:coldTeach}
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.55]{./../results/nvss/graphs/youngTempCold_male.eps}
+  \caption{Young Mothers (28.31)}
+  \label{fig:Educ}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.55]{./../results/nvss/graphs/oldTempCold_male.eps}
+  \caption{Older Mothers (40-45)}
+  \label{fig:NonEduc}
+\end{subfigure}
+\end{center}
+\floatfoot{\textsc{Notes to figure}: State averages of good season are plotted against the
+coldest average monthly temperature in the state. The sample consists of only births where
+the child is male.}
+\end{figure}
+
+%%\clearpage
+%%
+%%\section{Tables and Figures Using IPUMS Data (Married Only)}
+%%\setcounter{figure}{0}  
+%%\renewcommand\thefigure{B.\arabic{figure}}
+%%\setcounter{table}{0}
+%%\renewcommand\thetable{B.\arabic{table}}
+%%\input{./../tables/tablesipumsmarried.tex}
+%%\input{./figuresIPUMSmarried.tex}
+%%
+%%\clearpage
+%%
+%%\section{Tables and Figures Using IPUMS Data (No Weighting)}
+%%\setcounter{figure}{0}  
+%%\renewcommand\thefigure{C.\arabic{figure}}
+%%\setcounter{table}{0}
+%%\renewcommand\thetable{C.\arabic{table}}
+%%\input{./../tables/tablesipumsunweight.tex}
+%%\input{./figuresIPUMSunweight.tex}
+%%
 
 
 %%NOTE: I TOOK OUT THESE APPENDIX TABLES ON NOV 13 2015.
