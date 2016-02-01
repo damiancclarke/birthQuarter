@@ -27,13 +27,17 @@ cap mkdir "$OUT"
 cap mkdir "$GRA"
 cap mkdir "$SUM"
 
-local data   ACS_20052014_cleaned.dta
-local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats /*
-*/           (N, fmt(%9.0g) label(Observations))     /*
-*/           starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(none) label
-local wt     [pw=perwt]
+#delimit ;
+local data   ACS_20052014_cleaned.dta;
+local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats 
+             (N, fmt(%9.0g) label(Observations))     
+             starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(none) label;
+local wt     [pw=perwt];
+local enote  "Heteroscedasticity robust standard errors are reported in 
+            parentheses. ***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.";
 
-/*
+#delimit cr
+
 ********************************************************************************
 *** (2) Open data subset to sample of interest (from Sonia's import file)
 ********************************************************************************
@@ -51,7 +55,7 @@ drop counter
 
 gen young = motherAge>=25&motherAge<=39
 lab var young "Aged 25-39"
-exit
+
 ********************************************************************************
 *** (3a) regressions: binary age groups
 ********************************************************************************
@@ -81,24 +85,75 @@ test `age'
 local F4 = round(r(p)*1000)/1000
 
 #delimit ;
-esttab est4 est3 est2 est1 using "$OUT/IPUMSBinary.tex",
-replace `estopt' title("Season of Birth Correlates (IPUMS 2005-2014)")
+esttab est4 est3 est2 est1 using "$OUT/IPUMSBinary.tex", replace `estopt'
+title("Season of Birth Correlates (IPUMS 2005-2014)"\label{tab:IPUMSBinary})
 keep(_cons `age' `edu' `une') style(tex) booktabs mlabels(, depvar) 
 postfoot("F-test of Age Dummies&0`F4'&0`F3'&0`F2'&0`F1' \\                     "
          "State and Year FE&&Y&Y&Y\\ Occupation FE&&&&Y\\ \bottomrule          "
          "\multicolumn{5}{p{15.2cm}}{\begin{footnotesize}Sample consists of all"
-         " first born children in the USA to white, non-hispanic, married      "
+         "first born children in the USA to white, non-hispanic, married       "
          "mothers aged 25-45 included in ACS data where the mother is either   "
          "the head of the household or the partner of the head of the          "
          "household and works in an occupation with at least 500 workers in the"
-         "sample. Age 40-45 is the omitted base category. Heteroscedasticity   "
-         "robust standard errors are reported.                                 "
+         "sample. Age 40-45 is the omitted base category. F-test of age dummies"
+         "refers to the p-value on the joint significance of the three age     "
+         "dummies. `enote'  "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
 
 ********************************************************************************
-*** (3b) regressions: binary age groups (robustness)
+*** (3b) regressions: boys and girls
+********************************************************************************
+local add `" "(Girls Only)" "(Boys Only)" "'
+local nam girls boys
+tokenize `nam'
+
+foreach type of local add {
+    preserve
+    if `"`1'"'=="girls" keep if female==1
+    if `"`1'"'=="boys"  keep if female==0
+    if `"`1'"' == "girls" local samp1 "female, singleton"
+    if `"`1'"' == "boys"  local samp1 "male, singleton"
+
+    eststo: areg goodQuarter `v1'      `wt', abs(occ) `se'
+    test `age'
+    local F1 = round(r(p)*1000)/1000
+    if   `F1' == 0 local F1 0.000
+
+    foreach num of numlist 2 3 {
+        eststo: areg goodQuarter `v`num'' if e(sample) `wt', `abs' `se'
+        test `age'
+        local F`num' = round(r(p)*1000)/1000
+        if   `F`num'' == 0 local F`num' 0.000    
+    }
+    eststo: reg goodQuarter `v4' if e(sample) `wt', `se'
+    test `age'
+    local F4 = round(r(p)*1000)/1000
+
+    #delimit ;
+    esttab est4 est3 est2 est1 using "$OUT/IPUMSBinary`1'.tex", replace 
+    `estopt' title("Season of Birth Correlates `type'"\label{tab:IPUMS`type'})
+    keep(_cons `age' `edu' `une') style(tex) booktabs mlabels(, depvar) 
+    postfoot("F-test of Age Dummies&0`F4'&0`F3'&0`F2'&0`F1' \\                 "
+             "State and Year FE&&Y&Y&Y\\ Occupation FE&&&&Y\\ \bottomrule      "
+             "\multicolumn{5}{p{15.2cm}}{\begin{footnotesize}Sample consists of"
+             "all `samp1' first born children with white, non-hispanic, married"
+             "mothers aged 25-45 included in ACS data where the mother is      "
+             "either the head of the household or the partner of the head of   "
+             "the household and works in an occupation with at least 500       "
+             "workers in the sample. Age 40-45 is the omitted base category.   "
+             "F-test of age dummies refers to the p-value for the joint        "
+             "significance of the three age dummies. `enote'"
+             "\end{footnotesize}}\end{tabular}\end{table}");
+    #delimit cr
+    estimates clear
+    macro shift
+    restore
+}
+
+********************************************************************************
+*** (3c) regressions: binary age groups (robustness)
 ********************************************************************************
 local se  robust
 local abs abs(statefip)
@@ -107,45 +162,40 @@ local edu highEduc
 local une unemployment
 
 local v1 `age' `edu' `une' _year* _state* i.statefip#c.year
-local v2 `age' `edu' `une' _year* i.statefip#c.year
-local v3 `age' `edu' `une' _year*
-local v4 `age' `edu'       _year*
-local v5 `age'             _year*
-local v6 `age'                   
+local v2 `age' `edu' `une' _year* _state* i.statefip#c.year
+local v3 `age' `edu' `une' _year* _state* 
+local v4 `age' `edu'       _year* _state* i.statefip#c.year
 
 eststo: areg goodQuarter `v1'      `wt', abs(occ) `se'
 test `age'
 local F1 = round(r(p)*1000)/1000
 if   `F1' == 0 local F1 0.000
 
-foreach num of numlist 2(1)5 {
-    eststo: areg goodQuarter `v`num'' if e(sample) `wt', `abs' `se'
+foreach num of numlist 2(1)4 {
+    eststo: reg goodQuarter `v`num'' if e(sample) `wt', `se'
     test `age'
     local F`num' = round(r(p)*1000)/1000
     if   `F`num'' == 0 local F`num' 0.000    
 }
-eststo: reg goodQuarter `v6' if e(sample) `wt',       `se'
-test `age'
-local F6 = round(r(p)*1000)/1000
 
 #delimit ;
-esttab est6 est5 est4 est3 est2 est1 using "$OUT/IPUMSBinary_Robust.tex",
-replace `estopt' title("Season of Birth Correlates (Robustness)")
+esttab est4 est3 est2 est1 using "$OUT/IPUMSBinary_Robust.tex", replace
+`estopt' title("Season of Birth Correlates (Robustness)"\label{tab:IPUMSRobust})
 keep(_cons `age' `edu' `une') style(tex) booktabs mlabels(, depvar) 
-postfoot("F-test of Age Dummies&0`F6'&0`F5'&0`F4'&0`F3'&0`F2'&0`F1' \\         "
-         "State and Year FE&&Y&Y&Y&Y&Y\\ State Linear Trends&&&&&Y&Y\\         "
-         "Occupation FE&&&&&&Y\\                        \bottomrule            "
-         "\multicolumn{7}{p{21.2cm}}{\begin{footnotesize}Sample consists of all"
+postfoot("F-test of Age Dummies&0`F4'&0`F3'&0`F2'&0`F1' \\                     "
+         "State and Year FE&Y&Y&Y&Y\\ State Linear Trends&Y& &Y&Y\\            "
+         "Occupation FE&&&&Y\\                          \bottomrule            "
+         "\multicolumn{5}{p{15.4cm}}{\begin{footnotesize}Sample consists of all"
          " first born children in the USA to white, non-hispanic married       "
          "mothers aged 25-45 included in ACS data where the mother is either   "
          " the head of the household or the partner of the head of the         "
          "household and works in an occupation with at least 500 workers in the"
-         "sample. Age 40-45 is the omitted base category. Heteroscedasticity   "
-         "robust standard errors are reported.                                 "
+         "sample. Age 40-45 is the omitted base category. F-test of age dummies"
+         "refers to the p-value for the joint significance of the three age    "
+         "dummies. `enote'"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-
 
 ********************************************************************************
 *** (3d) regressions: good season and education interaction
@@ -183,11 +233,12 @@ gen motherAgeXeduc  = motherAge*highEd
 gen motherAge2Xeduc = motherAge2*highEd
 
 lab var educYrs         "Years of education"
+lab var motherAge2      "Mother's Age$^2$"
 lab var motherAgeXeduc  "Mother's Age $\times$ Some College"
 lab var motherAge2Xeduc "Mother's Age$^2$ $\times$ Some College"
 
 local age2  motherAge motherAge2
-eststo: areg goodQua `age2' highEduc         _year* `wt', `abs' `se'
+eststo: areg goodQua `age2' educYrs          _year* `wt', `abs' `se'
 test `age2'
 local F4 = round(r(p)*1000)/1000
 
@@ -195,20 +246,20 @@ eststo: areg goodQua `age2'                  _year* `wt', `abs' `se'
 test `age2'
 local F5 = round(r(p)*1000)/1000
 
-local kvar `age1' highEduc `age1X' `age2'
+local kvar `age1' highEduc `age1X' `age2' educYrs
 #delimit ;
 esttab est3 est2 est1 est5 est4 using "$OUT/IPUMSBinaryEducAge.tex",
 replace `estopt' booktabs keep(`kvar') mlabels(, depvar)
-title("Season of Birth, Age and Education")
+title("Season of Birth, Age and Education"\label{tab:IPUMSEducAge})
 postfoot("F-test of Age Variables&0`F3'&0`F2'&0`F1'&0`F5'&0`F4' \\             "
          "\bottomrule\multicolumn{6}{p{18.6cm}}{\begin{footnotesize}           "
          "Sample consists of all first born children in the USA to white,      "
          "non-hispanic married mothers aged 25-45 included in ACS data where   "
          "the mother is either the head of the household or the partner        "
          "           of the head of the household and works in an occupation   "
-         " with at least 500 workers in the sample. Heteroscedasticity robust  "
-         "standard errors are reported.                                        "
-         "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01."
+         " with at least 500 workers in the sample. F-test of age dummies      "
+         "refers to the p-value for the joint significance of the three age    "
+         "dummies. `enote'"
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
@@ -232,6 +283,7 @@ local abs abs(statefip)
 local age age2527 age2831 age3239
 local edu highEduc
 local une unemployment
+local une 
 local lv1 _1occ*
 local lv2 _2occ*
 local lv3 _occ*
@@ -264,7 +316,7 @@ local F3a = round(r(p)*1000)/1000
 
 #delimit ;
 esttab est3 est2 est1 using "$OUT/IPUMSIndustry.tex",
-replace `estopt' title("Season of Birth and Occupation")
+replace `estopt' title("Season of Birth and Occupation"\label{tab:Occupation})
 keep(_cons `age' `edu' `une' `lv2') style(tex) booktabs mlabels(, depvar) 
 postfoot("Occupation Codes (level) &-&2&3\\                                    "
          "F-test of Occupation Dummies&-&`F2'&`F1'\\                           "
@@ -279,7 +331,8 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
          "column 4 is Arts, Design, Entertainment, Sports, and Media, as this  "
          "occupation has good quarter=0.500(0.500).  All occupation codes refer"
          "to IPUMS occ2010 codes, available at:                                "
-         "https://usa.ipums.org/usa/volii/acs_occtooccsoc.shtml"
+         "https://usa.ipums.org/usa/volii/acs_occtooccsoc.shtml All F-tests    "
+         "report p-values of joint significance of the dummies. `enote'"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -324,7 +377,8 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
          "column 4 is Arts, Design, Entertainment, Sports, and Media, as this  "
          "occupation has good quarter=0.500(0.500).  All occupation codes refer"
          "to IPUMS occ2010 codes, available at:                                "
-         "https://usa.ipums.org/usa/volii/acs_occtooccsoc.shtml"
+         "https://usa.ipums.org/usa/volii/acs_occtooccsoc.shtml All F-tests    "
+         "report p-values of joint significance of the dummies. `enote'"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -372,7 +426,8 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
          "column 4 is Arts, Design, Entertainment, Sports, and Media, as this  "
          "occupation has good quarter=0.500(0.500).  All occupation codes refer"
          "to IPUMS occ2010 codes, available at:                                "
-         "https://usa.ipums.org/usa/volii/acs_occtooccsoc.shtml"
+         "https://usa.ipums.org/usa/volii/acs_occtooccsoc.shtml All F-tests    "
+         "report p-values of joint significance of the dummies. `enote'"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -420,7 +475,8 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
          "column 4 is Arts, Design, Entertainment, Sports, and Media, as this  "
          "occupation has good quarter=0.500(0.500).  All occupation codes refer"
          "to IPUMS occ2010 codes, available at:                                "
-         "https://usa.ipums.org/usa/volii/acs_occtooccsoc.shtml"
+         "https://usa.ipums.org/usa/volii/acs_occtooccsoc.shtml All F-tests    "
+         "report p-values of joint significance of the dummies. `enote'"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -443,6 +499,7 @@ local abs abs(statefip)
 local age age2527 age2831 age3239
 local edu highEduc
 local une unemployment
+local une 
 local ind _gc1
 
 drop _gc*
@@ -477,18 +534,19 @@ esttab est5 est4 est3 est2 est1 using "$OUT/IPUMSIndustryGoldinTeachers.tex",
 replace `estopt'
 title("Season of Birth and Occupation (\citeauthor{Goldin2014}'s Classification)")
 keep(_cons `ind' `age' `edu' `une') style(tex) booktabs mlabels(, depvar) 
-postfoot("F-test of Age Dummies&0`F5'&0`F4'&0`F3'&0`F2'&0`F1'\\ \bottomrule    "
-         "State and Year FE&&Y&Y&Y&Y\\                                         "
+postfoot("F-test of Age Dummies&0`F5'&0`F4'&0`F3'&0`F2'&0`F1'\\                "
+         "State and Year FE&&Y&Y&Y&Y\\                     \bottomrule         "
          "\multicolumn{6}{p{18.8cm}}{\begin{footnotesize}Sample consists of all"
-         " first born children in the USA to white, non-hispanic married       "
-         "mothers aged 25-45 included in ACS data where the mother is either   "
-         " the head of the household or the partner of the head of the         "
-         "household and works in an occupation with at least 500 workers in the"
-         "sample. Heteroscedasticity robust standard errors are reported.      "
+         "first born children in the USA to white, non-hispanic married mothers"
+         "aged 25-45 included in ACS data where the mother is either the head  "
+         "of the household or the partner of the head of the household and     "
+         "works in an occupation with at least 500 workers in the sample.      "
          "Occupations are categorised as in \citet{Goldin2014} table A1.  The  "
          "omitted category is Business Occupations, and Other Occupations      "
          "(heterogeneous) are excluded.  The category Education, Training and  "
-         "Library Occupations has been added."
+         "Library Occupations has been added. F-test of age dummies refers to  "
+         "the p-value for the joint significance of the three age dummies.     "
+         "`enote'"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -502,6 +560,7 @@ local ag2 age2527 age2831 age3239
 local agI age2527 age2831 age3239 age2527XTeach age2831XTeach age3239XTeach
 local edu highEduc
 local une unemployment
+local une 
 
 *gen teachers = occ2010>=2300&occ2010<=2330
 *lab var teachers "School Teachers"
@@ -538,17 +597,18 @@ postfoot("F-test of Age Dummies&    &    &     &     &0`F2'&0`F1'\\            "
          "mothers aged 25-45 included in ACS data where the mother is either   "
          " the head of the household or the partner of the head of the         "
          "household and works in an occupation with at least 500 workers in the"
-         "sample. Heteroscedasticity robust standard errors are reported.      "
-         "Education, Library, Training refers to individuals employed in this  "
-         "occupation (occ codes 2200-2550).  The omitted occupational category "
-         "is all non-educational occupations, and the omitted age category is  "
-         "40-45 year old women."
+         "sample. Education, Library, Training refers to individuals employed  "
+         "in this occupation (occ codes 2200-2550).  The omitted occupational  "
+         "category is all non-educational occupations, and the omitted age     "
+         "category is 40-45 year old women. F-test of age dummies refers to    "
+         "the p-value for the joint significance of the three age dummies.     "
+         "`enote'"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
 
 
-exit
+
 ********************************************************************************
 *** (3h) Twin regression
 ********************************************************************************
@@ -567,6 +627,7 @@ local abs abs(statefip)
 local age age2527 age2831 age3239
 local edu highEduc
 local une unemployment
+local une 
 
 eststo: areg goodQuarter `age' `edu' `une' _year* _state*      `wt', abs(occ) `se'
 eststo: areg goodQuarter `age' `edu' `une' _year* if e(sample) `wt', `abs'    `se'
@@ -583,13 +644,13 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\ Occupation FE&&&&&Y\\ \bottomrule       "
          " first born twin children from ACS data who were born to white,      "
          "non-hispanic mothers aged 25-45, where the mother is either the head "
          "of the  household or the partner (married or unmarried) of the head  "
-         "of the household.  The omitted age category is 40-45 year old women  "
-         "Heteroscedasticity robust standard errors are reported.              "
+         "of the household.  The omitted age category is 40-45 year old women. "
+         "`enote' "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
 
-*/
+
 ********************************************************************************
 *** (4) Sumstats of good season by various levels
 ********************************************************************************
@@ -999,7 +1060,7 @@ postfoot("Education Only & & & & Y & \\ Non-Education Only  & & & & & Y \\     "
 #delimit cr
 estimates clear
 
-exit
+
     
 preserve
 cap drop youngOld
@@ -1030,7 +1091,7 @@ foreach num of numlist 1 2 {
     graph export "$GRA/`age'TempCold.eps", as(eps) replace;
     #delimit cr
 }
-exit
+
 drop state
 rename stateabbrev state
 merge m:1 state using "$DAT/../maps/state_database_clean"
@@ -1251,7 +1312,7 @@ foreach occ of local occs {
     local ++j
 }
 restore
-*/
+
 ********************************************************************************
 *** (8) Income
 ********************************************************************************
