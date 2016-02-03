@@ -62,7 +62,7 @@ foreach year of numlist 2007(1)2013 {
 
     rename multipli multipleBirth
     rename mespar   birthMonth
-    rename numhvt   birthOrder
+    rename sordenv  birthOrder
     rename nacioem  motherSpanish
     rename ecivm    civilStatus
     rename estudiom educationMother
@@ -88,7 +88,7 @@ foreach year of numlist 2007(1)2013 {
         replace yrsEduc`parent' = 17 if education`parent'==10
     }
     
-    keep if birthOrder <= 2
+    keep if birthOrder <= 2 & multipleBirth <= 2
     *-------------------------------------------------------------------------------
     *--- (2c) Variable labels
     *-------------------------------------------------------------------------------
@@ -134,8 +134,8 @@ replace gestation = . if gestation == 0
 
 gen goodQuarter         = birthQuarter == 2 | birthQuarter == 3
 gen badQuarter          = birthQuarter == 1 | birthQuarter == 4
-gen college             = educationMother>6 & educationMother!=.
-gen highEd              = yrsEducMother> 12 & yrsEducMother  != .
+gen college             = educationMother>6 if educationMother!=.&educationM!=0
+gen highEd              = yrsEducMother> 12 if yrsEducMother !=.
 gen young               = motherAge >= 25   & motherAge    <= 40
 gen youngXhighEd        = young*highEd
 gen age2024             = motherAge>=20&motherAge<=24
@@ -145,6 +145,9 @@ gen age3239             = motherAge>=32 & motherAge <40
 gen age4045             = motherAge>=40 & motherAge <46
 gen motherAge2          = motherAge*motherAge
 gen motherAgeXeduc      = motherAge*yrsEducMother
+gen age2527XhighEd      = age2527*highEd
+gen age2831XhighEd      = age2831*highEd
+gen age3239XhighEd      = age3239*highEd
 gen prematurity         = gestation - 39 
 gen monthsPrem          = round(prematurity/4)*-1
 gen     expectedMonth   = birthMonth + monthsPrem
@@ -203,7 +206,9 @@ lab var motherAge          "Mother's Age (years)"
 lab var motherAge2         "Mother's Age$^2$"
 lab var motherAgeXeduc     "Mother's Age $\times$ Education"
 lab var educCat            "Years of Education"
-
+lab var age2527XhighEd     "Aged 25-27 $\times$ Some College"
+lab var age2831XhighEd     "Aged 28-31 $\times$ Some College"
+lab var age3239XhighEd     "Aged 32-39 $\times$ Some College"
     
 *-------------------------------------------------------------------------------
 *--- (X) Save
