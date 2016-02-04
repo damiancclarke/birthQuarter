@@ -219,8 +219,8 @@ lab var age3239XhighEd     "Aged 32-39 $\times$ Some College"
 *-------------------------------------------------------------------------------
 *--- (X) Save
 *-------------------------------------------------------------------------------
-gen fetalDeath = 1
-drop if year  == .
+gen liveBirth = 0
+drop if year == .
 
 lab data "Spain administrative fetal deaths.  Imported/cleaned by damianclarke."
 save "$OUT/fetaldeaths2007-2013", replace

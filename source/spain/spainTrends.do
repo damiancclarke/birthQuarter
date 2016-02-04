@@ -31,10 +31,10 @@ local cnd  if twin==0
 *** (2a) Use, descriptive graph
 ********************************************************************************
 use "$DAT/`data'"
-keep if survived1day == 1 & birthOrder == 1 & motherSpanish==1 & twin==0
+keep if survived1day == 1 & birthOrder == 1 & motherSpanish==1
 
 preserve
-keep if married == 1
+*keep if married == 1
 #delimit ;
 twoway hist motherAge if motherAge>24 &motherAge<=45, freq color(gs0)  width(1)  
    ||  hist motherAge if motherAge<=24|motherAge>=45, freq color(gs12) width(1)
@@ -55,6 +55,7 @@ lab var college     "At least some college"
 lab var expectGoodQ "Good season of birth (due date)"
 lab var goodBirthQ  "Good season of birth (birth date)"
 lab var female      "Female"
+lab var twin        "Twin"
 lab var birthweight "Birthweight (grams)"
 lab var lbw         "Low Birth Weight ($<$2500 g)"
 lab var gestation   "Weeks of Gestation"
@@ -64,7 +65,7 @@ lab var educCat     "Years of education"
 
 local Mum     motherAge married young age2024 age2527 age2831 age3239 age4045
 local MumPart college educCat
-local Kid     goodBirthQ expectGoodQ fem birthweight lbw gestation premature
+local Kid     goodBirthQ expectGoodQ fem twin birthweig lbw gestation premature
 
 foreach st in Mum Kid MumPart {
     sum ``st''
@@ -74,7 +75,8 @@ foreach st in Mum Kid MumPart {
     */ replace label noobs
 
     preserve
-    keep if married==1&motherAge>=25&motherAge<=45&college!=.
+    *keep if married==1&motherAge>=25&motherAge<=45&college!=.&twin==0
+    keep if motherAge>=25&motherAge<=45&college!=.&twin==0
     sum ``st''
     #delimit ;
     estpost tabstat ``st'', statistics(count mean sd min max) columns(statistics);
@@ -85,7 +87,7 @@ foreach st in Mum Kid MumPart {
     restore
 }
 
-keep if married == 1
+*keep if married == 1
 ********************************************************************************
 *** (2c) Good season table
 ********************************************************************************
@@ -102,7 +104,7 @@ lab def aG  1 "Young (25-39) " 2  "Old (40-45) "
 lab def eL  1 "No College" 2 "Some College +"
 lab val ageGroup    aG
 lab val educLevel   eL
-
+/*
 preserve
 drop if educLevel==.|goodQuarter==.|ageGroup==.
 collapse premature (sum) birth, by(goodQuarter educLevel ageGroup)
@@ -381,13 +383,17 @@ foreach num of numlist 0 1 {
         lfit goodQuarter cold if young==`num', scheme(s1mono) lcolor(gs0)  ///
         legend(off) lpattern(dash) note("Correlation coefficient=`ccoef'")
     graph export "$OUT/`age'TempCold.eps", as(eps) replace
+    
+    corr goodQuarter hot if young==`num'
+    local ccoef = string(r(rho),"%5.3f")
     twoway scatter goodQuarter hot if young==`num', mlabel(name)   ||      ///
         lfit goodQuarter hot if young==`num', scheme(s1mono) lcolor(gs0)   ///
-        legend(off) lpattern(dash)
+        legend(off) lpattern(dash)  note("Correlation coefficient=`ccoef'")    
     graph export "$OUT/`age'TempWarm.eps", as(eps) replace
+
     twoway scatter goodQuarter meanT if young==`num', mlabel(name) ||      ///
         lfit goodQuarter meanT if young==`num', scheme(s1mono) lcolor(gs0) ///
-        legend(off) lpattern(dash)
+        legend(off) lpattern(dash) 
     graph export "$OUT/`age'TempMean.eps", as(eps) replace
 }
 restore
@@ -445,7 +451,7 @@ replace ageG2 = 5 if motherAge>=40 & motherAge<46
 keep if motherAge>=20&motherAge<=45
 collapse premature, by(ageG2)
 #delimit ;
-graph bar premature, ylabel(0.03(0.01)0.09, nogrid) exclude0
+graph bar premature, ylabel(0.05(0.01)0.14, nogrid) exclude0
 over(ageG2, relabel(1 "20-24" 2 "25-27" 3 "28-31" 4 "32-39" 5 "40-45"))
 bar(1, bcolor(gs0)) bar(2, bcolor(gs0)) bar(3, bcolor(gs0))
 scheme(s1mono) ytitle("% Premature");
@@ -479,6 +485,61 @@ graph export "$OUT/prematureSeason.eps", as(eps) replace;
 restore;
 #delimit cr
 
+
+*/
+********************************************************************************
+*** (11) Occupation
+********************************************************************************
+preserve
+generate occupation = professionMother if professionMother>0&professionMother<5
+
+collapse (sum) birth, by(birthQuarter occupation)
+drop if occupation == .
+bys occ: egen totalbirth = sum(birth)
+gen birthProportion = birth/totalbirth
+
+#delimit ;
+graph bar birthProportion, over(birthQuar, relabel(1 "Q1" 2 "Q2" 3 "Q3" 4 "Q4"))
+over(occ, relabel(1 "Armed Forces" 2 "Business/Admini" 3 "Intellectual"
+                  4 "Technician")) ylabel(0.22(0.02)0.30)
+scheme(s1mono) exclude0 ytitle("Proportion of Births in Quarter");
+graph export "$OUT/birthsOccupation1.eps", as(eps) replace;
+#delimit cr
+restore
+
+preserve
+generate occupation = professionMother if professionMother>4&professionMother<9
+
+collapse (sum) birth, by(birthQuarter occupation)
+drop if occupation == .
+bys occ: egen totalbirth = sum(birth)
+gen birthProportion = birth/totalbirth
+
+#delimit ;
+graph bar birthProportion, over(birthQuar, relabel(1 "Q1" 2 "Q2" 3 "Q3" 4 "Q4"))
+over(occ, relabel(1 "Administrative" 2 "Restauration" 3 "Agriculture"
+                  4 "Construction")) ylabel(0.22(0.02)0.30)
+scheme(s1mono) exclude0 ytitle("Proportion of Births in Quarter");
+graph export "$OUT/birthsOccupation2.eps", as(eps) replace;
+#delimit cr
+restore
+
+preserve
+generate occupation = professionMother if professionMother>8
+
+collapse (sum) birth, by(birthQuarter occupation)
+drop if occupation == .
+bys occ: egen totalbirth = sum(birth)
+gen birthProportion = birth/totalbirth
+
+#delimit ;
+graph bar birthProportion, over(birthQuar, relabel(1 "Q1" 2 "Q2" 3 "Q3" 4 "Q4"))
+over(occ, relabel(1 "Machine Operators" 2 "Unqualified" 3 "Students" 4 "Home"
+                  5 "Rents")) ylabel(0.22(0.02)0.30)
+scheme(s1mono) exclude0 ytitle("Proportion of Births in Quarter");
+graph export "$OUT/birthsOccupation3.eps", as(eps) replace;
+#delimit cr
+restore
 
 ********************************************************************************
 *** (X) Close

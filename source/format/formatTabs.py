@@ -374,7 +374,7 @@ for i,line in enumerate(MP):
 
 sumT.write(' \n \\multicolumn{6}{l}{\\textbf{Panel B: Child}}\\\\ \n ')
 for i,line in enumerate(Ki):
-    if i>8 and i<16:
+    if i>8 and i<17:
         line = line.replace('\\hline','\\midrule')
         line = line.replace('Quarter','season of birth')
         sumT.write(line)
@@ -416,7 +416,7 @@ for i,line in enumerate(MP2):
 
 sumT.write(' \n \\multicolumn{6}{l}{\\textbf{Panel B: Child}}\\\\ \n ')
 for i,line in enumerate(Ki2):
-    if i>8 and i<16:
+    if i>8 and i<17:
         line = line.replace('\\hline','\\midrule')
         line = line.replace('Quarter','season of birth')
         sumT.write(line)
@@ -577,7 +577,8 @@ loctw = './../results/nvss/regressions/'
 spain = './../results/spain/regressions/'
 final = open(TAB + ftype + 'AppendixTables.tex', 'w')
 
-TABLES = [loc2 +'NVSSBinaryBord2.tex'        ,
+TABLES = [loc2 +'NVSSPremature.tex'          ,
+          loc2 +'NVSSBinaryBord2.tex'        ,
           loc2 +'NVSSBinaryTwin.tex'         ,
           loc2 +'NVSSBinaryMain_A.tex'       , 
           loc2 +'NVSSBinaryNoSep.tex'        , 
@@ -587,7 +588,7 @@ TABLES = [loc2 +'NVSSBinaryBord2.tex'        ,
 
 i = 1
 for table in TABLES:
-    if i==3:
+    if i==1:
         final.write('\\input{'+table+'}\n')
     else:
         final.write('\\begin{landscape}\n\\input{'
@@ -604,14 +605,19 @@ final = open(TAB + 'SpainTables.tex', 'w')
 TABLES = [loc1 +'sumStatsSpain.tex'          ,
           loc1 +'sumStatsSampSpain.tex'      ,
           loc1 +'sumSpain.tex'               ,
-          loc3 +'spainBinary.tex'            , 
+          loc3 +'spainBinaryMain.tex'        , 
           loc3 +'SpainBinaryEducAge.tex'     ,
+          loc3 +'spainBinaryFDeaths.tex'     , 
           spain+'spainQuality.tex'           ,
-          loc1 +'SpainIndustry.tex'          ]
+          loc1 +'SpainIndustry.tex'          ,
+          loc3 +'spainBinaryBord2.tex'       , 
+          loc3 +'spainBinaryTwin.tex'        , 
+          loc3 +'spainBinarygirls.tex'       , 
+          loc3 +'spainBinaryboys.tex'        ] 
 
 i = 1
 for table in TABLES:
-    if i==1 or i==2 or i==7:
+    if i==1 or i==2 or i==8:
         final.write('\\input{'
                     +table+'}\n')
     else:
