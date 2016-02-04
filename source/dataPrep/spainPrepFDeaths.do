@@ -53,7 +53,7 @@ foreach year of numlist 2007(1)2013 {
     gen married       = ecivm == 1
     gen single        = ecivm == 2
     gen cesarean      = cesarea == 1
-    gen survived1day  = clasif == 3
+    gen survived1day  = 0
     gen female        = sexo == 6
     gen birthYear     = `year'
     gen marBirth      = (anopar*12+mespar)-(anomat*12+mesmat)
@@ -64,7 +64,7 @@ foreach year of numlist 2007(1)2013 {
 
     rename multipli multipleBirth
     rename mespar   birthMonth
-    rename sordenv  birthOrder
+    rename numh     birthOrder
     rename nacioem  motherSpanish
     rename ecivm    civilStatus
     rename estudiom educationMother
@@ -220,6 +220,7 @@ lab var age3239XhighEd     "Aged 32-39 $\times$ Some College"
 *--- (X) Save
 *-------------------------------------------------------------------------------
 gen fetalDeath = 1
-    
+drop if year  == .
+
 lab data "Spain administrative fetal deaths.  Imported/cleaned by damianclarke."
 save "$OUT/fetaldeaths2007-2013", replace
