@@ -416,7 +416,7 @@ for i,line in enumerate(MP2):
 
 sumT.write(' \n \\multicolumn{6}{l}{\\textbf{Panel B: Child}}\\\\ \n ')
 for i,line in enumerate(Ki2):
-    if i>8 and i<17:
+    if i>8 and i<16:
         line = line.replace('\\hline','\\midrule')
         line = line.replace('Quarter','season of birth')
         sumT.write(line)
@@ -613,7 +613,8 @@ TABLES = [loc1 +'sumStatsSpain.tex'          ,
           loc3 +'spainBinaryBord2.tex'       , 
           loc3 +'spainBinaryTwin.tex'        , 
           loc3 +'spainBinarygirls.tex'       , 
-          loc3 +'spainBinaryboys.tex'        ] 
+          loc3 +'spainBinaryboys.tex'        ,
+          loc3 +'spainBinarynoArmy.tex'      ] 
 
 i = 1
 for table in TABLES:

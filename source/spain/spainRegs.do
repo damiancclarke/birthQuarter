@@ -5,6 +5,7 @@ This file uses Spanish administrative data (2013), subsets, and runs regressions
 on births by quarter, allowing for additional controls, fixed effects, and so
 forth.  Raw data from INE is read in using the file spainPrep.do
 
+
 */
 
 vers 11
@@ -43,6 +44,7 @@ replace liveBirth = 1 if liveBirth == .
 
 keep if motherSpanish == 1 & motherAge>=25 & motherAge<= 45
 *keep if married == 1
+drop if professionMother == 13
 destring birthProvince, replace
 
 ********************************************************************************
@@ -50,8 +52,8 @@ destring birthProvince, replace
 ********************************************************************************
 #delimit ;
 local add `" ""  "(Including Fetal Deaths)" "(Birth Order = 2)" "(Twin sample)"
-                 "(Girls Only)" "(Boys Only)" "';
-local nam Main FDeaths Bord2 Twin girls boys;
+                 "(Girls Only)" "(Boys Only)" "(No Armed Forces)" "';
+local nam Main FDeaths Bord2 Twin girls boys noArmy;
 #delimit cr
 tokenize `nam'
 
@@ -79,6 +81,8 @@ foreach type of local add {
     if `"`1'"' == "girls"   local samp1 "female, singleton"
     if `"`1'"' == "boys"    local samp1 "male, singleton"
     if `"`1'"' == "FDeaths" local fd "or first pregnancies leading to fetal deaths"
+    if `"`1'"' == "noArmy"  local group `group' & professionMother!=1
+    if `"`1'"' == "noArmy"  local nmil ", non-military"
 
     keep if `group'
 
@@ -115,10 +119,12 @@ foreach type of local add {
              "Province and Year FE&&Y&Y&Y&Y\\ Gestation FE &&&&Y&Y    \\       "
              "Province Specific Linear Trends&&&&&Y\\ \bottomrule              "
              "\multicolumn{6}{p{18.8cm}}{\begin{footnotesize}Sample consists   "
-             "of all `samp1' `samp2' children `fd' to married Spanish          "
+             "of all `samp1' `samp2' children `fd' to married Spanish `nmil'   "
              "women aged 25-45. Independent variables are all binary           "
-             "measures. Heteroscedasticity robust standard errors are          "
-             "reported. ***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.  "
+             "measures.  F-test for age dummies refers to the p-value on the   "
+             "joint significance of the three age dummies. Heteroscedasticity  "
+             "robust standard errors are reported.                             "
+             "          ***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.  "
              "\end{footnotesize}}\end{tabular}\end{table}");
     #delimit cr
     estimates clear
@@ -155,16 +161,18 @@ foreach num of numlist 2(1)5 {
     if  `F`num'' == 0 local F`num' 0.000
 }
 
-local kvar `age1' highEd `age1X' `age2' educCat
+local kvar `age1' highEd `age1X' `age2' educCat married
 #delimit ;
 esttab est3 est2 est1 est5 est4 using "$OUT/SpainBinaryEducAge.tex",
 replace `estopt' booktabs keep(`kvar') mlabels(, depvar)
 title("Season of Birth, Age and Education"\label{tab:SpainEducAge})
-postfoot("F-test of Age Dummies&`F3'&`F2'&`F1'&`F5'&`F4' \\ \bottomrule      "
+postfoot("F-test of Age Variables&`F3'&`F2'&`F1'&`F5'&`F4' \\ \bottomrule    "
          "\multicolumn{6}{p{18cm}}{\begin{footnotesize}Sample consists       "
          " of singleton first-born children to married Spanish women         "
-         "women aged 25-45. Heteroscedasticity robust standard errors are    "
-         "reported. ***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.    "
+         "women aged 25-45.  F-test for age variables refers to the p-value  "
+         "on the joint significance of the age variables in each column.     "
+         "Heteroscedasticity robust standard errors are reported.            "
+         "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.              "
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
@@ -192,7 +200,10 @@ postfoot("F-test of Age Variables&`F1'&`F2'&`F3'&`F4'&`F5'&`F6' \\  \bottomrule"
          "\multicolumn{7}{p{17.4cm}}{\begin{footnotesize}Sample consists of all"
          " first born children of Spanish mothers. Gestation weeks and         "
          "premature are recorded separately in birth records: premature        "
-         "(binary) for all, and gestation (continuous) only for some.          "
+         "(binary) for all, and gestation (continuous) only for some. F-test   "
+         "for age variables refers to the p-value on the joint significance of "
+         "the age variables in each column. Heteroscedasticity robust standard "
+         "errors are reported.                                                 "
          "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.                "
          "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
 #delimit cr
@@ -207,7 +218,7 @@ drop if _mprof1==1
 drop _mprof1
 
 local age age2527 age2831 age3239
-local edu highEd
+local edu highEd married
 local yab abs(birthProvince)
 
 eststo: areg goodQuarter `age' `edu' _year*        , `se' `yab'
@@ -235,9 +246,10 @@ postfoot("F-test of Occupation Dummies&-&`F2t'\\                               "
          "firstborn children with Spanish mothers who are married, and who     "
          "report an occupation on the birth certificate.  The omitted          "
          "occupational variable is Home Workers which has good season mean (sd)"
-         "of 0.497(0.500).  Heteroscedasticity robust standard errors are      "
-         "reported in parentheses, and year and province of birth fixed effects"
-         "are included."
+         "of 0.497(0.500).  F-tests for age and occupation dummies report the  "
+         "p-value for the joint significance of all dummies. Heteroscedasticity"
+         "robust standard errors are reported in parentheses, and year and     "
+         "province of birth fixed effects are included."
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear

@@ -207,9 +207,9 @@ gen age2527XhighEd=age2527*highEduc
 gen age2831XhighEd=age2831*highEduc
 gen age3239XhighEd=age3239*highEduc
 
-lab var age2527XhighEd "Aged 25-27 $\times$ Some College"
-lab var age2831XhighEd "Aged 28-31 $\times$ Some College"
-lab var age3239XhighEd "Aged 32-39 $\times$ Some College"
+lab var age2527XhighEd "Aged 25-27 $\times$ Some College +"
+lab var age2831XhighEd "Aged 28-31 $\times$ Some College +"
+lab var age3239XhighEd "Aged 32-39 $\times$ Some College +"
     
 local age1  age2527 age2831 age3239
 local age1X age2527XhighEd age2831XhighEd age3239XhighEd
@@ -233,6 +233,7 @@ gen motherAgeXeduc  = motherAge*highEd
 gen motherAge2Xeduc = motherAge2*highEd
 
 lab var educYrs         "Years of education"
+lab var motherAge       "Mother's Age"
 lab var motherAge2      "Mother's Age$^2$"
 lab var motherAgeXeduc  "Mother's Age $\times$ Some College"
 lab var motherAge2Xeduc "Mother's Age$^2$ $\times$ Some College"

@@ -32,7 +32,7 @@ local cnd  if twin==0
 ********************************************************************************
 use "$DAT/`data'"
 keep if survived1day == 1 & birthOrder == 1 & motherSpanish==1
-
+/*
 preserve
 *keep if married == 1
 #delimit ;
@@ -65,9 +65,9 @@ lab var educCat     "Years of education"
 
 local Mum     motherAge married young age2024 age2527 age2831 age3239 age4045
 local MumPart college educCat
-local Kid     goodBirthQ expectGoodQ fem twin birthweig lbw gestation premature
 
 foreach st in Mum Kid MumPart {
+    local Kid  goodBirthQ expectGoodQ fem twin birthweig lbw gestation premature
     sum ``st''
     estpost tabstat ``st'', statistics(count mean sd min max) columns(statistics)
     esttab using "$SUM/Spain`st'.tex", title("Descriptive Statistics (Spain)") /*
@@ -77,6 +77,7 @@ foreach st in Mum Kid MumPart {
     preserve
     *keep if married==1&motherAge>=25&motherAge<=45&college!=.&twin==0
     keep if motherAge>=25&motherAge<=45&college!=.&twin==0
+    local Kid     goodBirthQ expectGoodQ fem birthweig lbw gestation premature
     sum ``st''
     #delimit ;
     estpost tabstat ``st'', statistics(count mean sd min max) columns(statistics);
@@ -104,7 +105,7 @@ lab def aG  1 "Young (25-39) " 2  "Old (40-45) "
 lab def eL  1 "No College" 2 "Some College +"
 lab val ageGroup    aG
 lab val educLevel   eL
-/*
+
 preserve
 drop if educLevel==.|goodQuarter==.|ageGroup==.
 collapse premature (sum) birth, by(goodQuarter educLevel ageGroup)
@@ -490,8 +491,10 @@ restore;
 ********************************************************************************
 *** (11) Occupation
 ********************************************************************************
-preserve
-generate occupation = professionMother if professionMother>0&professionMother<5
+cap gen birth = 1
+
+generate occupation = professionMother if professionMother>5&professionMother<9
+replace  occupation = professionMother if professionMother==3
 
 collapse (sum) birth, by(birthQuarter occupation)
 drop if occupation == .
@@ -500,46 +503,11 @@ gen birthProportion = birth/totalbirth
 
 #delimit ;
 graph bar birthProportion, over(birthQuar, relabel(1 "Q1" 2 "Q2" 3 "Q3" 4 "Q4"))
-over(occ, relabel(1 "Armed Forces" 2 "Business/Admini" 3 "Intellectual"
-                  4 "Technician")) ylabel(0.22(0.02)0.30)
-scheme(s1mono) exclude0 ytitle("Proportion of Births in Quarter");
-graph export "$OUT/birthsOccupation1.eps", as(eps) replace;
-#delimit cr
-restore
-
-preserve
-generate occupation = professionMother if professionMother>4&professionMother<9
-
-collapse (sum) birth, by(birthQuarter occupation)
-drop if occupation == .
-bys occ: egen totalbirth = sum(birth)
-gen birthProportion = birth/totalbirth
-
-#delimit ;
-graph bar birthProportion, over(birthQuar, relabel(1 "Q1" 2 "Q2" 3 "Q3" 4 "Q4"))
-over(occ, relabel(1 "Administrative" 2 "Restauration" 3 "Agriculture"
-                  4 "Construction")) ylabel(0.22(0.02)0.30)
+over(occ, relabel(1 "Intellectual" 2 "Hosp/Tourism" 3 "Agriculture"
+                  4 "Construction")) ylabel(0.23(0.01)0.27)
 scheme(s1mono) exclude0 ytitle("Proportion of Births in Quarter");
 graph export "$OUT/birthsOccupation2.eps", as(eps) replace;
 #delimit cr
-restore
-
-preserve
-generate occupation = professionMother if professionMother>8
-
-collapse (sum) birth, by(birthQuarter occupation)
-drop if occupation == .
-bys occ: egen totalbirth = sum(birth)
-gen birthProportion = birth/totalbirth
-
-#delimit ;
-graph bar birthProportion, over(birthQuar, relabel(1 "Q1" 2 "Q2" 3 "Q3" 4 "Q4"))
-over(occ, relabel(1 "Machine Operators" 2 "Unqualified" 3 "Students" 4 "Home"
-                  5 "Rents")) ylabel(0.22(0.02)0.30)
-scheme(s1mono) exclude0 ytitle("Proportion of Births in Quarter");
-graph export "$OUT/birthsOccupation3.eps", as(eps) replace;
-#delimit cr
-restore
 
 ********************************************************************************
 *** (X) Close
