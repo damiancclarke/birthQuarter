@@ -54,7 +54,6 @@ if `allobs'==0 keep if married==1
 local mc 
 if `allobs'==1 local mc married
 
-/*
 ********************************************************************************
 *** (3a) Good Quarter Regressions
 ********************************************************************************
@@ -91,33 +90,33 @@ foreach type of local add {
     keep `group'
 
     eststo: areg goodQuarter `age' `edu' `con' _year* `spcnd', `se' `yab'
-    test `age'
+    test age2527 = age2831 = age3239
     local F1 = round(r(p)*1000)/1000
     if   `F1' == 0 local F1 0.000
     
     eststo: areg goodQuarter `age' `edu' _year* if e(sample) , `se' `yab'
-    test `age'
+    test age2527 = age2831 = age3239
     local F2 = round(r(p)*1000)/1000
     if   `F2' == 0 local F2 0.000
 
     eststo: areg goodQuarter `age'       _year* if e(sample) , `se' `yab'
-    test `age'
+    test age2527 = age2831 = age3239
     local F3 = round(r(p)*1000)/1000
     if   `F3' == 0 local F3 0.000
 
     eststo:  reg goodQuarter `age'              if e(sample) , `se'
-    test `age'
+    test age2527 = age2831 = age3239
     local F4 = round(r(p)*1000)/1000
     if   `F4' == 0 local F4 0.000
 
     keep if year>=2009&ART!=.
     eststo: areg goodQuarter `age' `edu' `con' _year* `spcnd', `se' `yab'
-    test `age'
+    test age2527 = age2831 = age3239
     local F5 = round(r(p)*1000)/1000
     if   `F5' == 0 local F5 0.000
 
     eststo: areg goodQuarter `age' `edu' `con' _year* noART `spcnd', `se' `yab'
-    test `age'
+    test age2527 = age2831 = age3239
     local F6 = round(r(p)*1000)/1000
     if   `F6' == 0 local F6 0.000
 
@@ -133,7 +132,7 @@ foreach type of local add {
              "of `samp1'   `samp2'  children to `mnote' non-Hispanic white   "
              "women aged 25-45. Independent variables are all binary         "
              "measures. F-test for age dummies refers to the p-value on the  "
-             "joint significance of the three age dummies. Heteroscedasticity"
+             "test ef equality of the three age dummies. Heteroscedasticity  "
              "robust standard errors are reported in parentheses.            "
              "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
              "\end{footnotesize}}\end{tabular}\end{table}");
@@ -154,33 +153,33 @@ preserve
 keep `cnd'&`keepif'
 
 eststo: areg goodQuarter `age' `edu' `con' _year* i.fips#c.year, `se' `yab'
-test `age'
+test age2527 = age2831 = age3239
 local F1 = round(r(p)*1000)/1000
 if   `F1' == 0 local F1 0.000
 
 eststo: areg goodQuarter `age' `edu' `con' _year*              , `se' `yab'
-test `age'
+test age2527 = age2831 = age3239
 local F2 = round(r(p)*1000)/1000
 if   `F2' == 0 local F2 0.000
 
 eststo: areg goodQuarter `age' `edu' `co1' _year* i.fips#c.year, `se' `yab'
-test `age'
+test age2527 = age2831 = age3239
 local F3 = round(r(p)*1000)/1000
 if   `F3' == 0 local F3 0.000
 
 keep if year>=2009&ART!=.
 eststo: areg goodQuarter `age' `edu' `con' _year*              , `se' `yab'
-test `age'
+test age2527 = age2831 = age3239
 local F4 = round(r(p)*1000)/1000
 if   `F4' == 0 local F4 0.000
 
 eststo: areg goodQuarter `age' `edu' `con' _year* noART        , `se' `yab'
-test `age'
+test age2527 = age2831 = age3239
 local F5 = round(r(p)*1000)/1000
 if   `F5' == 0 local F5 0.000
 
 eststo: areg goodQuarter `age' `edu' `con' noART i.fips#c.year  , `se' `yab'
-test `age'
+test age2527 = age2831 = age3239
 local F6 = round(r(p)*1000)/1000
 if   `F6' == 0 local F6 0.000
 
@@ -199,7 +198,7 @@ postfoot("F-test of Age Dummies&`F3'&`F2'&`F1'&`F4'&`F5'&`F6' \\    "
          "women aged 25-45. Independent variables are binary, except for"
          "unemployment, which is measured as the unemployment rate in   "
          "the mother's state in the month of conception. F-test for age "
-         "dummies refers to the p-value on the joint significance of the"
+         "dummies refers to the p-value on the test of equality of the  "
          "three age dummies.  Heteroscedasticity robust standard errors "
          "are reported in parentheses.                                  "
          "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.         "
@@ -268,23 +267,23 @@ preserve
 keep `cnd'&`keepif'
 
 eststo: areg premature `age' _year* `edu' `con' , `se' `yab'
-test `age'
+test age2527 = age2831 = age3239
 local F1 = round(r(p)*1000)/1000
 if   `F1' == 0 local F1 0.000
 
 eststo: areg premature `age' _year* if e(sample), `se' `yab'
-test `age'
+test age2527 = age2831 = age3239
 local F2 = round(r(p)*1000)/1000
 if   `F2' == 0 local F2 0.000
 
 keep if year>=2009&ART!=.
 eststo: areg premature `age' `edu' `con' _year* , `se' `yab'
-test `age'
+test age2527 = age2831 = age3239
 local F3 = round(r(p)*1000)/1000
 if   `F3' == 0 local F3 0.000
 
 eststo: areg premature `age' `edu' `con' _year* noART, `se' `yab'
-test `age'
+test age2527 = age2831 = age3239
 local F4 = round(r(p)*1000)/1000
 if   `F4' == 0 local F4 0.000
 
@@ -298,8 +297,8 @@ postfoot("F-test of Age Dummies&`F2'&`F1'&`F3'&`F4' \\                     "
          "\multicolumn{5}{p{14cm}}{\begin{footnotesize}Sample consists     "
          "of singleton first born children to `mnote' non-Hispanic white   "
          "women aged 25-45. Independent variables are binary, and F-test   "
-         "for age dummies refers to the p-value on the joint significance  "
-         "of the three age dummies.  Heteroscedasticity robust standard    "
+         "for age dummies refers to the p-value on the test of equality of "
+         "the three age dummies.  Heteroscedasticity robust standard       "
          "errors are reported in parentheses.                              "
          "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.            "
          "\end{footnotesize}}\end{tabular}\end{table}");
@@ -332,13 +331,13 @@ local v4 `age2' smoker `mc' educCat        _year*
 local v5 `age2' smoker `mc'                _year*
 
 eststo: areg goodQua `v1', abs(fips)
-test `age1'
+test age2527 = age2831 = age3239
 local F1 = round(r(p)*1000)/1000
 if   `F1' == 0 local F1 0.000
 
 foreach num of numlist 2(1)5 {
     eststo: areg goodQua `v`num'' if e(sample), abs(fips)
-    if `num'< 4 test `age1'
+    if `num'< 4 test test age2527 = age2831 = age3239
     if `num'> 3 test `age2'
     
     local F`num' = round(r(p)*1000)/1000
@@ -354,7 +353,8 @@ postfoot("F-test of Age Variables&`F3'&`F2'&`F1'&`F5'&`F4' \\ \bottomrule     "
          "\multicolumn{6}{p{18cm}}{\begin{footnotesize}Sample consists        "
          " of singleton first-born children to `mnote' non-Hispanic white     "
          "women aged 25-45. F-test for age variables refers to the p-value on "
-         "the joint significance of the age varibles in each column.          "
+         "the equality of age dummies of the joint significance of the age    "
+         "quadratic terms.                                                    "
          "Heteroscedasticity robust standard errors are reported in           "
          "parentheses. ***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.  "
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
@@ -387,33 +387,33 @@ local group `cnd'&`keepif'
 keep `group'
 
 eststo: areg goodQuarter `age' male  `edu' `con' _year*, `se' `yab'
-test `age' 
+test age2527 = age2831 = age3239 = age2527_MALE = age2831_MALE = age3239_MALE
 local F1 = round(r(p)*1000)/1000
 if   `F1' == 0 local F1 0.000
     
 eststo: areg goodQuarter `age' male `edu' _year* if e(sample) , `se' `yab'
-test `age'
+test age2527 = age2831 = age3239 = age2527_MALE = age2831_MALE = age3239_MALE
 local F2 = round(r(p)*1000)/1000
 if   `F2' == 0 local F2 0.000
 
 eststo: areg goodQuarter `age' male      _year*  if e(sample) , `se' `yab'
-test `age'
+test age2527 = age2831 = age3239 = age2527_MALE = age2831_MALE = age3239_MALE
 local F3 = round(r(p)*1000)/1000
 if   `F3' == 0 local F3 0.000
 
 eststo:  reg goodQuarter `age' male              if e(sample) , `se'
-test `age'
+test age2527 = age2831 = age3239 = age2527_MALE = age2831_MALE = age3239_MALE
 local F4 = round(r(p)*1000)/1000
 if   `F4' == 0 local F4 0.000
 
 keep if year>=2009&ART!=.
 eststo: areg goodQuarter `age' male `edu' `con' _year*, `se' `yab'
-test `age'
+test age2527 = age2831 = age3239 = age2527_MALE = age2831_MALE = age3239_MALE
 local F5 = round(r(p)*1000)/1000
 if   `F5' == 0 local F5 0.000
 
 eststo: areg goodQuarter `age' male `edu' `con' _year* noART*, `se' `yab'
-test `age'
+test age2527 = age2831 = age3239 = age2527_MALE = age2831_MALE = age3239_MALE
 local F6 = round(r(p)*1000)/1000
 if   `F6' == 0 local F6 0.000
 
@@ -429,7 +429,7 @@ postfoot("F-test of Age Dummies&`F4'&`F3'&`F2'&`F1'&`F5'&`F6' \\         "
          "of all first-born children to `mnote' non-Hispanic white       "
          "women aged 25-45. Independent variables are all binary         "
          "measures. F-test for age dummies refers to the p-value on the  "
-         "joint significance of the six age dummies. Control variables   "
+         "test of equality of the six age dummies. Control variables   "
          "are education, `mnote' and smoking, plus ART usage status in   "
          "column (6) as well as each variables' interaction with a binary"
          "indicator for a male birth. These are omitted for ease of      "
@@ -441,11 +441,11 @@ postfoot("F-test of Age Dummies&`F4'&`F3'&`F2'&`F1'&`F5'&`F6' \\         "
 estimates clear
 
 restore
-*/
+
 ********************************************************************************
 *** (4) ART and Teens
 ********************************************************************************
-*preserve
+preserve
 keep if twin==1 & motherAge>=20 & motherAge<=45 & liveBirth==1 & `keepif'
 local con highEd smoker _year* `mc'
 local lab "\label{tab:ART2024}"
@@ -474,9 +474,8 @@ postfoot("State and Year FE&&Y&Y&&Y&Y\\ Controls&&&Y&&&Y\\  \bottomrule    "
          " \end{footnotesize}}\end{tabular}\end{table}") mlabels(, depvar);
 #delimit cr
 estimates clear
-*restore
-
-exit
+restore
+/*
 ********************************************************************************
 *** (5) Regressions (Quality on Age, season)
 ********************************************************************************
@@ -536,7 +535,7 @@ foreach cond of local c1 {
     macro shift
     restore
 }
-
+*/
 keep if `keepif'
 
 ********************************************************************************
@@ -552,21 +551,21 @@ local ges i.gestation
 local spcnd
 
 eststo: areg goodQuarter `age' `con' _year* i.gestation , `se' `yab'
-    test `age'
-    local F1 = round(r(p)*1000)/1000
-    if   `F1' == 0 local F1 0.000
+test age2527 = age2831 = age3239
+local F1 = round(r(p)*1000)/1000
+if   `F1' == 0 local F1 0.000
 eststo: areg goodQuarter `age' `con' _year*             , `se' `yab'
-    test `age'
-    local F2 = round(r(p)*1000)/1000
-    if   `F2' == 0 local F2 0.000
+test age2527 = age2831 = age3239
+local F2 = round(r(p)*1000)/1000
+if   `F2' == 0 local F2 0.000
 eststo: areg goodQuarter `age'       _year* if e(sample), `se' `yab'
-    test `age'
-    local F3 = round(r(p)*1000)/1000
-    if   `F3' == 0 local F3 0.000
+test age2527 = age2831 = age3239
+local F3 = round(r(p)*1000)/1000
+if   `F3' == 0 local F3 0.000
 eststo:  reg goodQuarter `age'              if e(sample), `se'
-    test `age'
-    local F4 = round(r(p)*1000)/1000
-    if   `F4' == 0 local F4 0.000
+test age2527 = age2831 = age3239
+local F4 = round(r(p)*1000)/1000
+if   `F4' == 0 local F4 0.000
     
 #delimit ;
 esttab est4 est3 est2 est1 using "$OUT/NVSSBinaryFDeaths.tex", replace
@@ -580,7 +579,7 @@ postfoot("F-test of Age Dummies&`F4'&`F3'&`F2'&`F1' \\                       "
          "occurring between 25 and 44 weeks of gestation. Fetal death files  "
          "include only a subset of the full set of variables included in the "
          "birth files, so education and ART controls are not include. F-test "
-         "for age dummies refers to the p-value on the joint significance of "
+         "for age dummies refers to the p-value on the test of equality of   "
          "the three age dummies. Heteroscedasticity robust standard errors   "
          "are reported in parentheses.                                       "
          "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.              "
@@ -604,19 +603,19 @@ foreach gend in Girls Boys {
     local spcnd
 
     eststo: areg goodQuarter `age' `con' _year* i.gestation `cc'  , `se' `yab'
-    test `age'
+    test age2527 = age2831 = age3239
     local F1 = round(r(p)*1000)/1000
     if   `F1' == 0 local F1 0.000
     eststo: areg goodQuarter `age' `con' _year*             `cc'  , `se' `yab'
-    test `age'
+    test age2527 = age2831 = age3239
     local F2 = round(r(p)*1000)/1000
     if   `F2' == 0 local F2 0.000
     eststo: areg goodQuarter `age'       _year*   `cc' & e(sample), `se' `yab'
-    test `age'
+    test age2527 = age2831 = age3239
     local F3 = round(r(p)*1000)/1000
     if   `F3' == 0 local F3 0.000
     eststo:  reg goodQuarter `age'                `cc' & e(sample), `se'
-    test `age'
+    test age2527 = age2831 = age3239
     local F4 = round(r(p)*1000)/1000
     if   `F4' == 0 local F4 0.000
     
@@ -633,7 +632,7 @@ foreach gend in Girls Boys {
              "Fetal death files include only a subset of the full set of       "
              "variables included in the birth files, so education and ART      "
              "controls are not include. F-test for age dummies refers to the   "
-             "p-value on the joint significance of the three age dummies.      "
+             "p-value on the test of equality of the three age dummies.      "
              "Heteroscedasticity robust standard errors are reported in        "
              "parentheses.                                                     "
              "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.            "
@@ -732,33 +731,33 @@ local con smoker married i.gestation
 local yab abs(fips)
     
 eststo: areg goodQuarter `age' `edu' `con' _year*, `se' `yab'
-test `age'
+test age2527 = age2831 = age3239
 local F1 = round(r(p)*1000)/1000
 if   `F1' == 0 local F1 0.000
     
 eststo: areg goodQuarter `age' `edu' _year* if e(sample) , `se' `yab'
-test `age'
+test age2527 = age2831 = age3239
 local F2 = round(r(p)*1000)/1000
 if   `F2' == 0 local F2 0.000
 
 eststo: areg goodQuarter `age'       _year* if e(sample) , `se' `yab'
-test `age'
+test age2527 = age2831 = age3239
 local F3 = round(r(p)*1000)/1000
 if   `F3' == 0 local F3 0.000
 
 eststo:  reg goodQuarter `age'              if e(sample) , `se'
-test `age'
+test age2527 = age2831 = age3239
 local F4 = round(r(p)*1000)/1000
 if   `F4' == 0 local F4 0.000
 
 keep if year>=2009&ART!=.
 eststo: areg goodQuarter `age' `edu' `con' _year*, `se' `yab'
-test `age'
+test age2527 = age2831 = age3239
 local F5 = round(r(p)*1000)/1000
 if   `F5' == 0 local F5 0.000
 
 eststo: areg goodQuarter `age' `edu' `con' _year* noART, `se' `yab'
-test `age'
+test age2527 = age2831 = age3239
 local F6 = round(r(p)*1000)/1000
 if   `F6' == 0 local F6 0.000
 
@@ -773,9 +772,8 @@ postfoot("F-test of Age Dummies&`F4'&`F3'&`F2'&`F1'&`F5'&`F6' \\             "
          "of singleton firstborn children to married, non-Hispanic, black    "
          "women aged 25-45. Independent variables are all binary             "
          "measures. F-test of Age Dummies refers to the p-value on the test  "
-         "of the joint significance of the three age dummies.                "
-         "Heteroscedasticity  robust standard errors are reported in         "
-         "parentheses.                                                       "
+         "of equality of the three age dummies. Heteroscedasticity  robust   "
+         "standard errors are reported in parentheses.                       "
          "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01."
          "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
 #delimit cr
