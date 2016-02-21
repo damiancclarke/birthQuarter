@@ -53,7 +53,7 @@ if `allobs'==0 keep if married==1
 
 local mc 
 if `allobs'==1 local mc married
-
+/*
 ********************************************************************************
 *** (3a) Good Quarter Regressions
 ********************************************************************************
@@ -441,7 +441,7 @@ postfoot("F-test of Age Dummies&`F4'&`F3'&`F2'&`F1'&`F5'&`F6' \\         "
 estimates clear
 
 restore
-
+*/
 ********************************************************************************
 *** (4) ART and Teens
 ********************************************************************************
@@ -452,24 +452,23 @@ local lab "\label{tab:ART2024}"
 gen noART2024 = noART*age2024
 lab var noART2024 "Aged 20-24$\times$ no ART"
 
-eststo: areg goodQuarter age2024 noART           `con'              , abs(fips)
-eststo: areg goodQuarter age2024 noART           _year* if e(sample), abs(fips)
-eststo:  reg goodQuarter age2024 noART                   if e(sample)
-eststo: areg goodQuarter age2024 noART noART2024 `con'              , abs(fips)
-eststo: areg goodQuarter age2024 noART noART2024 _year* if e(sample), abs(fips)
-eststo:  reg goodQuarter age2024 noART noART2024        if e(sample)
+eststo: areg goodQuarter age2024 noART highEd smoker _year* `mc', abs(fips)
+keep if e(sample) == 1
+eststo: areg goodQuarter age2024 noART highEd        _year* `mc', abs(fips)
+eststo: areg goodQuarter age2024 noART        smoker _year* `mc', abs(fips)
+eststo: areg goodQuarter age2024 noART               _year*     , abs(fips)
+eststo:  reg goodQuarter age2024 noART                                
 
 #delimit ;
-esttab est3 est2 est1 est6 est5 est4 using "$OUT/ART2024.tex", replace
-`estopt' keep(_cons age2024 noART noART2024 highEd smoker `mc') style(tex) 
+esttab est5 est4 est3 est2 est1 using "$OUT/ART2024.tex", replace
+`estopt' keep(_cons age2024 noART highEd smoker `mc') style(tex) 
 title("Season of Birth Correlates: Very Young (20-24) and ART users`lab'")
 booktabs
-postfoot("State and Year FE&&Y&Y&&Y&Y\\ Controls&&&Y&&&Y\\  \bottomrule    "
+postfoot("State and Year FE&&Y&Y&Y&Y\\  \bottomrule                        "
          "\multicolumn{7}{p{19cm}}{\begin{footnotesize}Sample consists     "
          "of singleton first-born children to `mnote' non-Hispanic white   "
-         " women aged 20-45 in the years 2009-2013. Controls in columns    "
-         "3 and 6 are a dummy for college education, and whether the mother"
-         "smokes. Heteroscedasticity robust standard errors are reported.  "
+         " women aged 20-45 in the years 2009-2013. Heteroscedasticity     "
+         "robust standard errors are reported.                             "
          "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.            "
          " \end{footnotesize}}\end{tabular}\end{table}") mlabels(, depvar);
 #delimit cr
