@@ -337,7 +337,7 @@ if   `F1' == 0 local F1 0.000
 
 foreach num of numlist 2(1)5 {
     eststo: areg goodQua `v`num'' if e(sample), abs(fips)
-    if `num'< 4 test test age2527 = age2831 = age3239
+    if `num'< 4 test age2527 = age2831 = age3239
     if `num'> 3 test `age2'
     
     local F`num' = round(r(p)*1000)/1000
@@ -475,15 +475,56 @@ postfoot("State and Year FE&&Y&Y&&Y&Y\\ Controls&&&Y&&&Y\\  \bottomrule    "
 #delimit cr
 estimates clear
 restore
-/*
+
 ********************************************************************************
-*** (5) Regressions (Quality on Age, season)
+*** (5a) Gradual birthweight and quality with controls
+********************************************************************************
+preserve
+keep `cnd'&`keepif'
+keep if twin==1&birthOrder==1&liveBirth==1
+local age age2527 age2831 age3239
+
+qui areg birthweight goodQuarter `age' highEd smoker `yFE'
+keep if e(sample)==1
+
+eststo: areg birthweight goodQuarter                     `yFE', `se' abs(fips)
+eststo: areg birthweight goodQuarter `age'               `yFE', `se' abs(fips)
+test age2527 = age2831 = age3239 
+local F2 = round(r(p)*1000)/1000
+if   `F2' == 0 local F2 0.000
+eststo: areg birthweight goodQuarter `age' highEd        `yFE', `se' abs(fips)
+test age2527 = age2831 = age3239 
+local F3 = round(r(p)*1000)/1000
+if   `F3' == 0 local F3 0.000
+eststo: areg birthweight goodQuarter `age' highEd smoker `yFE', `se' abs(fips)
+test age2527 = age2831 = age3239 
+local F4 = round(r(p)*1000)/1000
+if   `F4' == 0 local F4 0.000
+
+#delimit ;
+esttab est1 est2 est3 est4 using "$OUT/NVSSQualityGradual.tex", replace `estopt'
+title("Conditional and Unconditional Effects of Good Season"\label{tab:qualitygrad})
+keep(_cons goodQuarter `age' highEd smoker) style(tex) mlabels(, depvar) 
+postfoot("F-test of Age Variables&-&`F2'&`F3'&`F4' \\  \bottomrule         "
+             "\multicolumn{5}{p{11cm}}{\begin{footnotesize}Sample consists "
+             "of singleton first-born children to `mnote' non-Hispanic     "
+             "white women aged 25-45. State and year fixed effects are     "
+             "included, and F-test for age dummies refers to the p-value on"
+             "the joint significance of the three age dummies.             "
+             "Heteroscedasticity robust standard errors are reported in    "
+             "parentheses.                                                 "
+             "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.        "
+             "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
+#delimit cr
+estimates clear
+restore
+
+********************************************************************************
+*** (5b) Regressions (Quality on Age, season)
 ********************************************************************************
 local c1      twin==1&birthOrd==1&liveBir==1 twin==2&birthOrder==1&liveBir==1 /*
            */ twin==1&birthOrd==2&liveBir==1 twin==1&birthOrd==1
 local varsY   age2527 age2831 age3239 
-local varsA   motherAge 
-local varsA2  motherAge motherAge2 
 local control goodQuarter highEd smoker `mc'
 local names   Main Twin Bord2 FDeaths
 tokenize `names'
@@ -499,43 +540,38 @@ foreach cond of local c1 {
     preserve
     keep if motherAge>24 & motherAge<=45 & `cond'
     
-    foreach ageType in Y A A2 {
-        local nT "_`ageType'"
-        if `"`ageType'"'=="Y" local nT
-
-        local jj=1
-        foreach y of varlist `qual' {
-            eststo: areg `y' `vars`ageType'' `control' `yFE', `se' abs(fips)
-            test `vars`ageType''
-            local F`jj' = round(r(p)*1000)/1000
-            if   `F`jj'' == 0 local F`jj' 0.000
-            local ++jj
-        }
-    
-        #delimit ;
-        esttab est1 est2 est3 est4 est5 est6 using "$OUT/NVSSQuality`1'`nT'.tex",
-        replace `estopt'
-        title("Birth Quality by Age and Season (`title')"\label{tab:quality`1'})
-        keep(_cons `vars`ageType'' `control') style(tex) mlabels(, depvar) 
-        postfoot("F-test of Age Variables&`F1'&`F2'&`F3'&`F4'&`F5'&`F6' \\     "
-                 "\bottomrule"
-                 "\multicolumn{7}{p{17cm}}{\begin{footnotesize}Sample consists "
-                 "of singleton first-born children to `mnote' non-Hispanic     "
-                 "white women aged 25-45. State and year fixed effects are     "
-                 "included, and F-test for age dummies refers to the p-value on"
-                 "the joint significance of the three age dummies.             "
-                 "Heteroscedasticity robust standard errors are reported in    "
-                 "parentheses.                                                 "
-                 "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.        "
-                 "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
-        #delimit cr
-        estimates clear
+    local jj=1
+    foreach y of varlist `qual' {
+        eststo: areg `y' `varsY' `control' `yFE', `se' abs(fips)
+        test age2527 = age2831 = age3239 
+        local F`jj' = round(r(p)*1000)/1000
+        if   `F`jj'' == 0 local F`jj' 0.000
+        local ++jj
     }
+    
+    #delimit ;
+    esttab est1 est2 est3 est4 est5 est6 using "$OUT/NVSSQuality`1'.tex",
+    replace `estopt'
+    title("Birth Quality by Age and Season (`title')"\label{tab:quality`1'})
+    keep(_cons `varsY' `control') style(tex) mlabels(, depvar) 
+    postfoot("F-test of Age Variables&`F1'&`F2'&`F3'&`F4'&`F5'&`F6' \\     "
+             "\bottomrule                                                  "
+             "\multicolumn{7}{p{17cm}}{\begin{footnotesize}Sample consists "
+             "of singleton first-born children to `mnote' non-Hispanic     "
+             "white women aged 25-45. State and year fixed effects are     "
+             "included, and F-test for age dummies refers to the p-value on"
+             "the joint significance of the three age dummies.             "
+             "Heteroscedasticity robust standard errors are reported in    "
+             "parentheses.                                                 "
+             "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.        "
+             "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
+    #delimit cr
+    estimates clear
     
     macro shift
     restore
 }
-*/
+
 keep if `keepif'
 
 ********************************************************************************
