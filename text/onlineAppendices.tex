@@ -88,78 +88,29 @@ Damian Clarke, Sonia Oreffice and Climent Quintana-Domeque
 
 
 \newpage
-\section{Replicating Results with Married and Unmarried}
+\section{Additional Descriptive Statistics}
+\input{./../tables/appendixTablesA.tex}
+\clearpage
+
+\section{Robustness and Supplementary Results}
+\input{./../tables/appendixTablesB.tex}
+\clearpage
+
+
+
+\section{Replicating Results with Married and Unmarried Women}
 \subsection{Tables}
-\input{./../tables/tablesnvssall.tex}
+\input{./../tables/appendixTablesC.tex}
 \newpage
 \subsection{Figures}
 \input{./figuresnvssall.tex}
-
-\newpage
-\section{Additional Heterogeneity Tests (USA)}
-\subsection{Results for Black Mothers Only}
-\begin{landscape}
-  \input{../results/nvss/regressions/NVSSBinaryBlack.tex}
-\end{landscape}
-
-\subsection{Results Seperated by Birth Gender}
-\begin{figure}[htpb!]
-  \begin{center}
-    \caption{Minimum Monthly Temperature in the State and Birth Frequency (Females)}
-    \label{bqFig:coldTeach}
-    \begin{subfigure}{.5\textwidth}
-      \centering
-      \includegraphics[scale=0.55]{./../results/nvss/graphs/youngTempCold_female.eps}
-      \caption{Young Mothers (28-31)}
-      \label{fig:Educ}
-    \end{subfigure}%
-    \begin{subfigure}{.5\textwidth}
-      \centering
-      \includegraphics[scale=0.55]{./../results/nvss/graphs/oldTempCold_female.eps}
-      \caption{Older Mothers (40-45)}
-      \label{fig:NonEduc}
-    \end{subfigure}
-  \end{center}
-  \floatfoot{\textsc{Notes to figure}: State averages of good season are plotted against the
-    coldest average monthly temperature in the state.  The sample consists of only births where
-    the child is female.}
-\end{figure}
-
-\begin{figure}[htpb!]
-  \begin{center}
-    \caption{Minimum Monthly Temperature in the State and Birth Frequency (Males)}
-    \label{bqFig:coldTeach}
-    \begin{subfigure}{.5\textwidth}
-      \centering
-      \includegraphics[scale=0.55]{./../results/nvss/graphs/youngTempCold_male.eps}
-      \caption{Young Mothers (28.31)}
-      \label{fig:Educ}
-    \end{subfigure}%
-    \begin{subfigure}{.5\textwidth}
-      \centering
-      \includegraphics[scale=0.55]{./../results/nvss/graphs/oldTempCold_male.eps}
-      \caption{Older Mothers (40-45)}
-      \label{fig:NonEduc}
-    \end{subfigure}
-  \end{center}
-  \floatfoot{\textsc{Notes to figure}: State averages of good season are plotted against the
-    coldest average monthly temperature in the state. The sample consists of only births where
-    the child is male.}
-\end{figure}
-
-\begin{landscape}
-  \input{../results/nvss/regressions/NVSSBinarygirls.tex}
-\end{landscape}
-\begin{landscape}
-  \input{../results/nvss/regressions/NVSSBinaryboys.tex}
-\end{landscape}
-
 
 
 \clearpage
 \section{Replicating Results with Spanish Birth Data}
 \subsection{Tables}
 \input{./../tables/SpainTables.tex}
+
 \clearpage
 \subsection{Figures}
 \input{./spainFigures.tex}
@@ -190,41 +141,10 @@ Damian Clarke, Sonia Oreffice and Climent Quintana-Domeque
   }
 \end{figure}
 
-\begin{figure}[htpb!]
-  \begin{center}
-    \caption{Minimum Monthly Temperature in the State and Birth Frequency (28-31)}
-    \label{bqFig:coldTeach}
-    \begin{subfigure}{.5\textwidth}
-      \centering
-      \includegraphics[scale=0.55]{./../results/ipums/graphs/teachersTempCold_2831.eps}
-      \caption{Education Workers}
-      \label{fig:Educ}
-    \end{subfigure}%
-    \begin{subfigure}{.5\textwidth}
-      \centering
-      \includegraphics[scale=0.55]{./../results/ipums/graphs/nonteachersTempCold_2831.eps}
-      \caption{Non-Education Workers}
-      \label{fig:NonEduc}
-    \end{subfigure}
-  \end{center}
-  \floatfoot{\textsc{Notes to figure}: State averages of good season are plotted against the
-    coldest average monthly temperature in the state.  Only women aged 28-31 are included in the
-    sample. Panel A includes all workers who are in ``Education, Training and Library
-    Occupations'', while Panel B includes all other workers.
-  }
-\end{figure}
 
+\input{./../tables/appendixTablesE.tex}
 
-\begin{landscape}
-  \input{../results/ipums/regressions/IPUMSTeachersCold.tex}
-\end{landscape}
-
-
-
-
-
-
-
+\clearpage
 \bibliography{./refs}
 
 

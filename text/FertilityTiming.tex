@@ -243,34 +243,19 @@ We document a consistent and clear series of stylised facts suggesting that wome
 All in all, this points to birth timing within a year as a choice.  This finding has important implications on the question of why babies born in good seasons are healthier.  While conditions in utero \emph{are} more favourable, there is also a strong selection effect among young, educated, and employed mothers.
 
 \newpage
-%\bibliographystyle{./economet}
-%\bibliography{./refs}
-%\bibliographystyle{./jpe}
-
 \bibliography{./refs}
 
 
 
 \newpage
 \section*{Tables}
-\input{./../tables/tablesnvss.tex}
-\input{./../tables/tablesipums.tex}
+\input{./../tables/tables.tex}
 
 \newpage
 \section*{Figures}
 \input{./figures.tex}
-\input{./figuresIPUMS.tex}
-
-%\clearpage
-\appendix
-\section{Appendix Tables}
-\input{./../tables/nvssAppendixTables.tex}
 
 \clearpage
-%\section{Appendix Figures}
-%\input{./appendixFigures.tex}
-
-
 \section{Data Appendix}
 \label{bqScn:datApp}
 \subsection{US Birth Data}
@@ -346,94 +331,5 @@ Agency (AEMET). These data record the temperature at principal state
 meteorological stations, from which we calculate monthly average, minima and
 maxima.
 
-
-
-%%\clearpage
-%%
-%%\section{Tables and Figures Using IPUMS Data (Married Only)}
-%%\setcounter{figure}{0}  
-%%\renewcommand\thefigure{B.\arabic{figure}}
-%%\setcounter{table}{0}
-%%\renewcommand\thetable{B.\arabic{table}}
-%%\input{./../tables/tablesipumsmarried.tex}
-%%\input{./figuresIPUMSmarried.tex}
-%%
-%%\clearpage
-%%
-%%\section{Tables and Figures Using IPUMS Data (No Weighting)}
-%%\setcounter{figure}{0}  
-%%\renewcommand\thefigure{C.\arabic{figure}}
-%%\setcounter{table}{0}
-%%\renewcommand\thetable{C.\arabic{table}}
-%%\input{./../tables/tablesipumsunweight.tex}
-%%\input{./figuresIPUMSunweight.tex}
-%%
-
-
-%%NOTE: I TOOK OUT THESE APPENDIX TABLES ON NOV 13 2015.
-%%%%\section{Tables Using Conception + 9 Months}
-%%%%\setcounter{figure}{0}  
-%%%%\renewcommand\thefigure{A.\arabic{figure}}
-%%%%\setcounter{table}{0}
-%%%%\renewcommand\thetable{A.\arabic{table}}
-%%%
-%%%%\input{./../tables/tablesexpect.tex}
-%%%%\input{./../tables/expectAppendixTables.tex}
-%%%
-%%%
-%%%
-%%%%\section{Tables Only For Legally Married Women}
-%%%%\renewcommand\thefigure{B.\arabic{figure}}
-%%%%\setcounter{figure}{0}  
-%%%%\renewcommand\thetable{B.\arabic{table}}
-%%%%\setcounter{table}{0}  
-%%%%\input{./../tables/tablesmarried.tex}
-%%%%\input{./../tables/marriedAppendixTables.tex}
-
-
 \end{doublespace}
-%\end{spacing}
 \end{document}
-
-
-
-
-
-
-
-\begin{eqnarray}
-\label{struc1}
-\max_{\{s,a\}} u(w,b) &\text{s.t.}& w=f(age,educ,\mathbf{X},\varepsilon_w) \\
-\label{struc2}
-&& b=\mu(age,s,\mathbf{X},\varepsilon_b)                                  \\
-\label{struc3}
-&& s=\phi(age,educ,\varepsilon_s).
-\end{eqnarray}
-
-Here $u(\cdot), f(\cdot), \mu(\cdot)$ and $\phi(\cdot)$ are functions and
-$\mathbf{\varepsilon}=(\varepsilon_w,\varepsilon_s,\varepsilon_b)$ are
-unobserved shocks.  To close the structural model we must attach functional
-form to the four functions, and make distributional assumptions for $\varepsilon$.
-
-Functional form for equations (\ref{struc2}) and (\ref{struc3}) can be quite simple,
-as it is precisely what we are estimating in equations (\ref{eqn:season}) and
-(\ref{eqn:quality}) respectively.  From our results we know very clearly that:
-\[
-\frac{\partial b}{\partial s^{good}}>0 \text{\ and \ }
-\frac{\partial s^{good}}{\partial age}<0.
-\]
-It is also generally the case that:
-\[
-\frac{\partial w}{\partial age}>0.
-\]
-The wage equation in (\ref{struc1}) could be Mincerian, depending on $age$ and
-$age^2$, as well as education, and is calculated at the level of the state,
-(perhaps using data from CPS or similar to get wage).  Finally, we define $u(w,b)$
-as a Cobb-Douglas
-or CES function (or some other logical form), and assume that $\varepsilon$ is
-drawn from a trivariate normal.  We can thus write down a log-likelihood function,
-and use our birth data to maximise this function, estimating the parameters in
-$f(\cdot), \mu(\cdot)$ and $\phi(\cdot)$, which allows us to quantify the
-trade-off between ``having a child today'' versus ``having a child tomorrow''
-with the relative (market and shadow) prices of labor, as measured by wages, and
-child quality, proxied by birthweights.
