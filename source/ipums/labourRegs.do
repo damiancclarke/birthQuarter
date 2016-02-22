@@ -44,7 +44,7 @@ keep if race==1 & hispan==0
 ********************************************************************************
 *** (3) Generate
 ********************************************************************************
-gen teacher = twoLevelOcc == "Education, Training, and Library Occupations"
+gen teacher = twoLevelOcc != "Education, Training, and Library Occupations"
 gen mother                = nchild! = 0
 gen teacherXmother        = teacher*mother
 gen income                = incearn if incearn>0
@@ -53,9 +53,9 @@ gen logIncome             = log(income)
 gen logWage               = log(wages)
 gen motherAge2            = motherAge*motherAge
 
-lab var teacher        "Teacher"
+lab var teacher        "Non-Teacher"
 lab var mother         "Mother"
-lab var teacherXmother "Teacher $\times$ Mother"
+lab var teacherXmother "Non-Teacher $\times$ Mother"
 lab var income         "Income"
 lab var wages          "Earnings"
 lab var logIncome      "log(Income)"

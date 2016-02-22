@@ -481,7 +481,7 @@ for table in IndTabs:
         line = line.replace('\\end{footnotesize}}\\end{tabular}\\end{table}',
                             '\\end{footnotesize}}\\end{tabular}}\\end{table}')
         line = line.replace('\\begin{tabular}{l*{3}{c}}',
-                            '\\scalebox{0.7}{\\begin{tabular}{l*{3}{c}}')
+                            '\\scalebox{0.76}{\\begin{tabular}{l*{3}{c}}')
         ipoT.write(line)
 
     ipoT.close()
