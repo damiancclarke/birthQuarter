@@ -68,6 +68,7 @@ IPUMSindG = RES + 'ipums/regressions/IPUMSIndustryGoldin.tex'
 IPUMSindG2= RES + 'ipums/regressions/IPUMSIndustryGoldinTeachers.tex'
 
 SpainInd  = RES + 'spain/regressions/SpainIndustry.tex' 
+SpainTO   = RES + 'spain/regressions/SpainTradeoff.tex' 
 
 #==============================================================================
 #== (1b) shortcuts
@@ -522,42 +523,89 @@ for i,line in enumerate(ipiT):
     ipoT.write(line)
 ipoT.close()
 
+ipoT = open(TAB + 'SpainTradeoff.tex', 'w')
+ipiT = open(SpainTO, 'r').readlines()
+
+for i,line in enumerate(ipiT):
+    line = line.replace('professionMother==','')
+    ipoT.write(line)
+ipoT.close()
+
 
 
 #==============================================================================
-#== (X) write tables.tex file
+#== (Xi) write tables.tex file
 #==============================================================================
-#===== TABLE 1: Descriptive Statistics                                        X
-#===== TABLE 2: Percent births by season [G]                                  X
-#===== TABLE 3: Birth by season                                               X
-#===== TABLE 4: Heterogeneity birth season [G,l]                              X
-#===== TABLE 5: Birth by season (interaction)                                 X
-#===== TABLE 6: Birth by season (young)                                       X
-#===== TABLE 7: Multinomial logit of expected and actual                       
-#===== TABLE 8: Quality full [l]                                               
-#===== TABLE 9: Quality heterogeneity bwt [G,l]                                
-#===== TABLE 10: Qualilty gestation correction [l]                             
-#===== TABLE 11: Spain DS1                                                     
-#===== TABLE 12: Spain DS2                                                     
-#===== TABLE 13: Spain quality [l]                                             
-#===== TABLE 14: Spain quality gestation correction                            
-#===== TABLE 15: Spain Qualilty gestation correction [l]                       
+#===== TABLE 1: Sum stats with sample
+#===== TABLE 2: Percent good season
+#===== TABLE 3: Good season
+#===== TABLE 4: Education (?)
+#===== TABLE 5: ART table
+#===== TABLE 6: Fetal Deaths included
+#===== TABLE 7: IPUMS Full careers
+#===== TABLE 8: IPUMS with teachers 
+#===== TABLE 9: Teachers X Mothers 
+#===== TABLE 10: Quality
 #==============================================================================
-loc1  = './../tables/'
-loc2  = './../results/'+ftype+'/regressions/'
-loc3  = './../results/spain/regressions/'
-final = open(TAB + "tables"+ ftype +".tex", 'w')
+tabs  = './../tables/'
+nvss  = './../results/nvss/regressions/'
+nall  = './../results/nvssall/regressions/'
+espa  = './../results/spain/regressions/'
+ipum  = './../results/ipums/regressions/'
+final = open(TAB + "tables.tex", 'w')
 
-TABLES = [loc1+'sumStats'+ftype+'.tex', loc1 + 'sumStatsSamp'+ftype+'.tex',
-loc1 + 'sumsingle'+ftype+'.tex'       , loc2 + 'NVSSBinaryMain.tex'       ,
-loc2 + 'NVSSBinaryMain_robust.tex'    , loc2 + 'NVSSBinaryEducAge.tex'    ,
-loc2 + 'ART2024.tex'                  , loc2 +'NVSSBinaryFDeaths.tex'     , 
-loc2 + 'NVSSQualityMain.tex'                                              ]
-          
+TABLES = [tabs+'sumStatsSampnvss.tex'    , tabs+'sumsinglenvss.tex'     ,
+          nvss+'NVSSBinaryMain.tex'      , nvss+'NVSSBinaryEducAge.tex' ,
+          nvss+'ART2024.tex'             , nvss+'NVSSBinaryFDeaths.tex' ,
+          tabs+'IPUMSIndustry_Income.tex', ipum+'IPUMSTeachers.tex'     ,
+          ipum+'ValueGoodSeason'         , nvss+'NVSSQualityMain.tex'   ]
+
 i = 1
 
 for table in TABLES:
-    if i<4 or i==8:
+    if i<3 or i==6 or i==7 or i==9:
+        final.write('\\input{'
+                    +table+'}\n')
+    else:
+        final.write('\\begin{landscape}\n\\input{'
+                    +table+'}\n\\end{landscape}\n')
+    i = i+1
+final.close()
+
+#==============================================================================
+#== (Xii) write appendix tables A tex file
+#==============================================================================
+#===== Appendix A: Additional Descriptive Statistics
+#===== TABLE A1: Sum stats with all data
+#===== TABLE A2: IPUMS descriptives
+#===== TABLE A3: IPUMS birth quarters
+#==============================================================================
+final = open(TAB + "appendixTablesA.tex", 'w')
+TABLES = [tabs+'sumStatsnvss.tex',tabs+'sumStatsIPUMS.tex',tabs+'sumIPUMS.tex']
+
+for table in TABLES:
+    final.write('\\input{' +table+ '}\n')
+final.close()
+
+#==============================================================================
+#== (Xiii) write appendix tables B tex file
+#==============================================================================
+#===== Appendix B: Supplementary Results for good season
+#===== TABLE B1: Robustness adding unemployment and trends
+#===== TABLE B2: Bord 2 results
+#===== TABLE B3: Twin results
+#===== TABLE B4: No sep results
+#===== TABLE B5: IPUMS other occupaton results
+#===== TABLE B6: IPUMS value results with income
+#==============================================================================
+final = open(TAB + "appendixTablesB.tex", 'w')
+TABLES = [nvss + 'NVSSBinaryMain_robust.tex', nvss +'NVSSBinaryBord2.tex',
+          nvss +'NVSSBinaryTwin.tex'        , nvss +'NVSSBinaryNoSep.tex', 
+          nvss +'NVSSBinaryMain_A.tex', tabs +'IPUMSIndustry_IncEduc.tex',
+          ipum+'ValueGoodSeason'                                         ]
+i = 1
+for table in TABLES:
+    if i==6 or i==7:
         final.write('\\input{'
                     +table+'}\n')
     else:
@@ -568,53 +616,42 @@ final.close()
 
 
 #==============================================================================
-#== (X) write appendixTables.tex file
+#== (Xiii) write appendix tables C tex file
 #==============================================================================
-loc70 = './../results/1970s/regressions/'
-loc90 = './../results/1990s/regressions/'
-locB2 = './../results/bord2/regressions/'
-loctw = './../results/nvss/regressions/'
-spain = './../results/spain/regressions/'
-final = open(TAB + ftype + 'AppendixTables.tex', 'w')
-
-TABLES = [loc2 +'NVSSPremature.tex'          ,
-          loc2 +'NVSSBinaryBord2.tex'        ,
-          loc2 +'NVSSBinaryTwin.tex'         ,
-          loc2 +'NVSSBinaryMain_A.tex'       , 
-          loc2 +'NVSSBinaryNoSep.tex'        , 
-          loc2 +'NVSSQualityBord2.tex'       ,
-          loc2 +'NVSSQualityTwin.tex'        , 
-          loc2 +'NVSSQualityFDeaths.tex'     ]
+#===== Appendix C: Replicating results with married and unmarried
+final = open(TAB + "appendixTablesC.tex", 'w')
+TABLES = [tabs+'sumStatsSampnvssall.tex' , tabs+'sumsinglenvssall.tex'  ,
+          nall+'NVSSBinaryMain.tex'      , nall+'NVSSBinaryEducAge.tex' ,
+          nall+'ART2024.tex'             , nall+'NVSSBinaryFDeaths.tex' ,
+          nall+'NVSSQualityMain.tex'     , nall+'NVSSQualityGradual.tex']
 
 i = 1
 for table in TABLES:
-    if i==1:
-        final.write('\\input{'+table+'}\n')
+    if i<3 or i==6 or i==8:
+        final.write('\\input{'
+                    +table+'}\n')
     else:
         final.write('\\begin{landscape}\n\\input{'
                     +table+'}\n\\end{landscape}\n')
     i = i+1
-
 final.close()
 
 #==============================================================================
-#== (X) write SpainTables.tex file
+#== (Xiv) write appendix tables D tex file
 #==============================================================================
+#===== Appendix D: Spanish results
 final = open(TAB + 'SpainTables.tex', 'w')
-
-TABLES = [loc1 +'sumStatsSpain.tex'          ,
-          loc1 +'sumStatsSampSpain.tex'      ,
-          loc1 +'sumSpain.tex'               ,
-          loc3 +'spainBinaryMain.tex'        , 
-          loc3 +'SpainBinaryEducAge.tex'     ,
-          loc3 +'spainBinaryFDeaths.tex'     , 
-          spain+'spainQuality.tex'           ,
-          loc1 +'SpainIndustry.tex'          ,
-          loc3 +'spainBinaryBord2.tex'       , 
-          loc3 +'spainBinaryTwin.tex'        , 
-          loc3 +'spainBinarygirls.tex'       , 
-          loc3 +'spainBinaryboys.tex'        ,
-          loc3 +'spainBinarynoArmy.tex'      ] 
+TABLES = [tabs +'sumStatsSpain.tex'          ,
+          tabs +'sumStatsSampSpain.tex'      ,
+          tabs +'sumSpain.tex'               ,
+          espa +'spainBinaryMain.tex'        , 
+          espa +'SpainBinaryEducAge.tex'     ,
+          espa +'spainBinaryFDeaths.tex'     , 
+          espa +'spainQuality.tex'           ,
+          tabs +'SpainIndustry.tex'          ,
+          espa +'spainBinaryBord2.tex'       , 
+          espa +'spainBinaryTwin.tex'        , 
+          espa +'spainBinarynoArmy.tex'      ] 
 
 i = 1
 for table in TABLES:
@@ -627,3 +664,13 @@ for table in TABLES:
     i = i+1
 final.close()
 
+
+#==============================================================================
+#== (Xv) write appendix tables E tex file
+#==============================================================================
+#===== Appendix E: Teacher temperature results
+final = open(TAB + "appendixTablesE.tex", 'w')
+final.write('\\begin{landscape}\n\\input{')
+final.write(ipum + 'IPUMSTeachersCold.tex')
+final.write('}\n\\end{landscape}\n')
+final.close()
