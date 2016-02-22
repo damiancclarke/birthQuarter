@@ -16,7 +16,7 @@ clear all
 set more off
 cap log close
 
-local allobs 0
+local allobs 1
 
 ********************************************************************************
 *** (1) globals and locals
@@ -53,7 +53,7 @@ if `allobs'==0 keep if married==1
 
 local mc 
 if `allobs'==1 local mc married
-/*
+
 ********************************************************************************
 *** (3a) Good Quarter Regressions
 ********************************************************************************
@@ -441,7 +441,7 @@ postfoot("F-test of Age Dummies&`F4'&`F3'&`F2'&`F1'&`F5'&`F6' \\         "
 estimates clear
 
 restore
-*/
+
 ********************************************************************************
 *** (4) ART and Teens
 ********************************************************************************
@@ -465,7 +465,7 @@ esttab est5 est4 est3 est2 est1 using "$OUT/ART2024.tex", replace
 title("Season of Birth Correlates: Very Young (20-24) and ART users`lab'")
 booktabs
 postfoot("State and Year FE&&Y&Y&Y&Y\\  \bottomrule                        "
-         "\multicolumn{7}{p{19cm}}{\begin{footnotesize}Sample consists     "
+         "\multicolumn{6}{p{17.4cm}}{\begin{footnotesize}Sample consists   "
          "of singleton first-born children to `mnote' non-Hispanic white   "
          " women aged 20-45 in the years 2009-2013. Heteroscedasticity     "
          "robust standard errors are reported.                             "
@@ -483,10 +483,11 @@ keep `cnd'&`keepif'
 keep if twin==1&birthOrder==1&liveBirth==1
 local age age2527 age2831 age3239
 
-qui areg birthweight goodQuarter `age' highEd smoker `yFE'
+qui reg birthweight goodQuarter `age' highEd smoker `yFE'
 keep if e(sample)==1
 
-eststo: areg birthweight goodQuarter                     `yFE', `se' abs(fips)
+eststo:  reg birthweight goodQuarter      , `se'
+eststo: areg birthweight goodQuarter `yFE', `se' abs(fips)
 eststo: areg birthweight goodQuarter `age'               `yFE', `se' abs(fips)
 test age2527 = age2831 = age3239 
 local F2 = round(r(p)*1000)/1000
@@ -501,19 +502,20 @@ local F4 = round(r(p)*1000)/1000
 if   `F4' == 0 local F4 0.000
 
 #delimit ;
-esttab est1 est2 est3 est4 using "$OUT/NVSSQualityGradual.tex", replace `estopt'
+esttab est1 est2 est3 est4 est5 using "$OUT/NVSSQualityGradual.tex", replace `estopt'
 title("Conditional and Unconditional Effects of Good Season"\label{tab:qualitygrad})
 keep(_cons goodQuarter `age' highEd smoker) style(tex) mlabels(, depvar) 
-postfoot("F-test of Age Variables&-&`F2'&`F3'&`F4' \\  \bottomrule         "
-             "\multicolumn{5}{p{11cm}}{\begin{footnotesize}Sample consists "
-             "of singleton first-born children to `mnote' non-Hispanic     "
-             "white women aged 25-45. State and year fixed effects are     "
-             "included, and F-test for age dummies refers to the p-value on"
-             "the joint significance of the three age dummies.             "
-             "Heteroscedasticity robust standard errors are reported in    "
-             "parentheses.                                                 "
-             "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.        "
-             "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
+postfoot("State and Year FE & & Y & Y & Y & Y \\                         "
+         "F-test of Age Variables&-&-&`F2'&`F3'&`F4' \\  \bottomrule     "
+         "\multicolumn{6}{p{15.8cm}}{\begin{footnotesize}Sample consists "
+         "of singleton first-born children to `mnote' non-Hispanic       "
+         "white women aged 25-45. State and year fixed effects are       "
+         "included, and F-test for age dummies refers to the p-value on  "
+         "the joint significance of the three age dummies.               "
+         "Heteroscedasticity robust standard errors are reported in      "
+         "parentheses.                                                   "
+         "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
+         "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
 #delimit cr
 estimates clear
 restore

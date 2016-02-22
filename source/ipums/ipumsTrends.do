@@ -60,7 +60,7 @@ use "$DAT/`data'"
 keep if race==1 & race1==1 & hispan==0 & hispan1==0
 keep if bpl<150 & bpl1<150
 keep if age>=25 & age<=45
-
+exit
 
 histogram age, frac scheme(s1mono) xtitle("Mother's Age")
 graph export "$OUT/ageDescriptive.eps", as(eps) replace

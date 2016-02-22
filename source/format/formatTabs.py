@@ -602,7 +602,7 @@ final = open(TAB + "appendixTablesB.tex", 'w')
 TABLES = [nvss + 'NVSSBinaryMain_robust.tex', nvss +'NVSSBinaryBord2.tex',
           nvss +'NVSSBinaryTwin.tex'        , nvss +'NVSSBinaryNoSep.tex', 
           nvss +'NVSSBinaryMain_A.tex', tabs +'IPUMSIndustry_IncEduc.tex',
-          ipum+'ValueGoodSeason'                                         ]
+          ipum+'ValueGoodSeason.tex'                                     ]
 i = 1
 for table in TABLES:
     if i==6 or i==7:
@@ -623,11 +623,11 @@ final = open(TAB + "appendixTablesC.tex", 'w')
 TABLES = [tabs+'sumStatsSampnvssall.tex' , tabs+'sumsinglenvssall.tex'  ,
           nall+'NVSSBinaryMain.tex'      , nall+'NVSSBinaryEducAge.tex' ,
           nall+'ART2024.tex'             , nall+'NVSSBinaryFDeaths.tex' ,
-          nall+'NVSSQualityMain.tex'     , nall+'NVSSQualityGradual.tex']
+          ipum+'ValueGoodSeason_all.tex' , nall+'NVSSQualityMain.tex'   ]
 
 i = 1
 for table in TABLES:
-    if i<3 or i==6 or i==8:
+    if i<3 or i==6 or i==7:
         final.write('\\input{'
                     +table+'}\n')
     else:

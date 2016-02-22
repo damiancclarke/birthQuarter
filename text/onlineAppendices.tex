@@ -89,31 +89,125 @@ Damian Clarke, Sonia Oreffice and Climent Quintana-Domeque
 
 \newpage
 \section{Additional Descriptive Statistics}
+\subsection{Figures}
+\begin{figure}[htpb!]
+  \begin{center}
+    \caption{Mother's Age at First Birth}
+    \label{bqFig:NVSSages}
+    \includegraphics[scale=0.82]{./../results/nvss/graphs/ageDescriptive.eps}
+  \end{center}
+\end{figure}
+
+\begin{figure}[htpb!]
+  \begin{center}
+    \caption{Difference in Births (\% Good Season - \% Bad Season)}
+    \label{fig:NVSSbirthsAges}
+    \includegraphics[scale=0.8]{./../results/nvss/graphs/birthQdiff_4Ages.eps}
+  \end{center}
+\end{figure}
+
+\begin{figure}[htpb!]
+  \begin{center}
+    \centering
+    \caption{ART Conceptions by Month}
+    \includegraphics[scale=0.7]{./../results/nvss/graphs/proportionMonthART.eps}
+    \label{fig:ARTMonth}
+  \end{center}
+  \floatfoot{\textsc{Notes to figure \ref{fig:ARTMonth}}: Proportion of ART births
+    are calculated using data from 2012-2013 for our main sample.  The proportion
+    is calculated as: (ART conceptions)/(Non-ART Conceptions + ART Conceptions).}
+\end{figure}
+
+
+\clearpage
+\subsection{Tables}
 \input{./../tables/appendixTablesA.tex}
 \clearpage
 
 \section{Robustness and Supplementary Results}
+\subsection{Figures}
+\begin{figure}[htpb!]
+  \centering
+  \caption{Differences in Prevalence of Good Season of Birth}
+  \label{bqFig:YoungvOld}
+  \centering
+  \includegraphics[scale=0.82]{./../results/nvss/graphs/youngMonths.eps}
+  \floatfoot{\textsc{Notes to figure}: Each point and standard error comes from a regression
+    of conception month $x$ on a binary indicator of being young (28-31), versus older (40-45).
+  }
+\end{figure}
+
+
+\begin{figure}[htpb!]
+  \begin{center}
+    \caption{Differences in Prevalence of Good Season of Birth by ART Usage}
+    \label{fig:MonthART}
+    \begin{subfigure}{.5\textwidth}
+      \centering
+      \includegraphics[scale=0.55]{./../results/nvss/graphs/youngMonthsART0.eps}
+      \caption{No ART Usage}
+      \label{fig:MonthNoART}
+    \end{subfigure}%
+    \begin{subfigure}{.5\textwidth}
+      \centering
+      \includegraphics[scale=0.55]{./../results/nvss/graphs/youngMonthsART1.eps}
+      \caption{ART Usage}
+      \label{fig:MonthYesART}
+    \end{subfigure}
+  \end{center}
+  \floatfoot{\textsc{Notes to figure}: Each point and standard error comes from a
+    regression of birth month $x$ on a binary indicator of being young (28-31).  ART
+    usage is only observed in birth data in the years 2009--2013.  In panel (b),
+    young is defined as aged 28-39, given relatively low usage of ART at younger
+    ages.}
+\end{figure}
+
+\begin{figure}[htpb!]
+  \begin{center}
+    \caption{Birth Prevalence by Month, Age Group, and Education}
+    \label{bqFig:concepEduc}
+    \begin{subfigure}{.5\textwidth}
+      \centering
+      \includegraphics[scale=0.55]{./../results/nvss/graphs/conceptionMonthEducYoung.eps}
+      \caption{28-31 Year Olds}
+      \label{fig:educYoung}
+    \end{subfigure}%
+    \begin{subfigure}{.5\textwidth}
+      \centering
+      \includegraphics[scale=0.55]{./../results/nvss/graphs/conceptionMonthEducOld.eps}
+      \caption{40-45 Year Olds}
+      \label{fig:educOld}
+    \end{subfigure}
+  \end{center}
+  \floatfoot{\textsc{Notes to figure \ref{bqFig:concepEduc}}: Each line presents the
+    proportion of all births conceived in each month for the relevant age group and
+    education level. Refer to figure \ref{bqFig:concepMonth} for additional notes.}
+\end{figure}
+\clearpage
+
+\subsection{Tables}
 \input{./../tables/appendixTablesB.tex}
 \clearpage
 
 
-
 \section{Replicating Results with Married and Unmarried Women}
+\subsection{Figures}
+\input{./figuresnvssall.tex}
+\newpage
+
 \subsection{Tables}
 \input{./../tables/appendixTablesC.tex}
 \newpage
-\subsection{Figures}
-\input{./figuresnvssall.tex}
 
 
 \clearpage
 \section{Replicating Results with Spanish Birth Data}
+\subsection{Figures}
+\input{./spainFigures.tex}
+\clearpage
 \subsection{Tables}
 \input{./../tables/SpainTables.tex}
 
-\clearpage
-\subsection{Figures}
-\input{./spainFigures.tex}
 \clearpage
 
 

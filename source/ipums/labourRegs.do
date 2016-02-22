@@ -38,7 +38,6 @@ local enote  "Heteroscedasticity robust standard errors are reported in
 ********************************************************************************
 use "$DAT/`data'"
 keep if motherAge>=25 & motherAge <=45
-keep if marst==1
 drop if occ2010 == 9920
 keep if race==1 & hispan==0
 
@@ -77,12 +76,12 @@ eststo: areg logWage mother teacher teacherXmother `ctl' `wt' `cnd', `abs' `se'
 eststo: areg wages   mother teacher teacherXmother `ctl' `wt' `cnd', `abs' `se'
 
 #delimit ;
-esttab est1 est2 est3 est4 using "$OUT/ValueGoodSeason.tex", replace `estopt'
-booktabs keep(mother teacher teacherXmother) mlabels(, depvar)
+esttab est1 est2 est3 est4 using "$OUT/ValueGoodSeason_all.tex", replace
+`estopt' booktabs keep(mother teacher teacherXmother) mlabels(, depvar)
 mgroups("All" "$\geq$ 35 Years", pattern(1 0 1 0)
 prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
 title("Wages, Job Types, and Mothers"\label{tab:IPUMSWages}) 
-postfoot("\bottomrule\multicolumn{5}{p{14cm}}{\begin{footnotesize}          "
+postfoot("\bottomrule\multicolumn{5}{p{14.6cm}}{\begin{footnotesize}        "
 "Sample consists of all white, non-hispanic, married women aged 25-45       "
 "included in ACS data, where the woman works in an occupation with at least "
 "500 workers in the sample.  Teacher refers to occupational codes 2250-2500 "
@@ -101,12 +100,62 @@ eststo: areg logIncome mother teacher teacherXmother `ctl' `wt' `cnd', `abs' `se
 eststo: areg income    mother teacher teacherXmother `ctl' `wt' `cnd', `abs' `se'
 
 #delimit ;
-esttab est1 est2 est3 est4 using "$OUT/ValueGoodSeasonInc.tex", replace `estopt'
-booktabs keep(mother teacher teacherXmother) mlabels(, depvar)
+esttab est1 est2 est3 est4 using "$OUT/ValueGoodSeasonInc_all.tex", replace
+`estopt' booktabs keep(mother teacher teacherXmother) mlabels(, depvar)
 mgroups("All" "$\geq$ 35 Years", pattern(1 0 1 0)
 prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
 title("Wages, Job Types, and Mothers"\label{tab:IPUMSWages}) 
-postfoot("\bottomrule\multicolumn{5}{p{14cm}}{\begin{footnotesize}          "
+postfoot("\bottomrule\multicolumn{5}{p{14.6cm}}{\begin{footnotesize}        "
+"Sample consists of all white, non-hispanic, married women aged 25-45       "
+"included in ACS data, where the woman works in an occupation with at least "
+"500 workers in the sample.  Teacher refers to occupational codes 2250-2500 "
+" (teachers, librarians and educational occupations). Income refers to total"
+"personal earned income, and is measured in dollars per year. State and year"
+"fixed effects, and controls for mother's age (quadratic), education, and   "
+"regular hours worked are included. `enote'                                 "
+"\end{footnotesize}}\end{tabular}\end{table}") style(tex);
+#delimit cr
+estimates clear
+
+
+keep if marst==1
+
+eststo: areg logWage mother teacher teacherXmother `ctl' `wt'      , `abs' `se'
+eststo: areg wages   mother teacher teacherXmother `ctl' `wt'      , `abs' `se'
+eststo: areg logWage mother teacher teacherXmother `ctl' `wt' `cnd', `abs' `se'
+eststo: areg wages   mother teacher teacherXmother `ctl' `wt' `cnd', `abs' `se'
+
+#delimit ;
+esttab est1 est2 est3 est4 using "$OUT/ValueGoodSeason.tex", replace
+`estopt' booktabs keep(mother teacher teacherXmother) mlabels(, depvar)
+mgroups("All" "$\geq$ 35 Years", pattern(1 0 1 0)
+prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
+title("Wages, Job Types, and Mothers"\label{tab:IPUMSWages}) 
+postfoot("\bottomrule\multicolumn{5}{p{14.6cm}}{\begin{footnotesize}        "
+"Sample consists of all white, non-hispanic, married women aged 25-45       "
+"included in ACS data, where the woman works in an occupation with at least "
+"500 workers in the sample.  Teacher refers to occupational codes 2250-2500 "
+" (teachers, librarians and educational occupations).  Wages refer to wage  "
+"and salary income, and are measured in dollars per year.  State and year   "
+"fixed effects, and controls for mother's age (quadratic), education, and   "
+"regular hours worked are included. `enote'                                 "
+"\end{footnotesize}}\end{tabular}\end{table}") style(tex);
+#delimit cr
+estimates clear
+
+
+eststo: areg logIncome mother teacher teacherXmother `ctl' `wt'      , `abs' `se'
+eststo: areg income    mother teacher teacherXmother `ctl' `wt'      , `abs' `se'
+eststo: areg logIncome mother teacher teacherXmother `ctl' `wt' `cnd', `abs' `se'
+eststo: areg income    mother teacher teacherXmother `ctl' `wt' `cnd', `abs' `se'
+
+#delimit ;
+esttab est1 est2 est3 est4 using "$OUT/ValueGoodSeasonInc.tex", replace
+`estopt' booktabs keep(mother teacher teacherXmother) mlabels(, depvar)
+mgroups("All" "$\geq$ 35 Years", pattern(1 0 1 0)
+prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
+title("Wages, Job Types, and Mothers"\label{tab:IPUMSWages}) 
+postfoot("\bottomrule\multicolumn{5}{p{14.6cm}}{\begin{footnotesize}        "
 "Sample consists of all white, non-hispanic, married women aged 25-45       "
 "included in ACS data, where the woman works in an occupation with at least "
 "500 workers in the sample.  Teacher refers to occupational codes 2250-2500 "

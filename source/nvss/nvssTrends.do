@@ -42,7 +42,7 @@ local keepif  birthOrder == 1 & motherAge > 24 & motherAge<=45
 local twins   0
 if `twins' == 1 local app twins
 
-/*
+
 ********************************************************************************
 *** (2a) Use, descriptive graph
 ********************************************************************************
@@ -221,7 +221,7 @@ ytitle("Proportion Female Conceptions");
 graph export "$OUT/conceptionMonthFemaleAge.eps", as(eps) replace;
 #delimit cr
 restore
-exit
+
 
 
 preserve
@@ -567,31 +567,35 @@ xtitle("Quarter of Birth") xlabel(1(1)4, valuelabels)
 legend(order(1 "Young-Old" 2 "95% CI"));
 graph export "$OUT/youngQuarterComparison.eps", as(eps) replace;  
 #delimit cr
+restore
 
 ********************************************************************************
 *** (4) Graph of good season by age
 ********************************************************************************
+preserve
+keep if motherAge>=20&motherAge<=45
+
 tab motherAge, gen(_age)
-reg goodQuarter _age1-_age15 if motherAge>=25&motherAge<=45
-reg expectGoodQ _age1-_age15 if motherAge>=25&motherAge<=45
+reg goodQuarter _age1-_age20 if motherAge>=20&motherAge<=45
+reg expectGoodQ _age1-_age20 if motherAge>=20&motherAge<=45
 
 gen ageES = .
 gen ageLB = .
 gen ageUB = .
 gen ageNM = .
-foreach num of numlist 1(1)15 {
+foreach num of numlist 1(1)20 {
     replace ageES = _b[_age`num']                     in `num'
     replace ageLB = _b[_age`num']-1.96*_se[_age`num'] in `num'
     replace ageUB = _b[_age`num']+1.96*_se[_age`num'] in `num'
-    replace ageNM = `num'+24                          in `num'
+    replace ageNM = `num'+19                          in `num'
 }
 #delimit ;
-twoway line ageES ageNM in 1/15, lpattern(solid) lcolor(black) lwidth(medthick)
-    || line ageLB ageNM in 1/15, lpattern(dash)  lcolor(black) lwidth(medium)
-    || line ageUB ageNM in 1/15, lpattern(dash)  lcolor(black) lwidth(medium) ||
-    scatter ageES ageNM in 1/15, mcolor(black) m(S) 
+twoway line ageES ageNM in 1/20, lpattern(solid) lcolor(black) lwidth(medthick)
+    || line ageLB ageNM in 1/20, lpattern(dash)  lcolor(black) lwidth(medium)
+    || line ageUB ageNM in 1/20, lpattern(dash)  lcolor(black) lwidth(medium) ||
+    scatter ageES ageNM in 1/20, mcolor(black) m(S) 
     scheme(s1mono) legend(order(1 "Point Estimate" 2 "95 % CI"))
-    xlabel(25(1)39) xtitle("Mother's Age") ytitle("Proportion Good Season" " ");
+    xlabel(20(1)39) xtitle("Mother's Age") ytitle("Proportion Good Season" " ");
 graph export "$OUT/goodSeasonAge.eps", as(eps) replace;
 #delimit cr
 restore
@@ -1098,7 +1102,7 @@ foreach s of local snam {
     #delimit cr
     macro shift
 }
-*/
+
 insheet using "$USW/usaWeather.txt", delim(";") names clear
 destring temp, replace
 
@@ -1199,14 +1203,14 @@ foreach gend of numlist 0 1 {
     }
 }
 
-exit
+
 drop state
 rename bstate state
 merge m:1 state using "$DAT/../maps/state_database_clean"
 drop _merge
 format expectGoodQ %5.3f
 
-mkdir "$OUT/maps"
+cap mkdir "$OUT/maps"
 #delimit ;
 spmap expectGoodQ if ageGroup==3&(fips!=2&fips!=18) using
 "$DAT/../maps/state_coords_clean", id(_polygonid) fcolor(YlOrRd)
