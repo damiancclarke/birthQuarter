@@ -558,7 +558,7 @@ TABLES = [tabs+'sumStatsSampnvss.tex'    , tabs+'sumsinglenvss.tex'     ,
           nvss+'NVSSBinaryMain.tex'      , nvss+'NVSSBinaryEducAge.tex' ,
           nvss+'ART2024.tex'             , nvss+'NVSSBinaryFDeaths.tex' ,
           tabs+'IPUMSIndustry_Income.tex', ipum+'IPUMSTeachers.tex'     ,
-          ipum+'ValueGoodSeason'         , nvss+'NVSSQualityMain.tex'   ]
+          ipum+'ValueGoodSeasonInc.tex'  , nvss+'NVSSQualityMain.tex'   ]
 
 i = 1
 
