@@ -25,6 +25,8 @@ local allobs 0
 ********************************************************************************
 if `allobs'==0 local f nvss
 if `allobs'==1 local f nvssall
+local mc
+if `allobs'==1 local mc married
 
 global DAT "~/investigacion/2015/birthQuarter/data/nvss"
 global OUT "~/investigacion/2015/birthQuarter/results/`f'/graphs"
@@ -32,6 +34,12 @@ global SUM "~/investigacion/2015/birthQuarter/results/`f'/sumStats"
 global LOG "~/investigacion/2015/birthQuarter/log"
 global USW "~/investigacion/2015/birthQuarter/data/weather"
 global RAW "~/database/NVSS/Births/dta"
+global DAT "/media/ubuntu/Impar/emergency/birthQuarter/data/nvss"
+global OUT "/media/ubuntu/Impar/emergency/birthQuarter/results/`f'/graphs"
+global SUM "/media/ubuntu/Impar/emergency/birthQuarter/results/`f'/sumStats"
+global LOG "/media/ubuntu/Impar/emergency/birthQuarter/log"
+global USW "/media/ubuntu/Impar/emergency//birthQuarter/data/weather"
+global RAW "/media/ubuntu/Impar/database/NVSS/Births/dta"
 
 log using "$LOG/nvssTrends.txt", text replace
 cap mkdir "$SUM"
@@ -48,7 +56,7 @@ if `twins' == 1 local app twins
 ********************************************************************************
 use "$DAT/`data'"
 keep if birthOrder==1
-
+/*
 preserve
 if `allobs'==0 keep if married==1
 #delimit ;
@@ -63,9 +71,9 @@ twoway hist motherAge if motherAge>24&motherAge<=45, freq color(gs0) width(1) ||
                                         #delimit cr
 graph export "$OUT/ageDescriptive.eps", as(eps) replace
 restore
-
+*/
 keep if twin<3
-
+/*
 preserve
 keep if `keepif'
 if `allobs'==0 keep if married==1
@@ -95,7 +103,7 @@ bar(4, bcolor(ltblue)) scheme(s1mono) ytitle("Proportion ART");
 graph export "$OUT/ARTageGroup.eps", as(eps) replace;
 #delimit cr
 restore
-
+*/
 ********************************************************************************
 *** (2aii) Summary stats table
 ********************************************************************************
@@ -127,7 +135,7 @@ lab var expectGoodQ "Good season of birth (due date)"
 lab var goodBirthQ  "Good season of birth (birth date)"
 
 
-local Mum     motherAge married young age2024 age2527 age2831 age3239 age4045
+local Mum     motherAge `mc' young age2024 age2527 age2831 age3239 age4045
 local MumPart college educCat smoker ART
 
 foreach st in Mum Kid MumPart {
@@ -152,7 +160,7 @@ foreach st in Mum Kid MumPart {
     restore
 }
 replace young     = . if motherAge<25|motherAge>45
-
+exit
 ********************************************************************************
 *** (2b) Subset
 ********************************************************************************
