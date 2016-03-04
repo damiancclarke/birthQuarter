@@ -34,12 +34,6 @@ global SUM "~/investigacion/2015/birthQuarter/results/`f'/sumStats"
 global LOG "~/investigacion/2015/birthQuarter/log"
 global USW "~/investigacion/2015/birthQuarter/data/weather"
 global RAW "~/database/NVSS/Births/dta"
-global DAT "/media/ubuntu/Impar/emergency/birthQuarter/data/nvss"
-global OUT "/media/ubuntu/Impar/emergency/birthQuarter/results/`f'/graphs"
-global SUM "/media/ubuntu/Impar/emergency/birthQuarter/results/`f'/sumStats"
-global LOG "/media/ubuntu/Impar/emergency/birthQuarter/log"
-global USW "/media/ubuntu/Impar/emergency//birthQuarter/data/weather"
-global RAW "/media/ubuntu/Impar/database/NVSS/Births/dta"
 
 log using "$LOG/nvssTrends.txt", text replace
 cap mkdir "$SUM"
@@ -138,28 +132,78 @@ lab var goodBirthQ  "Good season of birth (birth date)"
 local Mum     motherAge `mc' young age2024 age2527 age2831 age3239 age4045
 local MumPart college educCat smoker ART
 
+gen tvar = abs(goodQuarter-1)
 foreach st in Mum Kid MumPart {
     local Kid goodBirthQ expectGoodQ twin fem birthweight lbw gest premature apg
 
     sum ``st''
-    estpost tabstat ``st'', statistics(count mean sd min max) columns(statistics)
-    esttab using "$SUM/nvss`st'.tex", title("Descriptive Statistics (NVSS)")/*
-    */ cells("count(fmt(0)) mean(fmt(2)) sd(fmt(2)) min(fmt(0)) max(fmt(0))")  /*
-    */ replace label noobs
+    #delimit ;
+    estpost tabstat ``st'', statistics(count mean sd min max) columns(statistics);
+    esttab using "$SUM/nvss`st'.tex", title("Descriptive Statistics (NVSS)")
+     cells("count(fmt(0)) mean(fmt(2)) sd(fmt(2)) min(fmt(0)) max(fmt(0))")
+     replace label noobs;
 
+    estpost ttest ``st'', by(tvar);
+    esttab using "$SUM/ttest`st'.tex", nomtitles nonumber noobs label
+      cells("mu_1(fmt(3)) mu_2(fmt(3)) se(fmt(4)) p(fmt(4))") replace;
+    #delimit cr
+    
     local Kid goodBirthQ expectGoodQ fem birthweight lbw gestat premature apgar
     preserve
     keep if `keepif' &married!=.&smoker!=.&college!=.&young!=.&twin==0
     if `allobs'==0 keep if married==1
     sum ``st''
-    estpost tabstat ``st'', statistics(count mean sd min max)               /*
-    */ columns(statistics)
-    esttab using "$SUM/samp`st'.tex", title("Descriptive Statistics (NVSS)")/*
-    */ cells("count(fmt(0)) mean(fmt(2)) sd(fmt(2)) min(fmt(0)) max(fmt(0))")  /*
-    */ replace label noobs
+
+    #delimit ;
+    estpost tabstat ``st'', statistics(count mean sd min max)       
+     columns(statistics);
+    esttab using "$SUM/samp`st'.tex", title("Descriptive Statistics (NVSS)")
+      cells("count(fmt(0)) mean(fmt(2)) sd(fmt(2)) min(fmt(0)) max(fmt(0))")  
+    replace label noobs;
+
+    estpost ttest ``st'', by(tvar);
+    esttab using "$SUM/Sttest`st'.tex", nomtitles nonumber noobs label 
+      cells("mu_1(fmt(3)) mu_2(fmt(3)) se(fmt(4)) p(fmt(4))") replace;
+  
+    #delimit cr
     restore
 }
 replace young     = . if motherAge<25|motherAge>45
+
+preserve
+keep if `keepif' &married!=.&smoker!=.&college!=.&young!=.&twin==0
+if `allobs'==0 keep if married==1
+
+#delimit ;
+local listM motherAge young age2527 age2831 age3239 age4045 college
+            educCat smoker ART;
+local listK fem birthweight lbw gestat premature apgar;
+#delimit cr
+
+
+gen gQ = goodQuarter
+local i = 1
+foreach var of varlist `listM' {
+    reg `var' gQ
+    estimates store n`i'
+    local ++i
+}
+suest n1 n2 n3 n4 n5 n6 n7 n8 n9 n10
+test [n1_mean]gQ [n2_mean]gQ [n3_mean]gQ [n4_mean]gQ [n5_mean]gQ  /*
+*/   [n6_mean]gQ [n7_mean]gQ [n8_mean]gQ [n9_mean]gQ [n10_mean]gQ
+
+
+local i = 1
+foreach var of varlist `listK' {
+    quietly reg `var' gQ
+    estimates store n`i'
+    local ++i
+}
+suest n1 n2 n3 n4 n5 n6 n7 n8
+test [n1_mean]gQ [n2_mean]gQ [n3_mean]gQ [n4_mean]gQ [n5_mean]gQ [n6_mean]gQ /*
+*/   [n7_mean]gQ [n8_mean]gQ
+restore
+
 exit
 ********************************************************************************
 *** (2b) Subset
