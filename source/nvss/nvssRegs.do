@@ -16,7 +16,7 @@ clear all
 set more off
 cap log close
 
-local allobs 0
+local allobs 1
 
 ********************************************************************************
 *** (1) globals and locals
@@ -29,10 +29,6 @@ global DAT "~/investigacion/2015/birthQuarter/data/nvss"
 global USW "~/investigacion/2015/birthQuarter/data/weather"
 global OUT "~/investigacion/2015/birthQuarter/results/`f'/regressions"
 global LOG "~/investigacion/2015/birthQuarter/log"
-global DAT "/media/ubuntu/Impar/emergency/birthQuarter/data/nvss"
-global USW "/media/ubuntu/Impar/emergency/birthQuarter/data/weather"
-global OUT "/media/ubuntu/Impar/emergency/birthQuarter/results/`f'/regressions"
-global LOG "/media/ubuntu/Impar/emergency/birthQuarter/log"
 
 log using "$LOG/nvssRegs.txt", text replace
 cap mkdir "$OUT"
@@ -46,6 +42,11 @@ local yFE    i.year;
 local se     robust;
 local cnd    if twin==1 & motherAge>24 & motherAge <= 45 & liveBirth==1;
 local keepif birthOrder==1;
+local Fnote  "F-test of age variables refers to the p-value on the test that
+              the coefficients on mother's age and age squared are jointly
+              equal to zero.";
+local enote  "Heteroscedasticity robust standard errors are reported in
+              parentheses.";
 #delimit cr
 
 ********************************************************************************
@@ -57,7 +58,7 @@ if `allobs'==0 keep if married==1
 
 local mc 
 if `allobs'==1 local mc married
-
+/*
 ********************************************************************************
 *** (3a) Good Quarter Regressions
 ********************************************************************************
@@ -128,11 +129,7 @@ foreach type of local add {
              "State and Year FE&&Y&Y&Y&Y\\ Gestation FE &&&Y&Y&Y\\           "
              "2009-2013 Only&&&&Y&Y\\ \bottomrule                            "
              "\multicolumn{6}{p{18cm}}{\begin{footnotesize} Independent      "
-	     "variables are all binary measures. F-test of age variables     "
-             "refers to the p-value on the test that the coefficients on     "
-             "mother's age and age squared are jointly equal to zero.        "
-             "Heteroscedasticity robust standard errors are reported in      "
-             "parentheses.                                                   "
+	     "variables are all binary measures. `Fnote' `enote'             "
              "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
              "\end{footnotesize}}\end{tabular}\end{table}");
     #delimit cr
@@ -195,17 +192,13 @@ postfoot("F-test of Age Variables&`F3'&`F2'&`F1'&`F4'&`F5'&`F6' \\      "
          "\multicolumn{7}{p{20cm}}{\begin{footnotesize} Independent     "
 	 "variables are binary, except for                              "
          "unemployment, which is measured as the unemployment rate in   "
-         "the mother's state in the month of conception. F-test of age  "
-         "variables refers to the p-value on the test that the          "
-         "coefficients on mother's age and age squared are jointly equal"
-         "to zero.  Heteroscedasticity robust standard errors are       "
-         "reported in parentheses.                                      "
-         "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.         "
+         "the mother's state in the month of conception. `Fnote' `enote'"
+         " ***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.        "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
 restore
-exit
+
 ********************************************************************************
 *** (3b) Age continuous, or quadratic
 ********************************************************************************
@@ -252,11 +245,11 @@ foreach AA of local names {
     macro shift
     restore
 }
-
+*/
 ********************************************************************************
 *** (3c) Premature regressions
 ********************************************************************************
-local age age2527 age2831 age3239
+local age motherAge motherAge2
 local edu highEd
 local con smoker `mc'
 local yab abs(fips)
@@ -265,23 +258,23 @@ preserve
 keep `cnd'&`keepif'
 
 eststo: areg premature `age' _year* `edu' `con' , `se' `yab'
-test age2527 = age2831 = age3239
+test `age'
 local F1 = round(r(p)*1000)/1000
 if   `F1' == 0 local F1 0.000
 
 eststo: areg premature `age' _year* if e(sample), `se' `yab'
-test age2527 = age2831 = age3239
+test `age'
 local F2 = round(r(p)*1000)/1000
 if   `F2' == 0 local F2 0.000
 
 keep if year>=2009&ART!=.
 eststo: areg premature `age' `edu' `con' _year* , `se' `yab'
-test age2527 = age2831 = age3239
+test `age'
 local F3 = round(r(p)*1000)/1000
 if   `F3' == 0 local F3 0.000
 
 eststo: areg premature `age' `edu' `con' _year* noART, `se' `yab'
-test age2527 = age2831 = age3239
+test `age'
 local F4 = round(r(p)*1000)/1000
 if   `F4' == 0 local F4 0.000
 
@@ -290,15 +283,12 @@ esttab est2 est1 est3 est4 using "$OUT/NVSSPremature.tex", replace
 `estopt' title("Prematurity Correlates" \label{tab:premature})
 booktabs keep(_cons `age' `edu' smoker `mc' noART)
 style(tex) mlabels(, depvar)
-postfoot("F-test of Age Dummies&`F2'&`F1'&`F3'&`F4' \\                     "
+postfoot("F-test of Age Variables&`F2'&`F1'&`F3'&`F4' \\                   "
          "State and Year FE&Y&Y&Y&Y\\ 2009-2013 Only& & &Y&Y\\ \bottomrule "
          "\multicolumn{5}{p{14cm}}{\begin{footnotesize}Sample consists     "
          "of singleton first born children to `mnote' non-Hispanic white   "
-         "women aged 25-45. Independent variables are binary, and F-test   "
-         "for age dummies refers to the p-value on the test of equality of "
-         "the three age dummies.  Heteroscedasticity robust standard       "
-         "errors are reported in parentheses.                              "
-         "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.            "
+         "women aged 25-45. Independent variables are binary, and `Fnote'  "
+         "`enote' ***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.    "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -308,7 +298,7 @@ restore
 ********************************************************************************
 *** (3d) Good Season, Age and education interactions
 ********************************************************************************
-*preserve
+preserve
 keep `cnd'&`keepif'
 gen motherAge2Xeduc = motherAge2*educCat
 lab var motherAge2Xeduc "Mother's Age$^2$ $\times$ Education"
@@ -345,16 +335,14 @@ replace `estopt' booktabs keep(`kvar') mlabels(, depvar)
 title("Season of Birth, Age and Education"\label{tab:EducAge})
 postfoot("F-test of Age Variables&`F2'&`F1' \\ \bottomrule     "
          "\multicolumn{3}{p{9.2cm}}{\begin{footnotesize} Main estimation     "
-	 "sample is used. F-test for age variables refers to the p-value on  "
-         "the joint significance of the age quadratic.                       "
-         "Heteroscedasticity robust standard errors are reported in          "
-         "parentheses. ***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01. "
+	 "sample is used. `Fnote' `enote'                                    "
+         "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.              "
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
 
-*restore
-exit
+restore
+
 
 ********************************************************************************
 *** (4) ART and Teens
@@ -394,7 +382,7 @@ restore
 preserve
 keep `cnd'&`keepif'
 keep if twin==1&birthOrder==1&liveBirth==1
-local age age2527 age2831 age3239
+local age motherAge motherAge2
 
 qui reg birthweight goodQuarter `age' highEd smoker `yFE'
 keep if e(sample)==1
@@ -402,15 +390,15 @@ keep if e(sample)==1
 eststo:  reg birthweight goodQuarter      , `se'
 eststo: areg birthweight goodQuarter `yFE', `se' abs(fips)
 eststo: areg birthweight goodQuarter `age'               `yFE', `se' abs(fips)
-test age2527 = age2831 = age3239 
+test `age'
 local F2 = round(r(p)*1000)/1000
 if   `F2' == 0 local F2 0.000
 eststo: areg birthweight goodQuarter `age' highEd        `yFE', `se' abs(fips)
-test age2527 = age2831 = age3239 
+test `age'
 local F3 = round(r(p)*1000)/1000
 if   `F3' == 0 local F3 0.000
 eststo: areg birthweight goodQuarter `age' highEd smoker `yFE', `se' abs(fips)
-test age2527 = age2831 = age3239 
+test `age'
 local F4 = round(r(p)*1000)/1000
 if   `F4' == 0 local F4 0.000
 
@@ -423,10 +411,7 @@ postfoot("State and Year FE & & Y & Y & Y & Y \\                         "
          "\multicolumn{6}{p{15.8cm}}{\begin{footnotesize}Sample consists "
          "of singleton first-born children to `mnote' non-Hispanic       "
          "white women aged 25-45. State and year fixed effects are       "
-         "included, and F-test for age dummies refers to the p-value on  "
-         "the joint significance of the three age dummies.               "
-         "Heteroscedasticity robust standard errors are reported in      "
-         "parentheses.                                                   "
+         "included, and `Fnote' `enote'                                  "
          "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
          "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
 #delimit cr
@@ -438,7 +423,7 @@ restore
 ********************************************************************************
 local c1      twin==1&birthOrd==1&liveBir==1 twin==2&birthOrder==1&liveBir==1 /*
            */ twin==1&birthOrd==2&liveBir==1 twin==1&birthOrd==1
-local varsY   age2527 age2831 age3239 
+local varsY   motherAge motherAge2
 local control goodQuarter highEd smoker `mc'
 local names   Main Twin Bord2 FDeaths
 tokenize `names'
@@ -457,7 +442,7 @@ foreach cond of local c1 {
     local jj=1
     foreach y of varlist `qual' {
         eststo: areg `y' `varsY' `control' `yFE', `se' abs(fips)
-        test age2527 = age2831 = age3239 
+        test `varsY'
         local F`jj' = round(r(p)*1000)/1000
         if   `F`jj'' == 0 local F`jj' 0.000
         local ++jj
@@ -468,14 +453,11 @@ foreach cond of local c1 {
     replace `estopt'
     title("Birth Quality and Season of Birth `title'"\label{tab:quality`1'})
     keep(_cons `varsY' `control') style(tex) mlabels(, depvar) 
-    postfoot("F-test of Age Dummies&`F1'&`F2'&`F3'&`F4'&`F5'&`F6' \\       "
+    postfoot("F-test of Age Variables&`F1'&`F2'&`F3'&`F4'&`F5'&`F6' \\     "
              "\bottomrule                                                  "
              "\multicolumn{7}{p{17cm}}{\begin{footnotesize}Main estimation "
 	     "sample is used. State and year fixed effects are             "
-             "included, and F-test for age dummies refers to the p-value on"
-             "the joint significance of the three age dummies.             "
-             "Heteroscedasticity robust standard errors are reported in    "
-             "parentheses.                                                 "
+             "included, and `Fnote' `enote'                                "
              "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.        "
              "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
     #delimit cr
@@ -492,7 +474,7 @@ keep if `keepif'
 ********************************************************************************
 keep if twin==1 & motherAge>24 & motherAge <= 45
 
-local age age2527 age2831 age3239
+local age motherAge motherAge2
 local edu highEd
 local con smoker `mc'
 local yab abs(fips)
@@ -500,19 +482,19 @@ local ges i.gestation
 local spcnd
 
 eststo: areg goodQuarter `age' `con' _year* i.gestation , `se' `yab'
-test age2527 = age2831 = age3239
+test `age'
 local F1 = round(r(p)*1000)/1000
 if   `F1' == 0 local F1 0.000
 eststo: areg goodQuarter `age' `con' _year*             , `se' `yab'
-test age2527 = age2831 = age3239
+test `age'
 local F2 = round(r(p)*1000)/1000
 if   `F2' == 0 local F2 0.000
 eststo: areg goodQuarter `age'       _year* if e(sample), `se' `yab'
-test age2527 = age2831 = age3239
+test `age'
 local F3 = round(r(p)*1000)/1000
 if   `F3' == 0 local F3 0.000
 eststo:  reg goodQuarter `age'              if e(sample), `se'
-test age2527 = age2831 = age3239
+test `age'
 local F4 = round(r(p)*1000)/1000
 if   `F4' == 0 local F4 0.000
     
@@ -520,21 +502,18 @@ if   `F4' == 0 local F4 0.000
 esttab est4 est3 est2 est1 using "$OUT/NVSSBinaryFDeaths.tex", replace
 title("Season of Birth Correlates (Including Fetal Deaths)"\label{tab:FDeaths}) 
 `estopt' keep(_cons `age' `con') style(tex) mlabels(, depvar)
-postfoot("F-test of Age Dummies&`F4'&`F3'&`F2'&`F1' \\                       "
+postfoot("F-test of Age Variables&`F4'&`F3'&`F2'&`F1' \\                     "
          "State and Year FE&&Y&Y&Y\\  Gestation FE &&&&Y \\ \bottomrule      "
          "\multicolumn{5}{p{15.2cm}}{\begin{footnotesize}  Main sample is    "
 	 "augmented to include fetal deaths occurring between 25 and 44      " 
-	 "weeks of gestation.   Fetal death files			     "
-         "include only a subset of the full set of variables included in the "
-         "birth files, so education and ART controls are not included. F-test"
-         " for age dummies refers to the p-value on the test of equality of  "
-         "the three age dummies. Heteroscedasticity robust standard errors   "
-         "are reported in parentheses.                                       "
+	 "weeks of gestation. Fetal death files include only a subset of the "
+         "full set of variables included in the birth files, so education and"
+         " ART controls are not included. `Fnote' `enote'                    "
          "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.              "
          "\end{footnotesize}}\end{tabular}\end{table}") booktabs ;
 #delimit cr
 estimates clear
-
+exit
 foreach gend in Girls Boys {
     keep if twin==1 & motherAge>24 & motherAge <= 45 & `keepif'
     local cc if female == 1
