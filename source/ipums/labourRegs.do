@@ -86,15 +86,15 @@ esttab est1 est2 est3 est4 using "$OUT/ValueGoodSeason_all.tex", replace
 keep(mother teacher teacherXmother motherAge motherAge2 highEduc) 
 mgroups("All" "$\geq$ 35 Years", pattern(1 0 1 0)
 prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
-title("The Value of Season of Birth (Wages)"\label{tab:IPUMSWages}) 
+title("The Value of Season of Birth (Wages)"\label{tab:IPUMSWagesAll}) 
 postfoot("State and Year Fixed Effects & Y & Y & Y & Y \\                   "
-"\bottomrule\multicolumn{5}{p{15.6cm}}{\begin{footnotesize}  Main ACS       "
-"estimation sample is used, augmenting to include un-married women.  Teacher"
-" refers to occupational codes 2250-2500                                    "
-" (teachers, librarians and educational occupations).  Wages refer to wage  "
-"and salary income, and are measured in dollars per year.  A control for    "
-"regular hours worked is included. `enote'                                  "
-"\end{footnotesize}}\end{tabular}\end{table}") style(tex);
+         "\bottomrule\multicolumn{5}{p{15.6cm}}{\begin{footnotesize}  Main  "
+         "ACS estimation sample is used, augmenting to include un-married   "
+         "women.  Teacher refers to occupational codes 2250-2500 (teachers, "
+         "librarians and educational occupations).  Wages refer to wage and "
+         "salary income, and are measured in dollars per year. A control for"
+         "regular hours worked is included. `enote'                         "
+         "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
 
@@ -110,15 +110,15 @@ esttab est1 est2 est3 est4 using "$OUT/ValueGoodSeasonInc_all.tex", replace
 keep(mother teacher teacherXmother motherAge motherAge2 highEduc) 
 mgroups("All" "$\geq$ 35 Years", pattern(1 0 1 0)
 prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
-title("The Value of Season of Birth"\label{tab:IPUMSWages}) 
-postfoot("State and Year Fixed Effects & Y & Y & Y & Y \\                   "
-"\bottomrule\multicolumn{5}{p{15.6cm}}{\begin{footnotesize}  Main ACS       "
-"estimation sample used, augmenting to include un-married women.  Teacher   "
-"refers to occupational codes 2250-2500                                     "
-" (teachers, librarians and educational occupations).  Wages refer to wage  "
-"and salary income, and are measured in dollars per year.  A control for    "
-"regular hours worked is included. `enote'                                  "
-"\end{footnotesize}}\end{tabular}\end{table}") style(tex);
+title("The Value of Season of Birth"\label{tab:IPUMSIncAll}) 
+postfoot("State and Year Fixed Effects & Y & Y & Y & Y \\                    "
+         "\bottomrule\multicolumn{5}{p{15.6cm}}{\begin{footnotesize}  Main   "
+         "ACS estimation sample used, augmenting to include un-married women."
+         "Teacher refers to occupational codes 2250-2500 (teachers,          "
+         "librarians and educational occupations).  Earnings refers to total "
+         "personal earned income, and is measured in dollars per year.  A    "
+         "control for regular hours worked is included. `enote'"
+         "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
 
@@ -138,13 +138,12 @@ mgroups("All" "$\geq$ 35 Years", pattern(1 0 1 0)
 prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
 title("The Value of Season of Birth (Wages)"\label{tab:IPUMSWages}) 
 postfoot("State and Year Fixed Effects & Y & Y & Y & Y \\                   "
-"\bottomrule\multicolumn{5}{p{14.6cm}}{\begin{footnotesize}                 "
-"\bottomrule\multicolumn{5}{p{15.6cm}}{\begin{footnotesize}  Main ACS       "
-"estimation sample used.  Teacher refers to occupational codes 2250-2500    "
-" (teachers, librarians and educational occupations).  Wages refer to wage  "
-"and salary income, and are measured in dollars per year.  A control for    "
-"regular hours worked is included. `enote'                                  "
-"\end{footnotesize}}\end{tabular}\end{table}") style(tex);
+         "\bottomrule\multicolumn{5}{p{15.6cm}}{\begin{footnotesize}  Main  "
+         "ACS estimation sample used.  Teacher refers to occupational codes "
+         "2250-2500 (teachers, librarians and educational occupations).     "
+         "Wages refer to wage and salary income, and are measured in dollars"
+         " per year. A control for regular hours worked is included. `enote'"
+         "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
 
@@ -160,41 +159,20 @@ esttab est1 est2 est3 est4 using "$OUT/ValueGoodSeasonInc.tex", replace
 keep(mother teacher teacherXmother motherAge motherAge2 highEduc) 
 mgroups("All" "$\geq$ 35 Years", pattern(1 0 1 0)
 prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
-title("The Value of Season of Birth"\label{tab:IPUMSWages}) 
+title("The Value of Season of Birth"\label{tab:IPUMSInc}) 
 postfoot("State and Year Fixed Effects & Y & Y & Y & Y \\                   "
-"\bottomrule\multicolumn{5}{p{15.6cm}}{\begin{footnotesize}  Main ACS       "
-"estimation sample used.  Teacher refers to occupational codes 2250-2500    "
-" (teachers, librarians and educational occupations).  Wages refer to wage  "
-"and salary income, and are measured in dollars per year.  A control for    "
-"regular hours worked is included. `enote'                                  "
+         "\bottomrule\multicolumn{5}{p{15.6cm}}{\begin{footnotesize} Main   "
+         "ACS estimation sample used.  Teacher refers to occupational codes "
+         "2250-2500 (teachers, librarians and educational occupations).     "
+         "Earnings refers to total personal earned income, and is measured  "
+         "in dollars per year.  A control for regular hours worked is       "
+         "included. `enote'"
 "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
 
 
 local ctl motherAge motherAge2 highEduc i.year
-eststo: areg logWage mother teacher teacherXmother `ctl' `wt'      , `abs' `se'
-eststo: areg wages   mother teacher teacherXmother `ctl' `wt'      , `abs' `se'
-eststo: areg logWage mother teacher teacherXmother `ctl' `wt' `cnd', `abs' `se'
-eststo: areg wages   mother teacher teacherXmother `ctl' `wt' `cnd', `abs' `se'
-
-#delimit ;
-esttab est1 est2 est3 est4 using "$OUT/ValueGoodSeason_nohours.tex", replace
-`estopt' booktabs mlabels(, depvar)
-keep(mother teacher teacherXmother motherAge motherAge2 highEduc) 
-mgroups("All" "$\geq$ 35 Years", pattern(1 0 1 0)
-prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
-title("The Value of Season of Birth (No Hours Control)"\label{tab:IPUMSWages}) 
-postfoot("State and Year Fixed Effects & Y & Y & Y & Y \\                   "
-"\bottomrule\multicolumn{5}{p{15.6cm}}{\begin{footnotesize}  Main ACS       "
-"estimation sample used.  Teacher refers to occupational codes 2250-2500    "
-" (teachers, librarians and educational occupations).  Wages refer to wage  "
-"and salary income, and are measured in dollars per year. `enote'           "
-"\end{footnotesize}}\end{tabular}\end{table}") style(tex);
-#delimit cr
-estimates clear
-
-
 eststo: areg logIncome mother teacher teacherXmother `ctl' `wt'      , `abs' `se'
 eststo: areg income    mother teacher teacherXmother `ctl' `wt'      , `abs' `se'
 eststo: areg logIncome mother teacher teacherXmother `ctl' `wt' `cnd', `abs' `se'
@@ -206,43 +184,19 @@ esttab est1 est2 est3 est4 using "$OUT/ValueGoodSeasonInc_nohours.tex", replace
 keep(mother teacher teacherXmother motherAge motherAge2 highEduc) 
 mgroups("All" "$\geq$ 35 Years", pattern(1 0 1 0)
 prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
-title("The Value of Season of Birth (No Hours Control)"\label{tab:IPUMSWages}) 
+title("The Value of Season of Birth (No Hours Control)"\label{tab:IPUMSIncNoH}) 
 postfoot("State and Year Fixed Effects & Y & Y & Y & Y \\                   "
-"\bottomrule\multicolumn{5}{p{14.6cm}}{\begin{footnotesize}                 "
-"\bottomrule\multicolumn{5}{p{15.6cm}}{\begin{footnotesize}  Main ACS       "
-"estimation sample used.  Teacher refers to occupational codes 2250-2500    "
-" (teachers, librarians and educational occupations).  Wages refer to wage  "
-"and salary income, and are measured in dollars per year.  `enote'          "
-"\end{footnotesize}}\end{tabular}\end{table}") style(tex);
+         "\bottomrule\multicolumn{5}{p{15.6cm}}{\begin{footnotesize}  Main  "
+         "ACS estimation sample used.  Teacher refers to occupational codes "
+         "2250-2500 (teachers, librarians and educational occupations).     "
+         "Earnings refers to total personal earned income, and is measured  "
+         "in dollars per year. `enote'"
+         "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
 
 
 local ctl motherAge motherAge2 highEduc uhrswork i.year i.wkswork2
-eststo: areg logWage mother teacher teacherXmother `ctl' `wt'      , `abs' `se'
-eststo: areg wages   mother teacher teacherXmother `ctl' `wt'      , `abs' `se'
-eststo: areg logWage mother teacher teacherXmother `ctl' `wt' `cnd', `abs' `se'
-eststo: areg wages   mother teacher teacherXmother `ctl' `wt' `cnd', `abs' `se'
-
-#delimit ;
-esttab est1 est2 est3 est4 using "$OUT/ValueGoodSeason_weeks.tex", replace
-`estopt' booktabs mlabels(, depvar)
-keep(mother teacher teacherXmother motherAge motherAge2 highEduc) 
-mgroups("All" "$\geq$ 35 Years", pattern(1 0 1 0)
-prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
-title("The Value of Season of Birth (Weeks Worked Control)"\label{tab:IPUMSWages}) 
-postfoot("State and Year Fixed Effects & Y & Y & Y & Y \\                   "
-"\bottomrule\multicolumn{5}{p{15.6cm}}{\begin{footnotesize}  Main ACS       "
-"estimation sample used.  Teacher refers to occupational codes 2250-2500    "
-" (teachers, librarians and educational occupations).  Wages refer to wage  "
-"and salary income, and are measured in dollars per year.  Controls for     "
-"regular hours worked and number of weeks worked in the year are included. 
-"`enote'"
-"\end{footnotesize}}\end{tabular}\end{table}") style(tex);
-#delimit cr
-estimates clear
-
-
 eststo: areg logIncome mother teacher teacherXmother `ctl' `wt'      , `abs' `se'
 eststo: areg income    mother teacher teacherXmother `ctl' `wt'      , `abs' `se'
 eststo: areg logIncome mother teacher teacherXmother `ctl' `wt' `cnd', `abs' `se'
@@ -254,14 +208,14 @@ esttab est1 est2 est3 est4 using "$OUT/ValueGoodSeasonInc_weeks.tex", replace
 keep(mother teacher teacherXmother motherAge motherAge2 highEduc) 
 mgroups("All" "$\geq$ 35 Years", pattern(1 0 1 0)
 prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
-title"The Value of Season of Birth (Weeks Worked Control)"\label{tab:IPUMSWages}) 
+title("The Value of Season of Birth (Weeks Control)"\label{tab:IPUMSIncWeek}) 
 postfoot("State and Year Fixed Effects & Y & Y & Y & Y \\                   "
-"\bottomrule\multicolumn{5}{p{15.6cm}}{\begin{footnotesize}  Main ACS       "
-"estimation sample used.  Teacher refers to occupational codes 2250-2500    "
-" (teachers, librarians and educational occupations).  Wages refer to wage  "
-"and salary income, and are measured in dollars per year.  Controls for     "
-"regular hours worked and number of weeks worked in the year are included. 
-"`enote'"
-"\end{footnotesize}}\end{tabular}\end{table}") style(tex);
+         "\bottomrule\multicolumn{5}{p{15.6cm}}{\begin{footnotesize}  Main  "
+         "ACS estimation sample used.  Teacher refers to occupational codes "
+         "2250-2500 (teachers, librarians and educational occupations).     "
+         "Earnings refers to total personal earned income, and is measured  "
+         "in dollars per year. Controls for regular hours worked and number "
+         "of weeks worked in the year are included. `enote'"
+         "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
