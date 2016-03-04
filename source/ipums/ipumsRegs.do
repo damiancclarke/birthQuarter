@@ -486,76 +486,7 @@ estimates clear
 
 
 ********************************************************************************
-*** (3f) regressions: Using Goldin's occupation classes
-********************************************************************************
-replace GoldinClass = . if GoldinClass==5
-
-gen _gc1 = GoldinClass==1|GoldinClass==2 if GoldinClass!=.
-gen _gc2 = GoldinClass==3 if GoldinClass!=.
-gen _gc3 = GoldinClass==4 if GoldinClass!=.
-
-lab var _gc1 "Technology and Business"
-lab var _gc2 "Health Occupations"
-
-local se  robust
-local abs abs(statefip)
-local age age2527 age2831 age3239
-local edu highEduc
-local une unemployment
-local une 
-local ind _gc1
-
-drop _gc*
-tab GoldinClass, gen(_gc)
-gen _gc5 = twoLevelOcc=="Education, Training, and Library Occupations"
-lab var _gc5 "Education, Training, and Library"
-replace _gc1=0 if _gc5==1
-replace _gc3=0 if _gc5==1
-replace _gc4=0 if _gc5==1
-
-
-local ind _gc1 _gc3 _gc4 _gc5
-
-eststo: areg goodQuarter `ind' `age' `edu' `une' _year*  `wt', `abs' `se'
-test `age'
-local F1 = round(r(p)*1000)/1000
-eststo: areg goodQuarter `ind' `age' `edu' `une' _year*  `wt', `abs' `se'
-test `age'
-local F2 = round(r(p)*1000)/1000
-eststo: areg goodQuarter `ind' `age' `edu'       _year*  `wt', `abs' `se'
-test `age'
-local F3 = round(r(p)*1000)/1000
-eststo: areg goodQuarter `ind' `age'             _year*  `wt', `abs' `se'
-test `age'
-local F4 = round(r(p)*1000)/1000
-eststo:  reg goodQuarter `ind' `age'                     `wt',       `se'
-test `age'
-local F5 = round(r(p)*1000)/1000
-
-#delimit ;
-esttab est5 est4 est3 est2 est1 using "$OUT/IPUMSIndustryGoldinTeachers.tex",
-replace `estopt'
-title("Season of Birth and Occupation (\citeauthor{Goldin2014}'s Classification)")
-keep(_cons `ind' `age' `edu' `une') style(tex) booktabs mlabels(, depvar) 
-postfoot("F-test of Age Dummies&0`F5'&0`F4'&0`F3'&0`F2'&0`F1'\\                "
-         "State and Year FE&&Y&Y&Y&Y\\                     \bottomrule         "
-         "\multicolumn{6}{p{18.8cm}}{\begin{footnotesize}Sample consists of all"
-         "first born children in the USA to white, non-hispanic married mothers"
-         "aged 25-45 included in ACS data where the mother is either the head  "
-         "of the household or the partner of the head of the household and     "
-         "works in an occupation with at least 500 workers in the sample.      "
-         "Occupations are categorised as in \citet{Goldin2014} table A1.  The  "
-         "omitted category is Business Occupations, and Other Occupations      "
-         "(heterogeneous) are excluded.  The category Education, Training and  "
-         "Library Occupations has been added. F-test of age dummies refers to  "
-         "the p-value for the joint significance of the three age dummies.     "
-         "`enote'"
-         "\end{footnotesize}}\end{tabular}\end{table}");
-#delimit cr
-estimates clear
-
-********************************************************************************
-*** (3g) regressions: Teachers
+*** (3f) regressions: Teachers
 ********************************************************************************
 local se  robust
 local abs abs(statefip)
@@ -598,10 +529,8 @@ postfoot("F-test of Age Variables &  &    &     &     &0`F2'\\                 "
 #delimit cr
 estimates clear
 
-
-
 ********************************************************************************
-*** (3h) Twin regression
+*** (3g) Twin regression
 ********************************************************************************
 use "$DAT/`data'", clear
 keep if marst==1
