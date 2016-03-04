@@ -21,8 +21,8 @@ print('\n\n Producing tex files for output tables.\n\n')
 #==============================================================================
 #== (1a) File names (comes from Stata do files)
 #==============================================================================
-RES   = "/home/damian/investigacion/2015/birthQuarter/results/"
-TAB   = "/home/damian/investigacion/2015/birthQuarter/tables/"
+RES   = "/media/ubuntu/Impar/emergency/birthQuarter/results/"
+TAB   = "/media/ubuntu/Impar/emergency/birthQuarter/tables/"
 ftype = 'nvss'
 dloc  = './../'
 
@@ -117,8 +117,8 @@ for parity in ['single']:
         NVj = open(allEducNVSS, 'r').readlines()
         headline = 'Singletons'
 
-    sumT.write("\\begin{landscape}\\begin{table}[htpb!]"
-               "\\caption{Percent of Births, "+headline+"} \n"
+    sumT.write("\\begin{table}[htpb!]"
+               "\\caption{Percent of Births} \n"
                "\\label{bqTab:"+parity+"Sum}\\begin{center}"
                "\\begin{tabular}{lcccccc}\n\\toprule \\toprule \n"
                "& \\multicolumn{4}{c}{Seasons} & "
@@ -148,12 +148,17 @@ for parity in ['single']:
     
     
     sumT.write('\n'+mr+mc1+twid[4]+tcm[4]+mc3+
-               "Good season refers to birth quarters 2 and 3 (Apr-Jun and "
-               "Jul-Sept).  Bad season refers to quarters 1 and 4 (Jan-Mar "
-               "and Oct-Dec).  Values reflect the percent of yearly births "
-               "each season from 2005-2013. \n"
+	       "Sample consists of all first-born, singleton children born to"
+	       " white, non-hispanic mothers aged between 20-45 for whom     "
+               "education, smoking, and marital status is recorded. Good     "
+	       "season refers to birth quarters 2 and 3 (Apr-Jun and         "
+               "Jul-Sept).  Bad season refers to quarters 1 and 4 (Jan-Mar   "
+               "and Oct-Dec).  Values reflect the percent of yearly births   "
+               "each season from 2005-2013. ART refers to the proportion of  "
+	       "women undertaking artificial reproductive technologies for   "
+	       "this birth. \n"
                "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}"
-               "\\end{center}\\end{table}\\end{landscape}")
+               "\\end{center}\\end{table}")
     
     sumT.close()
 
@@ -305,7 +310,7 @@ elif ftype == 'nvssall':
 
 sumT = open(TAB + 'sumStatsSamp'+ftype+'.tex', 'w')
 sumT.write('\\begin{table}[htpb!] \n \\begin{center} \n' 
-'\\caption{Descriptive Statistics Main Sample (NVSS 2005-2013)}\n '
+'\\caption{Descriptive Statistics (NVSS 2005-2013)}\n '
 '\\label{bqTab:SumStatsMain}'
 '\\begin{tabular}{lccccc} '
 '\n \\toprule\\toprule \\vspace{5mm} \n'
@@ -317,10 +322,10 @@ MP2  = open(MumPNVSS2, 'r').readlines()
 Ki2  = open(KidNVSS2,  'r').readlines()
 
 for i,line in enumerate(Mu2):
-    if i>8 and i<12:
+    if i>8 and i<11:
         line = line.replace('\\hline','\\midrule')
         sumT.write(line)
-    if i>12 and i<17:
+    if i>11 and i<16:
         line = line.replace('\\hline','\\midrule')
         sumT.write(line)
 for i,line in enumerate(MP2):
@@ -338,11 +343,9 @@ for i,line in enumerate(Ki2):
         sumT.write(line)
 
 sumT.write('\n'+mr+mc1+twid[1]+tcm[1]+mc3+
-           "Each sample consists of all first-born children born to" + mnote  +
-           "white, non-hispanic mothers aged between 25-45 for whom education,"
-           " smoking, and marital status is recorded. This is the main        "
-           "estimation sample. Good season refers to birth quarters 2 and 3   "
-           " (Apr-Jun and Jul-Sept)."
+           "Sample is identical to that described in table                    "
+	   "\\ref{bqTab:singleSum}, however only for women aged 25-45.  This  "
+	   "is the main estimation sample.                                    "
            "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}\\end{center}"
            "\\end{table}")
 sumT.close()
@@ -481,7 +484,7 @@ for table in IndTabs:
         line = line.replace('\\end{footnotesize}}\\end{tabular}\\end{table}',
                             '\\end{footnotesize}}\\end{tabular}}\\end{table}')
         line = line.replace('\\begin{tabular}{l*{3}{c}}',
-                            '\\scalebox{0.7}{\\begin{tabular}{l*{3}{c}}')
+                            '\\scalebox{0.76}{\\begin{tabular}{l*{3}{c}}')
         ipoT.write(line)
 
     ipoT.close()
@@ -554,16 +557,16 @@ espa  = './../results/spain/regressions/'
 ipum  = './../results/ipums/regressions/'
 final = open(TAB + "tables.tex", 'w')
 
-TABLES = [tabs+'sumStatsSampnvss.tex'    , tabs+'sumsinglenvss.tex'     ,
-          nvss+'NVSSBinaryMain.tex'      , nvss+'NVSSBinaryEducAge.tex' ,
-          nvss+'ART2024.tex'             , nvss+'NVSSBinaryFDeaths.tex' ,
+TABLES = [tabs+'sumsinglenvss.tex'       , tabs+'sumStatsSampnvss.tex'  , 
+          nvss+'NVSSBinaryMain.tex'      , nvss+'NVSSBinaryFDeaths.tex' ,
+          nvss+'ART2024.tex'             , 
           tabs+'IPUMSIndustry_Income.tex', ipum+'IPUMSTeachers.tex'     ,
-          ipum+'ValueGoodSeason'         , nvss+'NVSSQualityMain.tex'   ]
+          ipum+'ValueGoodSeasonInc.tex'  , nvss+'NVSSQualityMain.tex'   ]
 
 i = 1
 
 for table in TABLES:
-    if i<3 or i==6 or i==7 or i==9:
+    if i<3 or i==4 or i==6 or i==8:
         final.write('\\input{'
                     +table+'}\n')
     else:
@@ -605,7 +608,7 @@ TABLES = [nvss +'NVSSBinaryMain_robust.tex' , nvss +'NVSSBinaryBord2.tex',
           ipum+'ValueGoodSeason.tex'                                     ]
 i = 1
 for table in TABLES:
-    if i==6 or i==7:
+    if i==6 or i==7 or i==8:
         final.write('\\input{'
                     +table+'}\n')
     else:
@@ -620,14 +623,14 @@ final.close()
 #==============================================================================
 #===== Appendix C: Replicating results with married and unmarried
 final = open(TAB + "appendixTablesC.tex", 'w')
-TABLES = [tabs+'sumStatsSampnvssall.tex' , tabs+'sumsinglenvssall.tex'  ,
-          nall+'NVSSBinaryMain.tex'      , nall+'NVSSBinaryEducAge.tex' ,
-          nall+'ART2024.tex'             , nall+'NVSSBinaryFDeaths.tex' ,
-          ipum+'ValueGoodSeason_all.tex' , nall+'NVSSQualityMain.tex'   ]
+TABLES = [tabs+'sumsinglenvssall.tex'    , tabs+'sumStatsSampnvssall.tex', 
+          nall+'NVSSBinaryMain.tex'      , nall+'NVSSBinaryFDeaths.tex'  ,
+          nall+'ART2024.tex'             , 
+          ipum+'ValueGoodSeason_all.tex' , nall+'NVSSQualityMain.tex'    ]
 
 i = 1
 for table in TABLES:
-    if i<3 or i==6 or i==7:
+    if i<3 or i==4 or i==6:
         final.write('\\input{'
                     +table+'}\n')
     else:
