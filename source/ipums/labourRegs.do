@@ -19,9 +19,7 @@ cap log close
 global DAT "~/investigacion/2015/birthQuarter/data/raw"
 global OUT "~/investigacion/2015/birthQuarter/results/ipums/regressions"
 global LOG "~/investigacion/2015/birthQuarter/log"
-global DAT "/media/ubuntu/Impar/emergency/birthQuarter/data/raw"
-global OUT "/media/ubuntu/Impar/emergency/birthQuarter/results/ipums/regressions"
-global LOG "/media/ubuntu/Impar/emergency/birthQuarter/log"
+
 
 log using "$LOG/labourRegs.txt", text replace
 
@@ -62,7 +60,7 @@ lab var teacherXmother "Non-Teacher $\times$ Mother"
 lab var income         "Earnings"
 lab var wages          "Wage Income"
 lab var logIncome      "log(Earnings)"
-lab var logWage        "log(Wage Income)"
+lab var logWage        "log(Wage Inc)"
 lab var motherAge      "Age"
 lab var motherAge2     "Age Squared"
 lab var highEduc       "Some College +"
@@ -87,7 +85,7 @@ keep(mother teacher teacherXmother motherAge motherAge2 highEduc)
 mgroups("All" "$\geq$ 35 Years", pattern(1 0 1 0)
 prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
 title("The Value of Season of Birth (Wages)"\label{tab:IPUMSWagesAll}) 
-postfoot("State and Year Fixed Effects & Y & Y & Y & Y \\                   "
+postfoot("State and Year FE & Y & Y & Y & Y \\                              "
          "\bottomrule\multicolumn{5}{p{15.6cm}}{\begin{footnotesize}  Main  "
          "ACS estimation sample is used, augmenting to include un-married   "
          "women.  Teacher refers to occupational codes 2250-2500 (teachers, "
@@ -137,8 +135,8 @@ keep(mother teacher teacherXmother motherAge motherAge2 highEduc)
 mgroups("All" "$\geq$ 35 Years", pattern(1 0 1 0)
 prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
 title("The Value of Season of Birth (Wages)"\label{tab:IPUMSWages}) 
-postfoot("State and Year Fixed Effects & Y & Y & Y & Y \\                   "
-         "\bottomrule\multicolumn{5}{p{15.6cm}}{\begin{footnotesize}  Main  "
+postfoot("State and Year FE & Y & Y & Y & Y \\                              "
+         "\bottomrule\multicolumn{5}{p{16.6cm}}{\begin{footnotesize}  Main  "
          "ACS estimation sample used.  Teacher refers to occupational codes "
          "2250-2500 (teachers, librarians and educational occupations).     "
          "Wages refer to wage and salary income, and are measured in dollars"
@@ -161,7 +159,7 @@ mgroups("All" "$\geq$ 35 Years", pattern(1 0 1 0)
 prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
 title("The Value of Season of Birth"\label{tab:IPUMSInc}) 
 postfoot("State and Year Fixed Effects & Y & Y & Y & Y \\                   "
-         "\bottomrule\multicolumn{5}{p{15.6cm}}{\begin{footnotesize} Main   "
+         "\bottomrule\multicolumn{5}{p{15.8cm}}{\begin{footnotesize} Main   "
          "ACS estimation sample used.  Teacher refers to occupational codes "
          "2250-2500 (teachers, librarians and educational occupations).     "
          "Earnings refers to total personal earned income, and is measured  "
