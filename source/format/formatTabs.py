@@ -599,7 +599,7 @@ final.close()
 #===== TABLE B6: IPUMS value results with income
 #==============================================================================
 final = open(TAB + "appendixTablesB.tex", 'w')
-TABLES = [nvss + 'NVSSBinaryMain_robust.tex', nvss +'NVSSBinaryBord2.tex',
+TABLES = [nvss +'NVSSBinaryMain_robust.tex' , nvss +'NVSSBinaryBord2.tex',
           nvss +'NVSSBinaryTwin.tex'        , nvss +'NVSSBinaryNoSep.tex', 
           nvss +'NVSSBinaryMain_A.tex', tabs +'IPUMSIndustry_IncEduc.tex',
           ipum+'ValueGoodSeason.tex'                                     ]
