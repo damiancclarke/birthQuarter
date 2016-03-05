@@ -37,7 +37,9 @@ local enote  "Heteroscedasticity robust standard errors are reported in
             parentheses. ***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.";
 local Fnote  "F-test of age variables refers to the p-value on the test that
               the coefficients on mother's age and age squared are jointly equal
-              to zero.";
+              to zero. ";
+local onote  "Optimal age calculates the turning point of the mother's age
+              quadratic. ";
 #delimit cr
 
 ********************************************************************************
@@ -58,9 +60,9 @@ drop counter
 gen young = motherAge>=25&motherAge<=39
 lab var young "Aged 25-39"
 
-gen motherAge2      = motherAge*motherAge
+gen motherAge2      = motherAge*motherAge/100
 lab var motherAge       "Mother's Age"
-lab var motherAge2      "Mother's Age$^2$"
+lab var motherAge2      "Mother's Age$^2$ / 100"
 
 ********************************************************************************
 *** (3a) regressions: binary age groups
@@ -79,12 +81,14 @@ eststo: areg goodQuarter `v1'      `wt', abs(occ) `se'
 test `age'
 local F1 = round(r(p)*1000)/1000
 if   `F1' == 0 local F1 0.000
+local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
 foreach num of numlist 2 3 {
     eststo: areg goodQuarter `v`num'' if e(sample) `wt', `abs' `se'
     test  `age'
     local F`num' = round(r(p)*1000)/1000
-    if   `F`num'' == 0 local F`num' 0.000    
+    if   `F`num'' == 0 local F`num' 0.000
+    local opt`num' = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 }
 eststo: reg goodQuarter `v4' if e(sample) `wt', `se'
 test `age'
@@ -95,13 +99,14 @@ esttab est4 est3 est2 est1 using "$OUT/IPUMSBinary.tex", replace `estopt'
 title("Season of Birth Correlates (IPUMS 2005-2014)"\label{tab:IPUMSBinary})
 keep(_cons `age' `edu' `une') style(tex) booktabs mlabels(, depvar) 
 postfoot("F-test of Age Variables&0`F4'&0`F3'&0`F2'&0`F1' \\                   "
+         "Optimal Age &`opt4'&`opt3'&`opt2'&`opt1' \\                          "
          "State and Year FE&&Y&Y&Y\\ Occupation FE&&&&Y\\ \bottomrule          "
          "\multicolumn{5}{p{15.2cm}}{\begin{footnotesize}Sample consists of all"
          "first born children in the USA to white, non-hispanic, married       "
          "mothers aged 25-45 included in ACS data where the mother is either   "
          "the head of the household or the partner of the head of the          "
          "household and works in an occupation with at least 500 workers in the"
-         "sample. Age 40-45 is the omitted base category. `Fnote' `enote'      "
+         "sample. Age 40-45 is the omitted base category. `Fnote'`onote'`enote'"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -124,12 +129,14 @@ foreach type of local add {
     test  `age'
     local F1 = round(r(p)*1000)/1000
     if   `F1' == 0 local F1 0.000
+    local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
     foreach num of numlist 2 3 {
         eststo: areg goodQuarter `v`num'' if e(sample) `wt', `abs' `se'
         test `age'
         local F`num' = round(r(p)*1000)/1000
-        if   `F`num'' == 0 local F`num' 0.000    
+        if   `F`num'' == 0 local F`num' 0.000
+        local opt`num' = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
     }
     eststo: reg goodQuarter `v4' if e(sample) `wt', `se'
     test `age'
@@ -140,6 +147,7 @@ foreach type of local add {
     `estopt' title("Season of Birth Correlates `type'"\label{tab:IPUMS`type'})
     keep(_cons `age' `edu' `une') style(tex) booktabs mlabels(, depvar) 
     postfoot("F-test of Age Varliables&0`F4'&0`F3'&0`F2'&0`F1' \\              "
+             "Optimal Age &`opt4'&`opt3'&`opt2'&`opt1' \\                      "
              "State and Year FE&&Y&Y&Y\\ Occupation FE&&&&Y\\ \bottomrule      "
              "\multicolumn{5}{p{15.2cm}}{\begin{footnotesize}Sample consists of"
              "all `samp1' first born children with white, non-hispanic, married"
@@ -147,7 +155,7 @@ foreach type of local add {
              "either the head of the household or the partner of the head of   "
              "the household and works in an occupation with at least 500       "
              "workers in the sample. Age 40-45 is the omitted base category.   "
-             "`Fnote' `enote'"
+             "`Fnote'`onote'`enote'"
              "\end{footnotesize}}\end{tabular}\end{table}");
     #delimit cr
     estimates clear
@@ -173,12 +181,15 @@ eststo: areg goodQuarter `v1'      `wt', abs(occ) `se'
 test `age'
 local F1 = round(r(p)*1000)/1000
 if   `F1' == 0 local F1 0.000
+local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
 foreach num of numlist 2(1)4 {
     eststo: reg goodQuarter `v`num'' if e(sample) `wt', `se'
     test `age'
     local F`num' = round(r(p)*1000)/1000
     if   `F`num'' == 0 local F`num' 0.000    
+    local opt`num' = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+
 }
 
 #delimit ;
@@ -186,6 +197,7 @@ esttab est4 est3 est2 est1 using "$OUT/IPUMSBinary_Robust.tex", replace
 `estopt' title("Season of Birth Correlates (Robustness)"\label{tab:IPUMSRobust})
 keep(_cons `age' `edu' `une') style(tex) booktabs mlabels(, depvar) 
 postfoot("F-test of Age Variables&0`F4'&0`F3'&0`F2'&0`F1' \\                   "
+         "Optimal Age &`opt4'&`opt3'&`opt2'&`opt1' \\                          "
          "State and Year FE&Y&Y&Y&Y\\ State Linear Trends&Y& &Y&Y\\            "
          "Occupation FE&&&&Y\\                          \bottomrule            "
          "\multicolumn{5}{p{15.4cm}}{\begin{footnotesize}Sample consists of all"
@@ -193,7 +205,7 @@ postfoot("F-test of Age Variables&0`F4'&0`F3'&0`F2'&0`F1' \\                   "
          "mothers aged 25-45 included in ACS data where the mother is either   "
          " the head of the household or the partner of the head of the         "
          "household and works in an occupation with at least 500 workers in the"
-         "sample. Age 40-45 is the omitted base category. `Fnote' `enote'      "
+         "sample. Age 40-45 is the omitted base category. `Fnote'`onote'`enote'"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -297,7 +309,7 @@ local F1 = round(r(p)*1000)/1000
 if `F1' == 0 local F1 0.000
 test `age'
 local F1a = round(r(p)*1000)/1000
-
+local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
 drop _2occ2
 eststo:  areg goodQuarter `age' `edu' `une' _year* `lv2' `wt', `se' `abs'
@@ -308,10 +320,12 @@ local F2 = round(r(p)*1000)/1000
 if `F2' == 0 local F2 0.000
 test `age'
 local F2a = round(r(p)*1000)/1000
+local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
 eststo:  areg goodQuarter `age' `edu' `une' _year*       `wt', `se' `abs'
 test `age'
 local F3a = round(r(p)*1000)/1000
+local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
 #delimit ;
 esttab est3 est2 est1 using "$OUT/IPUMSIndustry.tex", replace `estopt' 
@@ -319,7 +333,8 @@ title("Season of Birth Correlates: Occupation"\label{tab:Occupation})
 keep(_cons `age' `edu' `une' `lv2') style(tex) booktabs mlabels(, depvar) 
 postfoot("Occupation Codes (level) &-&2&3\\                                    "
          "F-test of Occupation Dummies&-&`F2'&`F1'\\                           "
-         "F-test of Age Variables&0`F3a'&0`F2a'&0`F1a'\\        \bottomrule    "
+         "F-test of Age Variables&0`F3a'&0`F2a'&0`F1a'\\                       "
+         "Optimal Age&`opt3'&`opt2'&`opt1'\\ \bottomrule                       "
          "\multicolumn{4}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
          " singleton first-born children in the USA to white, non-hispanic     "
 	 "married mothers aged 25-45 included in 2005-2014 ACS data where the  "
@@ -332,7 +347,7 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
 	 " All occupation codes refer to IPUMS occ2010 codes, available at:    "
          "https://usa.ipums.org/usa/volii/acs_occtooccsoc.shtml. F-tests for   "
          "occupation report p-values of joint significance of the dummies, and "
-         "`Fnote' `enote'"
+         "`Fnote' `onote' `enote'"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -345,7 +360,7 @@ local F1 = round(r(p)*1000)/1000
 if `F1' == 0 local F1 0.000
 test `age'
 local F1a = round(r(p)*1000)/1000
-
+local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
 eststo:  areg goodQuarter `age' `une' _year* `lv2' `wt', `se' `abs'
 ds _2occ*
@@ -355,10 +370,12 @@ local F2 = round(r(p)*1000)/1000
 if `F2' == 0 local F2 0.000
 test `age'
 local F2a = round(r(p)*1000)/1000
+local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
 eststo:  areg goodQuarter `age' `une' _year*       `wt', `se' `abs'
 test `age'
 local F3a = round(r(p)*1000)/1000
+local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
 #delimit ;
 esttab est3 est2 est1 using "$OUT/IPUMSIndustry_NoEduc.tex", replace `estopt' 
@@ -366,7 +383,8 @@ title("Season of Birth Correlates: Occupation (No Education Control)")
 keep(_cons `age' `une' `lv2') style(tex) booktabs mlabels(, depvar) 
 postfoot("Occupation Codes (level) &-&2&3\\                                    "
          "F-test of Occupation Dummies&-&`F2'&`F1'\\                           "
-         "F-test of Age Variables&0`F3a'&0`F2a'&0`F1a'\\        \bottomrule    "
+         "F-test of Age Variables&0`F3a'&0`F2a'&0`F1a'\\                       "
+         "Optimal Age&`opt3'&`opt2'&`opt1'\\ \bottomrule                       "
          "\multicolumn{4}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
          " singleton first-born children in the USA to white, non-hispanic     "
 	 "married mothers aged 25-45 included in 2005-2014 ACS data where the  "
@@ -379,7 +397,7 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
 	 " All occupation codes refer to IPUMS occ2010 codes, available at:    "
          "https://usa.ipums.org/usa/volii/acs_occtooccsoc.shtml. F-tests for   "
          "occupation report p-values of joint significance of the dummies, and "
-         "`Fnote' `enote'"
+         "`Fnote' `onote' `enote'"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -396,6 +414,7 @@ local F1 = round(r(p)*1000)/1000
 if `F1' == 0 local F1 0.000
 test `age'
 local F1a = round(r(p)*1000)/1000
+local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
 eststo:  areg goodQuarter `age' `inc' `une' _year* `lv2' `wt', `se' `abs'
 ds _2occ*
@@ -405,10 +424,12 @@ local F2 = round(r(p)*1000)/1000
 if `F2' == 0 local F2 0.000
 test `age'
 local F2a = round(r(p)*1000)/1000
+local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
 eststo:  areg goodQuarter `age' `inc' `une' _year*       `wt', `se' `abs'
 test `age'
 local F3a = round(r(p)*1000)/1000
+local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
 #delimit ;
 esttab est3 est2 est1 using "$OUT/IPUMSIndustry_Income.tex", replace `estopt' 
@@ -416,7 +437,8 @@ title("Season of Birth Correlates: Occupation")
 keep(_cons `age' `inc' `une' `lv2') style(tex) booktabs mlabels(, depvar) 
 postfoot("Occupation Codes (level) &-&2&3\\                                    "
          "F-test of Occupation Dummies&-&`F2'&`F1'\\                           "
-         "F-test of Age Variables&0`F3a'&0`F2a'&0`F1a'\\        \bottomrule    "
+         "F-test of Age Variables&0`F3a'&0`F2a'&0`F1a'\\                       "
+         "Optimal Age&`opt3'&`opt2'&`opt1'\\ \bottomrule                       "
          "\multicolumn{4}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
          " singleton first-born children in the USA to white, non-hispanic     "
 	 "married mothers aged 25-45 included in 2005-2014 ACS data where the  "
@@ -429,7 +451,7 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
 	 " All occupation codes refer to IPUMS occ2010 codes, available at:    "
          "https://usa.ipums.org/usa/volii/acs_occtooccsoc.shtml. F-tests for   "
          "occupation report p-values of joint significance of the dummies, and "
-         "`Fnote' `enote'"
+         "`Fnote' `onote' `enote'"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -445,7 +467,7 @@ local F1 = round(r(p)*1000)/1000
 if `F1' == 0 local F1 0.000
 test `age'
 local F1a = round(r(p)*1000)/1000
-
+local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
 eststo:  areg goodQuarter `age' `inc' `une' _year* `lv2' `wt', `se' `abs'
 ds _2occ*
@@ -455,10 +477,12 @@ local F2 = round(r(p)*1000)/1000
 if `F2' == 0 local F2 0.000
 test `age'
 local F2a = round(r(p)*1000)/1000
+local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
 eststo:  areg goodQuarter `age' `inc' `une' _year*       `wt', `se' `abs'
 test `age'
 local F3a = round(r(p)*1000)/1000
+local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
 #delimit ;
 esttab est3 est2 est1 using "$OUT/IPUMSIndustry_IncEduc.tex", replace `estopt' 
@@ -466,7 +490,8 @@ title("Season of Birth Correlates: Occupation (Income/Education Controls)")
 keep(_cons `age' `inc' `une' `lv2') style(tex) booktabs mlabels(, depvar) 
 postfoot("Occupation Codes (level) &-&2&3\\                                    "
          "F-test of Occupation Dummies&-&`F2'&`F1'\\                           "
-         "F-test of Age Variables&0`F3a'&0`F2a'&0`F1a'\\        \bottomrule    "
+         "F-test of Age Variables&0`F3a'&0`F2a'&0`F1a'\\                       "
+         "Optimal Age&`opt3'&`opt2'&`opt1'\\ \bottomrule                       "
          "\multicolumn{4}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
          " singleton first-born children in the USA to white, non-hispanic     "
 	 "married mothers aged 25-45 included in 2005-2014 ACS data where the  "
@@ -479,7 +504,7 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
 	 " All occupation codes refer to IPUMS occ2010 codes, available at:    "
          "https://usa.ipums.org/usa/volii/acs_occtooccsoc.shtml. F-tests for   "
          "occupation report p-values of joint significance of the dummies, and "
-         "`Fnote' `enote'"
+         "`Fnote' `onote' `enote'"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -507,6 +532,7 @@ lab var quarter "Quarter II"
 eststo: areg goodQuarter teachers `age' `edu' `une' _year*  `wt', `abs' `se'
 test `age'
 local F2 = round(r(p)*1000)/1000
+local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 eststo: areg goodQuarter teachers       `edu'       _year*  `wt', `abs' `se'
 eststo: areg goodQuarter                `edu'       _year*  `wt', `abs' `se'
 eststo: areg goodQuarter teachers                   _year*  `wt', `abs' `se'
@@ -519,16 +545,17 @@ esttab est5 est4 est3 est2 est1 using "$OUT/IPUMSTeachers.tex", replace
 `estopt' title("Season of Birth Correlates: Education, Training and Library")
 keep(_cons teachers `age' `edu' `une') style(tex) booktabs mlabels(, depvar) 
 postfoot("F-test of Age Variables &  &    &     &     &0`F2'\\                 "
+         "Optimal Age             &  &    &     &     &`opt1'\\                "
          "State and Year FE&&Y&Y&Y&Y\\                        \bottomrule      "
          "\multicolumn{6}{p{19cm}}{\begin{footnotesize}Main ACS estimation     "
 	 "sample is used. Education, Training and Library refers to individuals"
 	 " employed in this occupation (occ codes 2200-2550).  The omitted     "
 	 "occupational category is all non-educational occupations, and the    "
-	 "omitted age category is 40-45 year old women. `Fnote' `enote'"
+	 "omitted age category is 40-45 year old women. `Fnote' `onote' `enote'"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-
+exit
 ********************************************************************************
 *** (3g) Twin regression
 ********************************************************************************
