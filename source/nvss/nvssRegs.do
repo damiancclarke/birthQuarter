@@ -16,7 +16,7 @@ clear all
 set more off
 cap log close
 
-local allobs 1
+local allobs 0
 
 ********************************************************************************
 *** (1) globals and locals
@@ -464,31 +464,53 @@ foreach cond of local c1 {
     foreach y of varlist `qual' {
         eststo: areg `y' `varsY' `control' `yFE', `se' abs(fips)
         test `varsY'
-        local F`jj' = round(r(p)*1000)/1000
-        if   `F`jj'' == 0 local F`jj' 0.000
-        local opt`jj' = -_b[motherAge]/(0.02*_b[motherAge2])
+        local F`jj'a = round(r(p)*1000)/1000
+        if   `F`jj'a' == 0 local F`jj'a 0.000
+        local opt`jj'a = -_b[motherAge]/(0.02*_b[motherAge2])
+
+        eststo: areg `y' `varsY' `yFE' if e(sample)==1, `se' abs(fips)
+        test `varsY'
+        local F`jj'b = round(r(p)*1000)/1000
+        if   `F`jj'b' == 0 local F`jj'b 0.000
+        local opt`jj'b = -_b[motherAge]/(0.02*_b[motherAge2])
+
         local ++jj
     }
     
     #delimit ;
-    esttab est1 est2 est3 est4 est5 est6 using "$OUT/NVSSQuality`1'.tex",
+    esttab est1 est3 est5 est7 est9 est11 using "$OUT/NVSSQuality`1'.tex",
     replace `estopt'
     title("Birth Quality and Season of Birth `title'"\label{tab:quality`1'})
     keep(_cons `varsY' `control') style(tex) mlabels(, depvar) 
-    postfoot("F-test of Age Variables&`F1'&`F2'&`F3'&`F4'&`F5'&`F6' \\     "
-             "Optimal Age &`opt1'&`opt2'&`opt3'&`opt4'&`opt5'&`opt6' \\    "
-             "\bottomrule                                                  "
-             "\multicolumn{7}{p{17cm}}{\begin{footnotesize}Main estimation "
-	     "sample is used. State and year fixed effects are             "
-             "included, and `Fnote' `onote' `enote'                        "
-             "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.        "
+    postfoot("F-test of Age Variables&`F1a'&`F2a'&`F3a'&`F4a'&`F5a'&`F6a' \\ "
+             "Optimal Age &`opt1a'&`opt2a'&`opt3a'&`opt4a'&`opt5a'&`opt6a'\\ "
+             "\bottomrule                                                    "
+             "\multicolumn{7}{p{17cm}}{\begin{footnotesize}Main estimation   "
+	     "sample is used. State and year fixed effects are               "
+             "included, and `Fnote' `onote' `enote'                          "
+             "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
              "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
+
+    esttab est2 est4 est6 est8 est10 est12 using "$OUT/NVSSQuality`1'_NC.tex",
+    replace `estopt'
+    title("Birth Quality and Season of Birth `title'"\label{tab:quality`1'NC})
+    keep(_cons `varsY') style(tex) mlabels(, depvar) 
+    postfoot("F-test of Age Variables&`F1b'&`F2b'&`F3b'&`F4b'&`F5b'&`F6b' \\ "
+             "Optimal Age &`opt1b'&`opt2b'&`opt3b'&`opt4b'&`opt5b'&`opt6b'\\ "
+             "\bottomrule                                                    "
+             "\multicolumn{7}{p{17cm}}{\begin{footnotesize}Main estimation   "
+	     "sample is used. State and year fixed effects are               "
+             "included, and `Fnote' `onote' `enote'                          "
+             "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
+             "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
+
     #delimit cr
     estimates clear
     
     macro shift
     restore
 }
+
 
 keep if `keepif'
 
