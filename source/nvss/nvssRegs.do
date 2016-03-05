@@ -16,7 +16,7 @@ clear all
 set more off
 cap log close
 
-local allobs 0
+local allobs 1
 
 ********************************************************************************
 *** (1) globals and locals
@@ -63,13 +63,14 @@ if `allobs'==1 local mc married
 
 replace motherAge2 = motherAge2/100
 lab var motherAge2 "Mother's Age$^2$ / 100"
+
 ********************************************************************************
 *** (3a) Good Quarter Regressions
 ********************************************************************************
 #delimit ;
 local add `" ""  "(No September)" "(Birth Order = 2)" "(Twin sample)"
-                 "(Girls Only)" "(Boys Only)" "(With Twins)" "';
-local nam Main NoSep Bord2 Twin girls boys TwinS;
+                 "(With Twins)" "';
+local nam Main NoSep Bord2 Twin TwinS;
 #delimit cr
 tokenize `nam'
 
@@ -105,32 +106,32 @@ foreach type of local add {
     test `age'
     local F1 = round(r(p)*1000)/1000
     if   `F1' == 0 local F1 0.000
-    local opt1 = -_b[motherAge]/(0.02*_b[motherAge2])
+    local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
     
     eststo: areg goodQuarter `age'       _year* if e(sample) , `se' `yab'
     test `age'    
     local F2 = round(r(p)*1000)/1000
     if   `F2' == 0 local F2 0.000
-    local opt2 = -_b[motherAge]/(0.02*_b[motherAge2])
+    local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
     eststo:  reg goodQuarter `age'              if e(sample) , `se'
     test `age'    
     local F3 = round(r(p)*1000)/1000
     if   `F3' == 0 local F3 0.000
-    local opt3 = -_b[motherAge]/(0.02*_b[motherAge2])
+    local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
     keep if year>=2009&ART!=.
     eststo: areg goodQuarter `age' `edu' `con' _year* `spcnd', `se' `yab'
     test `age'
     local F4 = round(r(p)*1000)/1000
     if   `F4' == 0 local F4 0.000
-    local opt4 = -_b[motherAge]/(0.02*_b[motherAge2])
+    local opt4 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
     eststo: areg goodQuarter `age' `edu' `con' _year* noART `spcnd', `se' `yab'
     test `age'    
     local F5 = round(r(p)*1000)/1000
     if   `F5' == 0 local F5 0.000
-    local opt5 = -_b[motherAge]/(0.02*_b[motherAge2])
+    local opt5 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
     #delimit ;
     esttab est3 est2 est1 est4 est5 using "$OUT/NVSSBinary`1'.tex",
@@ -166,38 +167,38 @@ eststo: areg goodQuarter `age' `edu' `con' _year* i.fips#c.year, `se' `yab'
 test `age'
 local F1 = round(r(p)*1000)/1000
 if   `F1' == 0 local F1 0.000
-local opt1 = -_b[motherAge]/(0.02*_b[motherAge2])
+local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
 eststo: areg goodQuarter `age' `edu' `con' _year*              , `se' `yab'
 test `age'
 local F2 = round(r(p)*1000)/1000
 if   `F2' == 0 local F2 0.000
-local opt2 = -_b[motherAge]/(0.02*_b[motherAge2])
+local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
 eststo: areg goodQuarter `age' `edu' `co1' _year* i.fips#c.year, `se' `yab'
 test `age'
 local F3 = round(r(p)*1000)/1000
 if   `F3' == 0 local F3 0.000
-local opt3 = -_b[motherAge]/(0.02*_b[motherAge2])
+local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
 keep if year>=2009&ART!=.
 eststo: areg goodQuarter `age' `edu' `con' _year*              , `se' `yab'
 test `age'
 local F4 = round(r(p)*1000)/1000
 if   `F4' == 0 local F4 0.000
-local opt4 = -_b[motherAge]/(0.02*_b[motherAge2])
+local opt4 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
 eststo: areg goodQuarter `age' `edu' `con' _year* noART        , `se' `yab'
 test `age'
 local F5 = round(r(p)*1000)/1000
 if   `F5' == 0 local F5 0.000
-local opt5 = -_b[motherAge]/(0.02*_b[motherAge2])
+local opt5 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
 eststo: areg goodQuarter `age' `edu' `con' noART i.fips#c.year  , `se' `yab'
 test `age'
 local F6 = round(r(p)*1000)/1000
 if   `F6' == 0 local F6 0.000
-local opt6 = -_b[motherAge]/(0.02*_b[motherAge2])
+local opt6 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
 #delimit ;
 esttab est3 est2 est1 est4 est5 est6 using
@@ -447,6 +448,9 @@ local c1      twin==1&birthOrd==1&liveBir==1 twin==2&birthOrder==1&liveBir==1 /*
 local varsY   motherAge motherAge2
 local control goodQuarter highEd smoker `mc'
 local names   Main Twin Bord2 FDeaths
+
+local c1      twin==1&birthOrd==1&liveBir==1
+local names   Main
 tokenize `names'
 
 
@@ -466,13 +470,11 @@ foreach cond of local c1 {
         test `varsY'
         local F`jj'a = round(r(p)*1000)/1000
         if   `F`jj'a' == 0 local F`jj'a 0.000
-        local opt`jj'a = -_b[motherAge]/(0.02*_b[motherAge2])
 
         eststo: areg `y' `varsY' `yFE' if e(sample)==1, `se' abs(fips)
         test `varsY'
         local F`jj'b = round(r(p)*1000)/1000
         if   `F`jj'b' == 0 local F`jj'b 0.000
-        local opt`jj'b = -_b[motherAge]/(0.02*_b[motherAge2])
 
         local ++jj
     }
@@ -483,11 +485,10 @@ foreach cond of local c1 {
     title("Birth Quality and Season of Birth `title'"\label{tab:quality`1'})
     keep(_cons `varsY' `control') style(tex) mlabels(, depvar) 
     postfoot("F-test of Age Variables&`F1a'&`F2a'&`F3a'&`F4a'&`F5a'&`F6a' \\ "
-             "Optimal Age &`opt1a'&`opt2a'&`opt3a'&`opt4a'&`opt5a'&`opt6a'\\ "
              "\bottomrule                                                    "
              "\multicolumn{7}{p{17cm}}{\begin{footnotesize}Main estimation   "
 	     "sample is used. State and year fixed effects are               "
-             "included, and `Fnote' `onote' `enote'                          "
+             "included, and `Fnote'         `enote'                          "
              "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
              "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
 
@@ -530,25 +531,25 @@ eststo: areg goodQuarter `age' `con' _year* i.gestation , `se' `yab'
 test `age'
 local F1 = round(r(p)*1000)/1000
 if   `F1' == 0 local F1 0.000
-local opt1 = -_b[motherAge]/(0.02*_b[motherAge2])
+local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
 eststo: areg goodQuarter `age' `con' _year*             , `se' `yab'
 test `age'
 local F2 = round(r(p)*1000)/1000
 if   `F2' == 0 local F2 0.000
-local opt2 = -_b[motherAge]/(0.02*_b[motherAge2])
+local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
 eststo: areg goodQuarter `age'       _year* if e(sample), `se' `yab'
 test `age'
 local F3 = round(r(p)*1000)/1000
 if   `F3' == 0 local F3 0.000
-local opt3 = -_b[motherAge]/(0.02*_b[motherAge2])
+local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
 eststo:  reg goodQuarter `age'              if e(sample), `se'
 test `age'
 local F4 = round(r(p)*1000)/1000
 if   `F4' == 0 local F4 0.000
-local opt4 = -_b[motherAge]/(0.02*_b[motherAge2])
+local opt4 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
 #delimit ;
 esttab est4 est3 est2 est1 using "$OUT/NVSSBinaryFDeaths.tex", replace

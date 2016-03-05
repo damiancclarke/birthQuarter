@@ -136,7 +136,7 @@ mgroups("All" "$\geq$ 35 Years", pattern(1 0 1 0)
 prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
 title("The Value of Season of Birth (Wages)"\label{tab:IPUMSWages}) 
 postfoot("State and Year FE & Y & Y & Y & Y \\                              "
-         "\bottomrule\multicolumn{5}{p{16.6cm}}{\begin{footnotesize}  Main  "
+         "\bottomrule\multicolumn{5}{p{15.8cm}}{\begin{footnotesize}  Main  "
          "ACS estimation sample used.  Teacher refers to occupational codes "
          "2250-2500 (teachers, librarians and educational occupations).     "
          "Wages refer to wage and salary income, and are measured in dollars"

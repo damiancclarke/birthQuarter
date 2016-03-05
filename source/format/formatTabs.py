@@ -626,17 +626,24 @@ ipum  = './../results/ipums/regressions/'
 final = open(TAB + "tables.tex", 'w')
 
 TABLES = [tabs+'sumsinglenvss.tex'       , tabs+'sumStatsSampnvss.tex'  , 
-          nvss+'NVSSBinaryMain.tex'      , nvss+'NVSSBinaryFDeaths.tex' ,
-          nvss+'ART2024.tex'             , 
-          tabs+'IPUMSIndustry_Income.tex', ipum+'IPUMSTeachers.tex'     ,
-          ipum+'ValueGoodSeasonInc.tex'  , nvss+'NVSSQualityMain.tex'   ]
+          nvss+'NVSSBinaryMain.tex'      , nvss+'NVSSBinaryTwinS.tex'   ,
+          nvss+'NVSSBinaryFDeaths.tex'   , nvss+'ART2024.tex'           , 
+          tabs+'IPUMSIndustry.tex'       , ipum+'IPUMSTeachers.tex'     ,
+          ipum+'ValueGoodSeasonInc.tex'  , nvss+'NVSSQualityMain.tex'   ,
+          nvss+'NVSSQualityMain_NC.tex'                                 ]
 
 i = 1
 
 for table in TABLES:
-    if i<3 or i==4 or i==6 or i==8:
+    if i<3 or i==5 or i==7 or i==9:
         final.write('\\input{'
                     +table+'}\n')
+    elif i==3 or i==10:
+        final.write('\\begin{subtables}\\begin{landscape}\n\\input{'
+                    +table+'}\n\\end{landscape}\n')
+    elif i==4 or i==11:
+        final.write('\\begin{landscape}\n\\input{'
+                    +table+'}\n\\end{landscape}\\end{subtables}\n')
     else:
         final.write('\\begin{landscape}\n\\input{'
                     +table+'}\n\\end{landscape}\n')
@@ -693,20 +700,29 @@ final.close()
 #===== Appendix C: Replicating results with married and unmarried
 final = open(TAB + "appendixTablesC.tex", 'w')
 TABLES = [tabs+'sumsinglenvssall.tex'    , tabs+'sumStatsSampnvssall.tex', 
-          nall+'NVSSBinaryMain.tex'      , nall+'NVSSBinaryFDeaths.tex'  ,
-          nall+'ART2024.tex'             , 
-          ipum+'ValueGoodSeason_all.tex' , nall+'NVSSQualityMain.tex'    ]
+          nall+'NVSSBinaryMain.tex'      , nall+'NVSSBinaryTwinS.tex'    ,
+          nall+'NVSSBinaryFDeaths.tex'   , nall+'ART2024.tex'            , 
+          ipum+'ValueGoodSeason_all.tex' , nall+'NVSSQualityMain.tex'    ,
+          nall+'NVSSQualityMain_NC.tex'                                  ]
 
 i = 1
+
 for table in TABLES:
-    if i<3 or i==4 or i==6:
+    if i<3 or i==5 or i==7:
         final.write('\\input{'
                     +table+'}\n')
+    elif i==3 or i==8:
+        final.write('\\begin{subtables}\\begin{landscape}\n\\input{'
+                    +table+'}\n\\end{landscape}\n')
+    elif i==4 or i==9:
+        final.write('\\begin{landscape}\n\\input{'
+                    +table+'}\n\\end{landscape}\\end{subtables}\n')
     else:
         final.write('\\begin{landscape}\n\\input{'
                     +table+'}\n\\end{landscape}\n')
     i = i+1
 final.close()
+
 
 #==============================================================================
 #== (Xiv) write appendix tables D tex file
