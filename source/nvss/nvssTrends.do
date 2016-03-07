@@ -44,13 +44,13 @@ local keepif  birthOrder == 1 & motherAge > 24 & motherAge<=45
 local twins   0
 if `twins' == 1 local app twins
 
-
+/*
 ********************************************************************************
 *** (2a) Use, descriptive graph
 ********************************************************************************
 use "$DAT/`data'"
 keep if birthOrder==1
-/*
+
 preserve
 if `allobs'==0 keep if married==1
 #delimit ;
@@ -65,9 +65,9 @@ twoway hist motherAge if motherAge>24&motherAge<=45, freq color(gs0) width(1) ||
                                         #delimit cr
 graph export "$OUT/ageDescriptive.eps", as(eps) replace
 restore
-*/
+
 keep if twin<3
-/*
+
 preserve
 keep if `keepif'
 if `allobs'==0 keep if married==1
@@ -97,7 +97,7 @@ bar(4, bcolor(ltblue)) scheme(s1mono) ytitle("Proportion ART");
 graph export "$OUT/ARTageGroup.eps", as(eps) replace;
 #delimit cr
 restore
-*/
+
 ********************************************************************************
 *** (2aii) Summary stats table
 ********************************************************************************
@@ -1154,7 +1154,7 @@ foreach s of local snam {
     #delimit cr
     macro shift
 }
-
+*/
 insheet using "$USW/usaWeather.txt", delim(";") names clear
 destring temp, replace
 
@@ -1208,16 +1208,26 @@ foreach num of numlist 3 5 {
 
     corr goodQuarter cold if ageGroup==`num'
     local ccoef = string(r(rho),"%5.3f")
+    reg goodQuarter cold if ageGroup==`num'
+    local pval   = (1-ttail(e(df_r),(_b[cold]/_se[cold])))*2
+    local pvalue = string(`pval',"%5.3f")
+    if `pvalue' == 0 local pvalue 0.000
     twoway scatter goodQuarter cold if ageGroup==`num', mlabel(state) ||      ///
         lfit goodQuarter cold if ageGroup==`num', scheme(s1mono) lcolor(gs0)  ///
-            legend(off) lpattern(dash) note("Correlation coefficient=`ccoef'")
+            legend(off) lpattern(dash)                                        ///
+    note("Correlation coefficient (p-value) =`ccoef' (`pvalue')")
     graph export "$OUT/`age'TempCold.eps", as(eps) replace
 
     corr goodQuarter hot if ageGroup==`num'
     local ccoef = string(r(rho),"%5.3f")
+    reg goodQuarter hot  if ageGroup==`num'
+    local pval = (1-ttail(e(df_r),(_b[hot]/_se[hot])))*2
+    local pvalue = string(`pval',"%5.3f")
     twoway scatter goodQuarter hot if ageGroup==`num', mlabel(state)  ||      ///
         lfit goodQuarter hot if ageGroup==`num', scheme(s1mono) lcolor(gs0)   ///
-            legend(off) lpattern(dash) note("Correlation coefficient=`ccoef'")
+            legend(off) lpattern(dash)                                        ///
+    note("Correlation coefficient (p-value) =`ccoef' (`pvalue')")
+
     graph export "$OUT/`age'TempWarm.eps", as(eps) replace
     twoway scatter goodQuarter meanT if ageGroup==`num', mlabel(state)||      ///
         lfit goodQuarter meanT if ageGroup==`num', scheme(s1mono) lcolor(gs0) ///
@@ -1225,7 +1235,7 @@ foreach num of numlist 3 5 {
     graph export "$OUT/`age'TempMean.eps", as(eps) replace
 }
 restore
-
+exit
 collapse goodQuarter expectGoodQ, by(ageGroup fips state bstate female)
 
 merge m:1 state using `weather'

@@ -16,7 +16,7 @@ clear all
 set more off
 cap log close
 
-local allobs 1
+local allobs 0
 
 ********************************************************************************
 *** (1) globals and locals
@@ -63,7 +63,7 @@ if `allobs'==1 local mc married
 
 replace motherAge2 = motherAge2/100
 lab var motherAge2 "Mother's Age$^2$ / 100"
-
+/*
 ********************************************************************************
 *** (3a) Good Quarter Regressions
 ********************************************************************************
@@ -220,7 +220,7 @@ postfoot("F-test of Age Variables&`F3'&`F2'&`F1'&`F4'&`F5'&`F6' \\      "
 #delimit cr
 estimates clear
 restore
-/*
+
 ********************************************************************************
 *** (3b) Age continuous, or quadratic
 ********************************************************************************
@@ -365,9 +365,67 @@ estimates clear
 
 restore
 
+********************************************************************************
+*** (4a) ART Birth Choice Test
+********************************************************************************
+preserve
+keep `cnd'&`keepif'&ART==1
+
+local age motherAge motherAge2
+local edu highEd
+local con smoker i.gestation `mc' 
+local yab abs(fips)
+
+
+eststo: areg goodQuarter `age' `edu' `con' _year*, `se' `yab'
+keep if e(sample)
+test `age'
+local F1a = round(r(p)*1000)/1000
+test `age' `edu' smoker
+local F1b = round(r(p)*1000)/1000
+local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+
+
+eststo: areg goodQuarter `age' `edu' _year*, `se' `yab'
+test `age'
+local F2a = round(r(p)*1000)/1000
+test `age' `edu'
+local F2b = round(r(p)*1000)/1000
+local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+
+eststo: areg goodQuarter `age'       _year* if e(sample) , `se' `yab'
+test `age'    
+local F3 = round(r(p)*1000)/1000
+if   `F3' == 0 local F3 0.000
+local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+
+eststo:  reg goodQuarter `age'              if e(sample) , `se'
+test `age'    
+local F4 = round(r(p)*1000)/1000
+if   `F4' == 0 local F4 0.000
+local opt4 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+
+#delimit ;
+esttab est4 est3 est2 est1 using "$OUT/NVSSBinaryART.tex",
+replace `estopt' keep(_cons `age' `edu' smoker `mc') 
+title("Season of Birth Correlates (ART Users Only)"\label{tab:bqART}) 
+style(tex) mlabels(, depvar) booktabs 
+postfoot("F-test of All Varibles&`F4'&`F3'&`F2b'&`F1b' \\                    "
+         "Optimal Age &`opt4'&`opt3'&`opt2'&`opt1' \\                        "
+         "2009-2013 Only&Y&Y&Y&Y\\ State and Year FE&&Y&Y&Y\\                "
+         "Gestation FE &&&Y&\\ \bottomrule                                   "
+         "\multicolumn{5}{p{14cm}}{\begin{footnotesize} All singleton,       "
+         "firstborn children born to mothers undergoing ACT are included.    "
+         "Independent variables are all binary measures. `Fnote' `onote'     "
+         "`enote' ***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.      "
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+
+restore
 
 ********************************************************************************
-*** (4) ART and Teens
+*** (4b) ART and Teens
 ********************************************************************************
 preserve
 keep if twin==1 & motherAge>=20 & motherAge<=45 & liveBirth==1 & `keepif'
@@ -447,12 +505,15 @@ local c1      twin==1&birthOrd==1&liveBir==1 twin==2&birthOrder==1&liveBir==1 /*
            */ twin==1&birthOrd==2&liveBir==1 twin==1&birthOrd==1
 local varsY   motherAge motherAge2
 local control goodQuarter highEd smoker `mc'
+local ARTcont ART ARTXgoodQuarter
 local names   Main Twin Bord2 FDeaths
 
 local c1      twin==1&birthOrd==1&liveBir==1
 local names   Main
 tokenize `names'
-
+gen ARTXgoodQuarter = ART*goodQuarter
+lab var ART "ART Used"
+lab var ARTXgoodQuarter "ART $\times$ Good Quarter"
 
 foreach cond of local c1 {
     if `"`1'"'=="Main"    local title 
@@ -471,16 +532,18 @@ foreach cond of local c1 {
         local F`jj'a = round(r(p)*1000)/1000
         if   `F`jj'a' == 0 local F`jj'a 0.000
 
-        eststo: areg `y' `varsY' `yFE' if e(sample)==1, `se' abs(fips)
+        eststo: areg `y' goodQuarter `yFE' if e(sample)==1, `se' abs(fips)
+
+        eststo: areg `y' `varsY' `control' `ARTcont' _year*, `se' abs(fips)
         test `varsY'
         local F`jj'b = round(r(p)*1000)/1000
-        if   `F`jj'b' == 0 local F`jj'b 0.000
-
+        if   `F`jj'b' == 0 local F`jj'a 0.000
+        
         local ++jj
     }
     
     #delimit ;
-    esttab est1 est3 est5 est7 est9 est11 using "$OUT/NVSSQuality`1'.tex",
+    esttab est1 est4 est7 est10 est13 est16 using "$OUT/NVSSQuality`1'.tex",
     replace `estopt'
     title("Birth Quality and Season of Birth `title'"\label{tab:quality`1'})
     keep(_cons `varsY' `control') style(tex) mlabels(, depvar) 
@@ -492,19 +555,29 @@ foreach cond of local c1 {
              "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
              "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
 
-    esttab est2 est4 est6 est8 est10 est12 using "$OUT/NVSSQuality`1'_NC.tex",
+    esttab est2 est5 est8 est11 est14 est17 using "$OUT/NVSSQuality`1'_NC.tex",
     replace `estopt'
     title("Birth Quality and Season of Birth `title'"\label{tab:quality`1'NC})
-    keep(_cons `varsY') style(tex) mlabels(, depvar) 
-    postfoot("F-test of Age Variables&`F1b'&`F2b'&`F3b'&`F4b'&`F5b'&`F6b' \\ "
-             "Optimal Age &`opt1b'&`opt2b'&`opt3b'&`opt4b'&`opt5b'&`opt6b'\\ "
-             "\bottomrule                                                    "
-             "\multicolumn{7}{p{17cm}}{\begin{footnotesize}Main estimation   "
+    keep(_cons goodQuarter) style(tex) mlabels(, depvar) 
+    postfoot("\bottomrule                                                    "
+             "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Main estimation   "
 	     "sample is used. State and year fixed effects are               "
-             "included, and `Fnote' `onote' `enote'                          "
+             "included. `enote'                                              "
              "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
              "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
 
+    #delimit cr
+
+    esttab est3 est6 est9 est12 est15 est18 using "$OUT/NVSSQuality`1'_ART.tex",
+    replace `estopt'
+    title("Birth Quality and Season of Birth (ART Interactions)"\label{tab:qualART})
+    keep(_cons goodQuarter `varsY' `control' `ART') mlabels(, depvar) 
+    postfoot("F-test of Age Variables&`F1b'&`F2b'&`F3b'&`F4b'&`F5b'&`F6b' \\ "
+             "\multicolumn{7}{p{17.2cm}}{\begin{footnotesize}Only years      "
+             "2009-2013 are used (ART is only observed in these years). State"
+             "and year fixed effects are included, and `Fnote'. `enote'      "
+             "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
+             "\end{footnotesize}}\end{tabular}\end{table}") style(tex) booktabs;
     #delimit cr
     estimates clear
     
@@ -512,7 +585,7 @@ foreach cond of local c1 {
     restore
 }
 
-
+exit
 keep if `keepif'
 
 ********************************************************************************
