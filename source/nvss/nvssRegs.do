@@ -63,6 +63,8 @@ if `allobs'==1 local mc married
 
 replace motherAge2 = motherAge2/100
 lab var motherAge2 "Mother's Age$^2$ / 100"
+
+
 /*
 ********************************************************************************
 *** (3a) Good Quarter Regressions
@@ -370,6 +372,7 @@ restore
 ********************************************************************************
 preserve
 keep `cnd'&`keepif'&ART==1
+drop if conceptionMonth==12
 
 local age motherAge motherAge2
 local edu highEd
@@ -415,7 +418,8 @@ postfoot("F-test of All Varibles&`F4'&`F3'&`F2b'&`F1b' \\                    "
          "2009-2013 Only&Y&Y&Y&Y\\ State and Year FE&&Y&Y&Y\\                "
          "Gestation FE &&&Y&\\ \bottomrule                                   "
          "\multicolumn{5}{p{14cm}}{\begin{footnotesize} All singleton,       "
-         "firstborn children born to mothers undergoing ACT are included.    "
+         "firstborn children born to mothers undergoing ACT are included,    "
+         "with the exception of those conceived in December.                 "
          "Independent variables are all binary measures. `Fnote' `onote'     "
          "`enote' ***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.      "
          "\end{footnotesize}}\end{tabular}\end{table}");
@@ -523,9 +527,11 @@ foreach cond of local c1 {
 
     dis "`1', `title'"
     preserve
+    gen cvar = conceptionMonth==12&ART==1
     keep if motherAge>24 & motherAge<=45 & `cond'
     
     local jj=1
+    local c2 if cvar==0
     foreach y of varlist `qual' {
         eststo: areg `y' `varsY' `control' `yFE', `se' abs(fips)
         test `varsY'
@@ -534,11 +540,12 @@ foreach cond of local c1 {
 
         eststo: areg `y' goodQuarter `yFE' if e(sample)==1, `se' abs(fips)
 
-        eststo: areg `y' `varsY' `control' `ARTcont' _year*, `se' abs(fips)
+        replace goodQuarter = birthQuarter ==2 | birthQuarter == 3
+        eststo: areg `y' `varsY' `control' `ARTcont' _year* `c2', `se' abs(fips)
         test `varsY'
         local F`jj'b = round(r(p)*1000)/1000
-        if   `F`jj'b' == 0 local F`jj'a 0.000
-        
+        if   `F`jj'b' == 0 local F`jj'b 0.000
+        replace goodQuarter = expectGoodQ
         local ++jj
     }
     
@@ -566,16 +573,15 @@ foreach cond of local c1 {
              "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
              "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
 
-    #delimit cr
-
     esttab est3 est6 est9 est12 est15 est18 using "$OUT/NVSSQuality`1'_ART.tex",
     replace `estopt'
     title("Birth Quality and Season of Birth (ART Interactions)"\label{tab:qualART})
-    keep(_cons goodQuarter `varsY' `control' `ART') mlabels(, depvar) 
+    keep(_cons goodQuarter `varsY' `control' `ARTcont') mlabels(, depvar) 
     postfoot("F-test of Age Variables&`F1b'&`F2b'&`F3b'&`F4b'&`F5b'&`F6b' \\ "
+             "\bottomrule                                                    "
              "\multicolumn{7}{p{17.2cm}}{\begin{footnotesize}Only years      "
              "2009-2013 are used (ART is only observed in these years). State"
-             "and year fixed effects are included, and `Fnote'. `enote'      "
+             "and year fixed effects are included, and `Fnote' `enote'       "
              "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
              "\end{footnotesize}}\end{tabular}\end{table}") style(tex) booktabs;
     #delimit cr
