@@ -64,7 +64,6 @@ if `allobs'==1 local mc married
 replace motherAge2 = motherAge2/100
 lab var motherAge2 "Mother's Age$^2$ / 100"
 
-
 /*
 ********************************************************************************
 *** (3a) Good Quarter Regressions
@@ -366,7 +365,7 @@ postfoot("F-test of Age Variables&`F2'&`F1' \\ \bottomrule     "
 estimates clear
 
 restore
-
+*/
 ********************************************************************************
 *** (4a) ART Birth Choice Test
 ********************************************************************************
@@ -374,59 +373,65 @@ preserve
 keep `cnd'&`keepif'&ART==1
 drop if conceptionMonth==12
 
-local age motherAge motherAge2
-local edu highEd
-local con smoker i.gestation `mc' 
-local yab abs(fips)
+foreach num of numlist 1 2 {
+    if `num'==1 local age motherAge motherAge2
+    if `num'==2 local age motherAge 
+    if `num'==2 local nt _linearage
+    local edu highEd
+    local con smoker i.gestation `mc' 
+    local yab abs(fips)
+
+    sum highEd
+    local edAve = round(r(mean)*1000)/1000 
+    sum smoker
+    local smAve = round(r(mean)*1000)/1000 
+
+    eststo: areg goodQuarter `age' `edu' `con' _year*, `se' `yab'
+    keep if e(sample)
+    test `age'
+    local F1a = round(r(p)*1000)/1000
+    test `age' `edu' smoker
+    local F1b = round(r(p)*1000)/1000
 
 
-eststo: areg goodQuarter `age' `edu' `con' _year*, `se' `yab'
-keep if e(sample)
-test `age'
-local F1a = round(r(p)*1000)/1000
-test `age' `edu' smoker
-local F1b = round(r(p)*1000)/1000
-local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+    eststo: areg goodQuarter `age' `edu' _year*, `se' `yab'
+    test `age'
+    local F2a = round(r(p)*1000)/1000
+    test `age' `edu'
+    local F2b = round(r(p)*1000)/1000
+    
+    eststo: areg goodQuarter `age'       _year* if e(sample) , `se' `yab'
+    test `age'    
+    local F3 = round(r(p)*1000)/1000
+    if   `F3' == 0 local F3 0.000
 
+    eststo:  reg goodQuarter `age'              if e(sample) , `se'
+    test `age'    
+    local F4 = round(r(p)*1000)/1000
+    if   `F4' == 0 local F4 0.000
 
-eststo: areg goodQuarter `age' `edu' _year*, `se' `yab'
-test `age'
-local F2a = round(r(p)*1000)/1000
-test `age' `edu'
-local F2b = round(r(p)*1000)/1000
-local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-
-eststo: areg goodQuarter `age'       _year* if e(sample) , `se' `yab'
-test `age'    
-local F3 = round(r(p)*1000)/1000
-if   `F3' == 0 local F3 0.000
-local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-
-eststo:  reg goodQuarter `age'              if e(sample) , `se'
-test `age'    
-local F4 = round(r(p)*1000)/1000
-if   `F4' == 0 local F4 0.000
-local opt4 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-
-#delimit ;
-esttab est4 est3 est2 est1 using "$OUT/NVSSBinaryART.tex",
-replace `estopt' keep(_cons `age' `edu' smoker `mc') 
-title("Season of Birth Correlates (ART Users Only)"\label{tab:bqART}) 
-style(tex) mlabels(, depvar) booktabs 
-postfoot("F-test of All Varibles&`F4'&`F3'&`F2b'&`F1b' \\                    "
-         "Optimal Age &`opt4'&`opt3'&`opt2'&`opt1' \\                        "
-         "2009-2013 Only&Y&Y&Y&Y\\ State and Year FE&&Y&Y&Y\\                "
-         "Gestation FE &&&Y&\\ \bottomrule                                   "
-         "\multicolumn{5}{p{14cm}}{\begin{footnotesize} All singleton,       "
-         "firstborn children born to mothers undergoing ACT are included,    "
-         "with the exception of those conceived in December.                 "
-         "Independent variables are all binary measures. `Fnote' `onote'     "
-         "`enote' ***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.      "
-         "\end{footnotesize}}\end{tabular}\end{table}");
-#delimit cr
-estimates clear
-
+    #delimit ;
+    esttab est4 est3 est2 est1 using "$OUT/NVSSBinaryART`nt'.tex",
+    replace `estopt' keep(_cons `age' `edu' smoker `mc') 
+    title("Season of Birth Correlates (ART Users Only)"\label{tab:bqART}) 
+    style(tex) mlabels(, depvar) booktabs 
+    postfoot("F-test of All Varibles&`F4'&`F3'&`F2b'&`F1b' \\                    "
+             "Optimal Age &`opt4'&`opt3'&`opt2'&`opt1' \\                        "
+             "2009-2013 Only&Y&Y&Y&Y\\ State and Year FE&&Y&Y&Y\\                "
+             "Gestation FE &&&Y&\\ \bottomrule                                   "
+             "\multicolumn{5}{p{14cm}}{\begin{footnotesize} All singleton,       "
+             "firstborn children born to mothers undergoing ACT are included,    "
+             "with the exception of those conceived in December.                 "
+             "Independent variables are all binary measures. The Proportion of   "
+             "ART users with at least some college is `edAve', and the proportion"
+             "who smoke is `smAve'.  `Fnote' `onote'                             "
+             "`enote' ***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.      "
+             "\end{footnotesize}}\end{tabular}\end{table}");
+    #delimit cr
+    estimates clear
+}
 restore
+
 
 ********************************************************************************
 *** (4b) ART and Teens
@@ -501,7 +506,7 @@ postfoot("State and Year FE & & Y & Y & Y & Y \\                         "
 #delimit cr
 estimates clear
 restore
-*/
+
 ********************************************************************************
 *** (5b) Regressions (Quality on Age, season)
 ********************************************************************************
