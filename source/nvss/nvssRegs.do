@@ -365,7 +365,7 @@ postfoot("F-test of Age Variables&`F2'&`F1' \\ \bottomrule     "
 estimates clear
 
 restore
-*/
+
 ********************************************************************************
 *** (4a) ART Birth Choice Test
 ********************************************************************************
@@ -506,19 +506,18 @@ postfoot("State and Year FE & & Y & Y & Y & Y \\                         "
 #delimit cr
 estimates clear
 restore
-
+*/
 ********************************************************************************
 *** (5b) Regressions (Quality on Age, season)
 ********************************************************************************
 local c1      twin==1&birthOrd==1&liveBir==1 twin==2&birthOrder==1&liveBir==1 /*
-           */ twin==1&birthOrd==2&liveBir==1 twin==1&birthOrd==1
+           */ twin==1&birthOrd==2&liveBir==1 twin==1&birthOrd==1              /*
+           */ twin==1&birthOrd==1&liveBir==1&ART==1&conceptionMonth!=12
 local varsY   motherAge motherAge2
 local control goodQuarter highEd smoker `mc'
 local ARTcont ART ARTXgoodQuarter
-local names   Main Twin Bord2 FDeaths
+local names   Main Twin Bord2 FDeaths ART
 
-local c1      twin==1&birthOrd==1&liveBir==1
-local names   Main
 tokenize `names'
 gen ARTXgoodQuarter = ART*goodQuarter
 lab var ART "ART Used"
@@ -529,14 +528,14 @@ foreach cond of local c1 {
     if `"`1'"'=="Twin"    local title "(Twin Sample)"
     if `"`1'"'=="Bord2"   local title "(Birth Order 2)"
     if `"`1'"'=="FDeaths" local title "(Including Fetal Deaths)"
+    if `"`1'"'=="ART"     local title "(ART Users Only)"
 
     dis "`1', `title'"
     preserve
-    gen cvar = conceptionMonth==12&ART==1
+    
     keep if motherAge>24 & motherAge<=45 & `cond'
     
     local jj=1
-    local c2 if cvar==0
     foreach y of varlist `qual' {
         eststo: areg `y' `varsY' `control' `yFE', `se' abs(fips)
         test `varsY'
@@ -545,17 +544,17 @@ foreach cond of local c1 {
 
         eststo: areg `y' goodQuarter `yFE' if e(sample)==1, `se' abs(fips)
 
-        replace goodQuarter = birthQuarter ==2 | birthQuarter == 3
-        eststo: areg `y' `varsY' `control' `ARTcont' _year* `c2', `se' abs(fips)
-        test `varsY'
-        local F`jj'b = round(r(p)*1000)/1000
-        if   `F`jj'b' == 0 local F`jj'b 0.000
-        replace goodQuarter = expectGoodQ
+        *replace goodQuarter = birthQuarter ==2 | birthQuarter == 3
+        *eststo: areg `y' `varsY' `control' `ARTcont' _year* `c2', `se' abs(fips)
+        *test `varsY'
+        *local F`jj'b = round(r(p)*1000)/1000
+        *if   `F`jj'b' == 0 local F`jj'b 0.000
+        *replace goodQuarter = expectGoodQ
         local ++jj
     }
     
     #delimit ;
-    esttab est1 est4 est7 est10 est13 est16 using "$OUT/NVSSQuality`1'.tex",
+    esttab est1 est3 est5 est9 est9 est11 using "$OUT/NVSSQuality`1'.tex",
     replace `estopt'
     title("Birth Quality and Season of Birth `title'"\label{tab:quality`1'})
     keep(_cons `varsY' `control') style(tex) mlabels(, depvar) 
@@ -567,7 +566,7 @@ foreach cond of local c1 {
              "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
              "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
 
-    esttab est2 est5 est8 est11 est14 est17 using "$OUT/NVSSQuality`1'_NC.tex",
+    esttab est2 est4 est6 est8 est10 est12 using "$OUT/NVSSQuality`1'_NC.tex",
     replace `estopt'
     title("Birth Quality and Season of Birth `title'"\label{tab:quality`1'NC})
     keep(_cons goodQuarter) style(tex) mlabels(, depvar) 
@@ -577,18 +576,6 @@ foreach cond of local c1 {
              "included. `enote'                                              "
              "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
              "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
-
-    esttab est3 est6 est9 est12 est15 est18 using "$OUT/NVSSQuality`1'_ART.tex",
-    replace `estopt'
-    title("Birth Quality and Season of Birth (ART Interactions)"\label{tab:qualART})
-    keep(_cons goodQuarter `varsY' `control' `ARTcont') mlabels(, depvar) 
-    postfoot("F-test of Age Variables&`F1b'&`F2b'&`F3b'&`F4b'&`F5b'&`F6b' \\ "
-             "\bottomrule                                                    "
-             "\multicolumn{7}{p{17.2cm}}{\begin{footnotesize}Only years      "
-             "2009-2013 are used (ART is only observed in these years). State"
-             "and year fixed effects are included, and `Fnote' `enote'       "
-             "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
-             "\end{footnotesize}}\end{tabular}\end{table}") style(tex) booktabs;
     #delimit cr
     estimates clear
     
