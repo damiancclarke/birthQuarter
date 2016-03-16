@@ -67,8 +67,13 @@ NVSSBadE  =  RES + ftype + '/regressions/NVSSBinaryExpectBad.tex'
 
 IPUMSind  = RES + 'ipums/regressions/IPUMSIndustry.tex' 
 IPUMSind2 = RES + 'ipums/regressions/IPUMSIndustry_GSample.tex' 
+IPUMSind3 = RES + 'ipums/both/regressions/IPUMSIndustry.tex' 
 IPUMSindG = RES + 'ipums/regressions/IPUMSIndustryGoldin.tex' 
 IPUMSindG2= RES + 'ipums/regressions/IPUMSIndustryGoldinTeachers.tex'
+IPUMSind4  = RES + 'ipums/regressions/IPUMSIndustry_noSelfEmp.tex' 
+IPUMSind5  = RES + 'ipums/regressions/IPUMSIndustry_SelfEmpD.tex' 
+IPUMSind6  = RES + 'ipums/regressions/IPUMSIndustryWeeksWork.tex' 
+IPUMSind7  = RES + 'ipums/regressions/IPUMSIndustryWeeks_Int.tex' 
 
 SpainInd  = RES + 'spain/regressions/SpainIndustry.tex' 
 SpainTO   = RES + 'spain/regressions/SpainTradeoff.tex' 
@@ -100,9 +105,6 @@ R2   = 'R$^2$'
 #==============================================================================
 #== (2a) Write birth quarter summary tables NVSS
 #==============================================================================
-#tNV  = open(twinNVSS, 'r').readlines()
-#tNVe = open(twinEducNVSS, 'r').readlines()
-#tNVj = open(TallEducNVSS, 'r').readlines()
 sNV  = open(singleNVSS, 'r').readlines()
 sNVe = open(singleEducNVSS, 'r').readlines()
 sNVj = open(allEducNVSS, 'r').readlines()
@@ -129,7 +131,8 @@ for parity in ['single']:
                "\\multicolumn{2}{c}{Characteristics} \\\\ "
                "\cmidrule(r){2-5} \cmidrule(r){6-7} \n"
                "& Bad    & Good   & Diff. & Ratio & $< $37 & ART \\\\\n"
-               "& Season & Season &       &       & Weeks  &     \\\\\\midrule"
+               "& Season & Season &       &       &Gestation&     \\\\\n"
+               "&        &        &       &       & Weeks   &     \\\\\\midrule"
                "\multicolumn{5}{l}{\\textsc{Panel A: By Age}}\\\\"
                "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
                "\\begin{footnotesize}\\end{footnotesize}\\\\ \n")
@@ -152,15 +155,7 @@ for parity in ['single']:
     
     
     sumT.write('\n'+mr+mc1+twid[4]+tcm[4]+mc3+
-	       "Sample consists of all first-born, singleton children born to"
-	       " white, non-hispanic married mothers aged between 20-45 for  "
-               "whom education, smoking, and marital status is recorded. Good"
-	       " season refers to birth quarters 2 and 3 (Apr-Jun and        "
-               "Jul-Sept).  Bad season refers to quarters 1 and 4 (Jan-Mar   "
-               "and Oct-Dec).  Values reflect the percent of yearly births   "
-               "each season from 2005-2013. ART refers to the proportion of  "
-	       "women undertaking artificial reproductive technologies for   "
-	       "this birth. \n"
+               "Main estimation sample augmented with mothers aged 20-24. \n"
                "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}"
                "\\end{center}\\end{table}")
     
@@ -346,11 +341,15 @@ for i,line in enumerate(Ki2):
         sumT.write(line)
 
 sumT.write('\n'+mr+mc1+twid[1]+tcm[1]+mc3+
-           "Sample is identical to that described in table                    "
-	   "\\ref{bqTab:singleSum}, however only for women aged 25-45.  This  "
-	   "is the main estimation sample.                                    "
-           "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}\\end{center}"
-           "\\end{table}")
+           "Sample consists of all first-born, singleton children born to    "
+           "White, Non-Hispanic" + mnote + "mothers aged 25-45 for whom      "
+           "education and smoking during pregnancy are available. Good season"
+           " refers to birth quarters 2 and 3 (Apr-Jun and Jul-Sept). Bad    "
+           "season refers to quarters 1 and 4 (Jan-Mar and Oct-Dec). ART     "
+           "refers to the proportion of women who undertook assisted         "
+           "reproductive technologies that resulted in these births.         "
+           "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}         "
+           "\\end{center}\\end{table}")
 sumT.close()
 
 #==============================================================================
@@ -536,8 +535,10 @@ sumT.close()
 #==============================================================================
 #== (4) IPUMS Industry clean
 #==============================================================================
-IndTabs = ['IPUMSIndustry_IncEduc.tex','IPUMSIndustry.tex',
-           'IPUMSIndustry_Income.tex','IPUMSIndustry_NoEduc.tex']
+IndTabs = ['IPUMSIndustry_IncEduc.tex'  ,'IPUMSIndustry.tex'         ,
+           'IPUMSIndustry_Income.tex'   ,'IPUMSIndustry_NoEduc.tex'  ,
+           'IPUMSIndustry_noSelfEmp.tex','IPUMSIndustry_SelfEmpD.tex',
+           'IPUMSIndustryWeeksWork.tex' ,'IPUMSIndustryWeeks_Int.tex',]
 for table in IndTabs:
     IPUMSind  = RES + 'ipums/regressions/'+table
 
@@ -568,6 +569,20 @@ for i,line in enumerate(ipiT):
     ipoT.write(line)
 ipoT.close()
 
+ipoT = open(TAB + 'IPUMSIndustryBoth.tex', 'w')
+ipiT = open(IPUMSind3, 'r').readlines()
+
+for i,line in enumerate(ipiT):
+    line = line.replace('oneLevelOcc==','')
+    line = line.replace('twoLevelOcc==','')
+    line = line.replace('Occupations','')
+    line = line.replace('Occpations==','')
+    line = line.replace('\\end{footnotesize}}\\end{tabular}\\end{table}',
+                        '\\end{footnotesize}}\\end{tabular}}\\end{table}')
+    line = line.replace('\\begin{tabular}{l*{3}{c}}',
+                        '\\scalebox{0.7}{\\begin{tabular}{l*{3}{c}}')
+    ipoT.write(line)
+ipoT.close()
 
 ipoT = open(TAB + 'IPUMSIndustryGoldin.tex', 'w')
 ipiT = open(IPUMSindG, 'r').readlines()
@@ -623,9 +638,10 @@ nvss  = './../results/nvss/regressions/'
 nall  = './../results/nvssall/regressions/'
 espa  = './../results/spain/regressions/'
 ipum  = './../results/ipums/regressions/'
+ipumb = './../results/ipums/both/regressions/'
 final = open(TAB + "tables.tex", 'w')
 
-TABLES = [tabs+'sumsinglenvss.tex'       , tabs+'sumStatsSampnvss.tex'  , 
+TABLES = [tabs+'sumStatsSampnvss.tex'    , tabs+'sumsinglenvss.tex'     ,  
           nvss+'NVSSBinaryMain.tex'      , nvss+'NVSSBinaryTwinS.tex'   ,
           nvss+'NVSSBinaryFDeaths.tex'   , nvss+'ART2024.tex'           , 
           tabs+'IPUMSIndustry.tex'       , ipum+'IPUMSTeachers.tex'     ,
@@ -659,11 +675,20 @@ final.close()
 #===== TABLE A3: IPUMS birth quarters
 #==============================================================================
 final = open(TAB + "appendixTablesA.tex", 'w')
-TABLES = [tabs+'sumStatsnvss.tex',tabs+'MeanComparison.tex',
-          tabs+'sumStatsIPUMS.tex',tabs+'sumIPUMS.tex']
+TABLES = [tabs+'sumStatsIPUMS.tex'      , tabs +'sumIPUMS.tex'              ,
+          nvss +'NVSSBinaryNoSep.tex'   , nvss +'NVSSBinaryMain_robust.tex' ,
+          nvss +'NVSSBinaryBord2.tex'   , nvss +'NVSSBinaryTwinS.tex'       ,
+          nvss +'NVSSBinaryTwin.tex'    , tabs +'IPUMSIndustry_IncEduc.tex' ,
+          ipum+'ValueGoodSeason.tex']
 
+i = 1
 for table in TABLES:
-    final.write('\\input{' +table+ '}\n')
+    if i==1 or i==2 or i==8:
+        final.write('\\input{' +table+ '}\n')
+    else:
+        final.write('\\begin{landscape}\n\\input{'
+                    +table+'}\n\\end{landscape}\n')
+    i = i+1
 final.close()
 
 #==============================================================================
@@ -699,11 +724,13 @@ final.close()
 #==============================================================================
 #===== Appendix C: Replicating results with married and unmarried
 final = open(TAB + "appendixTablesC.tex", 'w')
-TABLES = [tabs+'sumsinglenvssall.tex'    , tabs+'sumStatsSampnvssall.tex', 
-          nall+'NVSSBinaryMain.tex'      , nall+'NVSSBinaryTwinS.tex'    ,
-          nall+'NVSSBinaryFDeaths.tex'   , nall+'ART2024.tex'            , 
-          ipum+'ValueGoodSeason_all.tex' , nall+'NVSSQualityMain.tex'    ,
-          nall+'NVSSQualityMain_NC.tex'                                  ]
+TABLES = [tabs+'sumStatsSampnvssall.tex'   , tabs+'sumsinglenvssall.tex'      ,  
+          nall+'NVSSBinaryMain.tex'        , nall+'NVSSBinaryART.tex'         ,
+          nall+'NVSSBinaryFDeaths.tex'     , nall+'ART2024.tex'               , 
+          tabs+'IPUMSIndustryBoth.tex'     , ipum+'ValueGoodSeasonInc_all.tex',
+          ipumb+'IPUMSTeachersIncome.tex'  , nall+'NVSSQualityMain_NC.tex'    ,
+          nall+'NVSSQualityMain.tex'       , nall+'NVSSQualityART_NC.tex'     ,
+          nall+'NVSSQualityART_age.tex'    , nall+'NVSSQualityART.tex'        ]
 
 i = 1
 
@@ -711,12 +738,6 @@ for table in TABLES:
     if i<3 or i==5 or i==7:
         final.write('\\input{'
                     +table+'}\n')
-    elif i==3 or i==8:
-        final.write('\\begin{subtables}\\begin{landscape}\n\\input{'
-                    +table+'}\n\\end{landscape}\n')
-    elif i==4 or i==9:
-        final.write('\\begin{landscape}\n\\input{'
-                    +table+'}\n\\end{landscape}\\end{subtables}\n')
     else:
         final.write('\\begin{landscape}\n\\input{'
                     +table+'}\n\\end{landscape}\n')
