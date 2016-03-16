@@ -529,7 +529,8 @@ foreach cond of local c1 {
     if `"`1'"'=="Bord2"   local title "(Birth Order 2)"
     if `"`1'"'=="FDeaths" local title "(Including Fetal Deaths)"
     if `"`1'"'=="ART"     local title "(ART Users Only)"
-
+    if `"`1'"'=="ART"     local varsY motherAge
+    
     dis "`1', `title'"
     preserve
     
@@ -542,19 +543,18 @@ foreach cond of local c1 {
         local F`jj'a = round(r(p)*1000)/1000
         if   `F`jj'a' == 0 local F`jj'a 0.000
 
+        eststo: areg `y' `varsY' `yFE', `se' abs(fips)
+        test `varsY'
+        local F`jj'b = round(r(p)*1000)/1000
+        if   `F`jj'b' == 0 local F`jj'b 0.000
+        
         eststo: areg `y' goodQuarter `yFE' if e(sample)==1, `se' abs(fips)
 
-        *replace goodQuarter = birthQuarter ==2 | birthQuarter == 3
-        *eststo: areg `y' `varsY' `control' `ARTcont' _year* `c2', `se' abs(fips)
-        *test `varsY'
-        *local F`jj'b = round(r(p)*1000)/1000
-        *if   `F`jj'b' == 0 local F`jj'b 0.000
-        *replace goodQuarter = expectGoodQ
         local ++jj
     }
     
     #delimit ;
-    esttab est1 est3 est5 est9 est9 est11 using "$OUT/NVSSQuality`1'.tex",
+    esttab est1 est4 est7 est10 est13 est16 using "$OUT/NVSSQuality`1'.tex",
     replace `estopt'
     title("Birth Quality and Season of Birth `title'"\label{tab:quality`1'})
     keep(_cons `varsY' `control') style(tex) mlabels(, depvar) 
@@ -566,9 +566,23 @@ foreach cond of local c1 {
              "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
              "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
 
-    esttab est2 est4 est6 est8 est10 est12 using "$OUT/NVSSQuality`1'_NC.tex",
+    esttab est2 est5 est8 est11 est14 est17 using "$OUT/NVSSQuality`1'_age.tex",
     replace `estopt'
-    title("Birth Quality and Season of Birth `title'"\label{tab:quality`1'NC})
+    title("Birth Quality and Season of Birth `title'")
+    keep(_cons `varsY') style(tex) mlabels(, depvar) 
+    postfoot("F-test of Age Variables&`F1b'&`F2b'&`F3b'&`F4b'&`F5b'&`F6b' \\ "
+             "\bottomrule                                                    "
+             "\multicolumn{7}{p{17cm}}{\begin{footnotesize}Main estimation   "
+	     "sample is used. State and year fixed effects are               "
+             "included, and F-test of age variables refers to the test of the"
+             "significance of age variables included in the regression.      "
+             "`enote'                          "
+             "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
+             "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
+
+    esttab est3 est6 est9 est12 est15 est18 using "$OUT/NVSSQuality`1'_NC.tex",
+    replace `estopt'
+    title("Birth Quality and Season of Birth `title'")
     keep(_cons goodQuarter) style(tex) mlabels(, depvar) 
     postfoot("\bottomrule                                                    "
              "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Main estimation   "
