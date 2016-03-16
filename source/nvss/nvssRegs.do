@@ -136,7 +136,7 @@ foreach type of local add {
 
     #delimit ;
     esttab est3 est2 est1 est4 est5 using "$OUT/NVSSBinary`1'.tex",
-    replace `estopt' keep(_cons `age' `edu' noART smoker `mc') 
+    replace `estopt' keep(`age' `edu' noART smoker `mc') 
     title("Season of Birth Correlates `type'"\label{tab:bq`1'}) booktabs 
     style(tex) mlabels(, depvar)
     postfoot("F-test of Age Varibles&`F3'&`F2'&`F1'&`F4'&`F5' \\             "
@@ -204,7 +204,7 @@ local opt6 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 #delimit ;
 esttab est3 est2 est1 est4 est5 est6 using
 "$OUT/NVSSBinaryMain_robust.tex", replace `estopt'
-title("Season of Birth Correlates (Robustness)" \label{tab:robustness})
+title("Season of Birth Correlates (Unemployment)" \label{tab:robustness})
 booktabs keep(_cons `age' `edu' noART smoker value `mc')
 style(tex) mlabels(, depvar)
 postfoot("F-test of Age Variables&`F3'&`F2'&`F1'&`F4'&`F5'&`F6' \\      "
@@ -278,7 +278,7 @@ foreach num of numlist 1 2 {
              "2009-2013 Only&Y&Y&Y&Y\\ State and Year FE&&Y&Y&Y\\                "
              "Gestation FE &&&Y&\\ \bottomrule                                   "
              "\multicolumn{5}{p{14cm}}{\begin{footnotesize} All singleton,       "
-             "firstborn children born to mothers undergoing ACT are included,    "
+             "firstborn children born to mothers undergoing ART are included,    "
              "with the exception of those conceived in December.                 "
              "Independent variables are all binary measures. The Proportion of   "
              "ART users with at least some college is `edAve', and the proportion"
@@ -310,7 +310,7 @@ eststo:  reg goodQuarter age2024 noART
 
 #delimit ;
 esttab est5 est4 est3 est2 est1 using "$OUT/ART2024.tex", replace
-`estopt' keep(_cons age2024 noART highEd smoker `mc') style(tex) 
+`estopt' keep(age2024 noART highEd smoker `mc') style(tex) 
 title("Season of Birth Correlates: Very Young (20-24) and ART users`lab'")
 booktabs
 postfoot("State and Year FE&&Y&Y&Y&Y\\  \bottomrule                        "
@@ -330,7 +330,7 @@ local c1      twin==1&birthOrd==1&liveBir==1 twin==2&birthOrder==1&liveBir==1 /*
            */ twin==1&birthOrd==2&liveBir==1 twin==1&birthOrd==1              /*
            */ twin==1&birthOrd==1&liveBir==1&ART==1&conceptionMonth!=12
 local varsY   motherAge motherAge2
-local control goodQuarter highEd smoker `mc'
+local control highEd smoker `mc'
 local ARTcont ART ARTXgoodQuarter
 local names   Main Twin Bord2 FDeaths ART
 
@@ -354,7 +354,7 @@ foreach cond of local c1 {
     
     local jj=1
     foreach y of varlist `qual' {
-        eststo: areg `y' `varsY' `control' `yFE', `se' abs(fips)
+        eststo: areg `y' goodQuarter `varsY' `control' `yFE', `se' abs(fips)
         test `varsY'
         local F`jj'a = round(r(p)*1000)/1000
         if   `F`jj'a' == 0 local F`jj'a 0.000
@@ -375,7 +375,7 @@ foreach cond of local c1 {
     esttab est1 est4 est7 est10 est13 est16 using "$OUT/NVSSQuality`1'.tex",
     replace `estopt'
     title("Birth Quality and Season of Birth `title'"\label{tab:quality`1'})
-    keep(_cons `varsY' `control') style(tex) mlabels(, depvar) 
+    keep(goodQuarter `varsY' `control') style(tex) mlabels(, depvar) 
     postfoot("F-test of Age Variables&`F1a'&`F2a'&`F3a'&`F4a'&`F5a'&`F6a' \\ "
              "\bottomrule                                                    "
              "\multicolumn{7}{p{17cm}}{\begin{footnotesize}Main estimation   "
@@ -387,7 +387,7 @@ foreach cond of local c1 {
     esttab est2 est5 est8 est11 est14 est17 using "$OUT/NVSSQuality`1'_age.tex",
     replace `estopt'
     title("Birth Quality and Season of Birth `title'")
-    keep(_cons goodQuarter `varsY') style(tex) mlabels(, depvar) 
+    keep(goodQuarter `varsY') style(tex) mlabels(, depvar) 
     postfoot("F-test of Age Variables&`F1b'&`F2b'&`F3b'&`F4b'&`F5b'&`F6b' \\ "
              "\bottomrule                                                    "
              "\multicolumn{7}{p{17cm}}{\begin{footnotesize}Main estimation   "
@@ -414,7 +414,7 @@ foreach cond of local c1 {
     macro shift
     restore
 }
-exit
+
 keep if `keepif'
 
 ********************************************************************************
@@ -456,7 +456,7 @@ local opt4 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 #delimit ;
 esttab est4 est3 est2 est1 using "$OUT/NVSSBinaryFDeaths.tex", replace
 title("Season of Birth Correlates (Including Fetal Deaths)"\label{tab:FDeaths}) 
-`estopt' keep(_cons `age' `con') style(tex) mlabels(, depvar)
+`estopt' keep(`age' `con') style(tex) mlabels(, depvar)
 postfoot("F-test of Age Variables&`F4'&`F3'&`F2'&`F1' \\                     "
          "Optimal Age &`opt4'&`opt3'&`opt2'&`opt1' \\                        "
          "State and Year FE&&Y&Y&Y\\  Gestation FE &&&&Y \\ \bottomrule      "
