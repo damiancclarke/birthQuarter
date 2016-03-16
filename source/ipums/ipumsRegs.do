@@ -12,14 +12,21 @@ set more off
 cap log close
 set matsize 2000
 
+local allobs 1
+
 ********************************************************************************
 *** (1) globals and locals
 ********************************************************************************
+if `allobs' == 0 local f
+if `allobs' == 0 local mnote " married "
+if `allobs' == 1 local f "both/"
+
+    
 global DAT "~/investigacion/2015/birthQuarter/data/raw"
 global UNE "~/investigacion/2015/birthQuarter/data/employ"
-global OUT "~/investigacion/2015/birthQuarter/results/ipums/regressions"
-global GRA "~/investigacion/2015/birthQuarter/results/ipums/graphs"
-global SUM "~/investigacion/2015/birthQuarter/results/ipums/sumStats"
+global OUT "~/investigacion/2015/birthQuarter/results/ipums/`f'regressions"
+global GRA "~/investigacion/2015/birthQuarter/results/ipums/`f'graphs"
+global SUM "~/investigacion/2015/birthQuarter/results/ipums/`f'sumStats"
 global LOG "~/investigacion/2015/birthQuarter/log"
 
 log using "$LOG/ipumsRegs.txt", text replace
@@ -47,7 +54,7 @@ local onote  "Optimal age calculates the turning point of the mother's age
 ********************************************************************************
 use "$DAT/`data'"
 keep if motherAge>=25&motherAge<=45&twins==0
-keep if marst==1
+if `allobs' == 0 keep if marst==1
 drop if occ2010 == 9920
 tab year    , gen(_year)
 tab statefip, gen(_state)
@@ -64,9 +71,9 @@ gen motherAge2      = motherAge*motherAge/100
 lab var motherAge       "Mother's Age"
 lab var motherAge2      "Mother's Age$^2$ / 100"
 
-/*
+
 ********************************************************************************
-*** (3a) regressions: binary age groups
+*** (3a) regressions: Birth Quarter
 ********************************************************************************
 local se  robust
 local abs abs(statefip)
@@ -113,59 +120,7 @@ postfoot("F-test of Age Variables&0`F4'&0`F3'&0`F2'&0`F1' \\                   "
 estimates clear
 
 ********************************************************************************
-*** (3b) regressions: boys and girls
-********************************************************************************
-local add `" "(Girls Only)" "(Boys Only)" "'
-local nam girls boys
-tokenize `nam'
-
-foreach type of local add {
-    preserve
-    if `"`1'"'=="girls" keep if female==1
-    if `"`1'"'=="boys"  keep if female==0
-    if `"`1'"' == "girls" local samp1 "female, singleton"
-    if `"`1'"' == "boys"  local samp1 "male, singleton"
-
-    eststo: areg goodQuarter `v1'      `wt', abs(occ) `se'
-    test  `age'
-    local F1 = round(r(p)*1000)/1000
-    if   `F1' == 0 local F1 0.000
-    local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-
-    foreach num of numlist 2 3 {
-        eststo: areg goodQuarter `v`num'' if e(sample) `wt', `abs' `se'
-        test `age'
-        local F`num' = round(r(p)*1000)/1000
-        if   `F`num'' == 0 local F`num' 0.000
-        local opt`num' = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-    }
-    eststo: reg goodQuarter `v4' if e(sample) `wt', `se'
-    test `age'
-    local F4 = round(r(p)*1000)/1000
-
-    #delimit ;
-    esttab est4 est3 est2 est1 using "$OUT/IPUMSBinary`1'.tex", replace 
-    `estopt' title("Season of Birth Correlates `type'"\label{tab:IPUMS`type'})
-    keep(_cons `age' `edu' `une') style(tex) booktabs mlabels(, depvar) 
-    postfoot("F-test of Age Varliables&0`F4'&0`F3'&0`F2'&0`F1' \\              "
-             "Optimal Age &`opt4'&`opt3'&`opt2'&`opt1' \\                      "
-             "State and Year FE&&Y&Y&Y\\ Occupation FE&&&&Y\\ \bottomrule      "
-             "\multicolumn{5}{p{15.2cm}}{\begin{footnotesize}Sample consists of"
-             "all `samp1' first born children with white, non-hispanic, married"
-             "mothers aged 25-45 included in ACS data where the mother is      "
-             "either the head of the household or the partner of the head of   "
-             "the household and works in an occupation with at least 500       "
-             "workers in the sample. Age 40-45 is the omitted base category.   "
-             "`Fnote'`onote'`enote'"
-             "\end{footnotesize}}\end{tabular}\end{table}");
-    #delimit cr
-    estimates clear
-    macro shift
-    restore
-}
-
-********************************************************************************
-*** (3c) regressions: binary age groups (robustness)
+*** (3c) regressions: Birth Quarter (robustness)
 ********************************************************************************
 local se  robust
 local abs abs(statefip)
@@ -186,7 +141,7 @@ local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
 foreach num of numlist 2(1)4 {
     eststo: reg goodQuarter `v`num'' if e(sample) `wt', `se'
-    test `age'
+   test `age'
     local F`num' = round(r(p)*1000)/1000
     if   `F`num'' == 0 local F`num' 0.000    
     local opt`num' = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
@@ -208,71 +163,6 @@ postfoot("F-test of Age Variables&0`F4'&0`F3'&0`F2'&0`F1' \\                   "
          "household and works in an occupation with at least 500 workers in the"
          "sample. Age 40-45 is the omitted base category. `Fnote'`onote'`enote'"
          "\end{footnotesize}}\end{tabular}\end{table}");
-#delimit cr
-estimates clear
-
-********************************************************************************
-*** (3d) regressions: good season and education interaction
-********************************************************************************
-local se  robust
-local abs abs(statefip)
-
-gen age2527XhighEd=age2527*highEduc
-gen age2831XhighEd=age2831*highEduc
-gen age3239XhighEd=age3239*highEduc
-
-lab var age2527XhighEd "Aged 25-27 $\times$ Some College +"
-lab var age2831XhighEd "Aged 28-31 $\times$ Some College +"
-lab var age3239XhighEd "Aged 32-39 $\times$ Some College +"
-    
-local age1  age2527 age2831 age3239
-local age1X age2527XhighEd age2831XhighEd age3239XhighEd
-eststo: areg goodQua `age1' highEduc `age1X' _year*              `wt', `abs' `se'
-test `age1'
-local F1 = round(r(p)*1000)/1000
-
-eststo: areg goodQua `age1' highEduc         _year* if e(sample) `wt', `abs' `se'
-test `age1'
-local F2 = round(r(p)*1000)/1000
-
-eststo: areg goodQua `age1'                  _year* if e(sample) `wt', `abs' `se'
-test `age1'
-local F3 = round(r(p)*1000)/1000
-
-local rd (1=2) (2=6) (3=9) (4=10) (5=11) (6=12) (7=13) (8=14) (10=15) (11=16)
-recode educ `rd', gen(educYrs)
-
-gen motherAgeXeduc  = motherAge*highEd
-gen motherAge2Xeduc = motherAge2*highEd
-
-lab var educYrs         "Years of education"
-lab var motherAgeXeduc  "Mother's Age $\times$ Some College"
-lab var motherAge2Xeduc "Mother's Age$^2$ $\times$ Some College"
-
-local age2  motherAge motherAge2
-eststo: areg goodQua `age2' educYrs          _year* `wt', `abs' `se'
-test `age2'
-local F4 = round(r(p)*1000)/1000
-
-eststo: areg goodQua `age2'                  _year* `wt', `abs' `se'
-test `age2'
-local F5 = round(r(p)*1000)/1000
-
-local kvar `age1' highEduc `age1X' `age2' educYrs
-#delimit ;
-esttab est3 est2 est1 est5 est4 using "$OUT/IPUMSBinaryEducAge.tex",
-replace `estopt' booktabs keep(`kvar') mlabels(, depvar)
-title("Season of Birth, Age and Education"\label{tab:IPUMSEducAge})
-postfoot("F-test of Age Variables&0`F3'&0`F2'&0`F1'&0`F5'&0`F4' \\             "
-         "\bottomrule\multicolumn{6}{p{18.6cm}}{\begin{footnotesize}           "
-         "Sample consists of all first born children in the USA to white,      "
-         "non-hispanic married mothers aged 25-45 included in ACS data where   "
-         "the mother is either the head of the household or the partner        "
-         "           of the head of the household and works in an occupation   "
-         " with at least 500 workers in the sample. F-test of age dummies      "
-         "refers to the p-value for the joint significance of the three age    "
-         "dummies. `enote'"
-         "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
 
@@ -331,14 +221,14 @@ local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 #delimit ;
 esttab est3 est2 est1 using "$OUT/IPUMSIndustry.tex", replace `estopt' 
 title("Season of Birth Correlates: Occupation"\label{tab:Occupation})
-keep(_cons `age' `edu' `une' `lv2') style(tex) booktabs mlabels(, depvar) 
+keep(`age' `edu' `une' `lv2') style(tex) booktabs mlabels(, depvar) 
 postfoot("Occupation Codes (level) &-&2&3\\                                    "
          "F-test of Occupation Dummies&-&`F2'&`F1'\\                           "
          "F-test of Age Variables&0`F3a'&0`F2a'&0`F1a'\\                       "
          "Optimal Age&`opt3'&`opt2'&`opt1'\\ \bottomrule                       "
          "\multicolumn{4}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
          " singleton first-born children in the USA to white, non-hispanic     "
-	 "married mothers aged 25-45 included in 2005-2014 ACS data where the  "
+	 "`mnote' mothers aged 25-45 included in 2005-2014 ACS data where the  "
 	 "mother is either the head of the household or the partner of the head"
 	 " of the household and works in an occupation with at least 500       "
 	 "workers in the sample. Occupation codes refer to the level of        "
@@ -698,9 +588,6 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
 estimates clear
 
 
-exit
-
-
 eststo: areg weeksWork `age' `edu' _year* `lv3' `wt', `se' `abs'
 ds _occ*
 local tvar `r(varlist)'
@@ -799,6 +686,7 @@ postfoot("F-test of Age Variables &  &    &     &     &0`F2'\\                 "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
+
 exit
 ********************************************************************************
 *** (3g) Twin regression
