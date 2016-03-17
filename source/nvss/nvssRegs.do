@@ -16,7 +16,7 @@ clear all
 set more off
 cap log close
 
-local allobs 1
+local allobs 0
 
 ********************************************************************************
 *** (1) globals and locals
@@ -220,7 +220,6 @@ estimates clear
 restore
 
 
-
 ********************************************************************************
 *** (4a) ART Birth Choice Test
 ********************************************************************************
@@ -228,69 +227,65 @@ preserve
 keep `cnd'&`keepif'&ART==1
 drop if conceptionMonth==12
 
-foreach num of numlist 1 2 {
-    if `num'==1 local age motherAge motherAge2
-    if `num'==2 local age motherAge 
-    if `num'==2 local nt _linearage
-    local edu highEd
-    local con smoker i.gestation `mc' 
-    local yab abs(fips)
+local age motherAge motherAge2
+local edu highEd
+local con smoker i.gestation `mc' 
+local yab abs(fips)
 
-    sum highEd
-    local edAve = round(r(mean)*1000)/1000 
-    sum smoker
-    local smAve = round(r(mean)*1000)/1000 
+sum highEd
+local edAve = round(r(mean)*1000)/1000 
+sum smoker
+local smAve = round(r(mean)*1000)/1000 
 
-    eststo: areg goodQuarter motherAge `edu' `con' _year*, `se' `yab'
-    keep if e(sample)
-    test motherAge
-    local F0a = round(r(p)*1000)/1000
-    test motherAge `edu' smoker
-    local F0b = round(r(p)*1000)/1000
-    test `edu' smoker
+eststo: areg goodQuarter motherAge `edu' `con' _year*, `se' `yab'
+keep if e(sample)
+test motherAge
+local F0a = round(r(p)*1000)/1000
+test motherAge `edu' smoker
+local F0b = round(r(p)*1000)/1000
+test `edu' smoker
     
-    eststo: areg goodQuarter `age' `edu' `con' _year*, `se' `yab'
-    test `age'
-    local F1a = round(r(p)*1000)/1000
-    test `age' `edu' smoker
-    local F1b = round(r(p)*1000)/1000
+eststo: areg goodQuarter `age' `edu' `con' _year*, `se' `yab'
+test `age'
+local F1a = round(r(p)*1000)/1000
+test `age' `edu' smoker
+local F1b = round(r(p)*1000)/1000
 
+eststo: areg goodQuarter `age' `edu' _year*, `se' `yab'
+test `age'
+local F2a = round(r(p)*1000)/1000
+test `age' `edu'
+local F2b = round(r(p)*1000)/1000
 
-    eststo: areg goodQuarter `age' `edu' _year*, `se' `yab'
-    test `age'
-    local F2a = round(r(p)*1000)/1000
-    test `age' `edu'
-    local F2b = round(r(p)*1000)/1000
-    
-    eststo: areg goodQuarter `age'       _year* if e(sample) , `se' `yab'
-    test `age'    
-    local F3 = round(r(p)*1000)/1000
-    if   `F3' == 0 local F3 0.000
+eststo: areg goodQuarter `age'       _year* if e(sample) , `se' `yab'
+test `age'    
+local F3 = round(r(p)*1000)/1000
+if   `F3' == 0 local F3 0.000
 
-    eststo:  reg goodQuarter `age'              if e(sample) , `se'
-    test `age'    
-    local F4 = round(r(p)*1000)/1000
-    if   `F4' == 0 local F4 0.000
+eststo:  reg goodQuarter `age'              if e(sample) , `se'
+test `age'    
+local F4 = round(r(p)*1000)/1000
+if   `F4' == 0 local F4 0.000
 
-    #delimit ;
-    esttab est5 est4 est3 est2 est1 using "$OUT/NVSSBinaryART`nt'.tex",
-    replace `estopt' keep(`age' `edu' smoker `mc') 
-    title("Season of Birth Correlates (ART users only)"\label{tab:bqART}) 
-    style(tex) mlabels(, depvar) booktabs 
-    postfoot("F-test of All Varibles&`F4'&`F3'&`F2b'&`F1b'&`F0b' \\              "
-             "2009-2013 Only&Y&Y&Y&Y&Y\\ State and Year FE&&Y&Y&Y&Y\\            "
-             "Gestation FE &&&&Y&Y\\ \bottomrule                                 "
-             "\multicolumn{6}{p{17cm}}{\begin{footnotesize} All singleton,       "
-             "firstborn children born to mothers undergoing ART are included,    "
-             "with the exception of those conceived in December.                 "
-             "Independent variables are all binary measures. The Proportion of   "
-             "ART users with at least some college is `edAve', and the proportion"
-             "who smoke is `smAve'.  `Fnote' `onote'                             "
-             "`enote' ***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.      "
-             "\end{footnotesize}}\end{tabular}\end{table}");
-    #delimit cr
-    estimates clear
-}
+#delimit ;
+esttab est5 est4 est3 est2 est1 using "$OUT/NVSSBinaryART.tex",
+replace `estopt' keep(`age' `edu' smoker `mc') 
+title("Season of Birth Correlates (ART users only)"\label{tab:bqART}) 
+style(tex) mlabels(, depvar) booktabs 
+postfoot("F-test of All Varibles&`F4'&`F3'&`F2b'&`F1b'&`F0b' \\              "
+"2009-2013 Only&Y&Y&Y&Y&Y\\ State and Year FE&&Y&Y&Y&Y\\            "
+"Gestation FE &&&&Y&Y\\ \bottomrule                                 "
+"\multicolumn{6}{p{17cm}}{\begin{footnotesize} All singleton,       "
+"firstborn children born to mothers undergoing ART are included,    "
+"with the exception of those conceived in December.                 "
+"Independent variables are all binary measures. The Proportion of   "
+"ART users with at least some college is `edAve', and the proportion"
+"who smoke is `smAve'.  `Fnote' `onote'                             "
+"`enote' ***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.      "
+"\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+
 restore
 
 
@@ -397,7 +392,7 @@ foreach cond of local c1 {
              "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
              "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
 
-    local lab "without controls"
+    local lab "without controls";
     esttab est3 est6 est9 est12 est15 est18 using "$OUT/NVSSQuality`1'_NC.tex",
     replace `estopt'
     title("Birth Quality and Season of Birth (`title'`lab')")

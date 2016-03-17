@@ -220,7 +220,7 @@ NVj = open(allEducIPUMS,    'r').readlines()
 
 
 sumT.write("\\begin{table}[htpb!]"
-           "\\caption{Percent of Births, Singletons} \n"
+           "\\caption{Percent of Births (IPUMS 2005-2014)} \n"
            "\\label{bqTab:SpainSum}\\begin{center}"
            "\\begin{tabular}{lcccc}\n\\toprule \\toprule \n"
            "& Bad    & Good   & Diff. & Ratio \\\\\n"
@@ -235,8 +235,7 @@ sumT.write(NV[1]+'\\\\ \n'+NV[2]+'\\\\ \n'+NV[3]+'\\\\ \n'
            "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
            "\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
            NVj[1]+'\\\\ \n'+
-           NVj[2]+'\\\\ \n'+
-           NVj[3]+'\\\\ \n &&&& \\\\'
+           NVj[2]+'\\\\ \n &&&& \\\\'
            ##"\multicolumn{5}{l}{\\textsc{Panel C: By Age and Education}}\\\\"
            ##"\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
            ##"\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
@@ -675,15 +674,15 @@ final.close()
 #===== TABLE A3: IPUMS birth quarters
 #==============================================================================
 final = open(TAB + "appendixTablesA.tex", 'w')
-TABLES = [tabs+'sumStatsIPUMS.tex'      , tabs +'sumIPUMS.tex'              ,
-          nvss +'NVSSBinaryNoSep.tex'   , nvss +'NVSSBinaryMain_robust.tex' ,
+TABLES = [nvss +'NVSSBinaryNoSep.tex'   , tabs+'sumStatsIPUMS.tex'      , 
+          tabs +'sumIPUMS.tex'          , nvss +'NVSSBinaryMain_robust.tex' ,
           nvss +'NVSSBinaryBord2.tex'   , nvss +'NVSSBinaryTwinS.tex'       ,
           nvss +'NVSSBinaryTwin.tex'    , tabs +'IPUMSIndustry_IncEduc.tex' ,
           ipum+'ValueGoodSeason.tex']
 
 i = 1
 for table in TABLES:
-    if i==1 or i==2 or i==8:
+    if i==2 or i==3 or i==8:
         final.write('\\input{' +table+ '}\n')
     else:
         final.write('\\begin{landscape}\n\\input{'
@@ -728,7 +727,7 @@ TABLES = [tabs+'sumStatsSampnvssall.tex'   , tabs+'sumsinglenvssall.tex'      ,
           nall+'NVSSBinaryMain.tex'        , nall+'NVSSBinaryART.tex'         ,
           nall+'NVSSBinaryFDeaths.tex'     , nall+'ART2024.tex'               , 
           tabs+'IPUMSIndustryBoth.tex'     , ipum+'ValueGoodSeasonInc_all.tex',
-          ipumb+'IPUMSTeachersIncome.tex'  , nall+'NVSSQualityMain_NC.tex'    ,
+          ipumb+'IPUMSTeachers.tex'        , nall+'NVSSQualityMain_NC.tex'    ,
           nall+'NVSSQualityMain.tex'       , nall+'NVSSQualityART_NC.tex'     ,
           nall+'NVSSQualityART_age.tex'    , nall+'NVSSQualityART.tex'        ]
 

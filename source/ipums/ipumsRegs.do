@@ -71,7 +71,7 @@ gen motherAge2      = motherAge*motherAge/100
 lab var motherAge       "Mother's Age"
 lab var motherAge2      "Mother's Age$^2$ / 100"
 
-
+/*
 ********************************************************************************
 *** (3a) regressions: Birth Quarter
 ********************************************************************************
@@ -508,7 +508,7 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-*/
+
 ********************************************************************************
 *** (3e-ii) regressions: industry -- weeks worked
 ********************************************************************************
@@ -635,7 +635,7 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
 #delimit cr
 estimates clear
 
-exit    
+*/
 ********************************************************************************
 *** (3f) regressions: Teachers
 ********************************************************************************
@@ -652,7 +652,7 @@ lab var logIncEarn "log(Earnings)"
 
 
 gen teachers = twoLevelOcc=="Education, Training, and Library Occupations"
-lab var teachers "Education, Training and Library"
+lab var teachers "Teacher"
 foreach aa in 2527 2831 3239 {
     gen age`aa'XTeach = age`aa'*teachers
     lab var age`aa'XTeach "Aged `aa' $\times$ Education Occup"
@@ -660,32 +660,32 @@ foreach aa in 2527 2831 3239 {
 gen quarter2 = birthQuarter == 2
 lab var quarter "Quarter II"
 
-eststo: areg goodQuarter teachers `age' `edu' `une' `inc' _year*  `wt', `abs' `se'
+eststo: areg goodQuarter teachers `age' `edu' `une' _year*  `wt', `abs' `se'
 test `age'
 local F2 = round(r(p)*1000)/1000
 local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-eststo: areg goodQuarter teachers       `inc'       _year*  `wt', `abs' `se'
-eststo: areg goodQuarter                `inc'       _year*  `wt', `abs' `se'
-eststo: areg goodQuarter          `edu' _year* if e(sample) `wt', `abs' `se'
-eststo: areg goodQuarter teachers       _year* if e(sample) `wt', `abs' `se'
-
+eststo: areg goodQuarter teachers       `edu'       _year*  `wt', `abs' `se'
+eststo: areg goodQuarter                `edu'       _year*  `wt', `abs' `se'
+eststo: areg goodQuarter teachers                   _year*  `wt', `abs' `se'
+eststo:  reg goodQuarter teachers                           `wt',       `se'
 
 
 #delimit ;
-esttab est5 est4 est3 est2 est1 using "$OUT/IPUMSTeachersIncome.tex", replace 
-`estopt' title("Season of Birth Correlates: Education, Training and Library")
-keep(_cons teachers `age' `edu' `une' `inc') style(tex) booktabs mlabels(, depvar) 
+esttab est5 est4 est3 est2 est1 using "$OUT/IPUMSTeachers.tex", replace
+title("Season of Birth Correlates: \`\`Teachers'' vs.\ \`\`Non-Teachers''")
+keep(teachers `age' `edu' `une') style(tex) booktabs mlabels(, depvar) `estopt' 
 postfoot("F-test of Age Variables &  &    &     &     &0`F2'\\                 "
          "Optimal Age             &  &    &     &     &`opt1'\\                "
-         "State and Year FE&Y&Y&Y&Y&Y\\                       \bottomrule      "
+         "State and Year FE&&Y&Y&Y&Y\\                        \bottomrule      "
          "\multicolumn{6}{p{19cm}}{\begin{footnotesize}Main ACS estimation     "
-	 "sample is used. Education, Training and Library refers to individuals"
-	 " employed in this occupation (occ codes 2200-2550).  The omitted     "
-	 "occupational category is all non-educational occupations, and the    "
-	 "omitted age category is 40-45 year old women. `Fnote' `onote' `enote'"
+         "sample is used. Education, Training and Library refers to individuals"
+         " employed in this occupation (occ codes 2200-2550).  The omitted     "
+         "occupational category is all non-educational occupations, and the    "
+         "omitted age category is 40-45 year old women. `Fnote' `onote' `enote'"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
+
 
 exit
 ********************************************************************************
@@ -1280,7 +1280,7 @@ foreach hS in Alabama Arkansas Arizona {
 *** (7) Occupations
 ********************************************************************************
 use "$DAT/`data'", clear
-keep if marst==1
+if `allobs'== 0 keep if marst==1
 
 bys twoLevelOcc: gen counter = _N
 keep if counter>500
@@ -1347,7 +1347,7 @@ graph export "$GRA/birthsOccupation2.eps", as(eps) replace;
 restore
 
 
-
+exit
 cap mkdir "$GRA/occ"
 
 preserve

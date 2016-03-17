@@ -52,7 +52,7 @@ gen income                = incearn if incearn>0
 gen wages                 = incwage if incwage>0
 gen logIncome             = log(income)
 gen logWage               = log(wages)
-gen motherAge2            = motherAge*motherAge
+gen motherAge2            = motherAge*motherAge/100
 
 lab var teacher        "Non-Teacher"
 lab var mother         "Mother"
@@ -62,7 +62,7 @@ lab var wages          "Wage Income"
 lab var logIncome      "log(Earnings)"
 lab var logWage        "log(Wage Inc)"
 lab var motherAge      "Age"
-lab var motherAge2     "Age Squared"
+lab var motherAge2     "Age$^2$ / 100"
 lab var highEduc       "Some College +"
 
 ********************************************************************************
@@ -84,7 +84,7 @@ esttab est1 est2 est3 est4 using "$OUT/ValueGoodSeason_all.tex", replace
 keep(mother teacher teacherXmother motherAge motherAge2 highEduc) 
 mgroups("All" "$\geq$ 35 Years", pattern(1 0 1 0)
 prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
-title("The Value of Season of Birth (Wages)"\label{tab:IPUMSWagesAll}) 
+title("The Value of Season of Birth (Wage Income)"\label{tab:IPUMSWagesAll}) 
 postfoot("State and Year FE & Y & Y & Y & Y \\                              "
          "\bottomrule\multicolumn{5}{p{15.6cm}}{\begin{footnotesize}  Main  "
          "ACS estimation sample is used, augmenting to include un-married   "
@@ -134,7 +134,7 @@ esttab est1 est2 est3 est4 using "$OUT/ValueGoodSeason.tex", replace
 keep(mother teacher teacherXmother motherAge motherAge2 highEduc) 
 mgroups("All" "$\geq$ 35 Years", pattern(1 0 1 0)
 prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
-title("The Value of Season of Birth (Wages)"\label{tab:IPUMSWages}) 
+title("The Value of Season of Birth (Wage Income)"\label{tab:IPUMSWages}) 
 postfoot("State and Year FE & Y & Y & Y & Y \\                              "
          "\bottomrule\multicolumn{5}{p{15.8cm}}{\begin{footnotesize}  Main  "
          "ACS estimation sample used.  Teacher refers to occupational codes "
