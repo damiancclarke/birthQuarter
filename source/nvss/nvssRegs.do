@@ -244,8 +244,14 @@ foreach num of numlist 1 2 {
     sum smoker
     local smAve = round(r(mean)*1000)/1000 
 
-    eststo: areg goodQuarter `age' `edu' `con' _year*, `se' `yab'
+    eststo: areg goodQuarter motherAge `edu' `con' _year*, `se' `yab'
     keep if e(sample)
+    test motherAge
+    local F0a = round(r(p)*1000)/1000
+    test motherAge `edu' smoker
+    local F0b = round(r(p)*1000)/1000
+
+    eststo: areg goodQuarter `age' `edu' `con' _year*, `se' `yab'
     test `age'
     local F1a = round(r(p)*1000)/1000
     test `age' `edu' smoker
@@ -269,15 +275,14 @@ foreach num of numlist 1 2 {
     if   `F4' == 0 local F4 0.000
 
     #delimit ;
-    esttab est4 est3 est2 est1 using "$OUT/NVSSBinaryART`nt'.tex",
-    replace `estopt' keep(_cons `age' `edu' smoker `mc') 
+    esttab est5 est4 est3 est2 est1 using "$OUT/NVSSBinaryART`nt'.tex",
+    replace `estopt' keep(`age' `edu' smoker `mc') 
     title("Season of Birth Correlates (ART Users Only)"\label{tab:bqART}) 
     style(tex) mlabels(, depvar) booktabs 
-    postfoot("F-test of All Varibles&`F4'&`F3'&`F2b'&`F1b' \\                    "
-             "Optimal Age &`opt4'&`opt3'&`opt2'&`opt1' \\                        "
-             "2009-2013 Only&Y&Y&Y&Y\\ State and Year FE&&Y&Y&Y\\                "
-             "Gestation FE &&&Y&\\ \bottomrule                                   "
-             "\multicolumn{5}{p{14cm}}{\begin{footnotesize} All singleton,       "
+    postfoot("F-test of All Varibles&`F4'&`F3'&`F2b'&`F1b'&`F0b' \\              "
+             "2009-2013 Only&Y&Y&Y&Y&Y\\ State and Year FE&&Y&Y&Y&Y\\            "
+             "Gestation FE &&&&Y&Y\\ \bottomrule                                 "
+             "\multicolumn{6}{p{17cm}}{\begin{footnotesize} All singleton,       "
              "firstborn children born to mothers undergoing ART are included,    "
              "with the exception of those conceived in December.                 "
              "Independent variables are all binary measures. The Proportion of   "
