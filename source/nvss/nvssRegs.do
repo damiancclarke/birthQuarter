@@ -16,7 +16,7 @@ clear all
 set more off
 cap log close
 
-local allobs 0
+local allobs 1
 
 ********************************************************************************
 *** (1) globals and locals
@@ -69,8 +69,8 @@ lab var motherAge2 "Mother's Age$^2$ / 100"
 *** (3a) Good Quarter Regressions
 ********************************************************************************
 #delimit ;
-local add `" ""  "(No September)" "(Birth Order = 2)" "(Twin sample)"
-                 "(With Twins)" "';
+local add `" ""  "(excluding babies conceived in September)"
+             "(including second births)" "(only twins)" "(including twins)" "';
 local nam Main NoSep Bord2 Twin TwinS;
 #delimit cr
 tokenize `nam'
@@ -95,10 +95,6 @@ foreach type of local add {
            */ if twin<=2&motherAge>24&motherAge<46&`keepif'&liveBirth==1
     if `"`1'"' == "Bord2" local samp2 "second born"
     if `"`1'"' == "Twin"  local samp1 "twin" 
-    if `"`1'"' == "girls" local spcnd if female==1
-    if `"`1'"' == "boys"  local spcnd if female==0
-    if `"`1'"' == "girls" local samp1 "female, singleton"
-    if `"`1'"' == "boys"  local samp1 "male, singleton"
     if `"`1'"' == "TwinS" local samp1 "twin and singleton" 
 
     keep `group'
@@ -139,7 +135,7 @@ foreach type of local add {
     replace `estopt' keep(`age' `edu' noART smoker `mc') 
     title("Season of Birth Correlates `type'"\label{tab:bq`1'}) booktabs 
     style(tex) mlabels(, depvar)
-    postfoot("F-test of Age Varibles&`F3'&`F2'&`F1'&`F4'&`F5' \\             "
+    postfoot("F-test of Age Variables&`F3'&`F2'&`F1'&`F4'&`F5' \\            "
              "Optimal Age &`opt3'&`opt2'&`opt1'&`opt4'&`opt5' \\             "
              "State and Year FE&&Y&Y&Y&Y\\ Gestation FE &&&Y&Y&Y\\           "
              "2009-2013 Only&&&&Y&Y\\ \bottomrule                            "
@@ -201,11 +197,12 @@ local F6 = round(r(p)*1000)/1000
 if   `F6' == 0 local F6 0.000
 local opt6 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
+local tnote "controlling for state-specific trends and unemployment rate"
 #delimit ;
 esttab est3 est2 est1 est4 est5 est6 using
 "$OUT/NVSSBinaryMain_robust.tex", replace `estopt'
-title("Season of Birth Correlates (Unemployment)" \label{tab:robustness})
-booktabs keep(_cons `age' `edu' noART smoker value `mc')
+title("Season of Birth Correlates (`tnote')" \label{tab:robustness})
+booktabs keep(`age' `edu' noART smoker value `mc')
 style(tex) mlabels(, depvar)
 postfoot("F-test of Age Variables&`F3'&`F2'&`F1'&`F4'&`F5'&`F6' \\      "
          "Optimal Age &`opt3'&`opt2'&`opt1'&`opt4'&`opt5'&`opt6' \\     "
@@ -250,7 +247,8 @@ foreach num of numlist 1 2 {
     local F0a = round(r(p)*1000)/1000
     test motherAge `edu' smoker
     local F0b = round(r(p)*1000)/1000
-
+    test `edu' smoker
+    
     eststo: areg goodQuarter `age' `edu' `con' _year*, `se' `yab'
     test `age'
     local F1a = round(r(p)*1000)/1000
@@ -277,7 +275,7 @@ foreach num of numlist 1 2 {
     #delimit ;
     esttab est5 est4 est3 est2 est1 using "$OUT/NVSSBinaryART`nt'.tex",
     replace `estopt' keep(`age' `edu' smoker `mc') 
-    title("Season of Birth Correlates (ART Users Only)"\label{tab:bqART}) 
+    title("Season of Birth Correlates (ART users only)"\label{tab:bqART}) 
     style(tex) mlabels(, depvar) booktabs 
     postfoot("F-test of All Varibles&`F4'&`F3'&`F2b'&`F1b'&`F0b' \\              "
              "2009-2013 Only&Y&Y&Y&Y&Y\\ State and Year FE&&Y&Y&Y&Y\\            "
@@ -331,13 +329,12 @@ restore
 ********************************************************************************
 *** (5) Regressions (Quality on Age, season)
 ********************************************************************************
-local c1      twin==1&birthOrd==1&liveBir==1 twin==2&birthOrder==1&liveBir==1 /*
-           */ twin==1&birthOrd==2&liveBir==1 twin==1&birthOrd==1              /*
+local c1      twin==1&birthOrd==1&liveBir==1                         /*
            */ twin==1&birthOrd==1&liveBir==1&ART==1&conceptionMonth!=12
 local varsY   motherAge motherAge2
 local control highEd smoker `mc'
 local ARTcont ART ARTXgoodQuarter
-local names   Main Twin Bord2 FDeaths ART
+local names   Main ART
 
 tokenize `names'
 gen ARTXgoodQuarter = ART*goodQuarter
@@ -346,10 +343,7 @@ lab var ARTXgoodQuarter "ART $\times$ Good Quarter"
 
 foreach cond of local c1 {
     if `"`1'"'=="Main"    local title 
-    if `"`1'"'=="Twin"    local title "(Twin Sample)"
-    if `"`1'"'=="Bord2"   local title "(Birth Order 2)"
-    if `"`1'"'=="FDeaths" local title "(Including Fetal Deaths)"
-    if `"`1'"'=="ART"     local title "(ART Users Only)"
+    if `"`1'"'=="ART"     local title "ART users only "
     if `"`1'"'=="ART"     local varsY motherAge
     
     dis "`1', `title'"
@@ -375,26 +369,26 @@ foreach cond of local c1 {
 
         local ++jj
     }
-    
+
+    local lab "with controls"
     #delimit ;
     esttab est1 est4 est7 est10 est13 est16 using "$OUT/NVSSQuality`1'.tex",
-    replace `estopt'
-    title("Birth Quality and Season of Birth `title'"\label{tab:quality`1'})
-    keep(goodQuarter `varsY' `control') style(tex) mlabels(, depvar) 
+    title("Birth Quality and Season of Birth (`title'`lab')"\label{tab:quality`1'})
+    keep(goodQuarter `varsY' `control') style(tex) mlabels(, depvar) `estopt'
     postfoot("F-test of Age Variables&`F1a'&`F2a'&`F3a'&`F4a'&`F5a'&`F6a' \\ "
              "\bottomrule                                                    "
              "\multicolumn{7}{p{17cm}}{\begin{footnotesize}Main estimation   "
 	     "sample is used. State and year fixed effects are               "
              "included, and `Fnote'         `enote'                          "
              "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
-             "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
+             "\end{footnotesize}}\end{tabular}\end{table}") booktabs replace;
 
+    local lab "controlling for age";
     esttab est2 est5 est8 est11 est14 est17 using "$OUT/NVSSQuality`1'_age.tex",
     replace `estopt'
-    title("Birth Quality and Season of Birth `title'")
+    title("Birth Quality and Season of Birth (`title'`lab')")
     keep(goodQuarter `varsY') style(tex) mlabels(, depvar) 
-    postfoot("F-test of Age Variables&`F1b'&`F2b'&`F3b'&`F4b'&`F5b'&`F6b' \\ "
-             "\bottomrule                                                    "
+    postfoot("\bottomrule                                                    "
              "\multicolumn{7}{p{17cm}}{\begin{footnotesize}Main estimation   "
 	     "sample is used. State and year fixed effects are               "
              "included, and F-test of age variables refers to the test of the"
@@ -403,9 +397,10 @@ foreach cond of local c1 {
              "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
              "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
 
+    local lab "without controls"
     esttab est3 est6 est9 est12 est15 est18 using "$OUT/NVSSQuality`1'_NC.tex",
     replace `estopt'
-    title("Birth Quality and Season of Birth `title'")
+    title("Birth Quality and Season of Birth (`title'`lab')")
     keep(_cons goodQuarter) style(tex) mlabels(, depvar) 
     postfoot("\bottomrule                                                    "
              "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Main estimation   "
@@ -419,7 +414,7 @@ foreach cond of local c1 {
     macro shift
     restore
 }
-
+exit
 keep if `keepif'
 
 ********************************************************************************
