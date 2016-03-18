@@ -646,13 +646,16 @@ local abs abs(statefip)
 local age motherAge motherAge2
 local edu highEduc
 local une unemployment
-local une 
+local mnv teachers teacherXcold
 local inc logIncEarn
 lab var logIncEarn "log(Earnings)"
 
 
 gen teachers = twoLevelOcc=="Education, Training, and Library Occupations"
 lab var teachers "Teacher"
+gen teacherXcold = teachers*cold
+lab var teacherXcold "Teacher $\times$ Min State Temp"
+
 foreach aa in 2527 2831 3239 {
     gen age`aa'XTeach = age`aa'*teachers
     lab var age`aa'XTeach "Aged `aa' $\times$ Education Occup"
@@ -660,20 +663,20 @@ foreach aa in 2527 2831 3239 {
 gen quarter2 = birthQuarter == 2
 lab var quarter "Quarter II"
 
-eststo: areg goodQuarter teachers `age' `edu' `une' _year*  `wt', `abs' `se'
+eststo: areg goodQuarter `mnv' `age' `edu' `une' _year*  `wt', `abs' `se'
 test `age'
 local F2 = round(r(p)*1000)/1000
 local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-eststo: areg goodQuarter teachers       `edu'       _year*  `wt', `abs' `se'
-eststo: areg goodQuarter                `edu'       _year*  `wt', `abs' `se'
-eststo: areg goodQuarter teachers                   _year*  `wt', `abs' `se'
-eststo:  reg goodQuarter teachers                           `wt',       `se'
+eststo: areg goodQuarter `mnv'       `edu'       _year*  `wt', `abs' `se'
+eststo: areg goodQuarter             `edu'       _year*  `wt', `abs' `se'
+eststo: areg goodQuarter `mnv'                   _year*  `wt', `abs' `se'
+eststo:  reg goodQuarter `mnv'                           `wt',       `se'
 
 
 #delimit ;
 esttab est5 est4 est3 est2 est1 using "$OUT/IPUMSTeachers.tex", replace
 title("Season of Birth Correlates: \`\`Teachers'' vs.\ \`\`Non-Teachers''")
-keep(teachers `age' `edu' `une') style(tex) booktabs mlabels(, depvar) `estopt' 
+keep(`mnv' `age' `edu' `une') style(tex) booktabs mlabels(, depvar) `estopt' 
 postfoot("F-test of Age Variables &  &    &     &     &0`F2'\\                 "
          "Optimal Age             &  &    &     &     &`opt1'\\                "
          "State and Year FE&&Y&Y&Y&Y\\                        \bottomrule      "
@@ -681,7 +684,9 @@ postfoot("F-test of Age Variables &  &    &     &     &0`F2'\\                 "
          "sample is used. Education, Training and Library refers to individuals"
          " employed in this occupation (occ codes 2200-2550).  The omitted     "
          "occupational category is all non-educational occupations, and the    "
-         "omitted age category is 40-45 year old women. `Fnote' `onote' `enote'"
+         "omitted age category is 40-45 year old women. Teacher $\times$ Min   "
+         "State Temp interacts the teacher dummy with the miniumum temperature "
+         "in the state in each woman's birth month. `Fnote' `onote' `enote'    "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
