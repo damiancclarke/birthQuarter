@@ -12,7 +12,7 @@ set more off
 cap log close
 set matsize 2000
 
-local allobs 1
+local allobs 0
 
 ********************************************************************************
 *** (1) globals and locals
@@ -635,18 +635,20 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
 #delimit cr
 estimates clear
 
-*/
+
 ********************************************************************************
 *** (3f) regressions: Teachers
 ********************************************************************************
 gen logIncEarn = log(incwage) if incwage>0
 
-local se  robust
+local se  cluster(statefip)
 local abs abs(statefip)
+local abs
 local age motherAge motherAge2
 local edu highEduc
 local une unemployment
-local mnv teachers teacherXcold
+local une
+local mnv teachers teacherXcold cold
 local inc logIncEarn
 lab var logIncEarn "log(Earnings)"
 
@@ -663,14 +665,14 @@ foreach aa in 2527 2831 3239 {
 gen quarter2 = birthQuarter == 2
 lab var quarter "Quarter II"
 
-eststo: areg goodQuarter `mnv' `age' `edu' `une' _year*  `wt', `abs' `se'
+eststo: reg goodQuarter `mnv' `age' `edu' `une' _year* `wt', `abs' `se'
 test `age'
 local F2 = round(r(p)*1000)/1000
 local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-eststo: areg goodQuarter `mnv'       `edu'       _year*  `wt', `abs' `se'
-eststo: areg goodQuarter             `edu'       _year*  `wt', `abs' `se'
-eststo: areg goodQuarter `mnv'                   _year*  `wt', `abs' `se'
-eststo:  reg goodQuarter `mnv'                           `wt',       `se'
+eststo: reg goodQuarter `mnv'       `edu'       _year*  `wt', `abs' `se'
+eststo: reg goodQuarter             `edu'       _year*  `wt', `abs' `se'
+eststo: reg goodQuarter `mnv'                   _year*  `wt', `abs' `se'
+eststo:  reg goodQuarter `mnv'                          `wt',       `se'
 
 
 #delimit ;
@@ -686,11 +688,62 @@ postfoot("F-test of Age Variables &  &    &     &     &0`F2'\\                 "
          "occupational category is all non-educational occupations, and the    "
          "omitted age category is 40-45 year old women. Teacher $\times$ Min   "
          "State Temp interacts the teacher dummy with the miniumum temperature "
-         "in the state in each woman's birth month. `Fnote' `onote' `enote'    "
+         "in the state in each woman's birth month. `Fnote' `onote' Standard   "
+         "errors are clustered by state."
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
 
+local se robust
+preserve
+keep if motherAge>=28&motherAge<=31
+eststo: reg goodQuarter `mnv'       `edu'       _year*  `wt', `abs' `se'
+eststo: reg goodQuarter             `edu'       _year*  `wt', `abs' `se'
+eststo: reg goodQuarter `mnv'                   _year*  `wt', `abs' `se'
+eststo:  reg goodQuarter `mnv'                           `wt',       `se'
+
+
+#delimit ;
+esttab est4 est3 est2 est1 using "$OUT/IPUMSTeachers_2831.tex", replace
+title("Season of Birth Correlates: 28-31 Year-old \`\`Teachers'' vs.\ \`\`Non-Teachers''")
+keep(`mnv' `edu') style(tex) booktabs mlabels(, depvar) `estopt' 
+postfoot("State and Year FE&&Y&Y&Y\\                        \bottomrule       "
+         "\multicolumn{5}{p{17cm}}{\begin{footnotesize}Main ACS estimation    "
+         "sample is used, subset to 28-31 year old women. Education, Training "
+         "and Library refers to individuals employed in this occupation (occ  "
+         "codes 2200-2550).  The omitted occupational category is all         "
+         "non-educational occupations. Teacher $\times$ Min                   "
+         "State Temp interacts the teacher dummy with the miniumum temperature"
+         "in the state in each woman's birth month. `Fnote' `onote' `enote'   "
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+restore
+
+preserve
+keep if motherAge>=40&motherAge<=45
+eststo: reg goodQuarter `mnv'       `edu'       _year*  `wt', `abs' `se'
+eststo: reg goodQuarter             `edu'       _year*  `wt', `abs' `se'
+eststo: reg goodQuarter `mnv'                   _year*  `wt', `abs' `se'
+eststo:  reg goodQuarter `mnv'                           `wt',       `se'
+
+
+#delimit ;
+esttab est4 est3 est2 est1 using "$OUT/IPUMSTeachers_4045.tex", replace
+title("Season of Birth Correlates: 40-45 Year-old \`\`Teachers'' vs.\ \`\`Non-Teachers''")
+keep(`mnv' `edu') style(tex) booktabs mlabels(, depvar) `estopt' 
+postfoot("State and Year FE&&Y&Y&Y\\                        \bottomrule       "
+         "\multicolumn{5}{p{17cm}}{\begin{footnotesize}Main ACS estimation    "
+         "sample is used, subset to 40-45 year old women. Education, Training "
+         "and Library refers to individuals employed in this occupation (occ  "
+         "codes 2200-2550).  The omitted occupational category is all         "
+         "non-educational occupations. Teacher $\times$ Min                   "
+         "State Temp interacts the teacher dummy with the miniumum temperature"
+         "in the state in each woman's birth month. `Fnote' `onote' `enote'   "
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+restore
 
 exit
 ********************************************************************************
@@ -738,12 +791,12 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\ Occupation FE&&&&&Y\\ \bottomrule       "
 #delimit cr
 estimates clear
 
-
+*/
 ********************************************************************************
 *** (4) Sumstats of good season by various levels
 ********************************************************************************
 use "$DAT/`data'", clear
-keep if marst==1
+if `allobs'==0 keep if marst==1
 
 generat ageGroup        = 1 if motherAge>=25&motherAge<40
 replace ageGroup        = 2 if motherAge>=40&motherAge<=45
@@ -760,7 +813,7 @@ lab def ag 1 "Young (25-39) " 2 "Old (40-45) "
 lab def ed 0 "No College" 1 "Some College" 2 "Complete College"
 lab val ageGroup ag
 lab val educLevel ed
-
+/*
 preserve
 drop if ageGroup==.
 
@@ -1053,39 +1106,59 @@ graph export "$GRA/birthQuarterEducOld.eps", as(eps) replace;
 #delimit cr
 restore
 
-
+*/
 ********************************************************************************
 *** (6e) Figure 6-8
 ********************************************************************************
-preserve
-cap drop teachers
-generat teachers = 1 if twoLev == "Education, Training, and Library Occupations"
-replace teachers = 2 if teachers==.
-bys state: gen statecount = _N
+#delimit ;
+local c1 motherAge>=28&motherAge<=31
+         motherAge>=28&motherAge<=31&teachers==1
+         motherAge>=28&motherAge<=31&teachers==2
+         motherAge>=28&motherAge<=39
+         motherAge>=28&motherAge<=39&teachers==1
+         motherAge>=28&motherAge<=39&teachers==2
+         motherAge>=40&motherAge<=45
+         motherAge>=40&motherAge<=45&teachers==1
+         motherAge>=40&motherAge<=45&teachers==2;
+local gname 2831 2831Teacher 2831NonTeacher 2839 2839Teacher 2839NonTeacher
+            4045 4045Teacher 4045NonTeacher;            
+#delimit cr
 
-collapse goodQuarter (min) cold, by(teachers statefip state fips state*)
+tokenize `gname'
+foreach cond of local c1 {
+    preserve
+    cap drop teachers
+    generat teachers = 1 if twoLev == "Education, Training, and Library Occupations"
+    replace teachers = 2 if teachers==.
+    bys state: gen statecount = _N
 
-lab var goodQuarter "Proportion good season"
-lab var cold        "Coldest monthly average (degree F)"
-local cc statecount>500
+    keep if `cond'
+    collapse goodQuarter (min) cold, by(statefip state fips state*)
 
-format goodQuarter %5.2f
-foreach num of numlist 1 2 {
-    local age teachers
-    if `num'==2 local age nonteachers
-    drop if state=="Alaska"
-    
-    corr goodQuarter cold if teachers==`num' & `cc'
+    lab var goodQuarter "Proportion good season"
+    lab var cold        "Coldest monthly average (degree F)"
+    local cc statecount>500
+
+    format goodQuarter %5.2f
+    drop if state=="Alaska"|state=="Nebraska"
+    corr goodQuarter cold if `cc'
     local ccoef = string(r(rho),"%5.3f")
+    reg goodQuarter cold if `cc'
+    local pval   = (1-ttail(e(df_r),(_b[cold]/_se[cold])))
+    local pvalue = string(`pval',"%5.3f")
+    if `pvalue' == 0 local pvalue 0.000
+    
     #delimit ;
-    twoway scatter goodQuarter cold if teachers==`num'& `cc', mlabel(state) ||      
-        lfit goodQuarter cold if teachers==`num'& `cc', scheme(s1mono)
-        lcolor(gs0) legend(off) lpattern(dash)
-    note("Correlation coefficient=`ccoef'");
-    graph export "$GRA/`age'TempCold.eps", as(eps) replace;
+    twoway scatter goodQuarter cold if `cc', mlabel(state) ||      
+              lfit goodQuarter cold if `cc', scheme(s1mono)
+    lcolor(gs0) legend(off) lpattern(dash)
+    note("Correlation coefficient=`ccoef', p-value=`pvalue'");
+    graph export "$GRA/StateTemp_`1'.eps", as(eps) replace;
     #delimit cr
+    macro shift
+    restore
 }
-restore
+exit
 preserve
 
 
