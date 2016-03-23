@@ -298,6 +298,8 @@ gen prePregBMI  = bmi
 gen infertTreat = rf_inftr=="Y" if rf_inftr!="U"&rf_inftr!=""
 gen ART         = rf_artec=="Y" if rf_artec!="U"&rf_artec!=""
 gen WIC         = wic=="Y" if wic!="U"&wic!=""
+gen PrePregWt   = pwgt_r if pwgt_r!=999
+gen height      = m_ht_in if m_ht_in!=99
 
 keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0
@@ -329,7 +331,8 @@ gen bstate  = oterr
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat  /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single   /*
 */ female birthMonth numPrenat monthPrenat prePregBMI birthOrder fatherWhiteNo /*
-*/ infertTreat ART liveBirth mcounty mstate bcounty bstate WIC Presmoker
+*/ infertTreat ART liveBirth mcounty mstate bcounty bstate WIC Presmoker       /*
+*/ PrePregWt height
 tempfile B2009
 save `B2009'
 
@@ -363,6 +366,8 @@ gen infertTreat = rf_inftr=="Y" if rf_inftr!="U"&rf_inftr!=""
 gen ART         = rf_artec=="Y" if rf_artec!="U"&rf_artec!=""
 gen WIC         = wic=="Y" if wic!="U"&wic!=""
 gen Presmoker   = cig_0>0 if cig_0<99
+gen PrePregWt   = pwgt_r if pwgt_r!=999
+gen height      = m_ht_in if m_ht_in!=99
 
 keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0
@@ -394,7 +399,8 @@ gen bstate  = oterr
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat  /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single   /*
 */ female birthMonth numPrenat monthPrenat prePregBMI birthOrder fatherWhiteNo /*
-*/ infertTreat ART liveBirth mcounty mstate bcounty bstate WIC Presmoker
+*/ infertTreat ART liveBirth mcounty mstate bcounty bstate WIC Presmoker       /*
+*/ PrePregWt height
 tempfile B2010
 save `B2010'
 
@@ -428,6 +434,8 @@ gen infertTreat = rf_inftr=="Y" if rf_inftr!="U"&rf_inftr!=""
 gen ART         = rf_artec=="Y" if rf_artec!="U"&rf_artec!=""
 gen WIC         = wic=="Y" if wic!="U"&wic!=""
 gen Presmoker   = cig_0>0 if cig_0<99
+gen PrePregWt   = pwgt_r if pwgt_r!=999
+gen height      = m_ht_in if m_ht_in!=99
 
 keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0
@@ -459,7 +467,8 @@ gen bstate  = oterr
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat  /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single   /*
 */ female birthMonth numPrenat monthPrenat prePregBMI birthOrder fatherWhiteNo /*
-*/ infertTreat ART liveBirth mcounty mstate bcounty bstate WIC Presmoker
+*/ infertTreat ART liveBirth mcounty mstate bcounty bstate WIC Presmoker       /*
+*/ PrePregWt height
 tempfile B2011
 save `B2011'
 
@@ -493,6 +502,8 @@ gen infertTreat = rf_inftr=="Y" if rf_inftr!="U"&rf_inftr!=""
 gen ART         = rf_artec=="Y" if rf_artec!="U"&rf_artec!=""
 gen WIC         = wic=="Y" if wic!="U"&wic!=""
 gen Presmoker   = cig_0>0 if cig_0<99
+gen PrePregWt   = pwgt_r if pwgt_r!=999
+gen height      = m_ht_in if m_ht_in!=99
 
 keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0
@@ -524,7 +535,8 @@ gen bstate  = oterr
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
 */ female birthMonth numPrenatal monthPrenat prePregBMI birthOrder infertTreat/*
-*/ fatherWhiteNonH ART liveBirth mcounty mstate bcounty bstate WIC Presmoker
+*/ fatherWhiteNonH ART liveBirth mcounty mstate bcounty bstate WIC Presmoker  /*
+*/ PrePregWt height
 tempfile B2012
 save `B2012'
 
@@ -558,6 +570,8 @@ gen infertTreat = rf_inftr=="Y" if rf_inftr!="U"&rf_inftr!=""
 gen ART         = rf_artec=="Y" if rf_artec!="U"&rf_artec!=""
 gen WIC         = wic=="Y" if wic!="U"&wic!=""
 gen Presmoker   = cig_0>0 if cig_0<99
+gen PrePregWt   = pwgt_r if pwgt_r!=999
+gen height      = m_ht_in if m_ht_in!=99
 
 keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0
@@ -589,7 +603,8 @@ gen bstate  = oterr
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
 */ female birthMonth numPrenatal monthPrenat prePregBMI birthOrder infertTreat/*
-*/ fatherWhiteNonH ART liveBirth mcounty mstate bcounty bstate WIC Presmoker
+*/ fatherWhiteNonH ART liveBirth mcounty mstate bcounty bstate WIC Presmoker  /*
+*/ PrePregWt height
 tempfile B2013
 save `B2013'
 
