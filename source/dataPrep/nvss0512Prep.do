@@ -290,12 +290,14 @@ gen gestation   = combgest if combgest!=99
 gen premature   = gestation < 37 if gestation != .
 gen smoker      = 1 if cig_rec=="Y"
 replace smoker  = 0 if cig_rec=="N"
+gen Presmoker   = cig_0>0 if cig_0<99
 gen female      = sex=="F"
 gen numPrenatal = uprevis if uprevis != 99
 gen monthPrenat = precare
 gen prePregBMI  = bmi
 gen infertTreat = rf_inftr=="Y" if rf_inftr!="U"&rf_inftr!=""
 gen ART         = rf_artec=="Y" if rf_artec!="U"&rf_artec!=""
+gen WIC         = wic=="Y" if wic!="U"&wic!=""
 
 keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0
@@ -327,7 +329,7 @@ gen bstate  = oterr
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat  /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single   /*
 */ female birthMonth numPrenat monthPrenat prePregBMI birthOrder fatherWhiteNo /*
-*/ infertTreat ART liveBirth mcounty mstate bcounty bstate
+*/ infertTreat ART liveBirth mcounty mstate bcounty bstate WIC Presmoker
 tempfile B2009
 save `B2009'
 
@@ -359,6 +361,8 @@ gen monthPrenat = precare
 gen prePregBMI  = bmi
 gen infertTreat = rf_inftr=="Y" if rf_inftr!="U"&rf_inftr!=""
 gen ART         = rf_artec=="Y" if rf_artec!="U"&rf_artec!=""
+gen WIC         = wic=="Y" if wic!="U"&wic!=""
+gen Presmoker   = cig_0>0 if cig_0<99
 
 keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0
@@ -390,7 +394,7 @@ gen bstate  = oterr
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat  /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single   /*
 */ female birthMonth numPrenat monthPrenat prePregBMI birthOrder fatherWhiteNo /*
-*/ infertTreat ART liveBirth mcounty mstate bcounty bstate
+*/ infertTreat ART liveBirth mcounty mstate bcounty bstate WIC Presmoker
 tempfile B2010
 save `B2010'
 
@@ -422,6 +426,8 @@ gen monthPrenat = precare
 gen prePregBMI  = bmi
 gen infertTreat = rf_inftr=="Y" if rf_inftr!="U"&rf_inftr!=""
 gen ART         = rf_artec=="Y" if rf_artec!="U"&rf_artec!=""
+gen WIC         = wic=="Y" if wic!="U"&wic!=""
+gen Presmoker   = cig_0>0 if cig_0<99
 
 keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0
@@ -453,7 +459,7 @@ gen bstate  = oterr
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat  /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single   /*
 */ female birthMonth numPrenat monthPrenat prePregBMI birthOrder fatherWhiteNo /*
-*/ infertTreat ART liveBirth mcounty mstate bcounty bstate
+*/ infertTreat ART liveBirth mcounty mstate bcounty bstate WIC Presmoker
 tempfile B2011
 save `B2011'
 
@@ -485,6 +491,8 @@ gen monthPrenat = precare
 gen prePregBMI  = bmi
 gen infertTreat = rf_inftr=="Y" if rf_inftr!="U"&rf_inftr!=""
 gen ART         = rf_artec=="Y" if rf_artec!="U"&rf_artec!=""
+gen WIC         = wic=="Y" if wic!="U"&wic!=""
+gen Presmoker   = cig_0>0 if cig_0<99
 
 keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0
@@ -516,7 +524,7 @@ gen bstate  = oterr
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
 */ female birthMonth numPrenatal monthPrenat prePregBMI birthOrder infertTreat/*
-*/ fatherWhiteNonH ART liveBirth mcounty mstate bcounty bstate
+*/ fatherWhiteNonH ART liveBirth mcounty mstate bcounty bstate WIC Presmoker
 tempfile B2012
 save `B2012'
 
@@ -548,6 +556,8 @@ gen monthPrenat = precare
 gen prePregBMI  = bmi
 gen infertTreat = rf_inftr=="Y" if rf_inftr!="U"&rf_inftr!=""
 gen ART         = rf_artec=="Y" if rf_artec!="U"&rf_artec!=""
+gen WIC         = wic=="Y" if wic!="U"&wic!=""
+gen Presmoker   = cig_0>0 if cig_0<99
 
 keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0
@@ -579,7 +589,7 @@ gen bstate  = oterr
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
 */ female birthMonth numPrenatal monthPrenat prePregBMI birthOrder infertTreat/*
-*/ fatherWhiteNonH ART liveBirth mcounty mstate bcounty bstate
+*/ fatherWhiteNonH ART liveBirth mcounty mstate bcounty bstate WIC Presmoker
 tempfile B2013
 save `B2013'
 
@@ -747,6 +757,8 @@ lab var ARTage2024         "Aged 20-24$\times$ ART"
 lab var motherAgeXeduc     "Mother's Age $\times$ Education"
 lab var educCat            "Years of Education"
 lab var value              "Unemployment Rate"
+lab var WIC                "Received WIC food in Pregnancy"
+lab var Presmoker          "Smoked 3 months prior to Pregnancy"
 
 ********************************************************************************
 *** (5) Save, clean
