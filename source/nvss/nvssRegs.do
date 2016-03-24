@@ -66,15 +66,21 @@ lab var motherAge2 "Mother's Age$^2$ / 100"
 replace PrePregWt = PrePregWt/10
 lab var PrePregWt  "Pre-Pregnancy Weight / 10"
 lab var height     "Height (Inches)"
-/*
+
 ********************************************************************************
 *** (3a) Good Quarter Regressions
 ********************************************************************************
 #delimit ;
 local add `" ""  "(excluding babies conceived in September)"
              "(including second births)" "(only twins)" "(including twins)"
-             "(height and pre-pregnancy weight)" "';
-local nam Main NoSep Bord2 Twin TwinS HtWt;
+             "(height and pre-pregnancy weight)" "(Pre-Pregnancy BMI)"
+             "(Pre-Pregnancy BMI Quadratic)"
+             "(Pre-Pregnancy Weight Categories)" "';
+local nam Main NoSep Bord2 Twin TwinS HtWt BMI BMI2 BMIC;
+local add `" "(Pre-Pregnancy BMI)"
+             "(Pre-Pregnancy BMI Quadratic)"
+             "(Pre-Pregnancy Weight Categories)" "';
+local nam BMI BMI2 BMIC;
 #delimit cr
 tokenize `nam'
 
@@ -101,6 +107,12 @@ foreach type of local add {
     if `"`1'"' == "TwinS" local samp1 "twin and singleton" 
     if `"`1'"' == "HtWt"  local con smoker height PrePregWt i.gestation `mc'
     if `"`1'"' == "HtWt"  local kp  height PrePregWt
+    if `"`1'"' == "BMI"   local con smoker BMI i.gestation `mc'
+    if `"`1'"' == "BMI"   local kp  BMI
+    if `"`1'"' == "BMI2"  local con smoker BMI BMIsq i.gestation `mc'
+    if `"`1'"' == "BMI2"  local kp  BMI BMIsq
+    if `"`1'"' == "BMIC"  local kp  underweight overweight obese
+    if `"`1'"' == "BMIC"  local con smoker `kp' i.gestation `mc'
 
     keep `group'
 
@@ -155,7 +167,7 @@ foreach type of local add {
     macro shift
     restore
 }
-
+/*
 local age motherAge motherAge2
 local edu highEd
 local co1 smoker `mc' i.gestation
@@ -302,9 +314,12 @@ foreach type of local add {
 ********************************************************************************
 #delimit ;
 local add `" "" "(Smoking before pregnancy" "(height and pre-pregnancy weight)" 
-             "(Smoking before pregnancy, height and pre-pregnancy weight)"   "';
+             "(Smoking before pregnancy, height and pre-pregnancy weight)"
+             "(Pre-Pregnancy BMI)" "(Pre-Pregnancy BMI Quadratic)"
+             "(Pre-Pregnancy Weight Categories)""';
 local nam NVSSBinaryART NVSSBinaryART_PreSmoke NVSSBinaryART_HtWt
-          NVSSBinaryARTPreSmokeHtWt;
+          NVSSBinaryARTPreSmokeHtWt NVSSBinaryART_BMI NVSSBinaryART_BMI2
+          NVSSBinaryART_BMIC;
 #delimit cr
 tokenize `nam'
 tab gestation, gen(_gest)
@@ -325,6 +340,9 @@ foreach type of local add {
     if `jj' == 2 local con Presmoker `mc' 
     if `jj' == 3 local con smoker height PrePregWt `mc' 
     if `jj' == 4 local con Presmoker height PrePregWt `mc' 
+    if `jj' == 5 local con smoker BMI `mc' 
+    if `jj' == 6 local con smoker BMI BMIsq `mc' 
+    if `jj' == 7 local con smoker underweight overweight obese `mc' 
 
     keep `group'
     drop if conceptionMonth==12
@@ -400,10 +418,14 @@ local c1 smoker
 local c2 Presmoker
 local c3 smoker WIC height PrePregWt
 local c4 Presmoker WIC height PrePregWt
-local nam ART2024 ART2024PreSmoke ART2024HtWt ART2024PreSmokeHtWt
+local c5 smoker WIC BMI
+local c6 smoker WIC BMI BMIsq
+local c7 smoker WIC underweight overweight obese
+local nam ART2024 ART2024PreSmoke ART2024HtWt ART2024PreSmokeHtWt ART2024BMI /*
+*/        ART2024BMI2 ART2024BMIC           
 tokenize `nam'
 
-foreach n of numlist 1(1)4 {
+foreach n of numlist 5(1)7 {
     local smk smoker
     if `n'==2|`n'==3 local smk Presmoker
     preserve

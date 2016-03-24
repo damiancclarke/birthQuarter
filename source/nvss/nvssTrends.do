@@ -44,13 +44,13 @@ local keepif  birthOrder == 1 & motherAge > 24 & motherAge<=45
 local twins   0
 if `twins' == 1 local app twins
 
-/*
+
 ********************************************************************************
 *** (2a) Use, descriptive graph
 ********************************************************************************
 use "$DAT/`data'"
 keep if birthOrder==1
-
+/*
 preserve
 if `allobs'==0 keep if married==1
 #delimit ;
@@ -65,9 +65,9 @@ twoway hist motherAge if motherAge>24&motherAge<=45, freq color(gs0) width(1) ||
                                         #delimit cr
 graph export "$OUT/ageDescriptive.eps", as(eps) replace
 restore
-
+*/
 keep if twin<3
-
+/*
 preserve
 keep if `keepif'
 if `allobs'==0 keep if married==1
@@ -97,7 +97,7 @@ bar(4, bcolor(ltblue)) scheme(s1mono) ytitle("Proportion ART");
 graph export "$OUT/ARTageGroup.eps", as(eps) replace;
 #delimit cr
 restore
-
+*/
 ********************************************************************************
 *** (2aii) Summary stats table
 ********************************************************************************
@@ -127,10 +127,13 @@ lab var ART         "Used ART (2009-2013 only)"
 lab var young       "Young (aged 25-39)"
 lab var expectGoodQ "Good season of birth (due date)"
 lab var goodBirthQ  "Good season of birth (birth date)"
+lab var PrePregWt   "Weight Before Pregnancy"
+lab var height      "Height (Inches)"
 
 
 local Mum     motherAge `mc' young age2024 age2527 age2831 age3239 age4045
-local MumPart college educCat smoker ART
+local MumPart college educCat smoker ART Presmoker WIC height PrePregWt BMI /*
+*/ underweight overweight obese
 
 gen tvar = abs(goodQuarter-1)
 foreach st in Mum Kid MumPart {
@@ -168,8 +171,9 @@ foreach st in Mum Kid MumPart {
     #delimit cr
     restore
 }
+exit
 replace young     = . if motherAge<25|motherAge>45
-
+/*
 preserve
 keep if `keepif' &married!=.&smoker!=.&college!=.&young!=.&twin==0
 if `allobs'==0 keep if married==1
@@ -204,7 +208,7 @@ test [n1_mean]gQ [n2_mean]gQ [n3_mean]gQ [n4_mean]gQ [n5_mean]gQ [n6_mean]gQ /*
 */   [n7_mean]gQ [n8_mean]gQ
 restore
 
-exit
+*/
 ********************************************************************************
 *** (2b) Subset
 ********************************************************************************
@@ -226,7 +230,7 @@ lab def Qua 1 "Q1 (Jan-Mar)" 2 "Q2 (Apr-Jun)" 3 "Q3 (Jul-Sep)" 4 "Q4 (Oct-Dec)"
 
 lab val ageGroup    aG0
 lab val educLevel   eL
-
+/*
 ********************************************************************************
 *** (3) Descriptives by month
 *******************************************************************************
@@ -375,9 +379,10 @@ legend(lab(1 "Incomplete Highschool") lab(2 "Highschool,Incomplete College")
        lab(3 "Complete College")) ytitle("Proportion of All Births");
 graph export "$OUT/birthQuarterEducOldComparison.eps", as(eps) replace;
 #delimit cr
+
 restore
 
-
+*/
 preserve
 keep if `keepif'
 generat youngOld = 1 if motherAge>=28&motherAge<=31
@@ -404,9 +409,42 @@ xlabel(1 "Oct" 2 "Nov" 3 "Dec" 4 "Jan" 5 "Feb" 6 "Mar" 7 "Apr" 8 "May" 9 "Jun"
 legend(label(1 "28-31 Year-olds") label(2 "40-45 Year-olds"))
 ytitle("Proportion of All Births");
 graph export "$OUT/conceptionMonth.eps", as(eps) replace;
+
+twoway line birth conceptionMonth if youngOld==1, `line1'
+xaxis(1 2) scheme(s1mono) xtitle("Month of Conception", axis(2))
+xlabel(1(1)12, valuelabels axis(2)) 
+xlabel(1 "Oct" 2 "Nov" 3 "Dec" 4 "Jan" 5 "Feb" 6 "Mar" 7 "Apr" 8 "May" 9 "Jun"
+10 "Jul" 11 "Aug" 12 "Sep", axis(1)) xtitle("Expected Month")
+legend(off) ytitle("Number of Births");
+graph export "$OUT/conceptionMonth_Numbers_2831.eps", as(eps) replace;
+
+twoway line birth conceptionMonth if youngOld==2, `line1'
+xaxis(1 2) scheme(s1mono) xtitle("Month of Conception", axis(2))
+xlabel(1(1)12, valuelabels axis(2)) 
+xlabel(1 "Oct" 2 "Nov" 3 "Dec" 4 "Jan" 5 "Feb" 6 "Mar" 7 "Apr" 8 "May" 9 "Jun"
+10 "Jul" 11 "Aug" 12 "Sep", axis(1)) xtitle("Expected Month")
+legend(off) ytitle("Number of Births");
+graph export "$OUT/conceptionMonth_Numbers_4045.eps", as(eps) replace;
+
+gen logBirth = log(birth);
+twoway line logBirth conceptionMonth if youngOld==1, `line1'
+xaxis(1 2) scheme(s1mono) xtitle("Month of Conception", axis(2))
+xlabel(1(1)12, valuelabels axis(2)) 
+xlabel(1 "Oct" 2 "Nov" 3 "Dec" 4 "Jan" 5 "Feb" 6 "Mar" 7 "Apr" 8 "May" 9 "Jun"
+10 "Jul" 11 "Aug" 12 "Sep", axis(1)) xtitle("Expected Month")
+legend(off) ytitle("log(Births)");
+graph export "$OUT/conceptionMonth_Logs_2831.eps", as(eps) replace;
+
+twoway line logBirth conceptionMonth if youngOld==2, `line1'
+xaxis(1 2) scheme(s1mono) xtitle("Month of Conception", axis(2))
+xlabel(1(1)12, valuelabels axis(2)) 
+xlabel(1 "Oct" 2 "Nov" 3 "Dec" 4 "Jan" 5 "Feb" 6 "Mar" 7 "Apr" 8 "May" 9 "Jun"
+10 "Jul" 11 "Aug" 12 "Sep", axis(1)) xtitle("Expected Month")
+legend(off) ytitle("log(Births)");
+graph export "$OUT/conceptionMonth_Logs_4045.eps", as(eps) replace;
 #delimit cr
 restore
-
+exit
 
 preserve
 generat youngOld = 1 if motherAge>=28&motherAge<=31
@@ -1209,7 +1247,7 @@ foreach num of numlist 3 5 {
     corr goodQuarter cold if ageGroup==`num'
     local ccoef = string(r(rho),"%5.3f")
     reg goodQuarter cold if ageGroup==`num'
-    local pval   = (1-ttail(e(df_r),(_b[cold]/_se[cold])))*2
+    local pval   = (1-ttail(e(df_r),(_b[cold]/_se[cold])))
     local pvalue = string(`pval',"%5.3f")
     if `pvalue' == 0 local pvalue 0.000
     twoway scatter goodQuarter cold if ageGroup==`num', mlabel(state) ||      ///
@@ -1221,7 +1259,7 @@ foreach num of numlist 3 5 {
     corr goodQuarter hot if ageGroup==`num'
     local ccoef = string(r(rho),"%5.3f")
     reg goodQuarter hot  if ageGroup==`num'
-    local pval = (1-ttail(e(df_r),(_b[hot]/_se[hot])))*2
+    local pval = (1-ttail(e(df_r),(_b[hot]/_se[hot])))
     local pvalue = string(`pval',"%5.3f")
     twoway scatter goodQuarter hot if ageGroup==`num', mlabel(state)  ||      ///
         lfit goodQuarter hot if ageGroup==`num', scheme(s1mono) lcolor(gs0)   ///
