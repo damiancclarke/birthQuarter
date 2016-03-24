@@ -300,6 +300,10 @@ gen ART         = rf_artec=="Y" if rf_artec!="U"&rf_artec!=""
 gen WIC         = wic=="Y" if wic!="U"&wic!=""
 gen PrePregWt   = pwgt_r if pwgt_r!=999
 gen height      = m_ht_in if m_ht_in!=99
+gen BMI         = (PrePregWt / (height^2))*703
+gen underweight = BMI<18.5 if BMI!=.
+gen overweight  = BMI>=25&BMI<30 if BMI!=.
+gen obese       = BMI>=30 if BMI!=.
 
 keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0
@@ -332,7 +336,7 @@ keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat  /
 */ premature motherAge education fatherAge ageGroupMan married smoker single   /*
 */ female birthMonth numPrenat monthPrenat prePregBMI birthOrder fatherWhiteNo /*
 */ infertTreat ART liveBirth mcounty mstate bcounty bstate WIC Presmoker       /*
-*/ PrePregWt height
+*/ PrePregWt height BMI underweight overweight obese
 tempfile B2009
 save `B2009'
 
@@ -368,6 +372,10 @@ gen WIC         = wic=="Y" if wic!="U"&wic!=""
 gen Presmoker   = cig_0>0 if cig_0<99
 gen PrePregWt   = pwgt_r if pwgt_r!=999
 gen height      = m_ht_in if m_ht_in!=99
+gen BMI         = (PrePregWt / (height^2))*703
+gen underweight = BMI<18.5 if BMI!=.
+gen overweight  = BMI>=25&BMI<30 if BMI!=.
+gen obses       = BMI>=30 if BMI!=.
 
 keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0
@@ -400,7 +408,7 @@ keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat  /
 */ premature motherAge education fatherAge ageGroupMan married smoker single   /*
 */ female birthMonth numPrenat monthPrenat prePregBMI birthOrder fatherWhiteNo /*
 */ infertTreat ART liveBirth mcounty mstate bcounty bstate WIC Presmoker       /*
-*/ PrePregWt height
+*/ PrePregWt height BMI underweight overweight obese
 tempfile B2010
 save `B2010'
 
@@ -436,6 +444,10 @@ gen WIC         = wic=="Y" if wic!="U"&wic!=""
 gen Presmoker   = cig_0>0 if cig_0<99
 gen PrePregWt   = pwgt_r if pwgt_r!=999
 gen height      = m_ht_in if m_ht_in!=99
+gen BMI         = (PrePregWt / (height^2))*703
+gen underweight = BMI<18.5 if BMI!=.
+gen overweight  = BMI>=25&BMI<30 if BMI!=.
+gen obses       = BMI>=30 if BMI!=.
 
 keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0
@@ -468,7 +480,7 @@ keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat  /
 */ premature motherAge education fatherAge ageGroupMan married smoker single   /*
 */ female birthMonth numPrenat monthPrenat prePregBMI birthOrder fatherWhiteNo /*
 */ infertTreat ART liveBirth mcounty mstate bcounty bstate WIC Presmoker       /*
-*/ PrePregWt height
+*/ PrePregWt height BMI underweight overweight obese
 tempfile B2011
 save `B2011'
 
@@ -504,6 +516,10 @@ gen WIC         = wic=="Y" if wic!="U"&wic!=""
 gen Presmoker   = cig_0>0 if cig_0<99
 gen PrePregWt   = pwgt_r if pwgt_r!=999
 gen height      = m_ht_in if m_ht_in!=99
+gen BMI         = (PrePregWt / (height^2))*703
+gen underweight = BMI<18.5 if BMI!=.
+gen overweight  = BMI>=25&BMI<30 if BMI!=.
+gen obses       = BMI>=30 if BMI!=.
 
 keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0
@@ -536,7 +552,7 @@ keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
 */ female birthMonth numPrenatal monthPrenat prePregBMI birthOrder infertTreat/*
 */ fatherWhiteNonH ART liveBirth mcounty mstate bcounty bstate WIC Presmoker  /*
-*/ PrePregWt height
+*/ PrePregWt height BMI underweight overweight obese
 tempfile B2012
 save `B2012'
 
@@ -572,6 +588,10 @@ gen WIC         = wic=="Y" if wic!="U"&wic!=""
 gen Presmoker   = cig_0>0 if cig_0<99
 gen PrePregWt   = pwgt_r if pwgt_r!=999
 gen height      = m_ht_in if m_ht_in!=99
+gen BMI         = (PrePregWt / (height^2))*703
+gen underweight = BMI<18.5 if BMI!=.
+gen overweight  = BMI>=25&BMI<30 if BMI!=.
+gen obses       = BMI>=30 if BMI!=.
 
 keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0
@@ -604,7 +624,7 @@ keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
 */ female birthMonth numPrenatal monthPrenat prePregBMI birthOrder infertTreat/*
 */ fatherWhiteNonH ART liveBirth mcounty mstate bcounty bstate WIC Presmoker  /*
-*/ PrePregWt height
+*/ PrePregWt height BMI underweight overweight obese
 tempfile B2013
 save `B2013'
 
@@ -670,7 +690,7 @@ gen     Qbadbad         = expectBadQ==1  & badQuarter ==1 if gest!=.
 gen     noART           = (ART-1)*-1
 gen     noARTyoung      = noART*young
 gen     ARTage2024      = ART*age2024
-
+gen     BMIsq           = BMI^2
 gen     conceptionMonth = birthMonth - round(gestation*7/30.5)
 replace conceptionMonth = conceptionMonth + 12 if conceptionMonth<1
 
@@ -774,6 +794,11 @@ lab var educCat            "Years of Education"
 lab var value              "Unemployment Rate"
 lab var WIC                "Received WIC food in Pregnancy"
 lab var Presmoker          "Smoked 3 months prior to Pregnancy"
+lab var BMI                "BMI"
+lab var BMIsq              "BMI Squared"
+lab var underweight        "Underweight (BMI $<$ 18.5)"
+lab var overweight         "Overweight (BMI 25-30)"
+lab var obese              "Obese (BMI $\geq$ 30)" 
 
 ********************************************************************************
 *** (5) Save, clean
