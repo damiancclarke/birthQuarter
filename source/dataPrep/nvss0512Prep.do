@@ -301,6 +301,7 @@ gen WIC         = wic=="Y" if wic!="U"&wic!=""
 gen PrePregWt   = pwgt_r if pwgt_r!=999
 gen height      = m_ht_in if m_ht_in!=99
 gen BMI         = (PrePregWt / (height^2))*703
+replace BMI     = . if BMI<16 | BMI>40
 gen underweight = BMI<18.5 if BMI!=.
 gen overweight  = BMI>=25&BMI<30 if BMI!=.
 gen obese       = BMI>=30 if BMI!=.
@@ -373,9 +374,10 @@ gen Presmoker   = cig_0>0 if cig_0<99
 gen PrePregWt   = pwgt_r if pwgt_r!=999
 gen height      = m_ht_in if m_ht_in!=99
 gen BMI         = (PrePregWt / (height^2))*703
+replace BMI     = . if BMI<16 | BMI>40
 gen underweight = BMI<18.5 if BMI!=.
 gen overweight  = BMI>=25&BMI<30 if BMI!=.
-gen obses       = BMI>=30 if BMI!=.
+gen obese       = BMI>=30 if BMI!=.
 
 keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0
@@ -445,9 +447,10 @@ gen Presmoker   = cig_0>0 if cig_0<99
 gen PrePregWt   = pwgt_r if pwgt_r!=999
 gen height      = m_ht_in if m_ht_in!=99
 gen BMI         = (PrePregWt / (height^2))*703
+replace BMI     = . if BMI<16 | BMI>40
 gen underweight = BMI<18.5 if BMI!=.
 gen overweight  = BMI>=25&BMI<30 if BMI!=.
-gen obses       = BMI>=30 if BMI!=.
+gen obese       = BMI>=30 if BMI!=.
 
 keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0
@@ -517,9 +520,10 @@ gen Presmoker   = cig_0>0 if cig_0<99
 gen PrePregWt   = pwgt_r if pwgt_r!=999
 gen height      = m_ht_in if m_ht_in!=99
 gen BMI         = (PrePregWt / (height^2))*703
+replace BMI     = . if BMI<16 | BMI>40
 gen underweight = BMI<18.5 if BMI!=.
 gen overweight  = BMI>=25&BMI<30 if BMI!=.
-gen obses       = BMI>=30 if BMI!=.
+gen obese       = BMI>=30 if BMI!=.
 
 keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0
@@ -589,9 +593,10 @@ gen Presmoker   = cig_0>0 if cig_0<99
 gen PrePregWt   = pwgt_r if pwgt_r!=999
 gen height      = m_ht_in if m_ht_in!=99
 gen BMI         = (PrePregWt / (height^2))*703
+replace BMI     = . if BMI<16 | BMI>40
 gen underweight = BMI<18.5 if BMI!=.
 gen overweight  = BMI>=25&BMI<30 if BMI!=.
-gen obses       = BMI>=30 if BMI!=.
+gen obese       = BMI>=30 if BMI!=.
 
 keep if birthOrder<=2 
 keep if mracerec == 1 & umhisp == 0

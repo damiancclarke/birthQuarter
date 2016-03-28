@@ -109,6 +109,7 @@ replace age3       = 3 if motherAge>=40 & motherAge<46
 replace educLevel  = educLevel + 1
 replace educLevel  = 2 if educLevel == 3
 generat goodBirthQ = birthQuarter == 2 | birthQuarter == 3 
+gen     normalBMI  = BMI>=18.5&BMI<25
 
 lab var educCat     "Years of education"
 lab var motherAge   "Mother's Age"
@@ -129,11 +130,11 @@ lab var expectGoodQ "Good season of birth (due date)"
 lab var goodBirthQ  "Good season of birth (birth date)"
 lab var PrePregWt   "Weight Before Pregnancy"
 lab var height      "Height (Inches)"
-
+lab var normalBMI   "Normal Weight (BMI 18.5-25)"
 
 local Mum     motherAge `mc' young age2024 age2527 age2831 age3239 age4045
-local MumPart college educCat smoker ART Presmoker WIC height PrePregWt BMI /*
-*/ underweight overweight obese
+local MumPart college educCat smoker ART Presmoker WIC BMI underweight  /*
+*/ normalBMI overweight obese
 
 gen tvar = abs(goodQuarter-1)
 foreach st in Mum Kid MumPart {
