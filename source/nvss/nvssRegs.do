@@ -16,7 +16,7 @@ clear all
 set more off
 cap log close
 
-local allobs 0
+local allobs 1
 
 ********************************************************************************
 *** (1) globals and locals
@@ -142,7 +142,7 @@ foreach type of local add {
              "Optimal Age &`opt3'&`opt2'&`opt1'&`opt4'&`opt5' \\             "
              "State and Year FE&&Y&Y&Y&Y\\ Gestation FE &&&Y&Y&Y\\           "
              "2009-2013 Only&&&&Y&Y\\ \bottomrule                            "
-             "\multicolumn{6}{p{18cm}}{\begin{footnotesize} All `samp1',     "
+             "\multicolumn{6}{p{19cm}}{\begin{footnotesize} All `samp1',     "
              "`samp2' children from the main sample are included. `Fnote'    "
              "`onote' `enote'     "
              "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
@@ -153,7 +153,7 @@ foreach type of local add {
     macro shift
     restore
 }
-exit
+
 
 local age motherAge motherAge2
 local edu highEd
@@ -224,253 +224,36 @@ postfoot("F-test of Age Variables&`F3'&`F2'&`F1'&`F4'&`F5'&`F6' \\      "
 estimates clear
 restore
 
-********************************************************************************
-*** (3b) Good Quarter Regressions -- alterative variables
-********************************************************************************
-preserve
-keep `cnd'&`keepif'
-
-local age motherAge motherAge2
-local edu highEd
-local con smoker i.gestation `mc' 
-local yab abs(fips)
-
-#delimit ;
-local add `" "(Smoking before pregnancy)" 
-             "(Smoking before pregnancy, height and pre-pregnancy weight)" "';
-local nam PreSmoke PreSmokeHtWt;
-#delimit cr
-tokenize `nam'
-
-local jj = 1
-foreach type of local add {
-    if `jj'==1 local con Presmoker i.gestation `mc'
-    if `jj'==1 local kpv `age' `edu' noART Presmoker `mc'
-    if `jj'==2 local con Presmoker height PrePregWt i.gestation `mc'
-    if `jj'==2 local kpv `age' `edu' noART Presmoker height PrePregWt `mc'
-
-    
-    keep if year>=2009&ART!=.
-    eststo: areg goodQuarter `age' `edu' `con' _year* noART, `se' `yab'
-    test `age'    
-    local F1 = round(r(p)*1000)/1000
-    if   `F1' == 0 local F1 0.000
-    local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-    
-    eststo: areg goodQuarter `age' `edu' `con' _year* if e(sample), `se' `yab'
-    test `age'
-    local F2 = round(r(p)*1000)/1000
-    if   `F2' == 0 local F2 0.000
-    local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-    
-    eststo: areg goodQuarter `age'             _year* if e(sample), `se' `yab'
-    test `age'    
-    local F3 = round(r(p)*1000)/1000
-    if   `F3' == 0 local F3 0.000
-    local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-
-    eststo:  reg goodQuarter `age'                    if e(sample), `se'
-    test `age'    
-    local F4 = round(r(p)*1000)/1000
-    if   `F4' == 0 local F4 0.000
-    local opt4 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-
-    #delimit ;
-    esttab est4 est3 est2 est1 using "$OUT/NVSSBinary`1'.tex",
-    replace `estopt' keep(`kpv') 
-    title("Season of Birth Correlates `type'"\label{tab:bq`1'}) booktabs 
-    style(tex) mlabels(, depvar)
-    postfoot("F-test of Age Variables&`F3'&`F2'&`F1'&`F4' \\                 "
-             "Optimal Age &`opt3'&`opt2'&`opt1'&`opt4' \\                    "
-             "State and Year FE&&Y&Y&Y\\ Gestation FE &&&Y&Y\\               "
-             "2009-2013 Only&Y&Y&Y&Y\\ \bottomrule                           "
-             "\multicolumn{5}{p{18cm}}{\begin{footnotesize} All singleton,   "
-             "firstborn children from the main sample are included.          "
-	     " `Fnote' `onote' `enote'                                       "
-             "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
-             "\end{footnotesize}}\end{tabular}\end{table}");
-    #delimit cr
-    estimates clear
-
-    macro shift
-    local ++jj
-}
-
 
 ********************************************************************************
-*** (4a) ART Birth Choice Test
+*** (4) ART and Teens
 ********************************************************************************
-#delimit ;
-local add `" "" "(Smoking before pregnancy" "(height and pre-pregnancy weight)" 
-             "(Smoking before pregnancy, height and pre-pregnancy weight)"
-             "(Pre-Pregnancy BMI)" "(Pre-Pregnancy BMI Quadratic)"
-             "(Pre-Pregnancy Weight Categories)""';
-local nam NVSSBinaryART NVSSBinaryART_PreSmoke NVSSBinaryART_HtWt
-          NVSSBinaryARTPreSmokeHtWt NVSSBinaryART_BMI NVSSBinaryART_BMI2
-          NVSSBinaryART_BMIC;
-#delimit cr
-tokenize `nam'
-tab gestation, gen(_gest)
-
-local jj=1
-foreach type of local add {
-    preserve
-
-    local age motherAge motherAge2
-    local edu highEd
-    local con smoker `mc' 
-    local yab abs(fips)
-    local kpv `age' `edu' smoker `mc'
-
-    local spcnd
-    local group `cnd'&`keepif'&ART==1
-    
-    if `jj' == 2 local con Presmoker `mc' 
-    if `jj' == 3 local con smoker height PrePregWt `mc' 
-    if `jj' == 4 local con Presmoker height PrePregWt `mc' 
-    if `jj' == 5 local con smoker BMI `mc' 
-    if `jj' == 6 local con smoker BMI BMIsq `mc' 
-    if `jj' == 7 local con smoker WIC underweight overweight obese `mc' 
-    if `jj' == 7 drop if BMI>35&BMI!=.
-    
-    keep `group'
-    drop if conceptionMonth==12
-
-    sum highEd
-    local edAve = round(r(mean)*1000)/1000 
-    if `jj'==1|`jj'==3 sum smoker
-    if `jj'==2|`jj'==4 sum Presmoker
-    local smAve = round(r(mean)*1000)/1000 
-
-    eststo: areg goodQuarter motherAge `edu' `con' _gest* _year*, `se' `yab'
-    keep if e(sample)
-    test motherAge
-    local F0a = round(r(p)*1000)/1000
-    test motherAge `edu' `con'
-    local F0b = round(r(p)*1000)/1000
-    
-    eststo: areg goodQuarter `age' `edu' `con' _gest* _year*, `se' `yab'
-    test `age'
-    local F1a = round(r(p)*1000)/1000
-    test `age' `edu' `con'
-    local F1b = round(r(p)*1000)/1000
-    
-    eststo: areg goodQuarter `age' `edu' _year*, `se' `yab'
-    test `age'
-    local F2a = round(r(p)*1000)/1000
-    test `age' `edu'
-    local F2b = round(r(p)*1000)/1000
-
-    eststo: areg goodQuarter `age'       _year* if e(sample) , `se' `yab'
-    test `age'    
-    local F3 = round(r(p)*1000)/1000
-    if   `F3' == 0 local F3 0.000
-
-    eststo:  reg goodQuarter `age'              if e(sample) , `se'
-    test `age'    
-    local F4 = round(r(p)*1000)/1000
-    if   `F4' == 0 local F4 0.000
-
-    #delimit ;
-    esttab est5 est4 est3 est2 est1 using "$OUT/`1'.tex",
-    replace `estopt' keep(`age' `edu' `con') 
-    title("Season of Birth Correlates (ART users only)"\label{tab:bqART}) 
-    style(tex) mlabels(, depvar) booktabs 
-    postfoot("F-test of All Varibles&`F4'&`F3'&`F2b'&`F1b'&`F0b' \\           "
-             "2009-2013 Only&Y&Y&Y&Y&Y\\ State and Year FE&&Y&Y&Y&Y\\         "
-             "Gestation FE &&&&Y&Y\\ \bottomrule                              "
-             "\multicolumn{6}{p{17cm}}{\begin{footnotesize} All singleton,    "
-             "firstborn children born to mothers undergoing ART are included, "
-             "with the exception of those conceived in December.              "
-             "Independent variables are all binary measures. The Proportion of"
-             "ART users with at least some college is `edAve', and the        "
-             "proportion who smoke is `smAve'.  `Fnote' `onote'               "
-             "`enote' ***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.   "
-             "\end{footnotesize}}\end{tabular}\end{table}");
-    #delimit cr
-    estimates clear
-
-    restore
-    macro shift
-    local ++jj
-}
-exit
-********************************************************************************
-*** (4b) ART and Teens
-********************************************************************************
-local con highEd smoker _year* `mc'
 local lab "\label{tab:ART2024}"
-gen noART2024 = noART*age2024
-lab var noART2024 "Aged 20-24$\times$ no ART"
+local con smoker WIC underweight overweight obese `mc'
 
-local c1 smoker
-local c2 Presmoker
-local c3 smoker WIC height PrePregWt
-local c4 Presmoker WIC height PrePregWt
-local c5 smoker WIC BMI
-local c6 smoker WIC BMI BMIsq
-local c7 smoker WIC underweight overweight obese
-local c8 smoker WIC underweight overweight obese
-local nam ART2024 ART2024PreSmoke ART2024HtWt ART2024PreSmokeHtWt ART2024BMI /*
-*/        ART2024BMI2 ART2024BMIC ART2024_4c
-tokenize `nam'
-
-foreach n of numlist 5(1)7 {
-    local smk smoker
-    if `n'==2|`n'==3 local smk Presmoker
-    preserve
-    keep if twin==1 & motherAge>=20 & motherAge<=45 & liveBirth==1 & `keepif'
+preserve
+keep if twin==1 & motherAge>=20 & motherAge<=45 & liveBirth==1 & `keepif'
                
-    eststo: areg goodQuarter age2024 noART highEd `c`n'' _year* `mc', abs(fips)
-    keep if e(sample) == 1
-    eststo: areg goodQuarter age2024 noART highEd        _year* `mc', abs(fips)
-    eststo: areg goodQuarter age2024 noART        `smk'  _year* `mc', abs(fips)
-    eststo: areg goodQuarter age2024 noART               _year*     , abs(fips)
-    eststo:  reg goodQuarter age2024 noART                                
+eststo: areg goodQuarter age2024 noART highEd `con'  _year*, abs(fips)
+keep if e(sample) == 1                                     
+eststo: areg goodQuarter age2024 noART highEd smoker _year*, abs(fips)
+eststo: areg goodQuarter age2024 noART               _year*, abs(fips)
+eststo:  reg goodQuarter age2024 noART                                
 
-    #delimit ;
-    esttab est5 est4 est3 est2 est1 using "$OUT/``n''.tex", replace
-    `estopt' keep(age2024 noART highEd `c`n'' `mc') style(tex) booktabs
-    title("Season of Birth Correlates: Very Young (20-24) and ART users`lab'")
-    postfoot("State and Year FE&&Y&Y&Y&Y\\  \bottomrule                        "
-             "\multicolumn{6}{p{17.4cm}}{\begin{footnotesize} Main estimation  "
-             "sample is augmented to also include women aged 20-24.            "
-             "Heteroscedasticity robust standard errors are reported.          "
-             "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.            "
-             " \end{footnotesize}}\end{tabular}\end{table}") mlabels(, depvar);
-    #delimit cr
-    estimates clear
-    restore
-}
+#delimit ;
+esttab est4 est3 est2 est1 using "$OUT/ART2024.tex", replace
+`estopt' keep(age2024 noART highEd `con') style(tex) booktabs
+title("Season of Birth Correlates: Very Young (20-24) and ART users`lab'")
+postfoot("State and Year FE&&Y&Y&Y\\  \bottomrule                        "
+         "\multicolumn{5}{p{16.4cm}}{\begin{footnotesize} Main estimation  "
+         "sample is augmented to also include women aged 20-24.            "
+         "Heteroscedasticity robust standard errors are reported.          "
+         "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.            "
+         " \end{footnotesize}}\end{tabular}\end{table}") mlabels(, depvar);
+#delimit cr
+estimates clear
+restore
 
-foreach n of numlist 8 {
-    local smk smoker
-    if `n'==2|`n'==3 local smk Presmoker
-    preserve
-    keep if twin==1 & motherAge>=20 & motherAge<=45 & liveBirth==1 & `keepif'
-               
-    eststo: areg goodQuarter age2024 noART highEd `c`n'' _year* `mc', abs(fips)
-    keep if e(sample) == 1
-    eststo: areg goodQuarter age2024 noART highEd `smk'  _year* `mc', abs(fips)
-    eststo: areg goodQuarter age2024 noART               _year*     , abs(fips)
-    eststo:  reg goodQuarter age2024 noART                                
-
-    #delimit ;
-    esttab est4 est3 est2 est1 using "$OUT/``n''.tex", replace
-    `estopt' keep(age2024 noART highEd `c`n'' `mc') style(tex) booktabs
-    title("Season of Birth Correlates: Very Young (20-24) and ART users`lab'")
-    postfoot("State and Year FE&&Y&Y&Y\\  \bottomrule                        "
-             "\multicolumn{5}{p{16.4cm}}{\begin{footnotesize} Main estimation  "
-             "sample is augmented to also include women aged 20-24.            "
-             "Heteroscedasticity robust standard errors are reported.          "
-             "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.            "
-             " \end{footnotesize}}\end{tabular}\end{table}") mlabels(, depvar);
-    #delimit cr
-    estimates clear
-    restore
-}
-           
-*/
 ********************************************************************************
 *** (5) Regressions (Quality on Age, season)
 ********************************************************************************
