@@ -66,19 +66,14 @@ lab var motherAge2 "Mother's Age$^2$ / 100"
 replace PrePregWt = PrePregWt/10
 lab var PrePregWt  "Pre-Pregnancy Weight / 10"
 lab var height     "Height (Inches)"
-/*
+
 ********************************************************************************
 *** (3a) Good Quarter Regressions
 ********************************************************************************
 #delimit ;
 local add `" ""  "(excluding babies conceived in September)"
-             "(including second births)" "(only twins)" "(including twins)"
-             "(height and pre-pregnancy weight)" "(Pre-Pregnancy BMI)"
-             "(Pre-Pregnancy BMI Quadratic)"
-             "(Pre-Pregnancy Weight Categories)" "(WIC and Weight Controls)" "';
-local nam Main NoSep Bord2 Twin TwinS HtWt BMI BMI2 BMIC WICw;
-local add `" "(WIC and Weight Controls)" "';
-local nam WICw;
+             "(including second births)" "(only twins)" "(including twins)" "';
+local nam Main NoSep Bord2 Twin TwinS;
 #delimit cr
 tokenize `nam'
 
@@ -88,6 +83,7 @@ foreach type of local add {
     local age motherAge motherAge2
     local edu highEd
     local con smoker i.gestation `mc' 
+    local c2  WIC underweight overweight obese noART
     local yab abs(fips)
     local spcnd
     local group `cnd'&`keepif'
@@ -103,14 +99,6 @@ foreach type of local add {
     if `"`1'"' == "Bord2" local samp2 "second born"
     if `"`1'"' == "Twin"  local samp1 "twin" 
     if `"`1'"' == "TwinS" local samp1 "twin and singleton" 
-    if `"`1'"' == "HtWt"  local con smoker height PrePregWt i.gestation `mc'
-    if `"`1'"' == "HtWt"  local kp  height PrePregWt
-    if `"`1'"' == "BMI"   local con smoker BMI i.gestation `mc'
-    if `"`1'"' == "BMI"   local kp  BMI
-    if `"`1'"' == "BMI2"  local con smoker BMI BMIsq i.gestation `mc'
-    if `"`1'"' == "BMI2"  local kp  BMI BMIsq
-    if `"`1'"' == "BMIC"  local kp  underweight overweight obese
-    if `"`1'"' == "BMIC"  local con smoker `kp' i.gestation `mc'
 
     keep `group'
 
@@ -132,16 +120,14 @@ foreach type of local add {
     if   `F3' == 0 local F3 0.000
     local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
-    keep if year>=2009&ART!=.
-    if `"`1'"' == "WICw"  keep if WIC!=.& underweight!=.
+    keep if year>=2009&ART!=.&WIC!=.&underweight!=.
     eststo: areg goodQuarter `age' `edu' `con' _year* `spcnd', `se' `yab'
     test `age'
     local F4 = round(r(p)*1000)/1000
     if   `F4' == 0 local F4 0.000
     local opt4 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
-    if `"`1'"' == "WICw"  local adc WIC underweight overweight obese
-    eststo: areg goodQuarter `age' `edu' `con' `adc' _year* noART `spcnd', `se' `yab'
+    eststo: areg goodQuarter `age' `edu' `con' `c2' _year* `spcnd', `se' `yab'
     test `age'
     local F5 = round(r(p)*1000)/1000
     if   `F5' == 0 local F5 0.000
@@ -149,7 +135,7 @@ foreach type of local add {
 
     #delimit ;
     esttab est3 est2 est1 est4 est5 using "$OUT/NVSSBinary`1'.tex",
-    replace `estopt' keep(`age' `edu' noART smoker `kp' `adc' `mc') 
+    replace `estopt' keep(`age' `edu' smoker `c2' `mc') 
     title("Season of Birth Correlates `type'"\label{tab:bq`1'}) booktabs 
     style(tex) mlabels(, depvar)
     postfoot("F-test of Age Variables&`F3'&`F2'&`F1'&`F4'&`F5' \\            "
@@ -167,12 +153,13 @@ foreach type of local add {
     macro shift
     restore
 }
-
+exit
 
 local age motherAge motherAge2
 local edu highEd
 local co1 smoker `mc' i.gestation
 local con smoker `mc' value i.gestation
+local c2  WIC underweight overweight obese noART
 local yab abs(fips)
 
 preserve
@@ -196,20 +183,20 @@ local F3 = round(r(p)*1000)/1000
 if   `F3' == 0 local F3 0.000
 local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
-keep if year>=2009&ART!=.
+keep if year>=2009&ART!=.&WIC!=.&underweight!=.
 eststo: areg goodQuarter `age' `edu' `con' _year*              , `se' `yab'
 test `age'
 local F4 = round(r(p)*1000)/1000
 if   `F4' == 0 local F4 0.000
 local opt4 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
-eststo: areg goodQuarter `age' `edu' `con' _year* noART        , `se' `yab'
+eststo: areg goodQuarter `age' `edu' `con' _year* `c2'        , `se' `yab'
 test `age'
 local F5 = round(r(p)*1000)/1000
 if   `F5' == 0 local F5 0.000
 local opt5 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
-eststo: areg goodQuarter `age' `edu' `con' noART i.fips#c.year  , `se' `yab'
+eststo: areg goodQuarter `age' `edu' `con' `c2' i.fips#c.year  , `se' `yab'
 test `age'
 local F6 = round(r(p)*1000)/1000
 if   `F6' == 0 local F6 0.000
@@ -220,7 +207,7 @@ local tnote "controlling for state-specific trends and unemployment rate"
 esttab est3 est2 est1 est4 est5 est6 using
 "$OUT/NVSSBinaryMain_robust.tex", replace `estopt'
 title("Season of Birth Correlates (`tnote')" \label{tab:robustness})
-booktabs keep(`age' `edu' noART smoker value `mc')
+booktabs keep(`age' `edu' `c2' smoker value `mc')
 style(tex) mlabels(, depvar)
 postfoot("F-test of Age Variables&`F3'&`F2'&`F1'&`F4'&`F5'&`F6' \\      "
          "Optimal Age &`opt3'&`opt2'&`opt1'&`opt4'&`opt5'&`opt6' \\     "
@@ -344,7 +331,8 @@ foreach type of local add {
     if `jj' == 5 local con smoker BMI `mc' 
     if `jj' == 6 local con smoker BMI BMIsq `mc' 
     if `jj' == 7 local con smoker WIC underweight overweight obese `mc' 
-
+    if `jj' == 7 drop if BMI>35&BMI!=.
+    
     keep `group'
     drop if conceptionMonth==12
 
@@ -406,7 +394,7 @@ foreach type of local add {
     macro shift
     local ++jj
 }
-
+exit
 ********************************************************************************
 *** (4b) ART and Teens
 ********************************************************************************
@@ -486,26 +474,17 @@ foreach n of numlist 8 {
 ********************************************************************************
 *** (5) Regressions (Quality on Age, season)
 ********************************************************************************
-local c1      twin==1&birthOrd==1&liveBir==1                         /*
-           */ twin==1&birthOrd==1&liveBir==1&ART==1&conceptionMonth!=12
+local c1      twin==1&birthOrd==1&liveBir==1
 local varsY   motherAge motherAge2
-local control highEd smoker WIC underweight overweight obese `mc'
-local ARTcont ART ARTXgoodQuarter
-local names   Main ART
+local control highEd smoker WIC underweight overweight obese ART `mc'
+local names   Main
 
 tokenize `names'
-gen ARTXgoodQuarter = ART*goodQuarter
-lab var ART "ART Used"
-lab var ARTXgoodQuarter "ART $\times$ Good Quarter"
 
 foreach cond of local c1 {
-    if `"`1'"'=="Main"    local title 
-    if `"`1'"'=="ART"     local title "ART users only "
-    if `"`1'"'=="ART"     local varsY motherAge
-    
+    if `"`1'"'=="Main"    local title     
     dis "`1', `title'"
     preserve
-    
     keep if motherAge>24 & motherAge<=45 & `cond'
     
     local jj=1
@@ -515,13 +494,7 @@ foreach cond of local c1 {
         local F`jj'a = round(r(p)*1000)/1000
         if   `F`jj'a' == 0 local F`jj'a 0.000
 
-        local smp if e(sample)==1
-        
-        eststo: areg `y' goodQuarter `varsY' `yFE' `smp', `se' abs(fips)
-        test `varsY'
-        local F`jj'b = round(r(p)*1000)/1000
-        if   `F`jj'b' == 0 local F`jj'b 0.000
-        
+        local smp if e(sample)==1        
         eststo: areg `y' goodQuarter         `yFE' `smp', `se' abs(fips)
 
         local ++jj
@@ -529,35 +502,20 @@ foreach cond of local c1 {
 
     local lab "with controls"
     #delimit ;
-    esttab est1 est4 est7 est10 est13 est16 using "$OUT/NVSSQuality`1'.tex",
+    esttab est1 est3 est5 est7 est9 est11 using "$OUT/NVSSQuality`1'.tex",
     title("Birth Quality and Season of Birth (`title'`lab')"\label{tab:quality`1'})
     keep(goodQuarter `varsY' `control') style(tex) mlabels(, depvar) `estopt'
     postfoot("F-test of Age Variables&`F1a'&`F2a'&`F3a'&`F4a'&`F5a'&`F6a' \\ "
              "\bottomrule                                                    "
-             "\multicolumn{7}{p{17cm}}{\begin{footnotesize}Main estimation   "
+             "\multicolumn{7}{p{18.8cm}}{\begin{footnotesize}Main estimation "
 	     "sample is used. State and year fixed effects are               "
              "included, and `Fnote'         `enote'                          "
              "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
              "\end{footnotesize}}\end{tabular}\end{table}") booktabs replace;
 
-    local lab "controlling for age";
-    esttab est2 est5 est8 est11 est14 est17 using "$OUT/NVSSQuality`1'_age.tex",
-    replace `estopt'
-    title("Birth Quality and Season of Birth (`title'`lab')")
-    keep(goodQuarter `varsY') style(tex) mlabels(, depvar) 
-    postfoot("\bottomrule                                                    "
-             "\multicolumn{7}{p{17cm}}{\begin{footnotesize}Main estimation   "
-	     "sample is used. State and year fixed effects are               "
-             "included, and F-test of age variables refers to the test of the"
-             "significance of age variables included in the regression.      "
-             "`enote'                          "
-             "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
-             "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
-
     local lab "without controls";
-    esttab est3 est6 est9 est12 est15 est18 using "$OUT/NVSSQuality`1'_NC.tex",
-    replace `estopt'
-    title("Birth Quality and Season of Birth (`title'`lab')")
+    esttab est2 est4 est6 est8 est10 est12 using "$OUT/NVSSQuality`1'_NC.tex",
+    replace `estopt' title("Birth Quality and Season of Birth (`title'`lab')")
     keep(_cons goodQuarter) style(tex) mlabels(, depvar) 
     postfoot("\bottomrule                                                    "
              "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Main estimation   "
