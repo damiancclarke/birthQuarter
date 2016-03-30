@@ -278,7 +278,7 @@ for i,line in enumerate(Mu):
         line = line.replace('\\hline','\\midrule')
         sumT.write(line)
 for i,line in enumerate(MP):
-    if i>8 and i<13:
+    if i>8 and i<20:
         line = line.replace('\\hline','\\midrule')
         line = line.replace('At least some college','Some College +')
         sumT.write(line)
@@ -302,8 +302,10 @@ sumT.close()
 
 if ftype == 'nvss':
     mnote = ' married '
+    mnum  = 11
 elif ftype == 'nvssall':
     mnote = ' '
+    mnum  = 12
 
 sumT = open(TAB + 'sumStatsSamp'+ftype+'.tex', 'w')
 sumT.write('\\begin{table}[htpb!] \n \\begin{center} \n' 
@@ -319,14 +321,14 @@ MP2  = open(MumPNVSS2, 'r').readlines()
 Ki2  = open(KidNVSS2,  'r').readlines()
 
 for i,line in enumerate(Mu2):
-    if i>8 and i<11:
+    if i>8 and i< mnum:
         line = line.replace('\\hline','\\midrule')
         sumT.write(line)
-    if i>11 and i<16:
+    if i>mnum and i<16:
         line = line.replace('\\hline','\\midrule')
         sumT.write(line)
 for i,line in enumerate(MP2):
-    if i>8 and i<13:
+    if i>8 and i<19:
         line = line.replace('\\hline','\\midrule')
         line = line.replace('At least some college','Some College +')
         sumT.write(line)
@@ -465,7 +467,7 @@ sumT.write('\n'+mr+mc1+twid[7]+tcm[7]+mc3+
            "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}\\end{center}"
            "\\end{table}")
 sumT.close()
-
+"""
 #==============================================================================
 #== (3d) Comparison of means table
 #==============================================================================
@@ -490,7 +492,7 @@ for i,line in enumerate(Mu2):
         sdif = str(float(line[1])-float(line[2]))
         line = line[0]+'&'+line[1]+'&'+line[2]+'&'+sdif+'&'+line[3]+'&'+line[4]
         sumT.write(line)
-    if i>8 and i<13:
+    if i>8 and i<17:
         line = line.replace('\\hline','\\midrule')
         line = line.split('&')
         sdif = str(float(line[1])-float(line[2]))
@@ -528,7 +530,7 @@ sumT.write('\n'+mr+mc1+twid[8]+tcm[8]+mc3+
            "\\end{footnotesize}}\\\\ \\bottomrule\n \\end{tabular}\\end{center}"
            "\\end{table}")
 sumT.close()
-
+"""
 
 
 #==============================================================================
