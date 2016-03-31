@@ -12,7 +12,7 @@ set more off
 cap log close
 set matsize 2000
 
-local allobs 0
+local allobs 1
 
 ********************************************************************************
 *** (1) globals and locals
@@ -635,7 +635,7 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
 #delimit cr
 estimates clear
 
-
+*/
 ********************************************************************************
 *** (3f) regressions: Teachers
 ********************************************************************************
@@ -648,7 +648,7 @@ local age motherAge motherAge2
 local edu highEduc
 local une unemployment
 local une
-local mnv teachers teacherXcold cold
+local mnv teachers 
 local inc logIncEarn
 lab var logIncEarn "log(Earnings)"
 
@@ -672,7 +672,7 @@ local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 eststo: reg goodQuarter `mnv'       `edu'       _year*  `wt', `abs' `se'
 eststo: reg goodQuarter             `edu'       _year*  `wt', `abs' `se'
 eststo: reg goodQuarter `mnv'                   _year*  `wt', `abs' `se'
-eststo:  reg goodQuarter `mnv'                          `wt',       `se'
+eststo: reg goodQuarter `mnv'                           `wt',       `se'
 
 
 #delimit ;
@@ -682,14 +682,12 @@ keep(`mnv' `age' `edu' `une') style(tex) booktabs mlabels(, depvar) `estopt'
 postfoot("F-test of Age Variables &  &    &     &     &0`F2'\\                 "
          "Optimal Age             &  &    &     &     &`opt1'\\                "
          "State and Year FE&&Y&Y&Y&Y\\                        \bottomrule      "
-         "\multicolumn{6}{p{19cm}}{\begin{footnotesize}Main ACS estimation     "
+         "\multicolumn{6}{p{18.4cm}}{\begin{footnotesize}Main ACS estimation   "
          "sample is used. Education, Training and Library refers to individuals"
          " employed in this occupation (occ codes 2200-2550).  The omitted     "
          "occupational category is all non-educational occupations, and the    "
-         "omitted age category is 40-45 year old women. Teacher $\times$ Min   "
-         "State Temp interacts the teacher dummy with the miniumum temperature "
-         "in the state in each woman's birth month. `Fnote' `onote' Standard   "
-         "errors are clustered by state."
+         "omitted age category is 40-45 year old women.  `Fnote' `onote'       "
+         "Standard errors are clustered by state."
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -700,7 +698,7 @@ keep if motherAge>=28&motherAge<=31
 eststo: reg goodQuarter `mnv'       `edu'       _year*  `wt', `abs' `se'
 eststo: reg goodQuarter             `edu'       _year*  `wt', `abs' `se'
 eststo: reg goodQuarter `mnv'                   _year*  `wt', `abs' `se'
-eststo:  reg goodQuarter `mnv'                           `wt',       `se'
+eststo: reg goodQuarter `mnv'                           `wt',       `se'
 
 
 #delimit ;
@@ -708,13 +706,11 @@ esttab est4 est3 est2 est1 using "$OUT/IPUMSTeachers_2831.tex", replace
 title("Season of Birth Correlates: 28-31 Year-old \`\`Teachers'' vs.\ \`\`Non-Teachers''")
 keep(`mnv' `edu') style(tex) booktabs mlabels(, depvar) `estopt' 
 postfoot("State and Year FE&&Y&Y&Y\\                        \bottomrule       "
-         "\multicolumn{5}{p{17cm}}{\begin{footnotesize}Main ACS estimation    "
+         "\multicolumn{5}{p{16.4cm}}{\begin{footnotesize}Main ACS estimation  "
          "sample is used, subset to 28-31 year old women. Education, Training "
          "and Library refers to individuals employed in this occupation (occ  "
          "codes 2200-2550).  The omitted occupational category is all         "
-         "non-educational occupations. Teacher $\times$ Min                   "
-         "State Temp interacts the teacher dummy with the miniumum temperature"
-         "in the state in each woman's birth month. `Fnote' `onote' `enote'   "
+         "non-educational occupations.  `Fnote' `onote' `enote'   "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -725,7 +721,7 @@ keep if motherAge>=40&motherAge<=45
 eststo: reg goodQuarter `mnv'       `edu'       _year*  `wt', `abs' `se'
 eststo: reg goodQuarter             `edu'       _year*  `wt', `abs' `se'
 eststo: reg goodQuarter `mnv'                   _year*  `wt', `abs' `se'
-eststo:  reg goodQuarter `mnv'                           `wt',       `se'
+eststo: reg goodQuarter `mnv'                           `wt',       `se'
 
 
 #delimit ;
@@ -733,13 +729,11 @@ esttab est4 est3 est2 est1 using "$OUT/IPUMSTeachers_4045.tex", replace
 title("Season of Birth Correlates: 40-45 Year-old \`\`Teachers'' vs.\ \`\`Non-Teachers''")
 keep(`mnv' `edu') style(tex) booktabs mlabels(, depvar) `estopt' 
 postfoot("State and Year FE&&Y&Y&Y\\                        \bottomrule       "
-         "\multicolumn{5}{p{17cm}}{\begin{footnotesize}Main ACS estimation    "
+         "\multicolumn{5}{p{16.4cm}}{\begin{footnotesize}Main ACS estimation  "
          "sample is used, subset to 40-45 year old women. Education, Training "
          "and Library refers to individuals employed in this occupation (occ  "
          "codes 2200-2550).  The omitted occupational category is all         "
-         "non-educational occupations. Teacher $\times$ Min                   "
-         "State Temp interacts the teacher dummy with the miniumum temperature"
-         "in the state in each woman's birth month. `Fnote' `onote' `enote'   "
+         "non-educational occupations. `Fnote' `onote' `enote'   "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -791,7 +785,7 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\ Occupation FE&&&&&Y\\ \bottomrule       "
 #delimit cr
 estimates clear
 
-*/
+
 ********************************************************************************
 *** (4) Sumstats of good season by various levels
 ********************************************************************************
@@ -813,7 +807,7 @@ lab def ag 1 "Young (25-39) " 2 "Old (40-45) "
 lab def ed 0 "No College" 1 "Some College" 2 "Complete College"
 lab val ageGroup ag
 lab val educLevel ed
-/*
+
 preserve
 drop if ageGroup==.
 
@@ -1106,7 +1100,7 @@ graph export "$GRA/birthQuarterEducOld.eps", as(eps) replace;
 #delimit cr
 restore
 
-*/
+
 ********************************************************************************
 *** (6e) Figure 6-8
 ********************************************************************************
@@ -1357,6 +1351,7 @@ foreach hS in Alabama Arkansas Arizona {
 ********************************************************************************
 *** (7) Occupations
 ********************************************************************************
+*/    
 use "$DAT/`data'", clear
 if `allobs'== 0 keep if marst==1
 
@@ -1419,7 +1414,8 @@ gen birthProportion = birth/totalbirth
 #delimit ;
 graph bar birthProportion, over(birthQuar, relabel(1 "Q1" 2 "Q2" 3 "Q3" 4 "Q4"))
 over(occAlt, relabel(1 "Education" 2 "Significant" 3 "Architecture/Engineering"))
-scheme(s1mono) exclude0 ytitle("Proportion of Births in Quarter"); 
+scheme(s1mono) exclude0 ytitle("Proportion of Births in Quarter")
+yline(0.25, lpattern(dash) lcolor(red)); 
 graph export "$GRA/birthsOccupation2.eps", as(eps) replace;
 #delimit cr
 restore
