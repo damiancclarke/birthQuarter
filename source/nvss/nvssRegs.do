@@ -16,7 +16,7 @@ clear all
 set more off
 cap log close
 
-local allobs 1
+local allobs 0
 
 ********************************************************************************
 *** (1) globals and locals
@@ -36,8 +36,9 @@ cap mkdir "$OUT"
 #delimit ;
 local qual   birthweight lbw vlbw gestation premature apgar;
 local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats        
-             (N, fmt(%9.0g) label(Observations))                               
+             (N, fmt(%9.0g) labels(Observations))
              starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(none) label;
+*             (N r2, fmt(%9.0g %5.3f) labels(Observations R-Squared))
 local yFE    i.year;
 local se     robust;
 local cnd    if twin==1 & motherAge>24 & motherAge <= 45 & liveBirth==1;
@@ -66,7 +67,7 @@ lab var motherAge2 "Mother's Age$^2$ / 100"
 replace PrePregWt = PrePregWt/10
 lab var PrePregWt  "Pre-Pregnancy Weight / 10"
 lab var height     "Height (Inches)"
-
+/*
 ********************************************************************************
 *** (3a) Good Quarter Regressions
 ********************************************************************************
@@ -253,7 +254,7 @@ postfoot("State and Year FE&&Y&Y&Y\\  \bottomrule                        "
 #delimit cr
 estimates clear
 restore
-
+*/
 ********************************************************************************
 *** (5) Regressions (Quality on Age, season)
 ********************************************************************************
