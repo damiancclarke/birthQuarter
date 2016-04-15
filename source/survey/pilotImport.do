@@ -29,78 +29,78 @@ insheet using "$DAT/Demographic_Survey__Oxford.csv", comma names
 ********************************************************************************
 *** (3) Name correctly
 ********************************************************************************
-rename v1 QualtricsJobID
-rename v3 Name
-rename v6 IPAddress
-rename v8 startDate
-rename v9 endDate
-rename mturkcode qualtricsCode
-rename q1 female
-rename q2_1 yearBirth
-rename q56_1 state
-rename q4 education
-rename q5 numberKids
-rename q6 maritalStatus
-rename q48_1 newsOutlet_ABC
-rename q48_2 newsOutlet_CBS
-rename q48_3 newsOutlet_CNN
-rename q48_4 newsOutlet_NBC
-rename q48_5 newsOutlet_NWk
-rename i1 childFlag
-rename q7 childBornUS
-rename q8 childFemale
-rename q9a childMonthBornGirl
-rename q9b childMonthBornBoy
-rename q49_1 childYearBornGirl
-rename q50_1 childYearBornBoy
-rename q10a childBirthWeightGirl
-rename q10b childBirthWeightBoy
-rename q22 fertilityMedication
-rename q19 realImportanceSOB
-rename q20 realTargetedSOB
-rename q51 realSeasonTargeted
-rename q66 realReasonBirthday
-rename q59 realReasonLuckyDates
-rename q58 realReasonJobs
-rename q81 realReasonSchoolEntry
-rename q68 realReasonTax
-rename q62 realReasonChildHealth
-rename q63 realReasonMomHealth
-rename q52 resourcesChooseSOB
-rename v50 resourcesNoDiabetes
-rename q24 peopleChooseSOB
-rename q25 peopleSeasonTargeted
-rename q26 peopleIVFUse
-rename q27 friendsChooseSOB
-rename q28 friendsSeasonTargeted
-rename q31 friendsChooseMost
-rename q64 fCL1 
-rename q67 fCL2 
-rename v60 fCL3 
-rename q69 fCL4 
-rename q70 fCL5 
-rename q71 fCL6
-rename q72 fCL7
-rename q65 teachersChooseWhy
-rename r2 RFlagHP
-rename r1 RFlagIP
-rename r3 RFlagHN
-rename r4 RFlagIN
-rename v71 WTPInfoHP
-rename q60 WTPInfoIP
-rename q61 WTPInfoHN
-rename v74 WTPInfoIN
-rename v75 race 
-rename v76 hispanic
-rename v77 labourSituation
-rename v78 occupation
-rename v79 MTurkType
-rename v80 MTurkPay 
-rename q55 education_2 
-rename v83 childBirthMonth_2
-rename v84 familyIncome
-rename locationlatit~e  latitude
-rename locationlongit~e longitude
+rename v1         QualtricsJobID
+rename v3         Name
+rename v6         IPAddress
+rename v8         startDate
+rename v9         endDate
+rename mturkcode  qualtricsCode
+rename q1         female
+rename q2_1       yearBirth
+rename q56_1      state
+rename q4         education
+rename q5         numberKids
+rename q6         maritalStatus
+rename q48_1      newsOutlet_ABC
+rename q48_2      newsOutlet_CBS
+rename q48_3      newsOutlet_CNN
+rename q48_4      newsOutlet_NBC
+rename q48_5      newsOutlet_NWk
+rename i1         childFlag
+rename q7         childBornUS
+rename q8         childFemale
+rename q9a        childMonthBornGirl
+rename q9b        childMonthBornBoy
+rename q49_1      childYearBornGirl
+rename q50_1      childYearBornBoy
+rename q10a       childBirthWeightGirl
+rename q10b       childBirthWeightBoy
+rename q22        fertilityMedication
+rename q19        realImportanceSOB
+rename q20        realTargetedSOB
+rename q51        realSeasonTargeted
+rename q66        realReasonBirthday
+rename q59        realReasonLuckyDates
+rename q58        realReasonJobs
+rename q81        realReasonSchoolEntry
+rename q68        realReasonTax
+rename q62        realReasonChildHealth
+rename q63        realReasonMomHealth
+rename q52        resourcesChooseSOB
+rename v50        resourcesNoDiabetes
+rename q24        peopleChooseSOB
+rename q25        peopleSeasonTargeted
+rename q26        peopleIVFUse
+rename q27        friendsChooseSOB
+rename q28        friendsSeasonTargeted
+rename q31        friendsChooseMost
+rename q64        fCL1 
+rename q67        fCL2 
+rename v60        fCL3 
+rename q69        fCL4 
+rename q70        fCL5 
+rename q71        fCL6
+rename q72        fCL7
+rename q65        teachersChooseWhy
+rename r2         RFlagHP
+rename r1         RFlagIP
+rename r3         RFlagHN
+rename r4         RFlagIN
+rename v71        WTPInfoHP
+rename q60        WTPInfoIP
+rename q61        WTPInfoHN
+rename v74        WTPInfoIN
+rename v75        race 
+rename v76        hispanic
+rename v77        labourSituation
+rename v78        occupation
+rename v79        MTurkType
+rename v80        MTurkPay 
+rename q55        education_2 
+rename v83        childBirthMonth_2
+rename v84        familyIncome
+rename locationla latitude
+rename locationlo longitude
 
 
 drop v2 v4 v5 v7 v10 sc0_0 sc0_1 sc0_2 intro q21 v51 q57 v88 q32
@@ -116,41 +116,40 @@ foreach var of local numvars {
     destring `var', replace
 }
 
-replace yearBirth = yearBirth+1919
+replace yearBirth         = yearBirth+1919
 replace childYearBornGirl = childYearBornGirl + 1959
 replace childYearBornBoy  = childYearBornBoy  + 1959
-replace female = female - 1
-replace numberKids = numberKids - 1
+replace female            = female - 1
+replace numberKids        = numberKids - 1
 
-
-gen passedAttention = newsOutlet_ABC==1 & newsOutlet_NWk==1
-gen completedSurvey = qualtricsCode != .
-egen childBirthMonth = rowtotal(childMonthBorn*)
-replace childBirthMonth = . if childBirthMonth == 0
-egen childBirthYear = rowtotal(childYearBorn*)
-replace childBirthYear = . if childBirthYear == 0
-replace childBirthWeightGirl = childBirthWeightBoy if childBirthWeightGirl == .
-rename childBirthWeightGirl childBirthweight
+gen passedAttention       = newsOutlet_ABC==1 & newsOutlet_NWk==1
+gen completedSurvey       = qualtricsCode != .
+egen childBirthMonth      = rowtotal(childMonthBorn*)
+replace childBirthMonth   = . if childBirthMonth == 0
+egen childBirthYear       = rowtotal(childYearBorn*)
+replace childBirthYear    = . if childBirthYear == 0
+replace childBirthWeightG = childBirthWeightBoy if childBirthWeightGirl == .
 replace realTargetedSOB   = 0 if realTargetedSOB == 2
 foreach var of varlist realImp realReasonJ realReasonS realReasonTax  {
     replace `var' = `var' + 1 if `var' > 1
     replace `var' = 2         if `var' == 12
 }
-replace realReasonLucky = 10 if realReasonLucky == 13
-replace peopleChooseSOB = 0 if peopleChooseSOB == 2
-egen friendsChooseLeast = rowtotal(fCL*)
-replace friendsChooseLeast = . if friendsChooseLeast == 0
-gen randomGroupAssign = 1 if RFlagHP == 1
+rename childBirthWeightGirl childBirthweight
+replace realReasonLucky   = 10 if realReasonLucky == 13
+replace peopleChooseSOB   = 0 if peopleChooseSOB == 2
+egen friendsChooseLeast   = rowtotal(fCL*)
+replace friendsChooseLeas = . if friendsChooseLeast == 0
+gen randomGroupAssign     = 1 if RFlagHP == 1
 replace randomGroupAssign = 2 if RFlagIP == 1
 replace randomGroupAssign = 3 if RFlagHN == 1
 replace randomGroupAssign = 4 if RFlagIN == 1
-egen randomWTPInfo = rowtotal(WTPInfo*)
-replace randomWTPInfo = . if WTPInfoIN==.&WTPInfoIP==.&WTPInfoHN==.&WTPInfoHP==.
-replace hispanic = 0 if hispanic == 2
+egen randomWTPInfo        = rowtotal(WTPInfo*)
+replace randomWTPInfo     =. if WTPInfoIN==.&WTPInfoIP==.&WTPInfoHN==.&WTPInfoHP==.
+replace hispanic          = 0 if hispanic == 2
 replace childBirthMonth_2 = childBirthMonth_2 - 12
-replace childFemale = 0 if childFemale == 2
-replace fertilityMedication = 0 if fertilityMedication == 2
-replace friendsChooseSOB = 0 if friendsChooseSOB==2
+replace childFemale       = 0 if childFemale == 2
+replace fertilityMedicati = 0 if fertilityMedication == 2
+replace friendsChooseSOB  = 0 if friendsChooseSOB==2
 
 drop newsOutlet* childMonthBorn* childYearBorn* childBirthWeightBoy fCL* RFlag*
 drop WTPInfo* locationaccuracy
@@ -354,5 +353,5 @@ lab var BonusFlag        "Received incorrect bonus (flag=amount)"
 ********************************************************************************
 *** (9) Save
 ********************************************************************************
-lab dat "Pilot survey: Choosing Season of Birth (Clarke, Oreffice, Q-D)"
+lab dat "Pilot survey: Choosing Season of Birth (Clarke, Oreffice, Quintana-Dom)"
 save "$DAT/pilotData", replace
