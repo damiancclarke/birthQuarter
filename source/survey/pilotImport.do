@@ -180,6 +180,19 @@ gen PenaltyIVF = peopleIVFUse>4
 gen BonusAmount     = 0.4*BonusSOB + 0.1*BonusIVF
 replace BonusAmount = 0 if PenaltyIVF == 1
 
+count
+local Numb = r(N)
+gen address = ""
+foreach num of numlist 1(1)`Numb' {
+    sum latitude in `num'
+    if `r(N)'!=0 {
+        local lat = `r(mean)'
+        sum longitude in `num'
+        local long = `r(mean)'
+        gcode_dcc `lat',`long'
+        replace address = "`r(address)'" in `num'
+    }
+}
 
 ********************************************************************************
 *** (6) Label
@@ -314,13 +327,14 @@ lab var BonusSOB          "Bonus for correctly identifying seasons from NVSS"
 lab var BonusIVF          "Bonus for correctly %IVF from NVSS"
 lab var PenaltyIVF        "Penalty for a very high guess of IVF"
 lab var BonusAmount       "BONUS = 0.4*BonusSOB + 0.1*BonusIVF or 0 if PenaltyIVF==1"
+lab var address           "Address based on GEOcode (google maps search)"
 
 ********************************************************************************
 *** (7) Order
 ********************************************************************************
 #delimit ;
 order QualtricsJobID Name IPAddress startDate endDate consent passedAttention
-completedSurvey latitude longitude state;
+completedSurvey latitude longitude state address;
 #delimit cr
 
 
