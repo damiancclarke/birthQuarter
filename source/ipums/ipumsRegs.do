@@ -13,17 +13,14 @@ cap log close
 set matsize 2000
 
 local allobs 1
+if `allobs' == 0 local mnote " married "
+if `allobs' == 0 local f
+if `allobs' == 1 local f "both/"
 
 ********************************************************************************
 *** (1) globals and locals
 ********************************************************************************
-if `allobs' == 0 local f
-if `allobs' == 0 local mnote " married "
-if `allobs' == 1 local f "both/"
-
-    
 global DAT "~/investigacion/2015/birthQuarter/data/raw"
-global UNE "~/investigacion/2015/birthQuarter/data/employ"
 global OUT "~/investigacion/2015/birthQuarter/results/ipums/`f'regressions"
 global GRA "~/investigacion/2015/birthQuarter/results/ipums/`f'graphs"
 global SUM "~/investigacion/2015/birthQuarter/results/ipums/`f'sumStats"
@@ -71,7 +68,7 @@ gen motherAge2      = motherAge*motherAge/100
 lab var motherAge       "Mother's Age"
 lab var motherAge2      "Mother's Age$^2$ / 100"
 
-/*
+
 ********************************************************************************
 *** (3a) regressions: Birth Quarter
 ********************************************************************************
@@ -635,7 +632,6 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
 #delimit cr
 estimates clear
 
-*/
 ********************************************************************************
 *** (3f) regressions: Teachers
 ********************************************************************************
@@ -739,7 +735,6 @@ postfoot("State and Year FE&&Y&Y&Y\\                        \bottomrule       "
 estimates clear
 restore
 
-exit
 ********************************************************************************
 *** (3g) Twin regression
 ********************************************************************************
@@ -1152,7 +1147,6 @@ foreach cond of local c1 {
     macro shift
     restore
 }
-exit
 preserve
 
 
@@ -1267,8 +1261,6 @@ graph export "$GRA/oldGoodSeason.eps", replace as(eps);
 restore
 
 
-
-
 ********************************************************************************
 *** (6f) Figure 11
 ********************************************************************************
@@ -1351,7 +1343,6 @@ foreach hS in Alabama Arkansas Arizona {
 ********************************************************************************
 *** (7) Occupations
 ********************************************************************************
-*/    
 use "$DAT/`data'", clear
 if `allobs'== 0 keep if marst==1
 
@@ -1420,8 +1411,6 @@ graph export "$GRA/birthsOccupation2.eps", as(eps) replace;
 #delimit cr
 restore
 
-
-exit
 cap mkdir "$GRA/occ"
 
 preserve
@@ -1606,5 +1595,3 @@ graph export "$GRA/incomeSeasons_4045.eps", as(eps) replace
 ********************************************************************************
 log close
 dis _newline(5) " Terminated without Error" _newline(5)
-
-

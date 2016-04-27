@@ -41,11 +41,11 @@ twinNVSS       = RES + ftype + '/sumStats/FullSampletwins.txt'
 twinEducNVSS   = RES + ftype + '/sumStats/EducSampletwins.txt'
 TallEducNVSS   = RES + ftype + '/sumStats/JustEductwins.txt'
 
-sumNVSS = RES + ftype + '/sumStats/nvssSum.tex'
-MumNVSS = RES + ftype + '/sumStats/nvssMum.tex'
-MumPNVSS= RES + ftype + '/sumStats/nvssMumPart.tex'
-KidNVSS = RES + ftype + '/sumStats/nvssKid.tex'
-sumIPUMS= RES + 'ipums/sumStats/IPUMSstats.tex'
+sumNVSS  = RES + ftype + '/sumStats/nvssSum.tex'
+MumNVSS  = RES + ftype + '/sumStats/nvssMum.tex'
+MumPNVSS = RES + ftype + '/sumStats/nvssMumPart.tex'
+KidNVSS  = RES + ftype + '/sumStats/nvssKid.tex'
+sumIPUMS = RES + 'ipums/sumStats/IPUMSstats.tex'
 
 MumNVSS2 = RES + ftype + '/sumStats/sampMum.tex'
 MumPNVSS2= RES + ftype + '/sumStats/sampMumPart.tex'
@@ -62,18 +62,18 @@ MumSpain2 = RES + 'spain' + '/sumStats/SpainSmpMum.tex'
 MumPSpain2= RES + 'spain' + '/sumStats/SpainSmpMumPart.tex'
 KidSpain2 = RES + 'spain' + '/sumStats/SpainSmpKid.tex'
 
-NVSSGoodE =  RES + ftype + '/regressions/NVSSBinaryExpectGood.tex'
-NVSSBadE  =  RES + ftype + '/regressions/NVSSBinaryExpectBad.tex'
+NVSSGoodE = RES + ftype + '/regressions/NVSSBinaryExpectGood.tex'
+NVSSBadE  = RES + ftype + '/regressions/NVSSBinaryExpectBad.tex'
 
 IPUMSind  = RES + 'ipums/regressions/IPUMSIndustry.tex' 
 IPUMSind2 = RES + 'ipums/regressions/IPUMSIndustry_GSample.tex' 
 IPUMSind3 = RES + 'ipums/both/regressions/IPUMSIndustry.tex' 
 IPUMSindG = RES + 'ipums/regressions/IPUMSIndustryGoldin.tex' 
 IPUMSindG2= RES + 'ipums/regressions/IPUMSIndustryGoldinTeachers.tex'
-IPUMSind4  = RES + 'ipums/regressions/IPUMSIndustry_noSelfEmp.tex' 
-IPUMSind5  = RES + 'ipums/regressions/IPUMSIndustry_SelfEmpD.tex' 
-IPUMSind6  = RES + 'ipums/regressions/IPUMSIndustryWeeksWork.tex' 
-IPUMSind7  = RES + 'ipums/regressions/IPUMSIndustryWeeks_Int.tex' 
+IPUMSind4 = RES + 'ipums/regressions/IPUMSIndustry_noSelfEmp.tex' 
+IPUMSind5 = RES + 'ipums/regressions/IPUMSIndustry_SelfEmpD.tex' 
+IPUMSind6 = RES + 'ipums/regressions/IPUMSIndustryWeeksWork.tex' 
+IPUMSind7 = RES + 'ipums/regressions/IPUMSIndustryWeeks_Int.tex' 
 
 SpainInd  = RES + 'spain/regressions/SpainIndustry.tex' 
 SpainTO   = RES + 'spain/regressions/SpainTradeoff.tex' 
@@ -467,70 +467,6 @@ sumT.write('\n'+mr+mc1+twid[7]+tcm[7]+mc3+
            "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}\\end{center}"
            "\\end{table}")
 sumT.close()
-"""
-#==============================================================================
-#== (3d) Comparison of means table
-#==============================================================================
-sumT = open(TAB + 'MeanComparison.tex', 'w')
-sumT.write('\\begin{table}[htpb!] \n \\begin{center} \n' 
-           '\\caption{Comparison of Means}\n '
-           '\\label{bqTab:ttests}'
-           '\\begin{tabular}{lccccc} '
-           '\n \\toprule\\toprule \n'
-           '&Mean Good & Mean Bad & Mean & Std Error & p-value \\\\  \n'
-           '&Season&Season&Diff &of Diff&of Diff\\\\ \\midrule \n'
-           '\multicolumn{6}{l}{\\textbf{Panel A: Mother}} \\\\ \n')
-
-Mu2  = open(Mumttest,  'r').readlines()
-MP2  = open(MumPttest, 'r').readlines()
-Ki2  = open(Kidttest,  'r').readlines()
-
-for i,line in enumerate(Mu2):
-    if i>5 and i<8:
-        line = line.replace('\\hline','\\midrule')
-        line = line.split('&')
-        sdif = str(float(line[1])-float(line[2]))
-        line = line[0]+'&'+line[1]+'&'+line[2]+'&'+sdif+'&'+line[3]+'&'+line[4]
-        sumT.write(line)
-    if i>8 and i<17:
-        line = line.replace('\\hline','\\midrule')
-        line = line.split('&')
-        sdif = str(float(line[1])-float(line[2]))
-        line = line[0]+'&'+line[1]+'&'+line[2]+'&'+sdif+'&'+line[3]+'&'+line[4]
-        sumT.write(line)
-for i,line in enumerate(MP2):
-    if i>5 and i<10:
-        line = line.replace('\\hline','\\midrule')
-        line = line.replace('At least some college','Some College +')
-        line = line.split('&')
-        sdif = str(float(line[1])-float(line[2]))
-        line = line[0]+'&'+line[1]+'&'+line[2]+'&'+sdif+'&'+line[3]+'&'+line[4]
-        sumT.write(line)
-
-sumT.write(' \n \\multicolumn{6}{l}{\\textbf{Panel B: Child}}\\\\ \n ')
-for i,line in enumerate(Ki2):
-    if i>5 and i<14:
-        line = line.replace('\\hline','\\midrule')
-        line = line.replace('At least some college','Some College +')
-        line = line.replace('Quarter','season of birth')
-        line = line.split('&')
-        sdif = str(float(line[1])-float(line[2]))
-        line = line[0]+'&'+line[1]+'&'+line[2]+'&'+sdif+'&'+line[3]+'&'+line[4]
-        sumT.write(line)
-
-sumT.write('\n'+mr+mc1+twid[8]+tcm[8]+mc3+
-           "Main estimation sample is used (see table \\ref{bqTab:singleSum}). "
-           "Standard error of the difference and p-values come from two tailed "
-           "T-tests. Mean Good Season refers to means of each variables for    "
-           "births which are \\emph{due} to occur in quarter 1 and 2, and vice "
-           "versa for Mean Bad Season.  Joint tests of significance of all     "
-           "variables in each panel (with the exception of good season         "
-           "variables in panel B) reject the null of joint insignificance with "
-           "a p-value$<$0.0000."
-           "\\end{footnotesize}}\\\\ \\bottomrule\n \\end{tabular}\\end{center}"
-           "\\end{table}")
-sumT.close()
-"""
 
 
 #==============================================================================

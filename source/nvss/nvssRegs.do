@@ -17,14 +17,13 @@ set more off
 cap log close
 
 local allobs 0
-
-********************************************************************************
-*** (1) globals and locals
-********************************************************************************
 if `allobs'==0 local f nvss
 if `allobs'==1 local f nvssall
 if `allobs'==0 local mnote " married "
 
+********************************************************************************
+*** (1) globals and locals
+********************************************************************************
 global DAT "~/investigacion/2015/birthQuarter/data/nvss"
 global USW "~/investigacion/2015/birthQuarter/data/weather"
 global OUT "~/investigacion/2015/birthQuarter/results/`f'/regressions"
@@ -67,7 +66,7 @@ lab var motherAge2 "Mother's Age$^2$ / 100"
 replace PrePregWt = PrePregWt/10
 lab var PrePregWt  "Pre-Pregnancy Weight / 10"
 lab var height     "Height (Inches)"
-/*
+
 ********************************************************************************
 *** (3a) Good Quarter Regressions
 ********************************************************************************
@@ -254,7 +253,7 @@ postfoot("State and Year FE&&Y&Y&Y\\  \bottomrule                        "
 #delimit cr
 estimates clear
 restore
-*/
+
 ********************************************************************************
 *** (5) Regressions (Quality on Age, season)
 ********************************************************************************
@@ -313,7 +312,6 @@ foreach cond of local c1 {
     macro shift
     restore
 }
-exit
 keep if `keepif'
 
 ********************************************************************************
@@ -368,6 +366,7 @@ postfoot("F-test of Age Variables&`F4'&`F3'&`F2'&`F1' \\                     "
          "\end{footnotesize}}\end{tabular}\end{table}") booktabs ;
 #delimit cr
 estimates clear
+exit
 
 ********************************************************************************
 *** (7) Appendix examining missing covariates
