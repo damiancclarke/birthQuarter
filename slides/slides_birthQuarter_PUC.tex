@@ -1,0 +1,1342 @@
+\documentclass[10pt,letterpaper,subeqn]{beamer}
+\setbeamertemplate{navigation symbols}{}
+\usefonttheme{serif}
+\usecolortheme{seahorse}
+
+
+\usepackage[english]{babel}
+\selectlanguage{english}
+\usepackage{bm}
+\usepackage{booktabs}
+\usepackage{color}
+\usepackage[update,prepend]{epstopdf}
+\usepackage{framed}
+\usepackage{fleqn}
+\usepackage{graphics}
+\usepackage{hyperref}
+\usepackage[utf8]{inputenc}
+\usepackage{setspace}
+\usepackage{textcomp}
+\usepackage{wrapfig}
+\usepackage{multirow}
+\usepackage{caption}
+\usepackage{subcaption}
+\captionsetup{compatibility=false}
+\usepackage{subfloat}
+\setbeamertemplate{caption}[numbered]
+\usepackage{wrapfig}
+\usepackage{tikz}
+
+\definecolor{cadmiumgreen}{rgb}{0.0, 0.42, 0.24}
+\usetikzlibrary{trees}
+\usetikzlibrary{decorations.markings}
+
+
+%================================================================================
+%== TITLE, NAMES, DATE
+%================================================================================
+\title{\Large{\textsc{The Demand for Season of Birth}}}
+
+\author{Damian Clarke\inst{\S}
+   \and Sonia Oreffice\inst{\diamond}
+   \and Climent Quintana-Domeque\inst{*}}
+
+\institute{\inst{\S}  Universidad de Santiago de Chile
+      \and \inst{\diamond} University of Surrey and IZA
+      \and \inst{*}     University of Oxford and IZA}
+
+\date{May 2016}
+%********************************************************************************
+\begin{document}
+
+
+\begin{frame}
+\titlepage
+\end{frame}
+%********************************************************************************
+
+
+\begin{frame}
+\frametitle{Introduction}
+\begin{itemize}
+\item Season of birth consequences?
+\begin{itemize}
+\item educational attainment and earnings (Angrist and Krueger, 1991)
+\item health at birth (Currie and Schwandt, 2013)
+\end{itemize}
+\item Season of birth mechanisms?
+\begin{itemize}
+\item random: school cutoff laws (Angrist and Krueger, 1991)
+\item non-random: selection of mothers (Buckles and Hungerman, 2013)
+\item pseudo-random: weather (colder) season (Currie and Schwandt, 2013)
+\end{itemize}
+\item ``Good'' and ``bad'' seasons
+\begin{itemize}
+\item colder months are bad: quarters 1 and 4
+\item Spring and Summer are good: quarters 2 and 3
+\item at least in the US
+\end{itemize}
+\item Mechanisms consistent with both: 
+\begin{itemize}
+\item Biology (weather/influenza effects)
+\item Choice/Preferences 
+\end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Birth per Month and Temperature: Various Countries}
+  \begin{figure}[htpb!]
+    \begin{center}
+      \begin{subfigure}{.5\textwidth}
+        \centering
+        \includegraphics[scale=0.37]{./../results/countries/excessMonthChileYoungTemp.eps}
+        \caption{Chile}
+        \label{fig:ChileTemp}
+      \end{subfigure}%
+      \begin{subfigure}{.5\textwidth}
+        \centering
+        \includegraphics[scale=0.37]{./../results/countries/excessMonthUSAYoungTemp.eps}
+        \caption{USA}
+        \label{fig:USATemp}
+      \end{subfigure}
+    \end{center}
+  \end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Season of birth as a choice variable: quotes}
+\begin{itemize}
+\item ``It's certainly not a bad time to give birth ---less fear of germs getting your baby sick and plenty of sunshiney days for backyard birthday parties when they're older''
+\item ``Summer is a great season for your maternity leave to fall on...''
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Season of birth as a choice variable: available info?}
+\begin{itemize}
+\item We don't need to assume that the average woman is aware of:
+ \begin{itemize}
+\item the effects of good season of birth on birth outcomes (birth weight)
+\item the effects of good season of birth on child's long term outcomes (future earnings)
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Season of birth as a choice variable: available info?}
+\begin{itemize}
+\item Consider the following facts:
+\begin{itemize}
+\item The \underline{peak month of flu activity} in the US (CDC, 2014) for the period 1982-2014 has been February (14 seasons), followed by December (6 seasons), and January and March (5 seasons each)
+\item Some women in the US do not take maternity leave due to the timing of birth relative to their \underline{job schedules} (Report of Fertility, Family Planning and Women's Health, CDC, 1997)
+\end{itemize}
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Season of birth as a choice variable}
+\begin{itemize}
+\item We may assume that the average woman has a sense that:
+\begin{itemize}
+\item Winter months may be tougher birth months because of \underline{cold} weather and \underline{higher disease} prevalence (Buckles and Hungerman, 2013; Currie and Schwandt, 2013)
+\begin{itemize}
+\item Biological effects
+\item Behavioral effects: choice/preferences
+\end{itemize}
+\item Work commitments may make it much easier to \underline{take time off} with a Spring-Summer birth (\textcolor[rgb]{1.00,0.00,0.00}{this paper})
+\begin{itemize}
+\item Behavioral effects: choice/preferences
+\end{itemize}
+\end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Previous work}
+\begin{itemize}
+\item Sperm motility
+\item Hormone production
+\item Male/female fecundability 
+\item Behavioral changes in the type of riskiness in sexual activity
+\item Expected weather at birth
+\item Influenza at birth
+%\item No seasonality in unwanted pregnancies
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Related literature}
+\begin{itemize}
+\item Barreca et al. (2015): individuals may make short shifts in conception month in response to very hot days, with resulting declines and rebounds in the following months
+\item Choice of exact timing (\emph{after} conception occurs): joint decision of parents and physicians to alter the delivery of an already existing pregnancy
+\begin{itemize}
+\item Japan: many births between December and January are shifted one week forward around the \underline{school entry cutoff date} (Shigeoka, 2015)
+\item US: parents may move expected January births backwards to December to gain \underline{tax benefits} (Dickert-Colin and Chandra, 1999; LaLumia et al., 2015)
+\item Australia: parents move forward June deliveries to become eligible for a \underline{``baby bonus''} (Gans and Leigh, 2009)
+\item Fewer births are documented on:
+\begin{itemize}
+\item holidays (Rindfuss et al., 1979)
+\item weekends (Gould et al., 2003)
+\item medical professional meeting dates (Ganes et al., 2007)
+\item less auspicious dates (Almond et al., 2015)
+\end{itemize}
+\end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Here}
+\begin{itemize}
+\item Choice made \emph{before} conception occurs
+\item First economic analysis disentangling behavioral from biological responses
+\item Exploiting differences by ART, occupation and weather
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Data}
+\begin{itemize}
+\item \textbf{National Vital Statistics System (NVSS)}: 2005-2013
+\item Main analysis: Singleton first births born to White Non-Hispanic married women in the US 20(25)-45 years old.
+\begin{itemize}
+\item First births: higher-order births also involve the additional decision of birth spacing and the role of experience (does planning improve with higher-order pregnancies?)
+%\item Additional material (not here): using second-births, including twins, fetal deaths, etc.
+\end{itemize}
+\item Season of birth is defined as the \emph{expected} (intended) season of birth: actual month of birth --  gestational length in months + 9 months
+\begin{itemize}
+\item Focus on the planning of season of birth: the decision to conceive
+\end{itemize}
+\item Temperature? National Centers for Environmental Information
+\item Occupation? \textbf{American Community Survey (ACS)}: 2005-2014 (representative 1\% of the US population)
+\end{itemize}
+\end{frame}
+
+%Singleton first births born to White Non-Hispanic married women in the US 20(25)-45 years old.
+
+\begin{frame}
+\frametitle{Descriptive Statistics}
+\begin{table}[htpb!]
+ \begin{center}
+\caption{Descriptive Statistics (NVSS 2005-2013)}
+ \label{bqTab:SumStatsMain}
+\scalebox{0.65}{\begin{tabular}{lccccc}
+ \toprule\toprule \vspace{5mm}
+& N & Mean & Std. Dev. & Min. & Max. \\ \midrule
+\multicolumn{6}{l}{\textbf{Panel A: Mother}} \\
+Mother's Age        &     2260745&       30.28&        3.92&          25&          45\\
+Young (aged 25-39)  &     2260745&        0.97&        0.16&           0&           1\\
+Aged 25-27          &     2260745&        0.28&        0.45&           0&           1\\
+Aged 28-31          &     2260745&        0.39&        0.49&           0&           1\\
+Aged 32-39          &     2260745&        0.30&        0.46&           0&           1\\
+Aged 40-45          &     2260745&        0.03&        0.16&           0&           1\\
+Some College +&     2260745&        0.77&        0.42&           0&           1\\
+Years of education  &     2260745&       15.59&        1.59&           4&          17\\
+Smoked during Pregnancy&     2260745&        0.03&        0.18&           0&           1\\
+Used ART (2009-2013 only)&     1572674&        0.01&        0.11&           0&           1\\
+
+ \multicolumn{6}{l}{\textbf{Panel B: Child}}\\
+ Good season of birth (birth date)&     2260745&        0.52&        0.50&           0&           1\\
+Good season of birth (due date)&     2259553&        0.52&        0.50&           0&           1\\
+Female              &     2260745&        0.49&        0.50&           0&           1\\
+Birthweight (grams) &     2255282&     3352.85&      535.94&         500&        5000\\
+Low Birth Weight ($<$2500 g)&     2255282&        0.05&        0.22&           0&           1\\
+Weeks of Gestation  &     2259553&       39.02&        2.17&          17&          47\\
+Premature ($<$ 37 weeks)&     2259553&        0.08&        0.27&           0&           1\\
+APGAR (1-10)        &     2248425&        8.78&        0.82&           0&          10\\
+
+\midrule\multicolumn{6}{p{12.8cm}}{\begin{footnotesize}\textsc{Notes:} Sample is identical to that described in table \ref{bqTab:singleSum}, however only for women aged 25-45.  This  is the main estimation sample.                                    \end{footnotesize}} \\ \bottomrule
+ \end{tabular}}
+\end{center}\end{table}
+\end{frame}
+
+
+
+
+\begin{frame}
+\frametitle{Prevalence of Good Season by Age (relative to 40-45 yo)}
+\begin{figure}[htpb!]
+\caption{Prevalence of Good Season by Age (relative to 40-45 yo)}
+
+  \centering
+  \includegraphics[scale=0.65]{./../results/nvss/graphs/goodSeasonAge.eps}
+\end{figure}
+{\tiny For the omitted group, proportion good season (and standard error) is 0.497(0.001).}
+\end{frame}
+
+\begin{frame}
+\frametitle{Economics and Human Biology}
+\begin{itemize}
+\item Biological effect: negative relationship between good season and age
+\item Selection effect: positive relationship between good season and age
+\item Non-monotonic relationship between good season and age
+\item If that's the case, the ``optimal age'' should decrease as we include additional socioeconomic indicators (and we account for selection)
+\end{itemize}
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{Percent of Births}
+\begin{table}[htpb!]\caption{Percent of Births (NVSS 2005-2013)}
+\label{bqTab:singleSum}\begin{center}
+\scalebox{0.65}{\begin{tabular}{lcccccc}
+\toprule \toprule
+& \multicolumn{4}{c}{Seasons} & \multicolumn{2}{c}{Characteristics} \\ \cmidrule(r){2-5} \cmidrule(r){6-7}
+& Bad    & Good   & Diff. & Ratio & $< $37 & ART \\
+& Season & Season &       &       & Gestation  & \\
+&     &   &       &       & Weeks  &     \\\midrule\multicolumn{5}{l}{\textsc{Panel A: By Age}}\\
+\begin{footnotesize}\end{footnotesize}&
+\begin{footnotesize}\end{footnotesize}&
+\begin{footnotesize}\end{footnotesize}&
+\begin{footnotesize}\end{footnotesize}&
+\begin{footnotesize}\end{footnotesize}\\
+20-24 Years Old&48.41&51.59&3.18&1.07&0.08&0.00
+\\
+25-27 Years Old&47.94&52.06&4.12&1.09&0.08&0.00
+\\
+28-31 Years Old&47.77&52.23&4.46&1.09&0.08&0.01
+\\
+32-39 Years Old&48.69&51.31&2.62&1.05&0.09&0.02
+\\
+40-45 Years Old&49.89&50.11&0.22&1.00&0.12&0.08
+\\
+ &&&&&& \\\multicolumn{7}{l}{\textsc{Panel B: By Education}}\\
+\begin{footnotesize}\end{footnotesize}&
+\begin{footnotesize}\end{footnotesize}&
+\begin{footnotesize}\end{footnotesize}&
+\begin{footnotesize}\end{footnotesize}&
+\begin{footnotesize}\end{footnotesize}\\
+No College&49.07&50.93&1.86&1.04&0.10&0.00
+\\
+Some College +&48.07&51.93&3.86&1.08&0.08&0.01
+\\
+ &&&&&& \\
+\midrule\multicolumn{7}{p{11.4cm}}{\begin{footnotesize}Sample consists of all first-born, singleton children born to white, non-hispanic married mothers aged between 20-45 for whom     education and smoking during pregnancy are available. Good season refers to birth quarters 2 and 3 (Apr-Jun and Jul-Sept).  Bad season refers to quarters 1 and 4 (Jan-Mar and Oct-Dec). ART refers to the proportion of  women who undertook assisted reproductive technologies that resulted in these births.
+\end{footnotesize}} \\ \bottomrule
+ \end{tabular}}\end{center}\end{table}
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{1. Births by Month, Age Group, and ART Use}
+\begin{figure}[htpb!]
+\begin{center}
+\caption{Birth Prevalence by Month, Age Group, and ART Usage}
+\label{bqFig:concepMonth}
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.38]{./../results/nvss/graphs/conceptionMonth.eps}
+  \caption{Full sample}
+  \label{fig:concepAbs}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.38]{./../results/nvss/graphs/conceptionMonthART.eps}
+  \caption{ART Only}
+  \label{fig:concepAbsART}
+\end{subfigure}
+\end{center}
+%{\tiny Notes to figure \ref{bqFig:concepMonth}: Month of conception
+%is calculated by subtracting the rounded number of gestation months (gestation in
+%weeks $\times$ 7/30.5) from month of birth.  Each line presents the proportion of
+%all births conceived in each month for the relevant age group.}
+\end{figure}
+ART clinics do not offer complex fertility treatments such as IVF or embryo transfers in December due to Christmas closure and the daily attention and last minute changes that these treatments require.
+\end{frame}
+
+
+\begin{frame}
+\frametitle{2. Good Season of Birth Correlates}
+\begin{table}[htbp]\centering
+\caption{Season of Birth Correlates  \label{tab:bqMain}}
+\scalebox{0.65}{\begin{tabular}{l*{5}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}   &\multicolumn{1}{c}{(2)}   &\multicolumn{1}{c}{(3)}   &\multicolumn{1}{c}{(4)}   &\multicolumn{1}{c}{(5)}   \\
+                    & Good Season   & Good Season   & Good Season   & Good Season   & Good Season   \\
+\midrule
+Mother's Age (years)&       0.007***&       0.005***&       0.004***&       0.005***&       0.004***\\
+                    &     [0.001]   &     [0.001]   &     [0.001]   &     [0.001]   &     [0.001]   \\
+Mother's Age$^2$ / 100&      -0.012***&      -0.011***&      -0.009***&      -0.010***&      -0.009***\\
+                    &     [0.002]   &     [0.002]   &     [0.002]   &     [0.002]   &     [0.002]   \\
+Some College +      &               &               &       0.009***&       0.008***&       0.008***\\
+                    &               &               &     [0.001]   &     [0.001]   &     [0.001]   \\
+Smoked in Pregnancy &               &               &      -0.012***&      -0.012***&      -0.012***\\
+                    &               &               &     [0.002]   &     [0.002]   &     [0.002]   \\
+Did not undergo ART &               &               &               &               &       0.026***\\
+                    &               &               &               &               &     [0.004]   \\
+%Constant            &       0.434***&       0.453***&       0.474***&       0.513***&       0.496***\\
+%                    &     [0.017]   &     [0.017]   &     [0.064]   &     [0.080]   &     [0.080]   \\
+\midrule
+Observations        &     2259553   &     2259553   &     2259553   &     1571996   &     1571996   \\
+F-test of Age Variables &0.000&0.000&0.000&0.000&0.000 \\
+Optimal Age &27.04&25.59&24.28&24.83&24.55 \\
+State and Year FE&&Y&Y&Y&Y\\ Gestation FE &&&Y&Y&Y\\
+2009-2013 Only&&&&Y&Y\\ \bottomrule
+\multicolumn{6}{p{16cm}}{\begin{footnotesize} All singleton,
+first born children from the main sample are included. Independent
+variables are all binary measures. F-test of age variables refers to the p-value on the test that               the coefficients on mother's age and age squared are jointly               equal to zero. Optimal age calculates the turning point of the mother's age               quadratic. Heteroscedasticity robust standard errors are reported in               parentheses.
+***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.1.
+\end{footnotesize}}\end{tabular}}
+\end{table}
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{2. Good Season of Birth Correlates}
+\begin{table}[htbp]\centering
+\caption{Season of Birth Correlates (Including Fetal Deaths) \label{tab:FDeaths}}
+\scalebox{0.65}{
+\begin{tabular}{l*{4}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}   &\multicolumn{1}{c}{(2)}   &\multicolumn{1}{c}{(3)}   &\multicolumn{1}{c}{(4)}   \\
+                    & Good Season   & Good Season   & Good Season   & Good Season   \\
+\midrule
+Mother's Age (years)&       0.007***&       0.005***&       0.005***&       0.005***\\
+                    &     [0.001]   &     [0.001]   &     [0.001]   &     [0.001]   \\
+Mother's Age$^2$ / 100&      -0.012***&      -0.011***&      -0.010***&      -0.010***\\
+                    &     [0.002]   &     [0.002]   &     [0.002]   &     [0.002]   \\
+Smoked in Pregnancy &               &               &      -0.015***&      -0.014***\\
+                    &               &               &     [0.002]   &     [0.002]   \\
+%Constant            &       0.433***&       0.452***&       0.456***&       0.478***\\
+%                    &     [0.017]   &     [0.017]   &     [0.017]   &     [0.063]   \\
+\midrule
+Observations        &     2269645   &     2269645   &     2269645   &     2269645   \\
+$F$-test of Age Variables&0.000&0.000&0.000&0.000 \\
+Optimal Age &27.03&25.6&25.33&25.13 \\
+State and Year FE&&Y&Y&Y\\  Gestation FE &&&&Y \\ \bottomrule
+\multicolumn{5}{p{13cm}}{\begin{footnotesize}  Main sample is augmented to include fetal deaths occurring between 25 and 44 weeks of gestation. Fetal death files include only a subset of the full set of variables included in the birth files, so education and  ART controls are not available. $F$-test of age variables refers to the $p$-value on the test that the coefficients on mother's age and age squared are jointly equal to zero. Optimal age calculates the turning point of the mother's age quadratic. Heteroscedasticity robust standard errors are reported in parentheses.
+***$p$-value$<$0.01, **$p$-value$<$0.05, *$p$-value$<$0.1.
+\end{footnotesize}}\end{tabular}}
+\end{table}
+\end{frame}
+
+\begin{frame}
+\frametitle{3. Season of Birth as good as RA among ART users}
+\begin{table}[htbp]\centering
+\caption{Season of Birth Correlates (ART Users Only) \label{tab:bqART}}
+\scalebox{0.65}{
+\begin{tabular}{l*{5}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}   &\multicolumn{1}{c}{(2)}   &\multicolumn{1}{c}{(3)}   &\multicolumn{1}{c}{(4)}   &\multicolumn{1}{c}{(5)}   \\
+                    & Good Season   & Good Season   & Good Season   & Good Season   & Good Season   \\
+\midrule
+Mother's Age (years)        &     -0.005   &      -0.007   &      -0.007   &      -0.008  &      -0.002**   \\
+                            &    [0.010]   &     [0.010]   &     [0.010]   &     [0.010]  &    [0.001]   \\
+Mother's Age$^2$            &      0.005   &       0.008   &       0.008   &       0.009  &       \\
+                            &    [0.015]   &     [0.015]   &     [0.015]   &     [0.015]  &         \\
+Some College +              &              &               &      -0.012   &      -0.011  &     -0.012\\
+                            &              &               &     [0.017]   &     [0.018]  &    [0.018]   \\
+Smoked in Pregnancy         &              &               &               &       0.030  &      0.030 \\
+                            &              &               &               &     [0.044]  &    [0.044]   \\
+\midrule
+Observations                &      19541    &       19541   &       19541   &       19541  &   19541   \\
+$F$-test of all variables   &      .238    &       .113     &      .185     &        .237  &   0.158 \\
+$F$-test of variables other than age   &      --    &       --     &      --     &        --  &   0.606 \\
+State and Year FE&&Y&Y&Y&Y\\
+Gestation FE &&&&Y&Y\\
+2009-2013 Only&Y&Y&Y&Y&Y\\   \bottomrule
+\multicolumn{6}{p{16cm}}{\begin{footnotesize}Only the births to mothers undergoing ART are included. Independent variables are all binary measures. $F$-test of all variables refers to the $p$-value on the test that               the coefficients on all variables are jointly equal to zero. $F$-test of variables other than age refers to the $p$-value on the test that   the coefficients on all variables other than age are jointly equal to zero. Heteroscedasticity robust standard errors are reported in parentheses. ***$p$-value$<$0.01, **$p$-value$<$0.05, *$p$-value$<$0.1.
+ \end{footnotesize}}\end{tabular}}
+\end{table}
+\end{frame}
+
+
+
+
+
+
+
+
+
+
+\begin{frame}
+\frametitle{4. Biological versus Selection Effects}
+\begin{table}[htbp]\centering
+\caption{Season of Birth Correlates: Very Young (20-24) and ART users\label{tab:ART2024}}
+\scalebox{0.65}{\begin{tabular}{l*{5}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}   &\multicolumn{1}{c}{(2)}   &\multicolumn{1}{c}{(3)}   &\multicolumn{1}{c}{(4)}   &\multicolumn{1}{c}{(5)}   \\
+                    & Good Season   & Good Season   & Good Season   & Good Season   & Good Season   \\
+\midrule
+Aged 20-24          &      -0.004***&      -0.002** &      -0.002   &       0.000   &       0.001   \\
+                    &     [0.001]   &     [0.001]   &     [0.001]   &     [0.001]   &     [0.001]   \\
+Did not undergo ART &       0.030***&       0.033***&       0.033***&       0.033***&       0.033***\\
+                    &     [0.003]   &     [0.003]   &     [0.003]   &     [0.003]   &     [0.003]   \\
+Smoked in Pregnancy &               &               &      -0.013***&               &      -0.011***\\
+                    &               &               &     [0.002]   &               &     [0.002]   \\
+Some College +      &               &               &               &       0.010***&       0.009***\\
+                    &               &               &               &     [0.001]   &     [0.001]   \\
+%Constant            &       0.491***&       0.485***&       0.485***&       0.475***&       0.476***\\
+%                    &     [0.003]   &     [0.004]   &     [0.004]   &     [0.004]   &     [0.004]   \\
+\midrule
+Observations        &     1949090   &     1949090   &     1949090   &     1949090   &     1949090   \\
+State and Year FE&&Y&Y&Y&Y\\  \bottomrule
+\multicolumn{6}{p{15cm}}{\begin{footnotesize}Main sample is augmented to include women aged 20-24. Heteroscedasticity robust standard errors are reported.
+***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.1.
+ \end{footnotesize}}\end{tabular}}
+\end{table}
+\end{frame}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{frame}
+\frametitle{5. Temperature and Good Season: Young vs. Old}
+\begin{figure}[htpb!]
+\begin{center}
+\caption{Prevalence of Good Season and Cold Temperatures}
+\label{fig:tempUSA}
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.37]{./../results/nvss/graphs/youngTempCold.eps}
+  \caption{Younger Mothers (28-31)}
+  \label{fig:tempUSAYoung}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.37]{./../results/nvss/graphs/oldTempCold.eps}
+  \caption{Older Mothers (40-45)}
+  \label{fig:tempUSAOld}
+\end{subfigure}
+\end{center}
+\end{figure}
+\end{frame}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\begin{frame}
+\frametitle{6. Occupation and Good Season}
+\begin{table}[htbp]\centering
+\caption{Season of Birth Correlates: Occupation \label{tab:Occupation}}
+\scalebox{0.30}{\begin{tabular}{l*{3}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}   &\multicolumn{1}{c}{(2)}   &\multicolumn{1}{c}{(3)}   \\
+                    & Good Season \ \ \  & Good Season \ \ \  & Good Season \ \ \  \\
+\midrule
+Mother's Age        &       0.011   &       0.011*  &       0.011*  \\
+                    &     [0.007]   &     [0.007]   &     [0.007]   \\
+Mother's Age$^2$ / 100&      -0.019*  &      -0.019*  &      -0.019*  \\
+                    &     [0.010]   &     [0.010]   &     [0.010]   \\
+Some College +      &       0.008   &       0.006   &       0.005   \\
+                    &     [0.007]   &     [0.008]   &     [0.008]   \\
+Architecture and Engineering &               &       0.015   &               \\
+                    &               &     [0.023]   &               \\
+Business Operations Specialists&               &       0.018   &               \\
+                    &               &     [0.016]   &               \\
+Community and Social Services &               &       0.022   &               \\
+                    &               &     [0.017]   &               \\
+Computer and Mathematical &               &       0.030   &               \\
+                    &               &     [0.020]   &               \\
+Education, Training, and Library &               &       0.036***&               \\
+                    &               &     [0.013]   &               \\
+Financial Specialists&               &       0.015   &               \\
+                    &               &     [0.016]   &               \\
+Food Preparation and Serving &               &       0.035*  &               \\
+                    &               &     [0.019]   &               \\
+Healthcare Practitioners and Technical &               &       0.024*  &               \\
+                    &               &     [0.013]   &               \\
+Healthcare Support &               &      -0.005   &               \\
+                    &               &     [0.019]   &               \\
+Legal &               &      -0.000   &               \\
+                    &               &     [0.018]   &               \\
+Life, Physical, and Social Science &               &       0.011   &               \\
+                    &               &     [0.020]   &               \\
+Management &               &       0.025*  &               \\
+                    &               &     [0.014]   &               \\
+Office and Administrative Support &               &       0.023*  &               \\
+                    &               &     [0.013]   &               \\
+Personal Care and Service &               &       0.029*  &               \\
+                    &               &     [0.016]   &               \\
+Production &               &       0.008   &               \\
+                    &               &     [0.023]   &               \\
+Sales &               &       0.003   &               \\
+                    &               &     [0.014]   &               \\
+%Constant            &       0.361***&       0.339***&       0.116   \\
+ %                   &     [0.110]   &     [0.112]   &     [0.134]   \\
+\midrule
+Observations        &       74780   &       74780   &       74780   \\
+Occupation Codes (level) &-&2&3\\
+F-test of Occupation dummy variables&-&.057&0.000\\
+F-test of Age Variables&0.031&0.051&0.046\\ \bottomrule
+%Optimal Age&29.85&30.21&30.19\\ \bottomrule
+\multicolumn{4}{p{15.4cm}}{\begin{footnotesize}Sample consists of all
+ singleton first-born children in the USA to white, non-hispanic
+married mothers aged 25-45 included in 2005-2014 ACS data where the
+mother is either the head of the household or the partner of the head
+ of the household and works in an occupation with at least 500
+workers in the sample. Occupation codes refer to the level of
+occupation codes (2 digit, or 3 digit). The omitted occupational
+category in column 2 and column 4 is Arts, Design, Entertainment,
+Sports, and Media, as this occupation has good quarter=0.500(0.500).
+ All occupation codes refer to IPUMS occ2010 codes, available at:
+https://usa.ipums.org/usa/volii/acs\_occtooccsoc.shtml. F-tests for
+occupation report p-values of joint significance of the dummies, and
+F-test of age variables refers to the p-value on the test that               the coefficients on mother's age and age squared are jointly equal               to zero.  Optimal age calculates the turning point of the mother's age               quadratic.  Heteroscedasticity robust standard errors are reported in              parentheses. ***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.
+\end{footnotesize}}\end{tabular}}\end{table}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{7. Occupation and Quarter of Birth}
+\begin{figure}[htpb!]
+\begin{center}
+  \centering
+  \caption{Difference in Prevalance of Good Season of Birth by Occupation}
+  \includegraphics[scale=0.65]{./../results/ipums/graphs/birthsOccupation2.eps}
+  \label{fig:goodByOcc2}
+\end{center}
+%\tiny{Notes to figure \ref{fig:goodByOcc2}: Groups are defined as:
+%  (1) Education, library, training, (2) occupations
+%with significant coefficients in table 8 (educ, food prep, healthcare, management,
+%office and admin, personal care) and (3) the occupation with least seasonality
+%(architecture and engineering).}
+\end{figure}
+\end{frame}
+
+
+ 
+
+
+
+\begin{frame}
+\frametitle{8. ``Education, Training and Library'' and Good Season}
+\begin{table}[htbp]\centering
+\caption{Season of Birth Correlates: ``Teachers'' vs. ``Non-Teachers''}
+\scalebox{0.65}{
+\begin{tabular}{l*{5}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}   &\multicolumn{1}{c}{(2)}   &\multicolumn{1}{c}{(3)}   &\multicolumn{1}{c}{(4)}   &\multicolumn{1}{c}{(5)}   \\
+                    & Good Season   & Good Season   & Good Season   & Good Season   & Good Season   \\
+\midrule
+Teacher             &       0.019***&       0.019***&               &       0.019***&       0.018***\\
+                    &     [0.006]   &     [0.006]   &               &     [0.006]   &     [0.006]   \\
+Mother's Age        &               &               &               &               &       0.011   \\
+                    &               &               &               &               &     [0.007]   \\
+Mother's Age$^2$ / 100&               &               &               &               &      -0.018*  \\
+                    &               &               &               &               &     [0.010]   \\
+Some College +      &               &               &       0.009   &       0.006   &       0.006   \\
+                    &               &               &     [0.007]   &     [0.007]   &     [0.007]   \\
+%Constant            &       0.520***&       0.529***&       0.525***&       0.524***&       0.364***\\
+%                    &     [0.002]   &     [0.007]   &     [0.010]   &     [0.010]   &     [0.110]   \\
+\midrule
+Observations        &       74780   &       74780   &       74780   &       74780   &       74780   \\
+$F$-test of Age Variables &  &    &     &     &0.044\\
+%Optimal Age             &  &    &     &     &29.97\\
+State and Year FE&&Y&Y&Y&Y\\                        \bottomrule
+\multicolumn{6}{p{17cm}}{\begin{footnotesize}Main ACS estimation
+sample is used. Education, Training and Library refers to individuals
+ employed in this occupation (occupation codes 2200-2550).  The omitted
+occupational category is all non-educational occupations. $F$-test of age variables refers to the $p$-value on the test that               the coefficients on mother's age and age squared are jointly equal               to zero.  Optimal age calculates the turning point of the mother's age               quadratic.  Heteroscedasticity robust standard errors are reported in              parentheses. ***$p$-value$<$0.01, **$p$-value$<$0.05, *$p$-value$<$0.1.
+\end{footnotesize}}\end{tabular}}\end{table}
+\end{frame}
+
+\begin{frame}
+\frametitle{9. Biology vs. Choice/Preferences, once again}
+\begin{figure}[htpb!]
+  \begin{center}
+    \caption{Temperature and Good Season: younger mothers (28-31 yo)}
+    \label{bqFig:coldTeach2831}
+    \begin{subfigure}{.5\textwidth}
+      \centering
+      \includegraphics[scale=0.37]{./../results/ipums/graphs/StateTemp_2831Teacher.eps}
+      \caption{``Teachers''}
+      \label{fig:Educ1}
+    \end{subfigure}%
+    \begin{subfigure}{.5\textwidth}
+      \centering
+      \includegraphics[scale=0.37]{./../results/ipums/graphs/StateTemp_2831NonTeacher.eps}
+      \caption{``Non-Teachers''}
+      \label{fig:NonEduc1}
+    \end{subfigure}
+  \end{center}
+ \end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{9. Biology vs. Choice/Preferences, once again}
+\begin{figure}[htpb!]
+  \begin{center}
+    \caption{Temperature and Good Season: older mothers (40-45 yo)}
+    \label{bqFig:coldTeach4045}
+    \begin{subfigure}{.5\textwidth}
+      \centering
+      \includegraphics[scale=0.37]{./../results/ipums/graphs/StateTemp_4045Teacher.eps}
+      \caption{``Teachers''}
+      \label{fig:Educ3}
+    \end{subfigure}%
+    \begin{subfigure}{.5\textwidth}
+      \centering
+      \includegraphics[scale=0.37]{./../results/ipums/graphs/StateTemp_4045NonTeacher.eps}
+      \caption{``Non-Teachers''}
+      \label{fig:NonEduc3}
+    \end{subfigure}
+  \end{center}
+\end{figure}
+\end{frame}
+
+
+ 
+\begin{frame}
+\frametitle{10. The value of good season of birth}
+\begin{table}[htbp]\centering
+\caption{Earnings regressions \label{tab:IPUMSInc}}
+\scalebox{0.65}{
+\begin{tabular}{l*{4}{c}}
+\toprule
+                    &\multicolumn{2}{c}{All}        &\multicolumn{2}{c}{$\geq$ 35 Years}\\\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+                    &\multicolumn{1}{c}{(1)}   &\multicolumn{1}{c}{(2)}   &\multicolumn{1}{c}{(3)}   &\multicolumn{1}{c}{(4)}   \\
+                    &log(Earnings)   &    Earnings   &log(Earnings)   &    Earnings   \\
+\midrule
+Mother              &      -0.163***&   -1304.978***&      -0.137***&    -289.992   \\
+                    &     [0.005]   &   [132.143]   &     [0.009]   &   [251.257]   \\
+Non-Teacher         &       0.115***&    9018.024***&       0.125***&   10821.904***\\
+                    &     [0.005]   &   [140.907]   &     [0.009]   &   [279.209]   \\
+Non-Teacher $\times$ Mother&       0.119***&    1322.979***&       0.158***&    1584.232***\\
+                    &     [0.006]   &   [159.051]   &     [0.009]   &   [291.897]   \\
+Age (years)                &       0.111***&    4424.368***&       0.031***&    3069.843***\\
+                    &     [0.002]   &    [78.239]   &     [0.011]   &   [469.351]   \\
+Age$^2$ / 100   &      -0.132***&   -5167.795***&      -0.031** &   -3505.082***\\
+                    &     [0.003]   &   [112.028]   &     [0.014]   &   [585.976]   \\
+Some College +      &       0.487***&   18107.290***&       0.484***&   20506.050***\\
+                    &     [0.002]   &    [68.220]   &     [0.003]   &    [93.932]   \\
+\midrule
+Observations        &     1249620   &     1249620   &      779581   &      779581   \\
+State and Year FE & Y & Y & Y & Y \\
+\bottomrule\multicolumn{5}{p{15cm}}{\begin{footnotesize}  Main ACS estimation sample is used augmented with non-mothers and with mother of more than one child (or older children).  Teacher refers to occupational codes 2250-2500 (teachers, librarians and educational occupations).  Earnings refer to earned income in the past 12 months, and are measured in dollars per year. Usual weekly hours of work are included as a control variable. Heteroscedasticity robust standard errors are reported in parentheses. ***$p$-value$<$0.01, **$p$-value$<$0.05, *$p$-value$<$0.1.
+\end{footnotesize}}\end{tabular}}
+\end{table}
+\end{frame}
+
+
+
+\begin{frame}%[label=conclusions]
+\frametitle{10. The value of good season of birth}
+\begin{itemize}
+\item 1,300-1,600 US dollars per year is the compensating wage differential for all the bundle of disamenities that characterize a ``non-teacher'' occupation from a mother's point of view
+\item Life-time value of all these amenities, assuming a working life of 40 years and an annual 5\% interest rate:
+\begin{align}
+PVAM = 1322.979 \times \frac{(1-(1+0.05)^{-40})}{0.05} = 22,701.111
+\end{align}
+\item If the only disamenity is not being able to choose season of birth, the value of season of birth is USD 1,135,055.5 (USD 22,701.111 /0.02)
+\item This is (clearly) an upper bound... How to get a lower bound?
+\item Whatever the exact value is, there are reasons to believe that good season of birth is valuable, if only because its positive effects on birth outcomes...
+\end{itemize}
+\end{frame}
+
+ 
+
+
+\begin{frame}
+\frametitle{11. Good Season and Birth Outcomes}
+\begin{table}[htbp]\centering
+\caption{Birth Outcomes and Season of Birth (without controls)  \label{tab:qualityMainNC}}
+\scalebox{0.65}{
+\begin{tabular}{l*{6}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}   &\multicolumn{1}{c}{(2)}   &\multicolumn{1}{c}{(3)}   &\multicolumn{1}{c}{(4)}   &\multicolumn{1}{c}{(5)}   &\multicolumn{1}{c}{(6)}   \\
+                    & Birthweight   &         LBW   &        VLBW   &   Gestation   &   Premature   &       APGAR   \\
+\midrule
+Good Season         &      10.438***&      -0.002***&      -0.001***&       0.026***&      -0.001** &       0.003***\\
+                    &     [0.714]   &     [0.000]   &     [0.000]   &     [0.003]   &     [0.000]   &     [0.001]   \\
+Constant            &    3351.208***&       0.058***&       0.009***&      38.889***&       0.096***&       8.750***\\
+                    &     [1.720]   &     [0.001]   &     [0.000]   &     [0.007]   &     [0.001]   &     [0.003]   \\
+\midrule
+Observations        &     2254226   &     2254226   &     2254226   &     2259553   &     2259553   &     2247469   \\
+State and Year FE   &     Y   &     Y   &     Y   &     Y   &     Y   &    Y   \\
+\bottomrule
+\multicolumn{7}{p{15cm}}{\begin{footnotesize}Main estimation
+sample is used. Heteroscedasticity robust standard errors are reported in               parentheses.
+***$p$-value$<$0.01, **$p$-value$<$0.05, *$p$-value$<$0.1.
+\end{footnotesize}}\end{tabular}}
+\end{table}
+\end{frame}
+
+
+
+
+
+%\begin{frame}
+%\frametitle{11. Good Season and Birth Outcomes}
+%If we compare the average birth outcome $Y$ of first-born babies born in the good season ($D=1$) with the one of those born in the bad season ($D=0$), and using potential outcomes framework notation, we obtain
+%\begin{align}
+%\begin{split}
+%  E[Y|D=1] - E[Y|D=0] =E[Y(1)|D=1] - E[Y(0)|D=0] = \\
+%    \underbrace{E[Y(1)|D=1] - E[Y(0)|D=1]}_\text{ATT} + \underbrace{E[Y(0)|D=1] - E[Y(0)|D=0]}_\text{SB}
+%\end{split}
+%\end{align}
+%where $Y(1)$ ($Y(0)$) is the potential birth outcome if the baby is born in the good (bad) season of birth;
+%\begin{itemize}
+%\item $ATT$ is the average causal effect of good season of birth on birth outcomes of those born in the good season
+%\item $SB$ is the selection effect due to the fact that mothers who choose the good season of birth are likely to be \emph{positively} selected (more educated, less likely to smoke during pregnancy)
+%\end{itemize} 
+%\end{frame}
+
+
+%\begin{frame}
+%\frametitle{11. Good Season and Birth Outcomes}
+%Controlling for $X$ (mother's age, education, smoking during pregnancy),
+%\begin{align}
+%\begin{split}
+%  E[Y|X,D=1] - E[Y|X,D=0] = \\ = E[Y(1)|X,D=1] - E[Y(0)|X,D=0] = \\
+%    \underbrace{E[Y(1)|X,D=1] - E[Y(0)|X,D=1]}_\text{ATT(X)} + \\ + \underbrace{E[Y(0)|X,D=1] - E[Y(0)|X,D=0]}_\text{SB(X)}
+%\end{split}
+%\end{align}
+%reduces the selection bias, but it is unlikely to completely get rid of it.
+%\end{frame}
+
+\begin{frame}
+\frametitle{11. Good Season and Birth Outcomes}
+\begin{table}[htbp]\centering
+\caption{Birth Outcomes and Season of Birth (with controls)  \label{tab:qualityMain}}
+\scalebox{0.65}{
+\begin{tabular}{l*{6}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}   &\multicolumn{1}{c}{(2)}   &\multicolumn{1}{c}{(3)}   &\multicolumn{1}{c}{(4)}   &\multicolumn{1}{c}{(5)}   &\multicolumn{1}{c}{(6)}   \\
+                    & Birthweight   &         LBW   &        VLBW   &   Gestation   &   Premature   &       APGAR   \\
+\midrule
+Good Season         &       9.451***&      -0.002***&      -0.001***&       0.022***&      -0.000   &       0.003** \\
+                    &     [0.711]   &     [0.000]   &     [0.000]   &     [0.003]   &     [0.000]   &     [0.001]   \\
+Mother's Age (years)&      12.699***&      -0.005***&      -0.001***&       0.077***&      -0.007***&       0.009***\\
+                    &     [1.218]   &     [0.001]   &     [0.000]   &     [0.005]   &     [0.001]   &     [0.002]   \\
+Mother's Age$^2$ / 100&     -29.210***&       0.011***&       0.003***&      -0.175***&       0.017***&      -0.021***\\
+                    &     [1.915]   &     [0.001]   &     [0.000]   &     [0.008]   &     [0.001]   &     [0.003]   \\
+Some College +      &      47.919***&      -0.019***&      -0.005***&       0.189***&      -0.020***&       0.044***\\
+                    &     [1.350]   &     [0.001]   &     [0.000]   &     [0.006]   &     [0.001]   &     [0.002]   \\
+Smoked in Pregnancy &    -171.103***&       0.047***&       0.006***&      -0.198***&       0.026***&      -0.026***\\
+                    &     [2.172]   &     [0.001]   &     [0.000]   &     [0.010]   &     [0.001]   &     [0.003]   \\
+%Constant            &    3205.389***&       0.115***&       0.026***&      38.041***&       0.182***&       8.627***\\
+%                    &    [19.171]   &     [0.008]   &     [0.003]   &     [0.079]   &     [0.010]   &     [0.029]   \\
+\midrule
+Observations        &     2254226   &     2254226   &     2254226   &     2259553   &     2259553   &     2247469   \\
+State and Year FE   &     Y   &     Y   &     Y   &     Y   &     Y   &    Y   \\
+\bottomrule
+\multicolumn{7}{p{15cm}}{\begin{footnotesize}Main estimation
+sample is used. Heteroscedasticity robust standard errors are reported in               parentheses.
+***$p$-value$<$0.01, **$p$-value$<$0.05, *$p$-value$<$0.1.
+\end{footnotesize}}\end{tabular}}
+\end{table}
+\end{frame}
+
+%\begin{frame}
+%\frametitle{11. Good Season and Birth Outcomes}
+%\begin{itemize}
+%\item Season of birth is as good as \emph{randomly} assigned among women undergoing ART
+%\item Average causal effect of good season of birth among \emph{ART users}
+%\begin{align}
+%\begin{split}
+%  E[Y|X,ART=1,D=1] - E[Y|X,ART=1,D=0] = \\ E[Y(1)|X,ART=1,D=1] - E[Y(0)|X,ART=1,D=0] = \\
+%    \underbrace{E[Y(1)|X,ART=1,D=1] - E[Y(0)|X,ART=1,D=1]}_\text{ATT(X,ART=1)} + \\ + \underbrace{E[Y(0)|X,ART=1,D=1] - E[Y(0)|X,ART=1,D=0]}_\text{Selection Bias(X,ART=1)} = \\
+%    \underbrace{E[Y(1)|ART=1] - E[Y(0)|ART=1]}_\text{ATE(ART=1)} =E[Y(1)-Y(0)|ART=1]  \\
+%\end{split}
+%\end{align}
+%\item In practice, we add $ART$ and $ART \times Good\;\;Season$ as explanatory variables to our previous regressions, so that the coefficient on the interaction captures the \emph{average causal effect of good season of birth among ART users}.
+%\end{itemize}
+%\end{frame}
+
+
+\begin{frame}
+\frametitle{11. Good Season and Birth Outcomes}
+\begin{table}[htbp]\centering
+\caption{Birth Outcomes and Season of Birth (ART Users Only with controls) \label{tab:qualityART}}
+\scalebox{0.65}{
+\begin{tabular}{l*{6}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}   &\multicolumn{1}{c}{(2)}   &\multicolumn{1}{c}{(3)}   &\multicolumn{1}{c}{(4)}   &\multicolumn{1}{c}{(5)}   &\multicolumn{1}{c}{(6)}   \\
+                    & Birthweight   &         LBW   &        VLBW   &   Gestation   &   Premature   &       APGAR   \\
+\midrule
+Good Season         &      21.123** &      -0.004   &      -0.002   &       0.054   &       0.001   &       0.029** \\
+                    &     [8.643]   &     [0.004]   &     [0.002]   &     [0.038]   &     [0.005]   &     [0.012]   \\
+Mother's Age (years)&      -1.149   &       0.001** &       0.000   &      -0.007*  &       0.002***&      -0.003** \\
+                    &     [0.958]   &     [0.000]   &     [0.000]   &     [0.004]   &     [0.001]   &     [0.001]   \\
+Some College +      &      30.077   &      -0.008   &      -0.000   &       0.287***&      -0.033** &       0.049   \\
+                    &    [21.374]   &     [0.010]   &     [0.004]   &     [0.099]   &     [0.013]   &     [0.034]   \\
+Smoked in Pregnancy &    -220.282***&       0.060*  &       0.022   &      -0.081   &      -0.012   &      -0.028   \\
+                    &    [53.593]   &     [0.031]   &     [0.017]   &     [0.220]   &     [0.030]   &     [0.089]   \\
+%Constant            &    3273.559***&       0.077***&       0.007   &      38.455***&       0.119***&       8.770***\\
+%                    &    [40.528]   &     [0.019]   &     [0.008]   &     [0.179]   &     [0.024]   &     [0.060]   \\
+\midrule
+Observations        &       19467   &       19467   &       19467   &       19541   &       19541   &       19519   \\
+State and Year FE   &     Y   &     Y   &     Y   &     Y   &     Y   &    Y   \\
+%F-test of Age Variables&0.23&0.044&0.206&0.078&0.002&0.048 \\
+\bottomrule
+\multicolumn{7}{p{15cm}}{\begin{footnotesize}Main estimation
+sample is used. Heteroscedasticity robust standard errors are reported in               parentheses.
+***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.1.
+\end{footnotesize}}\end{tabular}}\end{table}
+\end{frame}
+
+\begin{frame}
+\frametitle{Alternative explanations?}
+\begin{itemize}
+\item Birth seasonality pattern inconsistent with marriage seasonality timing (Lam et al., 1999): inconsistent with Honeymoon effects
+\item Birth seasonality pattern linked to seasonality at which women stop contracepting (Rodgers and Udry,  1998)
+\item Women on average take 6 months to get pregnant after stop contracepting: our estimates provide lower bounds
+\item The observed seasonality patterns cannot be explained by the fact that the sperm is better in Winter and early Spring (Levitas et al., 2013)
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\hypertarget{robustness}{}
+\frametitle{Robustness Checks}
+\begin{itemize}
+\item Excluding those conceived in December (the most popular conception month) (Table 1A)
+\item Controlling for state specific linear trends and unemployment rate at season of conception (Table 4A)
+\item Including second births (Table 5A)
+\item Including \hyperlink{twins}{\beamerskipbutton{Twins}} (Table 6A)
+\item Focusing only on twin births (Table 7A: only without ART is positively correlated with good season)
+\item Controlling for household income (Table 8A)
+\item Using wage income instead of earned income (Table 9A)
+\item Including unmarried mothers (Section B in the online appendix)
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Discussion}
+\begin{itemize}
+\item Season of birth is a matter of choice/preferences above and beyond biology.
+\item A local average good season of birth effect.
+\item Using season of birth as an IV among ART users.    
+\end{itemize}
+\end{frame}
+
+
+
+
+\begin{frame}[label=conclusions]
+\frametitle{Summary}
+\begin{enumerate}
+\item Good season of birth is non-monotonically related to mother's age.
+\item Good season of birth is positively related to mother's education.
+\item Good season of birth is negatively related to mother's smoking during pregnancy.
+\item Good season of birth is more likely among non-ART users.
+\item Season of birth is uncorrelated to mother's characteristics among ART users.
+\item The prevalence of good season in Spring/Summer is higher in states with more severe cold weather in Winter.
+\item Good season is more likely among mother in professions in which strong seasonality of work hours exists (such as educators).
+\item Mothers in non-teacher occupations are paid a compensating differential: upper bound for the value of season of birth.
+\item Among those babies achieved through ART, good season of birth seems to be positively related with birth outcomes: lower bound of the causal effect of good season of birth on birth outcomes.
+\end{enumerate}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Good Season of Birth Correlates}
+\begin{table}[htbp]\centering
+\caption{Season of Birth Correlates (With Twins) \label{tab:bqTwinS}}
+\scalebox{0.65}{\begin{tabular}{l*{5}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}   &\multicolumn{1}{c}{(2)}   &\multicolumn{1}{c}{(3)}   &\multicolumn{1}{c}{(4)}   &\multicolumn{1}{c}{(5)}   \\
+                    & Good Season   & Good Season   & Good Season   & Good Season   & Good Season   \\
+\midrule
+Mother's Age (years)&       0.006***&       0.005***&       0.004***&       0.005***&       0.004***\\
+                    &     [0.001]   &     [0.001]   &     [0.001]   &     [0.001]   &     [0.001]   \\
+Mother's Age$^2$ / 100&      -0.012***&      -0.010***&      -0.008***&      -0.010***&      -0.008***\\
+                    &     [0.002]   &     [0.002]   &     [0.002]   &     [0.002]   &     [0.002]   \\
+Some College +      &               &               &       0.008***&       0.007***&       0.008***\\
+                    &               &               &     [0.001]   &     [0.001]   &     [0.001]   \\
+Smoked in Pregnancy &               &               &      -0.011***&      -0.011***&      -0.012***\\
+                    &               &               &     [0.002]   &     [0.002]   &     [0.002]   \\
+Did not undergo ART &               &               &               &               &       0.029***\\
+                    &               &               &               &               &     [0.003]   \\
+Constant            &       0.441***&       0.459***&       0.457***&       0.488***&       0.471***\\
+                    &     [0.017]   &     [0.017]   &     [0.053]   &     [0.068]   &     [0.068]   \\
+\midrule
+Observations        &     2341357   &     2341357   &     2341357   &     1626245   &     1626245   \\
+F-test of Age Variables &0.000&0.000&0.000&0.000&0.000 \\
+Optimal Age &26.47&24.9&23.53&24.36&23.92 \\
+State and Year FE&&Y&Y&Y&Y\\ Gestation FE &&&Y&Y&Y\\
+2009-2013 Only&&&&Y&Y\\ \bottomrule
+\multicolumn{6}{p{16cm}}{\begin{footnotesize} All twin and singleton,
+first born children from the main sample are included. Independent
+variables are all binary measures. F-test of age variables refers to the p-value on the test that               the coefficients on mother's age and age squared are jointly               equal to zero. Optimal age calculates the turning point of the mother's age               quadratic. Heteroscedasticity robust standard errors are reported in               parentheses.
+***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.1. \hyperlink{robustness}{\beamerreturnbutton{back}}
+\end{footnotesize}}\end{tabular}}
+\end{table}
+\hypertarget{twins}{}
+%\hyperlink{robustness}{\beamerreturnbutton{back}}
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{Good Season of Birth Correlates}
+\begin{table}[htbp]\centering
+\caption{Season of Birth Correlates (Including Fetal Deaths) \label{tab:FDeaths}}
+\scalebox{0.65}{\begin{tabular}{l*{4}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}   &\multicolumn{1}{c}{(2)}   &\multicolumn{1}{c}{(3)}   &\multicolumn{1}{c}{(4)}   \\
+                    & Good Season   & Good Season   & Good Season   & Good Season   \\
+\midrule
+Mother's Age (years)&       0.007***&       0.005***&       0.005***&       0.005***\\
+                    &     [0.001]   &     [0.001]   &     [0.001]   &     [0.001]   \\
+Mother's Age$^2$ / 100&      -0.012***&      -0.011***&      -0.010***&      -0.010***\\
+                    &     [0.002]   &     [0.002]   &     [0.002]   &     [0.002]   \\
+Smoked in Pregnancy &               &               &      -0.015***&      -0.014***\\
+                    &               &               &     [0.002]   &     [0.002]   \\
+Constant            &       0.433***&       0.452***&       0.456***&       0.478***\\
+                    &     [0.017]   &     [0.017]   &     [0.017]   &     [0.063]   \\
+\midrule
+Observations        &     2269645   &     2269645   &     2269645   &     2269645   \\
+F-test of Age Variables&0.000&0.000&0.000&0.000 \\
+Optimal Age &27.03&25.6&25.33&25.13 \\
+State and Year FE&&Y&Y&Y\\  Gestation FE &&&&Y \\ \bottomrule
+\multicolumn{5}{p{14cm}}{\begin{footnotesize}  Main sample is
+augmented to include fetal deaths occurring between 25 and 44
+weeks of gestation. Fetal death files include only a subset of the
+full set of variables included in the birth files, so education and
+ ART controls are not included. F-test of age variables refers to the p-value on the test that               the coefficients on mother's age and age squared are jointly               equal to zero. Optimal age calculates the turning point of the mother's age               quadratic. Heteroscedasticity robust standard errors are reported in               parentheses.
+***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.1. \hyperlink{robustness}{\beamerreturnbutton{back}}
+\end{footnotesize}}\end{tabular}}
+\end{table}
+\hypertarget{fetal}{}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Good Season by State for Younger Women}
+  \begin{figure}[htpb!]
+    \begin{center}
+      \centering
+      %  \caption{Good Season by State for Younger Women}
+      \includegraphics[scale=0.3]{./../results/nvss/graphs/maps/young.png}
+      \label{fig:mapYoung}
+    \end{center}
+  \end{figure}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Good Season by State for Older Women}
+  \begin{figure}[htpb!]
+    \begin{center}
+      \centering
+      %  \caption{Good Season by State for Older Women}
+      \includegraphics[scale=0.3]{./../results/nvss/graphs/maps/old.png}
+      \label{fig:mapOld}
+    \end{center}
+  \end{figure}
+\end{frame}
+
+
+\end{document}
+
+\begin{frame}
+\begin{center}
+{\Large Appendix}
+\end{center}
+\end{frame}
+
+%Season of Birth Correlates (age as a continuous variable)
+
+\begin{frame}[label=how]
+\frametitle{Premature Births by Age}
+\begin{figure}[htpb!]
+  \centering
+  \includegraphics[scale=0.7]{./../results/nvss/graphs/prematureAges.eps}
+\end{figure}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Season of Birth Correlates (Birth Order 2)}
+\input{./tables/NVSSBinaryBord2}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Season of Birth Correlates (No September Conceptions)}
+\input{./tables/NVSSBinaryNoSep}
+\end{frame}
+
+
+
+
+
+\begin{frame}%[label=births]
+\frametitle{Season of Birth Correlates (age as a continuous variable)}
+\input{./tables/NVSSBinaryMain_A.tex}
+\end{frame}
+
+
+\begin{frame}[label=births]
+\frametitle{Maternal Age at Birth: USA}
+\begin{figure}[htpb!]
+\begin{center}
+  \centering
+ % \caption{Mother's Age at First Birth, 25-45}
+  \includegraphics[scale=0.6]{./../results/nvss/graphs/ageDescriptive.eps}
+  \label{fig:NVSSbirths}
+\end{center}
+\end{figure}
+\vspace{-5mm}
+\end{frame}
+
+\begin{frame}[label=twins]
+\frametitle{Twin Prevalance and Age}
+\begin{figure}[htpb!]
+\begin{center}
+  \centering
+%  \caption{Proportion of Twins Born by Age}
+  \includegraphics[scale=0.6]{./../results/nvss/graphs/twinPrevalence.eps}
+  \label{fig:NVSSTwins}
+\end{center}
+\end{figure}
+\vspace{-5mm}
+\end{frame}
+
+
+
+\begin{frame}[label=ART]
+\frametitle{Assisted Reproductive Technology and Age}
+\begin{figure}[htpb!]
+\begin{center}
+  \centering
+ % \caption{Proportion of Mothers Reporting any ART}
+  \includegraphics[scale=0.6]{./../results/nvss/graphs/ART.eps}
+  \label{fig:NVSSART}
+\end{center}
+\end{figure}
+\vspace{-5mm}
+\footnotesize{Notes: Questions on ART use are only included in 2012-2013
+birth certificate data.}
+\end{frame}
+
+%\begin{frame}[label=QBwEd]
+%\frametitle{Birth Quality by Season}
+%begin{figure}[htpb!]
+%\centering
+%\caption{Child quality: Birthweight by Education}
+%\label{QBwtEd}
+%\includegraphics[scale=0.6]{../results/nvss/graphs/Quality_birthweight_.eps}
+%\end{figure}
+%\end{frame}
+
+%\begin{frame}[label=EdInteract]
+%\frametitle{Season of Birth, Age and Education}
+%\input{./tables/NVSSBinaryEdInteract.tex}
+%\end{frame}
+
+%\begin{frame}[label=birthSeasonYoung34]
+%\frametitle{Season of Birth, Age and Education}
+%\input{./tables/NVSSBinaryYoung34.tex}
+%\end{frame}
+
+%\begin{frame}[label=Spainseason]
+%\frametitle{Season of Birth, Age and Education (Spain)}
+%\input{./tables/spainBinary.tex}
+%\end{frame}
+
+
+
+
+
+
+
+
+
+
+\begin{frame}
+\frametitle{First Birth Rates by Mother's Age: 35-39 vs. 40-44}
+\begin{center}
+\includegraphics[scale=0.3]{./tables/Figure_1.png}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{First Birth for Mother's Age 40-44 by Race and Ethnicity}
+\begin{center}
+\includegraphics[scale=0.3]{./tables/Figure_3.png}
+\end{center}
+\end{frame}
+
+
+
+
+
+
+\end{document}
+%********************************************************************************
+
+
+\begin{frame}[label=Motivation]
+\frametitle{Motivation}
+
+\begin{itemize}
+\item The \emph{effects} of the season of birth are clear:
+      \begin{itemize}
+        \item child health, educational attainment, labor market
+        \item Angrist and Krueger (1991), Buckles and Hungerman (2013), Currie and Schwandt (2013)
+        %\item Crawford et al.\ (2014)
+        %\item Currie and Schwandt (2013)
+      \end{itemize}
+\item Although no consensus yet on the main driving force:
+      \begin{itemize}
+        \item selection (of mothers), weather (colder)
+      \end{itemize}
+\item There are ``good'' and ``bad'' seasons
+      \begin{itemize}
+\item Colder months are bad: quarters 1 and 4
+\item Spring and Summer are good: quarters 2 and 3
+\item At least in the US
+      \end{itemize}
+\end{itemize}
+\end{frame}
+
+%-------------------------------------------------------------------------------
+\begin{frame}[label=Motivation2]
+\frametitle{Motivation}
+\begin{itemize}
+\item No analysis of the \emph{determinants} of the season of birth of a child
+\item No study has yet considered season of birth as a choice variable
+\item Prominence of family planning in people's work and family life, sense that winter may represent tougher birth months for weather/diseases and different work commitments
+\item We consider \underline{when} to have their \underline{first} child:
+\begin{itemize}
+  \item When (\underline{young or old}) and in \underline{which season} (quarter of birth)?
+%  \item Focus on SOB decision, take age of mother as given
+\end{itemize}
+\end{itemize}
+\end{frame}
+
+%-------------------------------------------------------------------------------
+\begin{frame}[label=Motivation3]
+\frametitle{Anecdotal evidence}
+\begin{itemize}
+\item ``The preconception period (three months prior to pregnancy) is the time to make life changes that can help boost fertility, reduce problems during pregnancy and assist in recovery from birth.''
+\item ``When you start thinking about becoming pregnant you should take a look at your health and that of your partner. Try to give yourselves three months to prepare for pregnancy.''
+\item http://boards.weddingbee.com/topic/\textcolor[rgb]{0.00,0.00,1.00}{choosing-which-month-your-baby-will-be-born-in}/
+\item comparison of the four seasons:
+\begin{itemize}
+\item http://www.popsugar.com/moms/\textcolor[rgb]{0.00,0.00,1.00}{When-Best-Time-Year-Have-Baby}-27331341
+\end{itemize}
+\item ``It's certainly not a bad time to give birth -- less fears of germs getting your baby sick and plenty of sunshiney days for backyard birthday parties when they're older.''
+\item ``Summer is a great season for your maternity leave to fall on ...''
+\item ``All saved their sick days for many years before getting pregnant or had early summer babies on purpose!''
+\item ``If we were to conceive now, the baby would be due around six weeks before summer break next year so I basically wouldn't finish the school year as leave would end after post planning.''%  Would I still receive my summer pay or would they try to not pay me for not finishing the year?''
+\end{itemize}
+\end{frame}
+
+
+
+%-------------------------------------------------------------------------------
+\begin{frame}[label=map]
+\frametitle{What do we do?}
+
+\begin{enumerate}
+\item We establish new stylized facts on the choice of season of birth:
+\begin{itemize}
+\item Reduced-form estimates of season of birth correlates
+\begin{itemize}
+\item By age group of the mother,
+\item By cold weather patterns,
+\item By ART usage
+\item Using month of birth, or month of conception + 9 months
+\end{itemize}
+\item Reduced-form estimates of birth quality correlates
+
+%\item Use gestation weeks to further disentangle the \emph{intended} from the \emph{realized} good and bad seasons
+\end{itemize}
+\item We estimate a structural model where:
+      \begin{itemize}
+        \item mother's age (young vs. old) and SOB (good vs. bad)  are choice variables
+%        \item SOB is choice variable
+      \end{itemize}
+\item We estimate the value of SOB in terms of trade-off between birth quality (mother's well-being) and earnings (biological and economic constraints)
+%\item Value of SOB and postponing fertility, trade-off:
+      \begin{itemize}
+       \item Postpone (old): earnings increase but good season less likely
+       \item Not to postpone (young): earnings decrease but good season more likely
+      \end{itemize}
+%\end{itemize}
+\end{enumerate}
+\end{frame}
+
+%-------------------------------------------------------------------------------
+
+\begin{frame}[label=datades]
+\frametitle{Data Description}
+\begin{itemize}
+\item US National Vital Statistics System: all birth certificates
+\item Detailed information on ``birth quality'' and mothers' characteristics
+\item We focus on:
+      \begin{itemize}
+        \item White and non-Hispanic women who had their first-born child
+        \item Singletons (we also look at twins)
+        \item Mothers aged 25-45
+        \item 2005-2013
+     \end{itemize}
+\item Spanish National Vital Statistics: all birth certificates (2007-2013)
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{6. Temperature and Good Season: Chile vs. USA}
+\begin{figure}[htpb!]
+\begin{center}
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.37]{./../results/countries/excessMonthChileYoungTemp.eps}
+  \caption{Chile}
+  \label{fig:ChileTemp}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.37]{./../results/countries/excessMonthUSAYoungTemp.eps}
+  \caption{USA}
+  \label{fig:USATemp}
+\end{subfigure}
+\end{center}
+\end{figure}
+\end{frame}
+
+\begin{frame}[label=conclusions]
+\frametitle{Summary}
+\begin{enumerate}
+\item Good season of birth is non-monotonically related to mother's age.
+\item Good season of birth is positively related to mother's education.
+\item Good season of birth is negatively related to mother's smoking during pregnancy.
+\item Good season of birth is more likely among non-ART users.
+\item Season of birth is uncorrelated to mother's characteristics among ART users.
+\item The prevalence of good season in Spring/Summer is higher in states with more severe cold weather in Winter.
+\item Good season is more likely among mother in professions in which strong seasonality of work hours exists (such as educators).
+\item Mothers in non-teacher occupations are paid a compensating differential: upper bound for the value of season of birth.
+\item Among those babies achieved through ART, good season of birth seems to be positively related with birth outcomes: lower bound of the causal effect of good season of birth on birth outcomes.
+\end{enumerate}
+\end{frame}
