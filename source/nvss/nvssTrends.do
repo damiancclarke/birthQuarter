@@ -18,7 +18,7 @@ clear all
 set more off
 cap log close
 
-local allobs 1
+local allobs 0
 if `allobs'==0 local f nvss
 if `allobs'==1 local f nvssall
 
@@ -42,7 +42,7 @@ local mc
 if `twins' == 1 local app twins
 if `allobs'== 1 local mc married
 
-
+/*
 ********************************************************************************
 *** (2a) Use, descriptive graph
 ********************************************************************************
@@ -1191,7 +1191,7 @@ foreach s of local snam {
     #delimit cr
     macro shift
 }
-
+*/
 insheet using "$USW/usaWeather.txt", delim(";") names clear
 destring temp, replace
 
@@ -1206,6 +1206,7 @@ drop expanded
 rename temptmpcst meanT
 rename temptminst cold
 rename temptmaxst hot
+gen Tvariation = hot-cold
 
 tempfile weather
 save `weather'
@@ -1227,7 +1228,7 @@ keep if goodQuarter != .
 gen     young = 1 if ageGroup == 2|ageGroup==3|ageGroup==4
 replace young = 0 if ageGroup == 5
 
-preserve
+*preserve
 collapse goodQuarter expectGoodQ, by(ageGroup fips state bstate)
 
 merge m:1 state using `weather'
@@ -1236,8 +1237,10 @@ drop _merge
 lab var goodQuarter "Proportion good season"
 lab var cold        "Coldest monthly average (degree F)"
 lab var hot         "Warmest monthly average (degree F)"
+lab var Tvariation  "Annual Variation in Temperature (degree F)"
 lab var meanT       "Mean monthly temperature (degree F)"
 format goodQuarter %5.2f
+
 foreach num of numlist 3 5 {
     local age young
     if `num'==5 local age old
@@ -1255,6 +1258,18 @@ foreach num of numlist 3 5 {
     note("Correlation coefficient (p-value) =`ccoef' (`pvalue')")
     graph export "$OUT/`age'TempCold.eps", as(eps) replace
 
+    corr goodQuarter Tvariation if ageGroup==`num'
+    local ccoef = string(r(rho),"%5.3f")
+    reg goodQuarter Tvariation if ageGroup==`num'
+    local pval   = (ttail(e(df_r),(_b[Tvariation]/_se[Tvariation])))
+    local pvalue = string(`pval',"%5.3f")
+    if `pvalue' == 0 local pvalue 0.000
+    twoway scatter goodQuarter Tvariation if ageGroup==`num', mlabel(state) || ///
+        lfit goodQuarter Tvariation if ageGroup==`num', scheme(s1mono)         ///
+            lcolor(gs0) legend(off) lpattern(dash)                             ///
+    note("Correlation coefficient (p-value) =`ccoef' (`pvalue')")
+    graph export "$OUT/`age'TempVariation.eps", as(eps) replace
+
     corr goodQuarter hot if ageGroup==`num'
     local ccoef = string(r(rho),"%5.3f")
     reg goodQuarter hot  if ageGroup==`num'
@@ -1271,6 +1286,7 @@ foreach num of numlist 3 5 {
             legend(off) lpattern(dash)
     graph export "$OUT/`age'TempMean.eps", as(eps) replace
 }
+exit
 restore
 
 collapse goodQuarter expectGoodQ, by(ageGroup fips state bstate female)
