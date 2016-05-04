@@ -70,6 +70,25 @@ birth.
 \end{enumerate}
 \end{frame}
 
+\begin{frame}
+  \frametitle{Birth per Month and Temperature: Some Background}
+  \begin{figure}[htpb!]
+    \begin{center}
+      \begin{subfigure}{.5\textwidth}
+        \centering
+        \includegraphics[scale=0.37]{./../results/countries/excessMonthChileYoungTemp.eps}
+        \caption{Chile}
+        \label{fig:ChileTemp}
+      \end{subfigure}%
+      \begin{subfigure}{.5\textwidth}
+        \centering
+        \includegraphics[scale=0.37]{./../results/countries/excessMonthUSAYoungTemp.eps}
+        \caption{USA}
+        \label{fig:USATemp}
+      \end{subfigure}
+    \end{center}
+  \end{figure}
+\end{frame}
 
 \begin{frame}
 \frametitle{Introduction -- II}
@@ -97,26 +116,6 @@ birth.
 \item Choice/Preferences 
 \end{itemize}
 \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Birth per Month and Temperature: Some Background}
-  \begin{figure}[htpb!]
-    \begin{center}
-      \begin{subfigure}{.5\textwidth}
-        \centering
-        \includegraphics[scale=0.37]{./../results/countries/excessMonthChileYoungTemp.eps}
-        \caption{Chile}
-        \label{fig:ChileTemp}
-      \end{subfigure}%
-      \begin{subfigure}{.5\textwidth}
-        \centering
-        \includegraphics[scale=0.37]{./../results/countries/excessMonthUSAYoungTemp.eps}
-        \caption{USA}
-        \label{fig:USATemp}
-      \end{subfigure}
-    \end{center}
-  \end{figure}
 \end{frame}
 
 \begin{frame}
@@ -152,12 +151,12 @@ birth.
 \end{frame}
 
 
-\begin{frame}
+\begin{frame}[label=perceptions]
 \frametitle{Season of birth as a choice variable}
 \begin{itemize}
 \item We may assume that the average woman has a sense that:
 \begin{itemize}
-\item Winter months may be tougher birth months because of \underline{cold} weather and \underline{higher disease} prevalence (Buckles and Hungerman, 2013; Currie and Schwandt, 2013)
+\item Winter months may be tougher birth months because of \underline{cold} weather and \hyperlink{flu}{\underline{higher disease}} prevalence (Buckles and Hungerman, 2013; Currie and Schwandt, 2013)
 \begin{itemize}
 \item Biological effects
 \item Behavioral effects: choice/preferences
@@ -206,19 +205,21 @@ birth.
 
 \begin{frame}
 \frametitle{This paper}
+
+Season of birth is a choice made \emph{entirely before} (and perhaps well before) conception occurs.
+\vspace{4mm}
 \begin{itemize}
-\item Choice made \emph{before} conception occurs
 \item First economic analysis disentangling behavioral from biological responses
 \item Exploiting differences by ART, occupation and weather
 \end{itemize}
 \end{frame}
 
 
-\begin{frame}
+\begin{frame}[label=Data]
 \frametitle{Data}
 \begin{itemize}
 \item \textbf{National Vital Statistics System (NVSS)}: 2005-2013
-\item Main analysis: Singleton first births born to White Non-Hispanic married women in the US 20(25)-45 years old.
+\item Main analysis: Singleton first births born to White Non-Hispanic married women in the US 20(25)-45 years old (\hyperlink{ageHist}{\textcolor{blue}{selection?}}).
 \begin{itemize}
 \item First births: higher-order births also involve the additional decision of birth spacing and the role of experience (does planning improve with higher-order pregnancies?)
 %\item Additional material (not here): using second-births, including twins, fetal deaths, etc.
@@ -240,8 +241,8 @@ birth.
  \begin{center}
 \caption{Descriptive Statistics (NVSS 2005-2013)}
  \label{bqTab:SumStatsMain}
-\scalebox{0.65}{\begin{tabular}{lccccc}
- \toprule\toprule \vspace{5mm}
+\scalebox{0.58}{\begin{tabular}{lccccc}
+ \toprule\toprule \vspace{1mm}
 & N & Mean & Std. Dev. & Min. & Max. \\ \midrule
 \multicolumn{6}{l}{\textbf{Panel A: Mother}} \\
 Mother's Age        &     2260745&       30.28&        3.92&          25&          45\\
@@ -253,7 +254,20 @@ Aged 40-45          &     2260745&        0.03&        0.16&           0&       
 Some College +&     2260745&        0.77&        0.42&           0&           1\\
 Years of education  &     2260745&       15.59&        1.59&           4&          17\\
 Smoked during Pregnancy&     2260745&        0.03&        0.18&           0&           1\\
-Used ART (2009-2013 only)&     1572674&        0.01&        0.11&           0&           1\\
+Used ART$^{a}$&     1572674&        0.01&        0.11&           0&           1\\
+
+Received WIC food in Pregnancy$^{a}$&     1561541&        0.08&        0.26&           0&           1\\
+
+Pre-pregnancy BMI$^{a}$                 &     1490036&       24.86&        4.79&          16&          40\\
+
+Pre-pregnancy Underweight (BMI $<$ 18.5)$^{a}$&     1490036&        0.03&        0.17&           0&           1\\
+
+Pre-pregnancy Normal Weight (18.5 $\leq$ BMI $<$ 25)$^{a}$&     1490036&        0.58&        0.49&           0&           1\\
+
+Pre-pregnancy Overweight (25 $\leq$ BMI $<$ 30)$^{a}$&     1490036&        0.24&        0.43&           0&           1\\
+
+Pre-pregnancy Obese (BMI $\geq$ 30)$^{a}$&     1490036&        0.15&        0.36&           0&           1\\
+
 
  \multicolumn{6}{l}{\textbf{Panel B: Child}}\\
  Good season of birth (birth date)&     2260745&        0.52&        0.50&           0&           1\\
@@ -265,7 +279,8 @@ Weeks of Gestation  &     2259553&       39.02&        2.17&          17&       
 Premature ($<$ 37 weeks)&     2259553&        0.08&        0.27&           0&           1\\
 APGAR (1-10)        &     2248425&        8.78&        0.82&           0&          10\\
 
-\midrule\multicolumn{6}{p{12.8cm}}{\begin{footnotesize}\textsc{Notes:} Sample is identical to that described in table \ref{bqTab:singleSum}, however only for women aged 25-45.  This  is the main estimation sample.                                    \end{footnotesize}} \\ \bottomrule
+%\midrule\multicolumn{6}{p{12.8cm}}{\begin{footnotesize}\textsc{Notes:} Sample is identical to that described in table \ref{bqTab:singleSum}, however only for women aged 25-45.  This  is the main estimation sample.                                    \end{footnotesize}} \\
+\bottomrule
  \end{tabular}}
 \end{center}\end{table}
 \end{frame}
@@ -344,7 +359,7 @@ Some College +&48.07&51.93&3.86&1.08&0.08&0.01
 \end{frame}
 
 
-\begin{frame}
+\begin{frame}[label=MainDiff]
 \frametitle{1. Births by Month, Age Group, and ART Use}
 \begin{figure}[htpb!]
 \begin{center}
@@ -368,7 +383,7 @@ Some College +&48.07&51.93&3.86&1.08&0.08&0.01
 %weeks $\times$ 7/30.5) from month of birth.  Each line presents the proportion of
 %all births conceived in each month for the relevant age group.}
 \end{figure}
-ART clinics do not offer complex fertility treatments such as IVF or embryo transfers in December due to Christmas closure and the daily attention and last minute changes that these treatments require.
+ART clinics do not offer complex fertility treatments such as IVF or embryo transfers in December due to Christmas closure and the daily attention and last minute changes that these treatments require. \hyperlink{Diff}{\textcolor{blue}{Test of difference}}.
 \end{frame}
 
 \begin{frame}
@@ -514,7 +529,7 @@ State and Year FE&&Y&Y&Y\\  Gestation FE &&&&Y \\ \bottomrule
 
 
 \begin{frame}[label=weather]
-\frametitle{4. Temperature and Good Season: Young vs. Old}
+\frametitle{4. Temperature and Good Season: Young vs.\ Old}
 \begin{figure}[htpb!]
 \begin{center}
 %\caption{Prevalence of Good Season and Cold Temperatures}
@@ -620,7 +635,7 @@ F-test of Age Variables&0.031&0.051&0.046\\ \bottomrule
 \begin{frame}
 \frametitle{7. ``Education, Training and Library'' and Good Season}
 \begin{table}[htbp]\centering
-\caption{Season of Birth Correlates: ``Teachers'' vs. ``Non-Teachers''}
+\caption{Season of Birth Correlates: ``Teachers'' vs.\ ``Non-Teachers''}
 \scalebox{0.65}{
 \begin{tabular}{l*{5}{c}}
 \toprule
@@ -650,7 +665,7 @@ occupational category is all non-educational occupations. $F$-test of age variab
 \end{frame}
 
 \begin{frame}
-\frametitle{8. Biology vs. Choice/Preferences, once again}
+\frametitle{8. Biology vs.\ Choice/Preferences, once again}
 \begin{figure}[htpb!]
   \begin{center}
     \caption{Temperature and Good Season: younger mothers (28-31 yo)}
@@ -672,7 +687,7 @@ occupational category is all non-educational occupations. $F$-test of age variab
 \end{frame}
 
 \begin{frame}
-\frametitle{8. Biology vs. Choice/Preferences, once again}
+\frametitle{8. Biology vs.\ Choice/Preferences, once again}
 \begin{figure}[htpb!]
   \begin{center}
     \caption{Temperature and Good Season: older mothers (40-45 yo)}
@@ -699,7 +714,7 @@ occupational category is all non-educational occupations. $F$-test of age variab
   \end{center}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[label=equalizingDiff]
 \frametitle{The value of good season of birth}
 An equalizaing differences framework (Rosen, 1986) can be used to suggest an \emph{upper bound}
 on the value individuals place on season of birth
@@ -892,7 +907,7 @@ PVAM = 1322.979 \times \frac{(1-(1+0.05)^{-40})}{0.05} = 22,701.111
 \begin{itemize}
 \item Birth seasonality pattern inconsistent with marriage seasonality timing (Lam et al., 1999): inconsistent with Honeymoon effects
 \item Birth seasonality pattern linked to seasonality at which women stop contracepting (Rodgers and Udry,  1998)
-\item Women on average take 6 months to get pregnant after stop contracepting: our estimates provide lower bounds
+\item Women on average take 6 months to get pregnant after stopping contracepting: our estimates provide lower bounds
 \item The observed seasonality patterns cannot be explained by the fact that the sperm is better in Winter and early Spring (Levitas et al., 2013)
 \end{itemize}
 \end{frame}
@@ -905,7 +920,7 @@ PVAM = 1322.979 \times \frac{(1-(1+0.05)^{-40})}{0.05} = 22,701.111
 \item Excluding those conceived in December (the most popular conception month) (Table 1A)
 \item Controlling for state specific linear trends and unemployment rate at season of conception (Table 4A)
 \item Including second births (Table 5A)
-\item Including \hyperlink{twins}{\beamerskipbutton{Twins}} (Table 6A)
+\item Including \hyperlink{twins}{\textcolor{blue}{Twins}} (Table 6A)
 \item Focusing only on twin births (Table 7A: only without ART is positively correlated with good season)
 \item Controlling for household income (Table 8A)
 \item Using wage income instead of earned income (Table 9A)
@@ -926,9 +941,10 @@ PVAM = 1322.979 \times \frac{(1-(1+0.05)^{-40})}{0.05} = 22,701.111
 
 \begin{frame}
 \frametitle{Where to from here}
-Directly elicit preferences on season of birth: Amazon's Mechanical Turk.
+Data from NVSS, ACS gives us revealed preferences on birth season.  Can we directly elicit preferences on season of birth? Amazon's Mechanical Turk.
+\vspace{2mm}
 \begin{itemize}
-\item Pool of respondents (from USA)
+\item Large pool of respondents (from USA)
 \item Responses on their own behaviours, and how they think others behave
 \item Responses incentivised for honesty
 \item A potential tighter estimate of willingess to pay\ldots
@@ -952,7 +968,7 @@ Directly elicit preferences on season of birth: Amazon's Mechanical Turk.
 
 \begin{frame}[label=conclusions2]
 \frametitle{Summary -- Reconciliation}
-This \emph{looks like} a constrained choice, or a demand for season of birth.
+This \emph{looks like} a constrained choice, or \underline{demand for season of birth}.
 \vspace{3mm} \\
 \begin{itemize}
 \item The open question is: do we find this in explicitly stated preferences?
@@ -967,15 +983,42 @@ This \emph{looks like} a constrained choice, or a demand for season of birth.
   \end{center}
 \end{frame}
 
-\begin{frame}[label=agesAll]
-\frametitle{Prevalence of Good Season by Age (relative to 40-45 yo)}
+\begin{frame}[label=flu]
+\frametitle{Perception (and Geography) of Disease Burden}
 \begin{figure}[htpb!]
 %\caption{Prevalence of Good Season by Age (relative to 40-45 yo)}
   \centering
-  \includegraphics[scale=0.65]{./../results/nvssall/graphs/goodSeasonAge.eps} \\
-{\footnotesize For the omitted group, proportion good season (standard error) is 0.499(0.001).}
+  \includegraphics[scale=0.4]{./fluNearYou.png} \\
+{\footnotesize FluNearYou}
 \end{figure}
-\hyperlink{ages}{\textcolor{blue}{Back}}
+\hyperlink{perceptions}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}[label=ageHist]
+\frametitle{Maternal Age at Birth: USA}
+\begin{figure}[htpb!]
+\begin{center}
+  \centering
+  \caption{Mother's Age at First Birth, All Married Women in Sample}
+  \includegraphics[scale=0.6]{./../results/nvss/graphs/ageDescriptive.eps}
+  \label{fig:NVSSbirths}
+\end{center}
+\end{figure}
+\vspace{-5mm}
+\end{frame}
+
+\begin{frame}[label=ageHist2]
+\frametitle{Maternal Age at Birth: USA}
+\begin{figure}[htpb!]
+\begin{center}
+  \centering
+  \caption{Mother's Age at First Birth, All Women in Sample}
+  \includegraphics[scale=0.6]{./../results/nvssall/graphs/ageDescriptive.eps}
+  \label{fig:NVSSbirthsAll}
+\end{center}
+\end{figure}
+\vspace{-5mm}
+\hyperlink{Data}{\beamerreturnbutton{Back}}
 \end{frame}
 
 
@@ -1052,6 +1095,35 @@ full set of variables included in the birth files, so education and
 \hypertarget{fetal}{}
 \end{frame}
 
+\begin{frame}[label=Diff]
+  \frametitle{Test of Age Difference in Births by Month}
+\begin{figure}[htpb!]
+\begin{center}
+\caption{Birth Prevalence by Month, Age Group, and ART Usage}
+\label{bqFig:concepMonth}
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.38]{./../results/nvss/graphs/youngMonths.eps}
+  \caption{Full sample}
+  \label{fig:concepAbs}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.38]{./../results/nvss/graphs/youngMonthsART1.eps}
+  \caption{ART Only}
+  \label{fig:concepAbsART}
+\end{subfigure}
+\end{center}
+%{\tiny Notes to figure \ref{bqFig:concepMonth}: Month of conception
+%is calculated by subtracting the rounded number of gestation months (gestation in
+%weeks $\times$ 7/30.5) from month of birth.  Each line presents the proportion of
+%all births conceived in each month for the relevant age group.}
+\end{figure}
+\vspace{6mm}
+\hyperlink{MainDiff}{\beamerreturnbutton{Back}}
+\end{frame}
+
+
 \begin{frame}[label=USyoung]
   \frametitle{Good Season by State for Younger Women}
   \begin{figure}[htpb!]
@@ -1074,10 +1146,84 @@ full set of variables included in the birth files, so education and
       \label{fig:mapOld}
     \end{center}
   \end{figure}
-\hyperlink{weather}{\textcolor{blue}{Back}}
+\hyperlink{weather}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}
+\frametitle{Temperature and Good Season: Annual Variation}
+\begin{figure}[htpb!]
+\begin{center}
+%\caption{Prevalence of Good Season and Cold Temperatures}
+\label{fig:tempUSA}
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.37]{./../results/nvss/graphs/youngTempVariation.eps}
+  \caption{Younger Mothers (28-31)}
+  \label{fig:tempUSAYoung}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.37]{./../results/nvss/graphs/oldTempVariation.eps}
+  \caption{Older Mothers (40-45)}
+  \label{fig:tempUSAOld}
+\end{subfigure}
+\end{center}
+\end{figure}
+
+\vspace{8mm}
+\hyperlink{weather}{\beamerreturnbutton{Back}}
 \end{frame}
 
 
+\begin{frame}
+  \frametitle{More Details: Equalizing Differences}
+  Suppose a woman can choose between two types of jobs: teacher $D=0$ or non-teacher $D=1$. Non-teachers are paid $w_1$, and teachers $w_0$.
+  \vspace{2mm}
+  
+  Assume her preferences can be represented by the following utility function
+
+  \[
+    U(C,D).
+  \]
+
+  We assume that, \emph{ceteris paribus}, a teacher job is preferred to a non-teacher job
+
+  \[
+    U(C,0) \geq U(C,1).
+  \]
+
+  How much income (or consumption) must the woman be compensated with to undertake the less preferred job?
+\end{frame}
+
+\begin{frame}
+  \frametitle{More Details: Equalizing Differences}
+  Let $C_0$ be the consumption when $D=0$, and define $\widetilde{C}$ as the consumption level required to achieve the same utility in a non-teacher job
+
+  \[
+    U(\widetilde{C},1) = U(C_0,0)
+  \]
+
+  Hence, $\widetilde{C} \geq C_0$.
+\end{frame}
+
+\begin{frame}
+  \frametitle{More Details: Equalizing Differences}
+  Let $\Delta w = w_1 - w_0$ be the market equalizing difference: the non-teacher job offers $\Delta w$ units of consumption for worse ``working'' conditions: \emph{the implicit price of all the amenities of a teacher job}. \vspace{4mm}
+
+  The woman chooses the non-teacher job ($D=1$) if and only if
+  \[
+    U(\Delta w + C_0,1)>U(C_0,0)=u(\widetilde{C},1)=u(C_0 + z, 1)
+  \]
+  where $z = \widetilde{C} - C_0$ is the compensating variation.
+
+  \vspace{4mm}
+  Thus, she chooses the non-teacher job if and only if
+  \[
+    \Delta w > z.
+    \]
+    
+\hyperlink{equalizingDiff}{\beamerreturnbutton{Back}}
+\end{frame}
 
 \end{document}
 
@@ -1157,18 +1303,6 @@ full set of variables included in the birth files, so education and
 \end{frame}
 
 
-\begin{frame}[label=births]
-\frametitle{Maternal Age at Birth: USA}
-\begin{figure}[htpb!]
-\begin{center}
-  \centering
- % \caption{Mother's Age at First Birth, 25-45}
-  \includegraphics[scale=0.6]{./../results/nvss/graphs/ageDescriptive.eps}
-  \label{fig:NVSSbirths}
-\end{center}
-\end{figure}
-\vspace{-5mm}
-\end{frame}
 
 \begin{frame}[label=twins]
 \frametitle{Twin Prevalance and Age}
@@ -1235,7 +1369,7 @@ birth certificate data.}
 
 
 \begin{frame}
-\frametitle{First Birth Rates by Mother's Age: 35-39 vs. 40-44}
+\frametitle{First Birth Rates by Mother's Age: 35-39 vs.\ 40-44}
 \begin{center}
 \includegraphics[scale=0.3]{./tables/Figure_1.png}
 \end{center}
@@ -1336,7 +1470,7 @@ birth certificate data.}
 \end{itemize}
 \item We estimate a structural model where:
       \begin{itemize}
-        \item mother's age (young vs. old) and SOB (good vs. bad)  are choice variables
+        \item mother's age (young vs.\ old) and SOB (good vs.\ bad)  are choice variables
 %        \item SOB is choice variable
       \end{itemize}
 \item We estimate the value of SOB in terms of trade-off between birth quality (mother's well-being) and earnings (biological and economic constraints)
@@ -1369,7 +1503,7 @@ birth certificate data.}
 
 
 \begin{frame}
-\frametitle{6. Temperature and Good Season: Chile vs. USA}
+\frametitle{6. Temperature and Good Season: Chile vs.\ USA}
 \begin{figure}[htpb!]
 \begin{center}
 \begin{subfigure}{.5\textwidth}
