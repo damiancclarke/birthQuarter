@@ -12,7 +12,7 @@ set more off
 cap log close
 set matsize 2000
 
-local allobs 1
+local allobs 0
 if `allobs' == 0 local mnote " married "
 if `allobs' == 0 local f
 if `allobs' == 1 local f "both/"
@@ -45,7 +45,7 @@ local Fnote  "F-test of age variables refers to the p-value on the test that
 local onote  "Optimal age calculates the turning point of the mother's age
               quadratic. ";
 #delimit cr
-
+/*
 ********************************************************************************
 *** (2) Open data subset to sample of interest (from Sonia's import file)
 ********************************************************************************
@@ -779,7 +779,7 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\ Occupation FE&&&&&Y\\ \bottomrule       "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-
+*/
 
 ********************************************************************************
 *** (4) Sumstats of good season by various levels
@@ -802,7 +802,7 @@ lab def ag 1 "Young (25-39) " 2 "Old (40-45) "
 lab def ed 0 "No College" 1 "Some College" 2 "Complete College"
 lab val ageGroup ag
 lab val educLevel ed
-
+/*
 preserve
 drop if ageGroup==.
 
@@ -1095,7 +1095,7 @@ graph export "$GRA/birthQuarterEducOld.eps", as(eps) replace;
 #delimit cr
 restore
 
-
+*/
 ********************************************************************************
 *** (6e) Figure 6-8
 ********************************************************************************
@@ -1122,33 +1122,38 @@ foreach cond of local c1 {
     bys state: gen statecount = _N
 
     keep if `cond'
-    collapse goodQuarter (min) cold, by(statefip state fips state*)
-
+    collapse goodQuarter (min) cold (max) hot, by(statefip state fips state*)
+    gen diff = hot-cold
+    
     lab var goodQuarter "Proportion good season"
     lab var cold        "Coldest monthly average (degree F)"
+    lab var diff        "Annual variation in Temperature (degree F)"
     local cc statecount>500
 
     format goodQuarter %5.2f
     drop if state=="Alaska"|state=="Nebraska"
-    corr goodQuarter cold if `cc'
-    local ccoef = string(r(rho),"%5.3f")
-    reg goodQuarter cold if `cc'
-    local pval   = (1-ttail(e(df_r),(_b[cold]/_se[cold])))
-    local pvalue = string(`pval',"%5.3f")
-    if `pvalue' == 0 local pvalue 0.000
-    
-    #delimit ;
-    twoway scatter goodQuarter cold if `cc', mlabel(state) ||      
-              lfit goodQuarter cold if `cc', scheme(s1mono)
-    lcolor(gs0) legend(off) lpattern(dash)
-    note("Correlation coefficient=`ccoef', p-value=`pvalue'");
-    graph export "$GRA/StateTemp_`1'.eps", as(eps) replace;
-    #delimit cr
+
+    foreach tvar of varlist cold diff {
+        corr goodQuarter `tvar' if `cc'
+        local ccoef = string(r(rho),"%5.3f")
+        reg goodQuarter `tvar' if `cc', nohead
+        local pval   = (ttail(e(df_r),abs(_b[`tvar']/_se[`tvar'])))
+        local pvalue = string(`pval',"%5.3f")
+        if `pvalue' == 0 local pvalue 0.000
+
+        #delimit ;
+        twoway scatter goodQuarter `tvar' if `cc', mlabel(state) ||      
+                  lfit goodQuarter `tvar' if `cc', scheme(s1mono)
+        lcolor(gs0) legend(off) lpattern(dash)
+        note("Correlation coefficient=`ccoef', p-value=`pvalue'");
+        graph export "$GRA/StateTemp_`1'_`tvar'.eps", as(eps) replace;
+        #delimit cr
+    }
     macro shift
     restore
 }
 preserve
-
+exit
 
 bys state: gen statecount = _N
 keep if age2831==1
