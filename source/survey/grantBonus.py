@@ -16,7 +16,7 @@ script, fname = argv
 #--- (1) locations of files and system commands
 #-------------------------------------------------------------------------------
 cloc = "/home/damian/computacion/MTurk/aws-mturk-clt-1.3.1/bin/"
-floc = "/home/damian/investigacion/2015/birthQuarter/MTurk/main/"
+floc = "/home/damian/investigacion/2015/birthQuarter/MTurk/main/round1/"
 
 workers = open(floc+fname+'.csv', 'r')
 
@@ -57,7 +57,7 @@ print "Given the above values, are you sure you wish to continue?"
 print "The script will pay %d workers a total bonus of %f (average of %f)" % (N, totalBonus, ave)
 
 decision = raw_input("If you are sure you wish to continue, type \'yes\': ")
-
+something = 'hello world!'
 if decision=='yes':
     print 'Okay, I will continue with the bonus payment.'
 
@@ -67,7 +67,7 @@ else:
     print 'The final account balance will now be displayed:'
     value=os.system("./getBalance.sh")
     sys.exit()
-
+    
 #-------------------------------------------------------------------------------
 #--- (4) Pay
 #-------------------------------------------------------------------------------
@@ -84,7 +84,8 @@ if decision=='yes':
             job    = line.split(",")[1]
             bonus  = line.split(",")[2]
             bonus  = bonus.replace('\n','')
-            print './grantBonus.sh -workerid '+ worker +' -amount ' + bonus + ' -assignment ' + job +' -reason ' + message
+            #NOTE: to test this script, replace the following os.system call with print.
+            os.system('./grantBonus.sh -workerid '+ worker +' -amount ' + bonus + ' -assignment ' + job +' -reason ' + message)
             ptime = time.strftime("%H:%M:%S")
             pdate = time.strftime("%d/%m/%Y")
             output.write(worker+','+job+','+bonus+','+bonus+','+pdate+','+ptime+'\n')
