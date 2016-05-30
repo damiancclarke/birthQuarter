@@ -42,16 +42,18 @@ collapse stateProportion, by(statename)
 rename statename NAME
 
 merge 1:1 NAME using "$GEO/US_db"
-
+format stateProportion %5.2f
 #delimit ;
 spmap stateProportion if NAME!="Alaska"&NAME!="Hawaii"&NAME!="Puerto Rico"
-using "$GEO/US_coord", title("Coverage of the Survey")
-point(data("$DAT/BirthSurvey.dta") xcoord(longitude) ycoord(latitude)
-      select(drop if (latitude<5.87|latitude>71.39)|(longitude<-180|longitude>-66.9))
-      size(*0.5) fcolor(orange) ocolor(white) osize(vvthin)) id(_ID) osize(thin)
-fcolor(Greens);
+using "$GEO/US_coord_mercator",
+point(data("$DAT/BirthSurvey.dta") xcoord(long3) ycoord(lat3)
+      select(drop if (latitude<24.39|latitude>49.38)|(longitude<-124.84|longitude>-66.9))
+      size(*0.5) fcolor(orange) ocolor(white) osize(vvthin))
+id(_ID) osize(thin) legtitle("Proportion of Respondents") legstyle(2) fcolor(Greens)
+legend(symy(*1.2) symx(*1.2) size(*1.5) rowgap(1));
 graph export "$OUT/surveyCoverage.eps", as(eps) replace;
 
+*clmethod(custom) clbreaks(0 0.01 0.02 0.04 0.06 0.08 0.10) legorder(lohi);
 #delimit cr
 restore
 
@@ -70,8 +72,19 @@ rename cbirthmonth Month
 
 tempfile bmonth
 save `bmonth'
+restore
 
-use "$NVS/birthCond"
+preserve
+keep if nchild > 0
+gen N = 1
+collapse (sum) N, by(nchild)
+egen totbirth = sum(N)
+replace N = N/totbirth
+rename N birthProp
+tempfile nchild
+save `nchild'
+
+use "$NVS/birthCond", clear
 
 gen N = 1
 collapse (sum) N, by(birthMonth)
@@ -94,11 +107,26 @@ ytitle("Proportion of Births");
 graph export "$OUT/birthsMonth.eps", as(eps) replace;
 #delimit cr
 
+use "$NVS/natl2013", clear
+
+gen N = 1
+collapse (sum) N, by(lbo_rec)
+egen totbirth = sum(N)
+replace N = N/totbirth
+rename N birthPropNVS
+rename lbo_rec nchild
+merge 1:1 nchild using `nchild'
+
+graph bar birthPropNVS birthProp, over(nchild) xtitle("Number of Births") /*
+*/ legend(lab(1 "ACS") lab(2 "MTurk Sample")) scheme(s1mono)               /*
+*/ bar(1, color(blue*0.6)) bar(2, color(red*0.4)) ytitle("Proportion")
+graph export "$OUT/nchild.eps", as(eps) replace
 restore
 
+exit
 
 ********************************************************************************
-*** (4) Compare with ACS
+*** (5) Compare with ACS
 ********************************************************************************
 foreach var in occ educ {
     preserve
@@ -160,6 +188,7 @@ restore
 
 preserve
 use "$ACS/ACS_20052014_cleaned", clear
+
 keep if motherAge>=25&motherAge<=45&twins==0
 keep if marst==1
 drop if occ2010 == 9920
@@ -198,3 +227,66 @@ graph bar propeducACS propeducKid, over(educ) horizontal /*
 */ bar(1, color(blue*0.6)) bar(2, color(red*0.4))
 graph export "$OUT/education.eps", as(eps) replace
 restore
+
+*/
+********************************************************************************
+*** (6) Graphs
+********************************************************************************
+use "$DAT/BirthSurvey"
+keep if completed==1
+gen age = 2016-birthyr
+
+hist age, scheme(lean1) discrete xtitle("Respondent's Age") frac
+graph export "$OUT/ageMTurk.eps", replace
+
+exit
+********************************************************************************
+*** (7) Tables
+********************************************************************************
+local statform cells("count(label(N)) mean(fmt(2) label(Mean)) sd(fmt(2) label(Std.\ Dev.)) min(fmt(2) label(Min)) max(fmt(2) label(Max))")
+    
+gen white     = race == 11
+gen black     = race == 12
+gen otherRace = race!=11&race!=12
+gen employed = empstat==1
+gen unemployed = empstat==2
+
+gen educY     = 8 if educ==1
+replace educY = 10 if educ==2
+replace educY = 12 if educ==3
+replace educY = 13 if educ==4
+replace educY = 14 if educ==5
+replace educY = 16 if educ==6
+replace educY = 17 if educ==7
+replace educY = 20 if educ==8
+replace educY = 18 if educ==9
+gen married = marst == 1
+replace gestation = gestation + 5
+
+lab var sex      "Female"
+lab var birthyr  "Year of Birth"
+lab var age      "Age"
+lab var educY    "Years of Education"
+lab var nchild   "Number of Children"
+lab var plankids "Plans to have children"
+lab var morekids "Plans for more children"
+lab var pregnant "Currently Pregnant"
+lab var married  "Married"
+lab var sexchild "Female Child"
+lab var gestatio "Gestation (Months)"
+lab var fertmed  "Used Fertility Treatment"
+lab var SOBimpor "Importance of Birth Season"
+lab var SOBtarge "Targeting Season of Birth"
+lab var hispanic "Hispanic"
+lab var black    "Black"
+lab var white    "White"
+lab var otherRac "Other Race"
+lab var employed "Employed"
+lab var cbirthyr "Child's Year of Birth"
+
+#delimit ;
+estpost sum sex age birthyr educY nchild plankids morekids pregnant 
+married sexchild gestation fertmed SOBimport SOBtarget 
+white black otherRace hispanic employed unemployed cbirthyr;
+#delimit cr
+estout using "$OUT/MTurkSum.tex", replace label style(tex) `statform'
