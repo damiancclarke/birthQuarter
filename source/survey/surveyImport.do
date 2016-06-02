@@ -381,11 +381,38 @@ foreach num of numlist 1601(1)`Numb' {
     }
 }
 lab var address           "Address based on GEOcode (google maps search)"
+split address, generate(_add) parse(",")
+gen country = _add8
+replace country = _add7 if country==""
+replace country = _add6 if country==""
+replace country = _add5 if country==""
+replace country = _add4 if country==""
+replace country = _add3 if country==""
+replace country = _add2 if country==""
+replace country =" China" if country==" 100009"
+replace country = subinstr(country," ", "", 1)
+gen notUSA = country !="USA"
+gen stateGEO = _add3 if notUSA==0
+replace stateGEO = " FL 33950" if stateGEO==" 41 Multi-Use Trail"
+replace stateGEO = " IL 60103" if _add1 == "Bartlett"
+replace stateGEO = " VA 22904" if stateGEO==" Charlottesville"
+replace stateGEO = " WA 98101" if stateGEO==" Seattle"
+replace stateGEO = " CA" if _add1=="Round Valley Trail"
+replace stateGEO = " MA" if _add1=="Fall River"
+rename country countryGEO
 
 #delimit ;
 order QualtricsID Name IPAddress startDate endDate consent passedAttention
 completedSurvey latitude longitude state address;
 #delimit cr
+
+lab var stateGEO   "State according to IP"
+lab var countryGEO "Country according to IP"
+lab var notUSA     "Not USA according to IP"
+lab var lat2       "Albers projection of latitude (mapping only)"
+lab var long2      "Albers projection of longitude (mapping only)"
+lab var lat3       "Web Mercator projection of latitude (mapping only)"
+lab var long3      "Web Mercator projection of longitude (mapping only)"
 
 drop childFlag
 ********************************************************************************
