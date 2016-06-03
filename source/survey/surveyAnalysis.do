@@ -24,7 +24,7 @@ global GEO "~/investigacion/2015/birthQuarter/data/maps/states_simplified"
 log using "$LOG/surveyAnalysis.txt", text replace
 
 cap mkdir "$OUT"
-
+/*
 ********************************************************************************
 *** (2) Open 
 ********************************************************************************
@@ -500,16 +500,179 @@ foreach var of local vnames {
     macro shift
 }
 file close mstats
-exit
+*/
 ********************************************************************************
 *** (6) Graphs
 ********************************************************************************
 use "$DAT/BirthSurvey"
 keep if completed==1
+keep if educ==educ_check
+
+
+twoway scatter WTPsob WTPdiabetes, jitter(0.5 ) scheme(lean1) /*
+*/ ytitle("... to have baby in preferred season")
+*|| lfit WTPsob WTPdiabetes, /**/ lcolor(red) legend(off)
+graph export $OUT/WTPboth.eps, replace
+exit
 gen age = 2016-birthyr
 
 hist age, scheme(lean1) discrete xtitle("Respondent's Age") frac
 graph export "$OUT/ageMTurk.eps", replace
+
+gen WTPratio = WTPsob/WTPdiabetes
+gen WTPdifference = WTPdiabetes-WTPsob
+
+sum WTPdifference
+local avedif = r(mean)
+sum WTPsob
+local avesob = round(r(mean)*100)/100
+
+hist WTPdifference, scheme(lean1) xtitle("Difference in Willingess to Pay") /*
+*/ frac discrete xline(`avedif', lcolor(red) lwidth(thick) lpattern(dash))  /*
+*/ note(Average willingness to pay to avoid season of birth is `avesob'%)
+graph export "$OUT/WTPdifference.eps", replace
+
+
+local cond sex==1 sex==0 minTemp<32 minTemp>=32 childFlag==1 childFlag!=1 educ<5 educ>4
+local name F M cold warm kids nokids noDegree Degree
+tokenize `name'
+foreach c of local cond {
+    preserve
+    keep if `c'
+    sum WTPdifference
+    local avedif = r(mean)
+    sum WTPsob
+    local avesob = round(r(mean)*100)/100
+
+    hist WTPdifference, scheme(lean1) xtitle("Difference in Willingess to Pay")/*
+    */ frac discrete xline(`avedif', lcolor(red) lwidth(thick) lpattern(dash)) /*
+    */ note(Average willingness to choose season of birth is `avesob'%)
+    graph export "$OUT/WTPdifference`1'.eps", replace
+    restore
+    macro shift
+}
+
+
+gen importance= SOBimport
+replace importance = pSOBimport if pSOBimport!=.
+
+preserve
+gen N = 1
+collapse (sum) N, by(importance)
+egen tot = sum(N)
+gen quantity = N/tot
+graph bar quantity, over(importance) scheme(lean1) /*
+*/ ytitle("Proportion of Respondents")
+graph export "$OUT/SOBimportance.eps", replace
+restore
+
+preserve
+gen N = 1
+replace childFlag=0 if childFlag==.
+collapse (sum) N, by(importance childFlag)
+drop if importance==.
+bys childFlag: egen tot = sum(N)
+gen quantity = N/tot
+drop N tot
+reshape wide quantity, i(importance) j(childFlag)
+
+graph bar quantity1 quantity0, over(importance) scheme(lean1) /*
+*/ ytitle("Proportion of Respondents") /*
+*/ legend(lab(1 "Had Children") lab(2 "Will Have Children"))
+graph export "$OUT/SOBimportanceKids.eps", replace
+restore
+
+preserve
+gen N = 1
+gen cold = minTemp <32
+collapse (sum) N, by(importance cold)
+drop if importance==.
+bys cold: egen tot = sum(N)
+gen quantity = N/tot
+drop N tot
+reshape wide quantity, i(importance) j(cold)
+
+graph bar quantity1 quantity0, over(importance) scheme(lean1) /*
+*/ ytitle("Proportion of Respondents") /*
+*/ legend(lab(1 "Cold Winter") lab(2 "Mild Winter"))
+graph export "$OUT/SOBimportanceWeather.eps", replace
+restore
+
+preserve
+collapse SOBbirthday SOBlucky SOBjobs SOBschool SOBtax SOBchealth SOBmhealth
+local i = 1
+foreach v in birthday lucky jobs school tax chealth mhealth {
+    rename SOB`v' SOB`i'
+    local ++i
+}
+gen N = 1
+reshape long SOB, i(N) j(var)
+gen varname = ""
+local i = 1
+foreach v in birthday lucky jobs school tax {
+    replace varname = "`v'" if var==`i'
+    local ++i
+}
+replace varname = "child health" if var==6
+replace varname = "mom health" if var==7
+
+graph bar SOB, over(varname, sort(1)) scheme(lean1) /*
+*/ ytitle("Importance of Factor")
+graph export "$OUT/SOBreason.eps", replace
+restore
+
+preserve
+gen cold = minTemp <32
+collapse SOBbirthday SOBlucky SOBjobs SOBschool SOBtax SOBchealth SOBmhealth, by(cold)
+local i = 1
+foreach v in birthday lucky jobs school tax chealth mhealth {
+    rename SOB`v' SOB`i'
+    local ++i
+}
+
+reshape long SOB, i(cold) j(var)
+gen varname = ""
+local i = 1
+foreach v in birthday lucky jobs school tax {
+    replace varname = "`v'" if var==`i'
+    local ++i
+}
+replace varname = "child" if var==6
+replace varname = "mother" if var==7
+reshape wide SOB , i(varname) j(cold)
+
+graph bar SOB1 SOB0, over(varname, sort(1)) scheme(lean1)  /*
+*/ legend(lab(1 "Cold Winters") lab(2 "Mild Winters")) /*
+*/ ytitle("Importance of Factor")
+graph export "$OUT/SOBreasonCold.eps", replace
+restore
+
+preserve
+gen college = educ > 4
+collapse SOBbirthday SOBlucky SOBjobs SOBschool SOBtax SOBchealth SOBmhealth, by(college)
+local i = 1
+foreach v in birthday lucky jobs school tax chealth mhealth {
+    rename SOB`v' SOB`i'
+    local ++i
+}
+
+reshape long SOB, i(college) j(var)
+gen varname = ""
+local i = 1
+foreach v in birthday lucky jobs school tax {
+    replace varname = "`v'" if var==`i'
+    local ++i
+}
+replace varname = "child" if var==6
+replace varname = "mother" if var==7
+reshape wide SOB , i(varname) j(college)
+
+graph bar SOB1 SOB0, over(varname, sort(1)) scheme(lean1) /*
+*/ legend(lab(1 "College Degree") lab(2 "No Degree"))     /*
+*/ ytitle("Importance of Factor")
+graph export "$OUT/SOBreasonCollege.eps", replace
+restore
+
 
 exit
 ********************************************************************************
@@ -547,8 +710,8 @@ lab var married  "Married"
 lab var sexchild "Female Child"
 lab var gestatio "Gestation (Months)"
 lab var fertmed  "Used Fertility Treatment"
-lab var SOBimpor "Importance of Birth Season"
-lab var SOBtarge "Targeting Season of Birth"
+lab var SOBimpor "Importance of Conception Season"
+lab var SOBtarge "Targeting Season of Conception"
 lab var hispanic "Hispanic"
 lab var black    "Black"
 lab var white    "White"
