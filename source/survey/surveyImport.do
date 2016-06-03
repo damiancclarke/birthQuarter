@@ -16,6 +16,7 @@ cap log close
 ********************************************************************************
 global DAT "~/investigacion/2015/birthQuarter/data/survey/main"
 global LOG "~/investigacion/2015/birthQuarter/log"
+global USG "~/investigacion/2015/birthQuarter/data/weather"
 
 log using "$LOG/surveyImport.txt", text replace
 
@@ -415,6 +416,23 @@ lab var lat3       "Web Mercator projection of latitude (mapping only)"
 lab var long3      "Web Mercator projection of longitude (mapping only)"
 
 drop childFlag
+
+preserve
+insheet using $USG/usaWeather.txt, names delim(";") clear
+keep if year==2013
+collapse temp (min) minTemp=temp (max) maxTemp=temp, by(state)
+rename state stateString
+
+tempfile temperature
+save `temperature'
+restore
+decode state, gen(stateString)
+
+merge m:1 stateString using `temperature'
+replace temp = 54.71944 if state=="District of Columbia"
+replace minTemp = 26.5 if stateS=="District of Columbia"
+replace maxTemp = 86.5 if stateS=="District of Columbia"
+
 ********************************************************************************
 *** (8) Rename
 ********************************************************************************
