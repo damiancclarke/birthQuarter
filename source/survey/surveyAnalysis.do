@@ -101,6 +101,7 @@ replace ftotinc = 85000  if ftotinc==19
 replace ftotinc = 95000  if ftotinc==20
 replace ftotinc = 125000 if ftotinc==21
 replace ftotinc = 175000 if ftotinc==22
+replace ftotinc = ftotinc/1000
 
 gen educY     = 8 if educ==1
 replace educY = 10 if educ==2
@@ -209,7 +210,7 @@ graph bar birthPropNVS birthProp, over(nchild)                         /*
 graph export "$OUT/nchild.eps", as(eps) replace
 restore
 
-*preserve
+preserve
 use "$NVS/natl2013", clear
 gen N_NV = 1
 gen gest = 6 if estgest<=29
@@ -274,9 +275,7 @@ foreach var of local vnames {
 }
 file close bstats
 
-
 restore
-
 
 
 ********************************************************************************
@@ -423,8 +422,85 @@ graph bar ftotincACS propftotincKid, over(ftotinc) horizontal /*
 */ bar(1, color(blue*0.6)) bar(2, color(red*0.4))
 graph export "$OUT/income.eps", as(eps) replace
 restore
+
+
+preserve
+use "$ACS/ACS_20052014_cleaned", clear
+
+keep if motherAge>=25&motherAge<=45&twins==0
+drop if occ2010 == 9920
+gen N_ACS = 1
+replace ftotinc = ftotinc/1000
+gen educY     = 0  if educ==0
+replace educY = 4  if educ==1
+replace educY = 8  if educ==2
+replace educY = 9  if educ==3
+replace educY = 10 if educ==4
+replace educY = 11 if educ==5
+replace educY = 12 if educ==6
+replace educY = 13 if educ==7
+replace educY = 14 if educ==8
+replace educY = 16 if educ==10
+replace educY = 17 if educ==11
+
+gen someCollege = educ>=7
+gen white     = race == 1
+gen black     = race == 2
+gen otherRace = race!=1&race!=2
+gen employed  = empstat==1
+rename hispan hispanic
+
+collapse (sum) N_ACS (mean) ftotinc educY someCollege married employed hispanic /*
+*/ black white otherRace (sd) sd_ftotinc=ftotinc sd_educY=educY             /*
+*/ sd_someCollege=someCollege sd_married=married sd_employed=employed       /*
+*/ sd_hispanic=hispanic sd_black=black sd_white=white sd_otherRace=otherRace
+
+expand 9
+gen meanACS  = .
+gen stdevACS = .
+gen var      = "" 
+
+
+local i = 1
+foreach var of varlist ftotinc educY someCollege married employed hispanic /*
+*/ black white otherRace {
+    replace mean  = `var' in `i'
+    replace stdev = sd_`var' in `i'
+    replace var = "`var'" in `i'
+    local ++i
+}
+keep meanACS stdevACS var N_ACS
+tempfile ACSSum
+save `ACSSum'
+
+
+merge 1:1 var using `MTurkSum2'
+local i = 1
+#delimit ;
+local vnames `""Family Income" "Education (Years)" "Some College +" "Married"
+               "Currently Employed" "Hispanic" "Black" "White" "Other Race""';
+#delimit cr
+local variables ftotinc educY someCollege married employed hispanic /*
+*/ black white otherRace
+tokenize `variables'
+file open mstats using "$OUT/ACScomp.txt", write replace
+foreach var of local vnames {
+    foreach stat in N mean stdev N_ACS meanACS stdevACS {
+        qui sum `stat' if var=="`1'"
+        local val`stat'=r(mean)
+    }
+    qui ttesti `valN' `valmean' `valstdev' `valN_ACS' `valmeanACS' `valstdevACS'
+    foreach val in mu_1 sd_1 mu_2 sd_2 t {
+        local `val'=round(r(`val')*1000)/1000
+        if ``val''<1&``val''>0 local `val' = "0``val''"
+    }
+    local dif = round((`mu_1'-`mu_2')*1000)/1000
+    if `dif'<1&`dif'>0 local dif = "0`dif'" 
+    file write mstats "`var'&`mu_1'&(`sd_1')&`mu_2'&(`sd_2')&`dif'&`t'\\ " _n
+    macro shift
+}
+file close mstats
 exit
-*/
 ********************************************************************************
 *** (6) Graphs
 ********************************************************************************
