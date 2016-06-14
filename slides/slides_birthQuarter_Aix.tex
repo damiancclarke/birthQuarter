@@ -30,7 +30,7 @@
 \definecolor{cadmiumgreen}{rgb}{0.0, 0.42, 0.24}
 \usetikzlibrary{trees}
 \usetikzlibrary{decorations.markings}
-\setbeamertemplate{footline}[frame number]{}
+%\setbeamertemplate{footline}[frame number]{}
 
 
 \newcommand{\backupbegin}{
@@ -87,9 +87,27 @@ birth.
   \includegraphics[scale=0.67]{./../results/nvss/graphs/goodSeasonAge.eps} \\
 %{\footnotesize For the omitted group, proportion good season (standard error) is 0.497(0.001).}
 \end{figure}
-\hyperlink{agesAll}{\textcolor{blue}{See for all mothers}}
 \end{frame}
 
+\begin{frame}
+  \frametitle{Birth per Month and Geography: Some Background}
+  \begin{figure}[htpb!]
+    \begin{center}
+      \begin{subfigure}{.5\textwidth}
+        \centering
+        \includegraphics[scale=0.37]{./../results/countries/excessMonthChileYoungTemp.eps}
+        \caption{Chile}
+        \label{fig:ChileTemp}
+      \end{subfigure}%
+      \begin{subfigure}{.5\textwidth}
+        \centering
+        \includegraphics[scale=0.37]{./../results/countries/excessMonthUSAYoungTemp.eps}
+        \caption{USA}
+        \label{fig:USATemp}
+      \end{subfigure}
+    \end{center}
+  \end{figure}
+\end{frame}
 
 
 \begin{frame}
@@ -409,7 +427,7 @@ ART clinics do not offer complex fertility treatments such as IVF or embryo tran
 \frametitle{3. Temperature and Good Season: Young vs.\ Old}
 \begin{figure}[htpb!]
 \begin{center}
-%\caption{Prevalence of Good Season and Cold Temperatures}
+\caption{Prevalence of Good Season of Birth and Cold Temperatures}
 \label{fig:tempUSA}
 \begin{subfigure}{.5\textwidth}
   \centering
@@ -659,9 +677,10 @@ State and Year FE & Y & Y & Y & Y \\
 
 
 \begin{frame}[label=MTurk]
-  \frametitle{New Data: M-turk Survey: May 2016}
+  \frametitle{New Data: M-Turk Survey: May 2016}
   \begin{figure}[htpb!]
     \begin{center}
+      \caption{Introductory Survey Results}
       \begin{subfigure}{.5\textwidth}
         \centering
       \includegraphics[scale=0.34]{../results/MTurk/main/descriptives/SOBimportance.eps}
@@ -781,7 +800,7 @@ State and Year FE & Y & Y & Y & Y \\
 Given the prominence of fertility planning in balancing people's work and family life, it seems unlikely that season of birth is a simple matter of chance.
 \vspace{6mm}
 \begin{itemize}
-\item We document a series of descriptive facts that points to a demand for season of birth
+\item We document a series of descriptive facts that point to a demand for season of birth
 \item What's more, preliminary survey analysis suggests
   \begin{enumerate}
   \item There is a stated preference for summer births
@@ -819,26 +838,6 @@ Given the prominence of fertility planning in balancing people's work and family
 
   \appendix
   \backupbegin
-
-\begin{frame}
-  \frametitle{Birth per Month and Temperature: Some Background}
-  \begin{figure}[htpb!]
-    \begin{center}
-      \begin{subfigure}{.5\textwidth}
-        \centering
-        \includegraphics[scale=0.37]{./../results/countries/excessMonthChileYoungTemp.eps}
-        \caption{Chile}
-        \label{fig:ChileTemp}
-      \end{subfigure}%
-      \begin{subfigure}{.5\textwidth}
-        \centering
-        \includegraphics[scale=0.37]{./../results/countries/excessMonthUSAYoungTemp.eps}
-        \caption{USA}
-        \label{fig:USATemp}
-      \end{subfigure}
-    \end{center}
-  \end{figure}
-\end{frame}
 
 
 \begin{frame}
