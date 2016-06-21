@@ -500,7 +500,7 @@ foreach var of local vnames {
     macro shift
 }
 file close mstats
-
+*/
 ********************************************************************************
 *** (6) Graphs
 ********************************************************************************
@@ -632,10 +632,10 @@ foreach n of numlist 0 1 {
 
     preserve
     gen N = 1
-    keep if plankids==1|plankids==3
-    gen ageGroup = 1 if age<31
-    replace ageGroup = 2 if age>=31&age<36
-    replace ageGroup = 3 if age>35
+    keep if plankids==1|plankids==3|childFlag==1
+    gen ageGroup = 1 if age>=25&age<35
+    replace ageGroup = 2 if age>35
+    drop if ageGroup==.
     collapse (sum) N, by(importance ageGroup)
     drop if importance==.
     bys ageGroup: egen tot = sum(N)
@@ -643,9 +643,9 @@ foreach n of numlist 0 1 {
     drop N tot
     reshape wide quantity, i(importance) j(ageGroup)
 
-    graph bar quantity1 quantity2 quantity3, over(importance) scheme(lean1) /*
+    graph bar quantity1 quantity2, over(importance) scheme(lean1) /*
     */ ytitle("Proportion of Respondents") /*
-    */ legend(lab(1 "18-30 Years") lab(2 "30-35 Years") lab(3 ">35 Years"))
+    */ legend(lab(1 "25-34 Year-Olds") lab(2 "> 35 Year-Olds"))
     graph export "$OUT/SOBimportanceAge`app'.eps", replace
     restore
     
@@ -664,6 +664,42 @@ foreach n of numlist 0 1 {
     */ legend(lab(1 "Non-Teachers") lab(2 "Teachers"))
     graph export "$OUT/SOBimportanceTeachers`app'.eps", replace
     restore
+
+    preserve
+    gen N = 1
+    gen teacher = occ == 6
+    keep if childFlag==1
+    collapse (sum) N, by(importance teacher)
+    drop if importance==.
+    bys teacher: egen tot = sum(N)
+    gen quantity = N/tot
+    drop N tot
+    reshape wide quantity, i(importance) j(teacher)
+
+    graph bar quantity0 quantity1, over(importance) scheme(lean1) /*
+    */ ytitle("Proportion of Respondents") /*
+    */ legend(lab(1 "Non-Teachers") lab(2 "Teachers"))
+    graph export "$OUT/SOBimportanceParentTeachers`app'.eps", replace
+    restore
+
+    preserve
+    gen N = 1
+    gen teacher = occ == 6 
+    keep if plankids==1|plankids==3
+    collapse (sum) N, by(importance teacher)
+    drop if importance==.
+    bys teacher: egen tot = sum(N)
+    gen quantity = N/tot
+    drop N tot
+    reshape wide quantity, i(importance) j(teacher)
+
+    graph bar quantity0 quantity1, over(importance) scheme(lean1) /*
+    */ ytitle("Proportion of Respondents") /*
+    */ legend(lab(1 "Non-Teachers") lab(2 "Teachers"))
+    graph export "$OUT/SOBimportancePlansTeachers`app'.eps", replace
+    restore
+
+    
     
     preserve
     collapse SOBbirthday SOBluck SOBjob SOBsch SOBtax SOBchea SOBmhea
@@ -741,7 +777,22 @@ foreach n of numlist 0 1 {
     restore
 }
 
-*/
+gen teacher = occ == 6
+gen importance6plus=importance>=6 if importance!=.
+sum importance6plus if teacher==1
+sum importance6plus if teacher==0
+
+sum importance6plus if teacher==1&childFlag==1
+sum importance6plus if teacher==0&childFlag==1
+
+sum importance6plus if teacher==1&(plankids==1|plankids==3)
+sum importance6plus if teacher==0&(plankids==1|plankids==3)
+
+sum importance6plus if childFlag==1
+sum importance6plus if plankids==1|plankids==3
+
+
+exit
 ********************************************************************************
 *** (7) Tables
 ********************************************************************************
