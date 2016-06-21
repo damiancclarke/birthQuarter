@@ -1214,6 +1214,7 @@ save `weather'
 
 use "$DAT/`data'"
 if `allobs'==0 keep if married==1
+
 replace twin=twin-1
 keep if birthOrder==1&motherAge>19&motherAge<=45
 gen birth = 1
@@ -1229,7 +1230,8 @@ gen     young = 1 if ageGroup == 2|ageGroup==3|ageGroup==4
 replace young = 0 if ageGroup == 5
 
 *preserve
-collapse goodQuarter expectGoodQ, by(ageGroup fips state bstate)
+collapse goodQuarter expectGoodQ (sum) liveBirth, /*
+*/ by(ageGroup fips state bstate)
 
 merge m:1 state using `weather'
 drop _merge
@@ -1252,11 +1254,24 @@ foreach num of numlist 3 5 {
     local pval   = (1-ttail(e(df_r),(_b[cold]/_se[cold])))
     local pvalue = string(`pval',"%5.3f")
     if `pvalue' == 0 local pvalue 0.000
-    twoway scatter goodQuarter cold if ageGroup==`num', mlabel(state) ||      ///
-        lfit goodQuarter cold if ageGroup==`num', scheme(s1mono) lcolor(gs0)  ///
-            legend(off) lpattern(dash)                                        ///
+    twoway scatter goodQuarter cold if ageGroup==`num', mlabel(state) ||       ///
+        lfit goodQuarter cold if ageGroup==`num', scheme(s1mono) lcolor(gs0)   ///
+            legend(off) lpattern(dash)                                         ///
     note("Correlation coefficient (p-value) =`ccoef' (`pvalue')")
     graph export "$OUT/`age'TempCold.eps", as(eps) replace
+
+    corr goodQuarter cold [aw=liveBirth] if ageGroup==`num' 
+    local ccoef = string(r(rho),"%5.3f")
+    reg goodQuarter cold [aw=liveBirth] if ageGroup==`num'
+    local pval   = (1-ttail(e(df_r),(_b[cold]/_se[cold])))
+    local pvalue = string(`pval',"%5.3f")
+    if `pvalue' == 0 local pvalue 0.000
+    twoway scatter goodQuarter cold if ageGroup==`num', msymbol(i) mlabel(state) || ///
+           scatter goodQuarter cold if ageGroup==`num' [aw=li], msymbol(Oh) || ///
+              lfit goodQuarter cold if ageGroup==`num' [aw=li], scheme(s1mono) ///
+            legend(off) lpattern(dash) lcolor(gs0)                             ///
+    note("Correlation coefficient (p-value) =`ccoef' (`pvalue')")
+    graph export "$OUT/`age'TempCold_weight.eps", as(eps) replace
 
     corr goodQuarter Tvariation if ageGroup==`num'
     local ccoef = string(r(rho),"%5.3f")
