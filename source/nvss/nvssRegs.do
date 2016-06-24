@@ -42,9 +42,10 @@ local yFE    i.year;
 local se     robust;
 local cnd    if twin==1 & motherAge>24 & motherAge <= 45 & liveBirth==1;
 local keepif birthOrder==1;
-local Fnote  "F-test of age variables refers to the p-value on the test that
+local Fnote  "F-test of age variables refers to the test that
               the coefficients on mother's age and age squared are jointly
-              equal to zero.";
+              equal to zero. Reported p-values are those corresponding to
+              this classical F-test.";
 local onote  "Optimal age calculates the turning point of the mother's age
               quadratic.";
 local enote  "Heteroscedasticity robust standard errors are reported in
@@ -66,6 +67,11 @@ lab var motherAge2 "Mother's Age$^2$ / 100"
 replace PrePregWt = PrePregWt/10
 lab var PrePregWt  "Pre-Pregnancy Weight / 10"
 lab var height     "Height (Inches)"
+
+gen educYrs   = educCat
+gen educYrsSq = educYrs*educYrs
+lab var educYrs   "Years of Education"
+lab var educYrsSq "Education Squared"
 
 ********************************************************************************
 *** (3a) Good Quarter Regressions
@@ -104,18 +110,22 @@ foreach type of local add {
 
     eststo: areg goodQuarter `age' `edu' `con' _year* `spcnd', `se' `yab'
     test `age'
+    local F1a= round(r(F)*1000)/1000
     local F1 = round(r(p)*1000)/1000
     if   `F1' == 0 local F1 0.000
     local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+    local L1   = (e(df_r)/2)*(e(N)^(2/e(N))-1)
     
     eststo: areg goodQuarter `age'       _year* if e(sample) , `se' `yab'
-    test `age'    
+    test `age'
+    local F2a= round(r(F)*1000)/1000
     local F2 = round(r(p)*1000)/1000
     if   `F2' == 0 local F2 0.000
     local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
     eststo:  reg goodQuarter `age'              if e(sample) , `se'
     test `age'
+    local F3a= round(r(F)*1000)/1000
     local F3 = round(r(p)*1000)/1000
     if   `F3' == 0 local F3 0.000
     local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
@@ -123,12 +133,15 @@ foreach type of local add {
     keep if year>=2009&ART!=.&WIC!=.&underweight!=.
     eststo: areg goodQuarter `age' `edu' `con' _year* `spcnd', `se' `yab'
     test `age'
+    local F4a= round(r(F)*1000)/1000
     local F4 = round(r(p)*1000)/1000
     if   `F4' == 0 local F4 0.000
     local opt4 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+    local L4   =(e(df_r)/2)*(e(N)^(2/e(N))-1)
 
     eststo: areg goodQuarter `age' `edu' `con' `c2' _year* `spcnd', `se' `yab'
     test `age'
+    local F5a= round(r(F)*1000)/1000
     local F5 = round(r(p)*1000)/1000
     if   `F5' == 0 local F5 0.000
     local opt5 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
@@ -138,13 +151,16 @@ foreach type of local add {
     replace `estopt' keep(`age' `edu' smoker `c2' `mc') 
     title("Season of Birth Correlates `type'"\label{tab:bq`1'}) booktabs 
     style(tex) mlabels(, depvar)
-    postfoot("F-test of Age Variables&`F3'&`F2'&`F1'&`F4'&`F5' \\            "
+    postfoot("F-test of Age Variables&`F3a'&`F2a'&`F1a'&`F4a'&`F5a' \\       "
+             "p-value of F-test      &`F3'&`F2'&`F1'&`F4'&`F5' \\            "
+             "Leamer Critical Value  &`L1'&`L1'&`L1'&`L4'&`L4' \\            "
              "Optimal Age &`opt3'&`opt2'&`opt1'&`opt4'&`opt5' \\             "
              "State and Year FE&&Y&Y&Y&Y\\ Gestation FE &&&Y&Y&Y\\           "
              "2009-2013 Only&&&&Y&Y\\ \bottomrule                            "
              "\multicolumn{6}{p{19cm}}{\begin{footnotesize} All `samp1',     "
              "`samp2' children from the main sample are included. `Fnote'    "
-             "`onote' `enote'     "
+             "Leamer critical values refer to Leamer/Schwartz/Deaton critical"
+             "5% values adjusted for sample size.  `onote' `enote'           "
              "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
              "\end{footnotesize}}\end{tabular}\end{table}");
     #delimit cr
@@ -167,18 +183,22 @@ keep `cnd'&`keepif'
 
 eststo: areg goodQuarter `age' `edu' `con' _year* i.fips#c.year, `se' `yab'
 test `age'
+local F1a= round(r(F)*1000)/1000
 local F1 = round(r(p)*1000)/1000
 if   `F1' == 0 local F1 0.000
 local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+local L1   = (e(df_r)/2)*(e(N)^(2/e(N))-1)
 
 eststo: areg goodQuarter `age' `edu' `con' _year*              , `se' `yab'
 test `age'
+local F2a= round(r(F)*1000)/1000
 local F2 = round(r(p)*1000)/1000
 if   `F2' == 0 local F2 0.000
 local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
 eststo: areg goodQuarter `age' `edu' `co1' _year* i.fips#c.year, `se' `yab'
 test `age'
+local F3a= round(r(F)*1000)/1000
 local F3 = round(r(p)*1000)/1000
 if   `F3' == 0 local F3 0.000
 local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
@@ -186,18 +206,22 @@ local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 keep if year>=2009&ART!=.&WIC!=.&underweight!=.
 eststo: areg goodQuarter `age' `edu' `con' _year*              , `se' `yab'
 test `age'
+local F4a= round(r(F)*1000)/1000
 local F4 = round(r(p)*1000)/1000
 if   `F4' == 0 local F4 0.000
 local opt4 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+local L4   = (e(df_r)/2)*(e(N)^(2/e(N))-1)
 
 eststo: areg goodQuarter `age' `edu' `con' _year* `c2'        , `se' `yab'
 test `age'
+local F5a= round(r(F)*1000)/1000
 local F5 = round(r(p)*1000)/1000
 if   `F5' == 0 local F5 0.000
 local opt5 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
 eststo: areg goodQuarter `age' `edu' `con' `c2' i.fips#c.year  , `se' `yab'
 test `age'
+local F6a= round(r(F)*1000)/1000
 local F6 = round(r(p)*1000)/1000
 if   `F6' == 0 local F6 0.000
 local opt6 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
@@ -209,7 +233,9 @@ esttab est3 est2 est1 est4 est5 est6 using
 title("Season of Birth Correlates (`tnote')" \label{tab:robustness})
 booktabs keep(`age' `edu' `c2' smoker value `mc')
 style(tex) mlabels(, depvar)
-postfoot("F-test of Age Variables&`F3'&`F2'&`F1'&`F4'&`F5'&`F6' \\      "
+postfoot("F-test of Age Variables&`F3a'&`F2a'&`F1a'&`F4a'&`F5a' \\      "
+         "p-value of F-test      &`F3'&`F2'&`F1'&`F4'&`F5' \\           "
+         "Leamer Critical Value  &`L1'&`L1'&`L1'&`L4'&`L4' \\           "
          "Optimal Age &`opt3'&`opt2'&`opt1'&`opt4'&`opt5'&`opt6' \\     "
          "State and Year FE&Y&Y&Y&Y&Y&Y\\ Gestation FE &Y&Y&Y&Y&Y&Y\\   "
          "State Specific Linear Trends&Y& &Y& & & Y \\                  "
@@ -217,14 +243,16 @@ postfoot("F-test of Age Variables&`F3'&`F2'&`F1'&`F4'&`F5'&`F6' \\      "
          "\multicolumn{7}{p{20cm}}{\begin{footnotesize} Independent     "
 	 "variables are binary, except for                              "
          "unemployment, which is measured as the unemployment rate in   "
-         "the mother's state in the month of conception. `Fnote' `onote'"
+         "the mother's state in the month of conception. `Fnote'        "
+         "Leamer critical values refer to Leamer/Schwartz/Deaton critical"
+         "5% values adjusted for sample size. `onote'"
          " `enote' ***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01."
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
 restore
 
-
+/*
 ********************************************************************************
 *** (4) ART and Teens
 ********************************************************************************
@@ -253,7 +281,7 @@ postfoot("State and Year FE&&Y&Y&Y\\  \bottomrule                        "
 #delimit cr
 estimates clear
 restore
-
+*/
 ********************************************************************************
 *** (5) Regressions (Quality on Age, season)
 ********************************************************************************
@@ -274,8 +302,10 @@ foreach cond of local c1 {
     foreach y of varlist `qual' {
         eststo: areg `y' goodQuarter `varsY' `control' `yFE', `se' abs(fips)
         test `varsY'
-        local F`jj'a = round(r(p)*1000)/1000
+        local F`jj'a  = round(r(p)*1000)/1000
         if   `F`jj'a' == 0 local F`jj'a 0.000
+        local F`jj'b  = round(r(p)*1000)/1000
+        local L`jj'   =(e(df_r)/2)*(e(N)^(2/e(N))-1)
 
         local smp if e(sample)==1        
         eststo: areg `y' goodQuarter         `yFE' `smp', `se' abs(fips)
@@ -288,11 +318,15 @@ foreach cond of local c1 {
     esttab est1 est3 est5 est7 est9 est11 using "$OUT/NVSSQuality`1'.tex",
     title("Birth Quality and Season of Birth (`title'`lab')"\label{tab:quality`1'})
     keep(goodQuarter `varsY' `control') style(tex) mlabels(, depvar) `estopt'
-    postfoot("F-test of Age Variables&`F1a'&`F2a'&`F3a'&`F4a'&`F5a'&`F6a' \\ "
+    postfoot("F-test of Age Variables&`F1b'&`F2b'&`F3b'&`F4b'&`F5b'&`F6b' \\ "
+             "p-value of F-test      &`F1a'&`F2a'&`F3a'&`F4a'&`F5a'&`F6a' \\ "
+             "Leamer Critical Value  &`L1'&`L2'&`L3'&`L4'&`L5'&`L6'       \\ "
              "\bottomrule                                                    "
              "\multicolumn{7}{p{18.8cm}}{\begin{footnotesize}Main estimation "
 	     "sample is used. State and year fixed effects are               "
-             "included, and `Fnote'         `enote'                          "
+             "included, and `Fnote' Leamer critical values refer to          "
+             "Leamer/Schwartz/Deaton critical 5% values adjusted for sample  "
+             "size. `enote'                                                  "
              "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
              "\end{footnotesize}}\end{tabular}\end{table}") booktabs replace;
 
@@ -328,24 +362,29 @@ local spcnd
 
 eststo: areg goodQuarter `age' `con' _year* i.gestation , `se' `yab'
 test `age'
+local F1a= round(r(F)*1000)/1000
 local F1 = round(r(p)*1000)/1000
 if   `F1' == 0 local F1 0.000
 local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+local L1   = (e(df_r)/2)*(e(N)^(2/e(N))-1)
 
 eststo: areg goodQuarter `age' `con' _year*             , `se' `yab'
 test `age'
+local F2a= round(r(F)*1000)/1000
 local F2 = round(r(p)*1000)/1000
 if   `F2' == 0 local F2 0.000
 local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
 eststo: areg goodQuarter `age'       _year* if e(sample), `se' `yab'
 test `age'
+local F3a= round(r(F)*1000)/1000
 local F3 = round(r(p)*1000)/1000
 if   `F3' == 0 local F3 0.000
 local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
 eststo:  reg goodQuarter `age'              if e(sample), `se'
 test `age'
+local F4a= round(r(F)*1000)/1000
 local F4 = round(r(p)*1000)/1000
 if   `F4' == 0 local F4 0.000
 local opt4 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
@@ -354,14 +393,18 @@ local opt4 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 esttab est4 est3 est2 est1 using "$OUT/NVSSBinaryFDeaths.tex", replace
 title("Season of Birth Correlates (Including Fetal Deaths)"\label{tab:FDeaths}) 
 `estopt' keep(`age' `con') style(tex) mlabels(, depvar)
-postfoot("F-test of Age Variables&`F4'&`F3'&`F2'&`F1' \\                     "
+postfoot("F-test of Age Variables&`F4a'&`F3a'&`F2a'&`F1a' \\                 "
+         "p-value of F-test      &`F4' &`F3' &`F2' &`F1'  \\                 "
+         "Leamer Critical Value  &`L1'&`L1'&`L1'&`L1'     \\                 "
          "Optimal Age &`opt4'&`opt3'&`opt2'&`opt1' \\                        "
          "State and Year FE&&Y&Y&Y\\  Gestation FE &&&&Y \\ \bottomrule      "
          "\multicolumn{5}{p{15.2cm}}{\begin{footnotesize}  Main sample is    "
 	 "augmented to include fetal deaths occurring between 25 and 44      " 
 	 "weeks of gestation. Fetal death files include only a subset of the "
          "full set of variables included in the birth files, so education and"
-         " ART controls are not included. `Fnote' `onote' `enote'            "
+         " ART controls are not included. `Fnote' Leamer critical values     "
+         "refer to Leamer/Schwartz/Deaton critical 5% values adjusted for    "
+         "sample size.`onote' `enote'                                        "
          "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.              "
          "\end{footnotesize}}\end{tabular}\end{table}") booktabs ;
 #delimit cr
@@ -443,3 +486,255 @@ graph export "$OUT/../graphs/missingEduc.eps", as(eps) replace;
 *** (X) Clear
 ********************************************************************************
 log close
+
+
+
+*/
+********************************************************************************
+*** (E3a) Good Quarter Regressions
+********************************************************************************
+#delimit ;
+local add `" ""  "(excluding babies conceived in September)"
+             "(including second births)" "(only twins)" "(including twins)" "';
+local nam Main NoSep Bord2 Twin TwinS;
+#delimit cr
+tokenize `nam'
+
+foreach type of local add {
+    preserve
+
+    local age motherAge motherAge2
+    local edu educYrs educYrsSq
+    local con smoker i.gestation `mc' 
+    local c2  WIC underweight overweight obese noART
+    local yab abs(fips)
+    local spcnd
+    local group `cnd'&`keepif'
+    local samp1 "singleton"
+    local samp2 "first born"
+    
+    if `"`1'"' == "NoSep" local spcnd if birthMonth!=9
+    if `"`1'"' == "Bord2" local group `cnd'&birthOrder==2&liveBirth==1
+    if `"`1'"' == "Twin"  local group /*
+           */ if twin==2&motherAge>24&motherAge<46&`keepif'&liveBirth==1
+    if `"`1'"' == "TwinS" local group /*
+           */ if twin<=2&motherAge>24&motherAge<46&`keepif'&liveBirth==1
+    if `"`1'"' == "Bord2" local samp2 "second born"
+    if `"`1'"' == "Twin"  local samp1 "twin" 
+    if `"`1'"' == "TwinS" local samp1 "twin and singleton" 
+
+    keep `group'
+
+    eststo: areg goodQuarter `age' `edu' `con' _year* `spcnd', `se' `yab'
+    test `age'
+    local F1 = round(r(p)*1000)/1000
+    if   `F1' == 0 local F1 0.000
+    local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+    
+    eststo: areg goodQuarter `age'       _year* if e(sample) , `se' `yab'
+    test `age'    
+    local F2 = round(r(p)*1000)/1000
+    if   `F2' == 0 local F2 0.000
+    local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+
+    eststo:  reg goodQuarter `age'              if e(sample) , `se'
+    test `age'
+    local F3 = round(r(p)*1000)/1000
+    if   `F3' == 0 local F3 0.000
+    local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+
+    keep if year>=2009&ART!=.&WIC!=.&underweight!=.
+    eststo: areg goodQuarter `age' `edu' `con' _year* `spcnd', `se' `yab'
+    test `age'
+    local F4 = round(r(p)*1000)/1000
+    if   `F4' == 0 local F4 0.000
+    local opt4 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+
+    eststo: areg goodQuarter `age' `edu' `con' `c2' _year* `spcnd', `se' `yab'
+    test `age'
+    local F5 = round(r(p)*1000)/1000
+    if   `F5' == 0 local F5 0.000
+    local opt5 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+
+    #delimit ;
+    esttab est3 est2 est1 est4 est5 using "$OUT/EducSq_NVSSBinary`1'.tex",
+    replace `estopt' keep(`age' `edu' smoker `c2' `mc') 
+    title("Season of Birth Correlates `type'"\label{tab:bq`1'}) booktabs 
+    style(tex) mlabels(, depvar)
+    postfoot("F-test of Age Variables&`F3'&`F2'&`F1'&`F4'&`F5' \\            "
+             "Optimal Age &`opt3'&`opt2'&`opt1'&`opt4'&`opt5' \\             "
+             "State and Year FE&&Y&Y&Y&Y\\ Gestation FE &&&Y&Y&Y\\           "
+             "2009-2013 Only&&&&Y&Y\\ \bottomrule                            "
+             "\multicolumn{6}{p{19cm}}{\begin{footnotesize} All `samp1',     "
+             "`samp2' children from the main sample are included.  Years of  "
+             "education are inferred from 6 categorical measures. `Fnote'    "
+             "`onote' `enote'     "
+             "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
+             "\end{footnotesize}}\end{tabular}\end{table}");
+    #delimit cr
+    estimates clear
+
+    macro shift
+    restore
+}
+
+
+local age motherAge motherAge2
+local edu educYrs educYrsSq
+local co1 smoker `mc' i.gestation
+local con smoker `mc' value i.gestation
+local c2  WIC underweight overweight obese noART
+local yab abs(fips)
+
+preserve
+keep `cnd'&`keepif'
+
+eststo: areg goodQuarter `age' `edu' `con' _year* i.fips#c.year, `se' `yab'
+test `age'
+local F1 = round(r(p)*1000)/1000
+if   `F1' == 0 local F1 0.000
+local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+
+eststo: areg goodQuarter `age' `edu' `con' _year*              , `se' `yab'
+test `age'
+local F2 = round(r(p)*1000)/1000
+if   `F2' == 0 local F2 0.000
+local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+
+eststo: areg goodQuarter `age' `edu' `co1' _year* i.fips#c.year, `se' `yab'
+test `age'
+local F3 = round(r(p)*1000)/1000
+if   `F3' == 0 local F3 0.000
+local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+
+keep if year>=2009&ART!=.&WIC!=.&underweight!=.
+eststo: areg goodQuarter `age' `edu' `con' _year*              , `se' `yab'
+test `age'
+local F4 = round(r(p)*1000)/1000
+if   `F4' == 0 local F4 0.000
+local opt4 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+
+eststo: areg goodQuarter `age' `edu' `con' _year* `c2'        , `se' `yab'
+test `age'
+local F5 = round(r(p)*1000)/1000
+if   `F5' == 0 local F5 0.000
+local opt5 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+
+eststo: areg goodQuarter `age' `edu' `con' `c2' i.fips#c.year  , `se' `yab'
+test `age'
+local F6 = round(r(p)*1000)/1000
+if   `F6' == 0 local F6 0.000
+local opt6 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+
+local tnote "controlling for state-specific trends and unemployment rate"
+#delimit ;
+esttab est3 est2 est1 est4 est5 est6 using
+"$OUT/EducSq_NVSSBinaryMain_robust.tex", replace `estopt'
+title("Season of Birth Correlates (`tnote')" \label{tab:robustness})
+booktabs keep(`age' `edu' `c2' smoker value `mc')
+style(tex) mlabels(, depvar)
+postfoot("F-test of Age Variables&`F3'&`F2'&`F1'&`F4'&`F5'&`F6' \\      "
+         "Optimal Age &`opt3'&`opt2'&`opt1'&`opt4'&`opt5'&`opt6' \\     "
+         "State and Year FE&Y&Y&Y&Y&Y&Y\\ Gestation FE &Y&Y&Y&Y&Y&Y\\   "
+         "State Specific Linear Trends&Y& &Y& & & Y \\                  "
+         "2009-2013 Only&&&&Y&Y&Y\\ \bottomrule                         "
+         "\multicolumn{7}{p{20cm}}{\begin{footnotesize} Independent     "
+	 "variables are binary, except for                              "
+         "unemployment, which is measured as the unemployment rate in   "
+         "the mother's state in the month of conception, and education  "
+         "and its square which is measured as years, inferred from 6    "
+         "categories. `Fnote' `onote'"
+         " `enote' ***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01."
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+restore
+
+
+********************************************************************************
+*** (E4) ART and Teens
+********************************************************************************
+local lab "\label{tab:ART2024}"
+local con smoker WIC underweight overweight obese `mc'
+
+preserve
+keep if twin==1 & motherAge>=20 & motherAge<=45 & liveBirth==1 & `keepif'
+               
+eststo: areg goodQuarter age2024 noART educYrs* `con'  _year*, abs(fips)
+keep if e(sample) == 1                                     
+eststo: areg goodQuarter age2024 noART educYrs* smoker _year*, abs(fips)
+eststo: areg goodQuarter age2024 noART                 _year*, abs(fips)
+eststo:  reg goodQuarter age2024 noART                                
+
+#delimit ;
+esttab est4 est3 est2 est1 using "$OUT/EducSq_ART2024.tex", replace
+`estopt' keep(age2024 noART educYrs educYrsSq `con') style(tex) booktabs
+title("Season of Birth Correlates: Very Young (20-24) and ART users`lab'")
+postfoot("State and Year FE&&Y&Y&Y\\  \bottomrule                        "
+         "\multicolumn{5}{p{16.4cm}}{\begin{footnotesize} Main estimation  "
+         "sample is augmented to also include women aged 20-24.            "
+         "Heteroscedasticity robust standard errors are reported.          "
+         "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.            "
+         " \end{footnotesize}}\end{tabular}\end{table}") mlabels(, depvar);
+#delimit cr
+estimates clear
+restore
+
+********************************************************************************
+*** (E5) Regressions (Quality on Age, season)
+********************************************************************************
+local c1      twin==1&birthOrd==1&liveBir==1
+local varsY   motherAge motherAge2
+local control educYrs educYrsSq smoker WIC underweight overweight obese ART `mc'
+local names   Main
+
+tokenize `names'
+
+foreach cond of local c1 {
+    if `"`1'"'=="Main"    local title     
+    dis "`1', `title'"
+    preserve
+    keep if motherAge>24 & motherAge<=45 & `cond'
+    
+    local jj=1
+    foreach y of varlist `qual' {
+        eststo: areg `y' goodQuarter `varsY' `control' `yFE', `se' abs(fips)
+        test `varsY'
+        local F`jj'a = round(r(p)*1000)/1000
+        if   `F`jj'a' == 0 local F`jj'a 0.000
+
+        local smp if e(sample)==1        
+        eststo: areg `y' goodQuarter         `yFE' `smp', `se' abs(fips)
+
+        local ++jj
+    }
+
+    local lab "with controls"
+    #delimit ;
+    esttab est1 est3 est5 est7 est9 est11 using "$OUT/EducSq_NVSSQuality`1'.tex",
+    title("Birth Quality and Season of Birth (`title'`lab')"\label{tab:quality`1'})
+    keep(goodQuarter `varsY' `control') style(tex) mlabels(, depvar) `estopt'
+    postfoot("F-test of Age Variables&`F1a'&`F2a'&`F3a'&`F4a'&`F5a'&`F6a' \\ "
+             "\bottomrule                                                    "
+             "\multicolumn{7}{p{18.8cm}}{\begin{footnotesize}Main estimation "
+	     "sample is used. State and year fixed effects are               "
+             "included, and `Fnote'         `enote'                          "
+             "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
+             "\end{footnotesize}}\end{tabular}\end{table}") booktabs replace;
+
+    local lab "without controls";
+    esttab est2 est4 est6 est8 est10 est12 using "$OUT/EducSq_NVSSQuality`1'_NC.tex",
+    replace `estopt' title("Birth Quality and Season of Birth (`title'`lab')")
+    keep(_cons goodQuarter) style(tex) mlabels(, depvar) 
+    postfoot("\bottomrule                                                    "
+             "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Main estimation   "
+	     "sample is used. State and year fixed effects are               "
+             "included. `enote'                                              "
+             "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
+             "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
+    #delimit cr
+    estimates clear
+    
+    macro shift
+    restore
+}
