@@ -45,7 +45,7 @@ local Fnote  "F-test of age variables refers to the p-value on the test that
 local onote  "Optimal age calculates the turning point of the mother's age
               quadratic. ";
 #delimit cr
-/*
+
 ********************************************************************************
 *** (2) Open data subset to sample of interest (from Sonia's import file)
 ********************************************************************************
@@ -68,7 +68,7 @@ gen motherAge2      = motherAge*motherAge/100
 lab var motherAge       "Mother's Age"
 lab var motherAge2      "Mother's Age$^2$ / 100"
 
-
+/*
 ********************************************************************************
 *** (3a) regressions: Birth Quarter
 ********************************************************************************
@@ -107,7 +107,7 @@ postfoot("F-test of Age Variables&0`F4'&0`F3'&0`F2'&0`F1' \\                   "
          "Optimal Age &`opt4'&`opt3'&`opt2'&`opt1' \\                          "
          "State and Year FE&&Y&Y&Y\\ Occupation FE&&&&Y\\ \bottomrule          "
          "\multicolumn{5}{p{15.2cm}}{\begin{footnotesize}Sample consists of all"
-         "first born children in the USA to white, non-hispanic, married       "
+         "first born children in the US to white, non-hispanic, married        "
          "mothers aged 25-45 included in ACS data where the mother is either   "
          "the head of the household or the partner of the head of the          "
          "household and works in an occupation with at least 500 workers in the"
@@ -154,7 +154,7 @@ postfoot("F-test of Age Variables&0`F4'&0`F3'&0`F2'&0`F1' \\                   "
          "State and Year FE&Y&Y&Y&Y\\ State Linear Trends&Y& &Y&Y\\            "
          "Occupation FE&&&&Y\\                          \bottomrule            "
          "\multicolumn{5}{p{15.4cm}}{\begin{footnotesize}Sample consists of all"
-         " first born children in the USA to white, non-hispanic married       "
+         " first born children in the US to white, non-hispanic married        "
          "mothers aged 25-45 included in ACS data where the mother is either   "
          " the head of the household or the partner of the head of the         "
          "household and works in an occupation with at least 500 workers in the"
@@ -224,7 +224,7 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
          "F-test of Age Variables&0`F3a'&0`F2a'&0`F1a'\\                       "
          "Optimal Age&`opt3'&`opt2'&`opt1'\\ \bottomrule                       "
          "\multicolumn{4}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
-         " singleton first-born children in the USA to white, non-hispanic     "
+         " singleton first-born children in the US to white, non-hispanic      "
 	 "`mnote' mothers aged 25-45 included in 2005-2014 ACS data where the  "
 	 "mother is either the head of the household or the partner of the head"
 	 " of the household and works in an occupation with at least 500       "
@@ -232,8 +232,7 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
 	 "occupation codes (2 digit, or 3 digit). The omitted occupational     "
 	 "category in column 2 and column 4 is Arts, Design, Entertainment,    "
          "Sports, and Media, as this occupation has good quarter=0.500(0.500). "
-	 " All occupation codes refer to IPUMS occ2010 codes, available at:    "
-         "https://usa.ipums.org/usa/volii/acs_occtooccsoc.shtml. F-tests for   "
+         "F-tests for   "
          "occupation report p-values of joint significance of the dummies, and "
          "`Fnote' `onote' `enote'"
          "\end{footnotesize}}\end{tabular}\end{table}");
@@ -277,7 +276,7 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
          "F-test of Age Variables&0`F3a'&0`F2a'&0`F1a'\\                       "
          "Optimal Age&`opt3'&`opt2'&`opt1'\\ \bottomrule                       "
          "\multicolumn{4}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
-         " singleton first-born children in the USA to white, non-hispanic     "
+         " singleton first-born children in the US  to white, non-hispanic     "
 	 "married mothers aged 25-45 included in 2005-2014 ACS data where the  "
 	 "mother is either the head of the household or the partner of the head"
 	 " of the household and works in an occupation with at least 500       "
@@ -285,8 +284,7 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
 	 "occupation codes (2 digit, or 3 digit). The omitted occupational     "
 	 "category in column 2 and column 4 is Arts, Design, Entertainment,    "
          "Sports, and Media, as this occupation has good quarter=0.500(0.500). "
-	 " All occupation codes refer to IPUMS occ2010 codes, available at:    "
-         "https://usa.ipums.org/usa/volii/acs_occtooccsoc.shtml. F-tests for   "
+         "F-tests for   "
          "occupation report p-values of joint significance of the dummies, and "
          "`Fnote' `onote' `enote'"
          "\end{footnotesize}}\end{tabular}\end{table}");
@@ -332,7 +330,7 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
          "F-test of Age Variables&0`F3a'&0`F2a'&0`F1a'\\                       "
          "Optimal Age&`opt3'&`opt2'&`opt1'\\ \bottomrule                       "
          "\multicolumn{4}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
-         " singleton first-born children in the USA to white, non-hispanic     "
+         " singleton first-born children in the US  to white, non-hispanic     "
 	 "married mothers aged 25-45 included in 2005-2014 ACS data where the  "
 	 "mother is either the head of the household or the partner of the head"
 	 " of the household and works in an occupation with at least 500       "
@@ -340,8 +338,7 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
 	 "occupation codes (2 digit, or 3 digit). The omitted occupational     "
 	 "category in column 2 and column 4 is Arts, Design, Entertainment,    "
          "Sports, and Media, as this occupation has good quarter=0.500(0.500). "
-	 " All occupation codes refer to IPUMS occ2010 codes, available at:    "
-         "https://usa.ipums.org/usa/volii/acs_occtooccsoc.shtml. F-tests for   "
+         "F-tests for   "
          "occupation report p-values of joint significance of the dummies, and "
          "`Fnote' `onote' `enote'"
          "\end{footnotesize}}\end{tabular}\end{table}");
@@ -383,7 +380,7 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
          "F-test of Age Variables&0`F3a'&0`F2a'&0`F1a'\\                       "
          "Optimal Age&`opt3'&`opt2'&`opt1'\\ \bottomrule                       "
          "\multicolumn{4}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
-         " singleton first-born children in the USA to white, non-hispanic     "
+         " singleton first-born children in the US  to white, non-hispanic     "
 	 "married mothers aged 25-45 included in 2005-2014 ACS data where the  "
 	 "mother is either the head of the household or the partner of the head"
 	 " of the household and works in an occupation with at least 500       "
@@ -391,8 +388,7 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
 	 "occupation codes (2 digit, or 3 digit). The omitted occupational     "
 	 "category in column 2 and column 4 is Arts, Design, Entertainment,    "
          "Sports, and Media, as this occupation has good quarter=0.500(0.500). "
-	 " All occupation codes refer to IPUMS occ2010 codes, available at:    "
-         "https://usa.ipums.org/usa/volii/acs_occtooccsoc.shtml. F-tests for   "
+         "F-tests for   "
          "occupation report p-values of joint significance of the dummies, and "
          "`Fnote' `onote' `enote'"
          "\end{footnotesize}}\end{tabular}\end{table}");
@@ -437,7 +433,7 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
          "F-test of Age Variables&0`F3a'&0`F2a'&0`F1a'\\                       "
          "Optimal Age&`opt3'&`opt2'&`opt1'\\ \bottomrule                       "
          "\multicolumn{4}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
-         " singleton first-born children in the USA to white, non-hispanic     "
+         " singleton first-born children in the US  to white, non-hispanic     "
 	 "married mothers aged 25-45 included in 2005-2014 ACS data where the  "
 	 "mother is either the head of the household or the partner of the head"
 	 " of the household and works in an occupation with at least 500       "
@@ -445,8 +441,7 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
 	 "occupation codes (2 digit, or 3 digit). The omitted occupational     "
 	 "category in column 2 and column 4 is Arts, Design, Entertainment,    "
          "Sports, and Media, as this occupation has good quarter=0.500(0.500). "
-	 " All occupation codes refer to IPUMS occ2010 codes, available at:    "
-         "https://usa.ipums.org/usa/volii/acs_occtooccsoc.shtml. F-tests for   "
+         "F-tests for   "
          "occupation report p-values of joint significance of the dummies, and "
          "`Fnote' `onote' `enote'"
          "\end{footnotesize}}\end{tabular}\end{table}");
@@ -490,7 +485,7 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
          "F-test of Age Variables&0`F3a'&0`F2a'&0`F1a'\\                       "
          "Optimal Age&`opt3'&`opt2'&`opt1'\\ \bottomrule                       "
          "\multicolumn{4}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
-         " singleton first-born children in the USA to white, non-hispanic     "
+         " singleton first-born children in the US  to white, non-hispanic     "
 	 "married mothers aged 25-45 included in 2005-2014 ACS data where the  "
 	 "mother is either the head of the household or the partner of the head"
 	 " of the household and works in an occupation with at least 500       "
@@ -498,8 +493,7 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
 	 "occupation codes (2 digit, or 3 digit). The omitted occupational     "
 	 "category in column 2 and column 4 is Arts, Design, Entertainment,    "
          "Sports, and Media, as this occupation has good quarter=0.500(0.500). "
-	 " All occupation codes refer to IPUMS occ2010 codes, available at:    "
-         "https://usa.ipums.org/usa/volii/acs_occtooccsoc.shtml. F-tests for   "
+         "F-tests for   "
          "occupation report p-values of joint significance of the dummies, and "
          "`Fnote' `onote' `enote'"
          "\end{footnotesize}}\end{tabular}\end{table}");
@@ -568,7 +562,7 @@ keep(_cons `age' `edu' `une' `lv2') style(tex) booktabs mlabels(, depvar)
 postfoot("Occupation Codes (level) &-&2&3\\                                    "
          "F-test of Occupation Dummies&-&`F2'&`F1'\\     \bottomrule           "
          "\multicolumn{4}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
-         " singleton first-born children in the USA to white, non-hispanic     "
+         " singleton first-born children in the US  to white, non-hispanic     "
 	 "married mothers aged 25-45 included in 2005-2014 ACS data where the  "
 	 "mother is either the head of the household or the partner of the head"
 	 " of the household and works in an occupation with at least 500       "
@@ -616,7 +610,7 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
          "F-test of Occupation Dummies&-&`F2'&`F1'\\                           "
          "F-test of Age Variables&0`F3a'&0`F2a'&0`F1a'\\ \bottomrule           "
          "\multicolumn{4}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
-         " singleton first-born children in the USA to white, non-hispanic     "
+         " singleton first-born children in the US  to white, non-hispanic     "
 	 "married mothers aged 25-45 included in 2005-2014 ACS data where the  "
 	 "mother is either the head of the household or the partner of the head"
 	 " of the household and works in an occupation with at least 500       "
@@ -624,8 +618,7 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
 	 "occupation codes (2 digit, or 3 digit). The omitted occupational     "
 	 "category in column 2 and column 4 is Arts, Design, Entertainment,    "
          "Sports, and Media, as this occupation has good quarter=0.500(0.500). "
-	 " All occupation codes refer to IPUMS occ2010 codes, available at:    "
-         "https://usa.ipums.org/usa/volii/acs_occtooccsoc.shtml. F-tests for   "
+         "F-tests for   "
          "occupation report p-values of joint significance of the dummies, and "
          "`Fnote' `onote' `enote'"
          "\end{footnotesize}}\end{tabular}\end{table}");
@@ -637,9 +630,8 @@ estimates clear
 ********************************************************************************
 gen logIncEarn = log(incwage) if incwage>0
 
-local se  cluster(statefip)
+local se  robust
 local abs abs(statefip)
-local abs
 local age motherAge motherAge2
 local edu highEduc
 local une unemployment
@@ -661,33 +653,35 @@ foreach aa in 2527 2831 3239 {
 gen quarter2 = birthQuarter == 2
 lab var quarter "Quarter II"
 
-eststo: reg goodQuarter `mnv' `age' `edu' `une' _year* `wt', `abs' `se'
+eststo: areg goodQuarter `mnv' `age' `edu' _year* `wt', `abs' `se'
 test `age'
 local F2 = round(r(p)*1000)/1000
 local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-eststo: reg goodQuarter `mnv'       `edu'       _year*  `wt', `abs' `se'
-eststo: reg goodQuarter             `edu'       _year*  `wt', `abs' `se'
-eststo: reg goodQuarter `mnv'                   _year*  `wt', `abs' `se'
-eststo: reg goodQuarter `mnv'                           `wt',       `se'
+eststo: areg goodQuarter `mnv'       `edu'       _year*  `wt', `abs' `se'
+eststo: areg goodQuarter             `edu'       _year*  `wt', `abs' `se'
+eststo: areg goodQuarter `mnv'                   _year*  `wt', `abs' `se'
+eststo:  reg goodQuarter `mnv'                           `wt',       `se'
 
 
 #delimit ;
 esttab est5 est4 est3 est2 est1 using "$OUT/IPUMSTeachers.tex", replace
 title("Season of Birth Correlates: \`\`Teachers'' vs.\ \`\`Non-Teachers''")
 keep(`mnv' `age' `edu' `une') style(tex) booktabs mlabels(, depvar) `estopt' 
-postfoot("F-test of Age Variables &  &    &     &     &0`F2'\\                 "
-         "Optimal Age             &  &    &     &     &`opt1'\\                "
-         "State and Year FE&&Y&Y&Y&Y\\                        \bottomrule      "
-         "\multicolumn{6}{p{18.4cm}}{\begin{footnotesize}Main ACS estimation   "
-         "sample is used. Education, Training and Library refers to individuals"
-         " employed in this occupation (occ codes 2200-2550).  The omitted     "
-         "occupational category is all non-educational occupations, and the    "
-         "omitted age category is 40-45 year old women.  `Fnote' `onote'       "
-         "Standard errors are clustered by state."
+postfoot("F-test of Age Variables &  &    &     &     &0`F2'\\                  "
+         "State and Year FE&&Y&Y&Y&Y\\                        \bottomrule       "
+         "\multicolumn{6}{p{18.4cm}}{\begin{footnotesize}Main ACS estimation    "
+         "sample is used. Teacher refers to individuals employed in ``Education,"
+         "Training and Library'' occupations (occupation codes 2200-2550). The  "
+         "omitted occupational category is all non-educational occupations.     "
+         "`Fnote'                "
+         "Heteroscedasticity robust standard errors are reported in parentheses."
+         "clustered by state. "
+         "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01."
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
 
+exit
 local se robust
 preserve
 keep if motherAge>=28&motherAge<=31
@@ -703,10 +697,13 @@ title("Season of Birth Correlates: 28-31 Year-old \`\`Teachers'' vs.\ \`\`Non-Te
 keep(`mnv' `edu') style(tex) booktabs mlabels(, depvar) `estopt' 
 postfoot("State and Year FE&&Y&Y&Y\\                        \bottomrule       "
          "\multicolumn{5}{p{16.4cm}}{\begin{footnotesize}Main ACS estimation  "
-         "sample is used, subset to 28-31 year old women. Education, Training "
-         "and Library refers to individuals employed in this occupation (occ  "
-         "codes 2200-2550).  The omitted occupational category is all         "
-         "non-educational occupations.  `Fnote' `onote' `enote'   "
+         "sample is used. Teacher refers to individuals employed in ``Education,"
+         "Training and Library'' occupations (occupation codes 2200-2550). The  "
+         "omitted occupational category is all non-educational occupations.     "
+         "`Fnote'                "
+         "Heteroscedasticity robust standard errors are reported in parentheses."
+         "clustered by state. "
+         "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01."
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -726,10 +723,13 @@ title("Season of Birth Correlates: 40-45 Year-old \`\`Teachers'' vs.\ \`\`Non-Te
 keep(`mnv' `edu') style(tex) booktabs mlabels(, depvar) `estopt' 
 postfoot("State and Year FE&&Y&Y&Y\\                        \bottomrule       "
          "\multicolumn{5}{p{16.4cm}}{\begin{footnotesize}Main ACS estimation  "
-         "sample is used, subset to 40-45 year old women. Education, Training "
-         "and Library refers to individuals employed in this occupation (occ  "
-         "codes 2200-2550).  The omitted occupational category is all         "
-         "non-educational occupations. `Fnote' `onote' `enote'   "
+         "sample is used. Teacher refers to individuals employed in ``Education,"
+         "Training and Library'' occupations (occupation codes 2200-2550). The  "
+         "omitted occupational category is all non-educational occupations.     "
+         "`Fnote'                "
+         "Heteroscedasticity robust standard errors are reported in parentheses."
+         "clustered by state. "
+         "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01."
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -779,7 +779,7 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\ Occupation FE&&&&&Y\\ \bottomrule       "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-*/
+
 
 ********************************************************************************
 *** (4) Sumstats of good season by various levels
@@ -802,7 +802,7 @@ lab def ag 1 "Young (25-39) " 2 "Old (40-45) "
 lab def ed 0 "No College" 1 "Some College" 2 "Complete College"
 lab val ageGroup ag
 lab val educLevel ed
-/*
+
 preserve
 drop if ageGroup==.
 
@@ -1095,7 +1095,8 @@ graph export "$GRA/birthQuarterEducOld.eps", as(eps) replace;
 #delimit cr
 restore
 
-*/
+
+gen pop=1
 ********************************************************************************
 *** (6e) Figure 6-8
 ********************************************************************************
@@ -1122,7 +1123,8 @@ foreach cond of local c1 {
     bys state: gen statecount = _N
 
     keep if `cond'
-    collapse goodQuarter (min) cold (max) hot, by(statefip state fips state*)
+    collapse goodQuarter (min) cold (max) hot (sum) pop, /*
+    */ by(statefip state fips state*)
     gen diff = hot-cold
     
     lab var goodQuarter "Proportion good season"
@@ -1147,6 +1149,22 @@ foreach cond of local c1 {
         lcolor(gs0) legend(off) lpattern(dash)
         note("Correlation coefficient=`ccoef', p-value=`pvalue'");
         graph export "$GRA/StateTemp_`1'_`tvar'.eps", as(eps) replace;
+        #delimit cr
+
+        corr goodQuarter `tvar' [aw=pop] if `cc'
+        local ccoef = string(r(rho),"%5.3f")
+        reg goodQuarter `tvar' [aw=pop]  if `cc', nohead
+        local pval   = (ttail(e(df_r),abs(_b[`tvar']/_se[`tvar'])))
+        local pvalue = string(`pval',"%5.3f")
+        if `pvalue' == 0 local pvalue 0.000
+
+        #delimit ;
+        twoway scatter goodQuarter `tvar' if `cc', msymbol(i) mlabel(state) ||
+               scatter goodQuarter `tvar' if `cc' [aw=pop], msymbol(Oh) ||      
+                  lfit goodQuarter `tvar' if `cc' [aw=pop], scheme(s1mono)
+        lcolor(gs0) legend(off) lpattern(dash)
+        note("Correlation coefficient=`ccoef', p-value=`pvalue'");
+        graph export "$GRA/StateTemp_`1'_`tvar'_weight.eps", as(eps) replace;
         #delimit cr
     }
     macro shift
@@ -1600,3 +1618,320 @@ graph export "$GRA/incomeSeasons_4045.eps", as(eps) replace
 ********************************************************************************
 log close
 dis _newline(5) " Terminated without Error" _newline(5)
+
+*/
+
+
+gen educYrs = 0 if educd==2|educd==11|educd==12
+replace educYrs = 3 if educd==10
+replace educYrs = 1 if educd==14
+replace educYrs = 2 if educd==15
+replace educYrs = 3 if educd==16
+replace educYrs = 4 if educd==17
+replace educYrs = 5 if educd==21|educd==22
+replace educYrs = 6 if educd==23
+replace educYrs = 7 if educd==24
+replace educYrs = 7 if educd==25
+replace educYrs = 8 if educd==26
+replace educYrs = 9 if educd==30
+replace educYrs = 10 if educd==40
+replace educYrs = 11 if educd==50
+replace educYrs = 12 if educd>=61&educd<=64
+replace educYrs = 13 if educd==65
+replace educYrs = 14 if educd==71|educd==81
+replace educYrs = 16 if educd==101
+replace educYrs = 17 if educd==114
+replace educYrs = 20 if educd==115|educd==116
+gen educYrsSq=educYrs*educYrs
+lab var educYrs "Years of Education"
+lab var educYrsSq "Education Squared"
+
+#delimit ;
+gen maternalPolicy = state=="NewJersey"|state=="California";
+gen ParentalPolicy = "AB" if state=="California"|state=="Connecticut"|
+    state=="DC"|state=="NewJersey"|state=="Hawaii"|state=="Washington"|
+    state=="Oregon"|state=="Maine"|state=="NewYork"|state=="Illnois";
+replace ParentalPolicy = "F" if state=="Alabama"|state=="Delaware"|
+    state=="Georgia"|state=="Idaho"|state=="Kansas"|state=="Michigan"|
+    state=="Mississippi"|state=="Missouri"|state=="Nebraska"|
+    state=="Nevada"|state=="NorthCarolina"|state=="NorthDakota"|
+    state=="Oklahoma"|state=="SouthCarolina"|state=="SouthDakota"|
+    state=="Utah"|state=="WestVirginia"|state=="Wyoming";
+replace ParentalPolicy = "CDE" if ParentalPolicy == "";
+#delimit cr
+
+local nam MLeave NoMLeave PLeaveAB PLeaveCE PLeaveF
+tokenize `nam'
+cap tab oneLevelOcc, gen(_1occ)
+cap tab twoLevelOcc, gen(_2occ)
+cap tab occ        , gen(_occ)
+
+
+cap gen significantOccs =_2occ6==1|_2occ8==1|_2occ9==1|_2occ13==1|_2occ14==1|_2occ15==1
+cap gen insignificantOccs = _2occ7!=1&_2occ15!=1
+replace insignificantOccs = 0 if _2occ2==1    
+lab var   significantOccs "Significant 2 level occupations"
+lab var insignificantOccs "Insignificant 2 level occupations"
+
+
+local se  robust
+local abs abs(statefip)
+local age motherAge motherAge2
+local edu highEduc
+local une unemployment
+local une 
+local lv1 _1occ*
+local lv2 _2occ*
+local lv3 _occ*
+local sig significantOccs insignificantOccs
+cap gen logIncEarn = log(incwage) if incwage>0
+cap gen teachers = twoLevelOcc=="Education, Training, and Library Occupations"
+lab var teachers "Teacher"
+cap gen teacherXcold = teachers*cold
+lab var teacherXcold "Teacher $\times$ Min State Temp"
+
+cap gen quarter2 = birthQuarter == 2
+lab var quarter "Quarter II"
+
+
+foreach num of numlist 1(1)5 {
+********************************************************************************
+*** (E3e) regressions: industry
+********************************************************************************
+if `"`1'"' == "MLeave" local group   maternalPolicy==1
+if `"`1'"' == "NoMLeave" local group maternalPolicy==0
+if `"`1'"' == "PLeaveAB" local group ParentalPolicy=="AB"
+if `"`1'"' == "PLeaveCE" local group ParentalPolicy=="CDE"
+if `"`1'"' == "PLeaveF"  local group ParentalPolicy=="F"
+preserve
+keep if `group'
+    
+
+
+
+eststo: areg goodQuarter `age' `edu' `une' _year* `lv3' `wt', `se' `abs'
+ds _occ*
+local tvar `r(varlist)'
+test `tvar'
+local F1 = round(r(p)*1000)/1000
+if `F1' == 0 local F1 0.000
+test `age'
+local F1a = round(r(p)*1000)/1000
+local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+
+cap drop _2occ2
+eststo:  areg goodQuarter `age' `edu' `une' _year* `lv2' `wt', `se' `abs'
+ds _2occ*
+local tvar `r(varlist)'
+test `tvar'
+local F2 = round(r(p)*1000)/1000
+if `F2' == 0 local F2 0.000
+test `age'
+local F2a = round(r(p)*1000)/1000
+local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+
+eststo:  areg goodQuarter `age' `edu' `une' _year*       `wt', `se' `abs'
+test `age'
+local F3a = round(r(p)*1000)/1000
+local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+
+#delimit ;
+esttab est3 est2 est1 using "$OUT/IPUMSIndustry`1'.tex", replace `estopt' 
+title("Season of Birth Correlates: Occupation"\label{tab:Occupation})
+keep(`age' `edu' `une' `lv2') style(tex) booktabs mlabels(, depvar) 
+postfoot("Occupation Codes (level) &-&2&3\\                                    "
+         "F-test of Occupation Dummies&-&`F2'&`F1'\\                           "
+         "F-test of Age Variables&0`F3a'&0`F2a'&0`F1a'\\                       "
+         "Optimal Age&`opt3'&`opt2'&`opt1'\\ \bottomrule                       "
+         "\multicolumn{4}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
+         " singleton first-born children in the US to white, non-hispanic      "
+	 "`mnote' mothers aged 25-45 included in 2005-2014 ACS data where the  "
+	 "mother is either the head of the household or the partner of the head"
+	 " of the household and works in an occupation with at least 500       "
+	 "workers in the sample. Occupation codes refer to the level of        "
+	 "occupation codes (2 digit, or 3 digit). The omitted occupational     "
+	 "category in column 2 and column 4 is Arts, Design, Entertainment,    "
+         "Sports, and Media, as this occupation has good quarter=0.500(0.500). "
+         "F-tests for   "
+         "occupation report p-values of joint significance of the dummies, and "
+         "`Fnote' `onote' `enote'"
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+
+
+********************************************************************************
+*** (E3f) regressions: Teachers
+********************************************************************************
+local se  robust
+local abs abs(statefip)
+local age motherAge motherAge2
+local edu highEduc
+local une
+local mnv teachers 
+local inc logIncEarn
+lab var logIncEarn "log(Earnings)"
+
+
+eststo: areg goodQuarter `mnv' `age' `edu' _year* `wt', `abs' `se'
+test `age'
+local F2 = round(r(p)*1000)/1000
+local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+eststo: areg goodQuarter `mnv'       `edu'       _year*  `wt', `abs' `se'
+eststo: areg goodQuarter             `edu'       _year*  `wt', `abs' `se'
+eststo: areg goodQuarter `mnv'                   _year*  `wt', `abs' `se'
+eststo:  reg goodQuarter `mnv'                           `wt',       `se'
+
+
+#delimit ;
+esttab est5 est4 est3 est2 est1 using "$OUT/IPUMSTeachers`1'.tex", replace
+title("Season of Birth Correlates: \`\`Teachers'' vs.\ \`\`Non-Teachers''")
+keep(`mnv' `age' `edu' `une') style(tex) booktabs mlabels(, depvar) `estopt' 
+postfoot("F-test of Age Variables &  &    &     &     &0`F2'\\                  "
+         "State and Year FE&&Y&Y&Y&Y\\                        \bottomrule       "
+         "\multicolumn{6}{p{18.4cm}}{\begin{footnotesize}Main ACS estimation    "
+         "sample is used. Teacher refers to individuals employed in ``Education,"
+         "Training and Library'' occupations (occupation codes 2200-2550). The  "
+         "omitted occupational category is all non-educational occupations.     "
+         "`Fnote'                "
+         "Heteroscedasticity robust standard errors are reported in parentheses."
+         "clustered by state. "
+         "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01."
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+restore
+
+macro shift
+}
+
+exit
+
+********************************************************************************
+*** (E3e) regressions: industry
+********************************************************************************
+cap tab oneLevelOcc, gen(_1occ)
+cap tab twoLevelOcc, gen(_2occ)
+cap tab occ        , gen(_occ)
+
+cap gen significantOccs =_2occ6==1|_2occ8==1|_2occ9==1|_2occ13==1|_2occ14==1|_2occ15==1
+cap gen insignificantOccs = _2occ7!=1&_2occ15!=1
+replace insignificantOccs = 0 if _2occ2==1    
+lab var   significantOccs "Significant 2 level occupations"
+lab var insignificantOccs "Insignificant 2 level occupations"
+
+
+local se  robust
+local abs abs(statefip)
+local age motherAge motherAge2
+local edu educYrs educYrsSq
+local une unemployment
+local une 
+local lv1 _1occ*
+local lv2 _2occ*
+local lv3 _occ*
+local sig significantOccs insignificantOccs
+
+
+eststo: areg goodQuarter `age' `edu' `une' _year* `lv3' `wt', `se' `abs'
+ds _occ*
+local tvar `r(varlist)'
+test `tvar'
+local F1 = round(r(p)*1000)/1000
+if `F1' == 0 local F1 0.000
+test `age'
+local F1a = round(r(p)*1000)/1000
+local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+
+drop _2occ2
+eststo:  areg goodQuarter `age' `edu' `une' _year* `lv2' `wt', `se' `abs'
+ds _2occ*
+local tvar `r(varlist)'
+test `tvar'
+local F2 = round(r(p)*1000)/1000
+if `F2' == 0 local F2 0.000
+test `age'
+local F2a = round(r(p)*1000)/1000
+local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+
+eststo:  areg goodQuarter `age' `edu' `une' _year*       `wt', `se' `abs'
+test `age'
+local F3a = round(r(p)*1000)/1000
+local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+
+#delimit ;
+esttab est3 est2 est1 using "$OUT/EducSq_IPUMSIndustry.tex", replace `estopt' 
+title("Season of Birth Correlates: Occupation"\label{tab:Occupation})
+keep(`age' `edu' `une' `lv2') style(tex) booktabs mlabels(, depvar) 
+postfoot("Occupation Codes (level) &-&2&3\\                                    "
+         "F-test of Occupation Dummies&-&`F2'&`F1'\\                           "
+         "F-test of Age Variables&0`F3a'&0`F2a'&0`F1a'\\                       "
+         "Optimal Age&`opt3'&`opt2'&`opt1'\\ \bottomrule                       "
+         "\multicolumn{4}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
+         " singleton first-born children in the US to white, non-hispanic      "
+	 "`mnote' mothers aged 25-45 included in 2005-2014 ACS data where the  "
+	 "mother is either the head of the household or the partner of the head"
+	 " of the household and works in an occupation with at least 500       "
+	 "workers in the sample. Occupation codes refer to the level of        "
+	 "occupation codes (2 digit, or 3 digit). The omitted occupational     "
+	 "category in column 2 and column 4 is Arts, Design, Entertainment,    "
+         "Sports, and Media, as this occupation has good quarter=0.500(0.500). "
+         "F-tests for   "
+         "occupation report p-values of joint significance of the dummies, and "
+         "`Fnote' `onote' `enote'"
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+
+
+********************************************************************************
+*** (E3f) regressions: Teachers
+********************************************************************************
+cap gen logIncEarn = log(incwage) if incwage>0
+
+local se  robust
+local abs abs(statefip)
+local age motherAge motherAge2
+local edu educYrs educYrsSq
+local une unemployment
+local une
+local mnv teachers 
+local inc logIncEarn
+lab var logIncEarn "log(Earnings)"
+
+
+cap gen teachers = twoLevelOcc=="Education, Training, and Library Occupations"
+lab var teachers "Teacher"
+cap gen teacherXcold = teachers*cold
+lab var teacherXcold "Teacher $\times$ Min State Temp"
+
+cap gen quarter2 = birthQuarter == 2
+lab var quarter "Quarter II"
+
+eststo: areg goodQuarter `mnv' `age' `edu' _year* `wt', `abs' `se'
+test `age'
+local F2 = round(r(p)*1000)/1000
+local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+eststo: areg goodQuarter `mnv'       `edu'       _year*  `wt', `abs' `se'
+eststo: areg goodQuarter             `edu'       _year*  `wt', `abs' `se'
+eststo: areg goodQuarter `mnv'                   _year*  `wt', `abs' `se'
+eststo:  reg goodQuarter `mnv'                           `wt',       `se'
+
+
+#delimit ;
+esttab est5 est4 est3 est2 est1 using "$OUT/EducSq_IPUMSTeachers.tex", replace
+title("Season of Birth Correlates: \`\`Teachers'' vs.\ \`\`Non-Teachers''")
+keep(`mnv' `age' `edu' `une') style(tex) booktabs mlabels(, depvar) `estopt' 
+postfoot("F-test of Age Variables &  &    &     &     &0`F2'\\                  "
+         "State and Year FE&&Y&Y&Y&Y\\                        \bottomrule       "
+         "\multicolumn{6}{p{18.4cm}}{\begin{footnotesize}Main ACS estimation    "
+         "sample is used. Teacher refers to individuals employed in ``Education,"
+         "Training and Library'' occupations (occupation codes 2200-2550). The  "
+         "omitted occupational category is all non-educational occupations.     "
+         "`Fnote'                "
+         "Heteroscedasticity robust standard errors are reported in parentheses."
+         "clustered by state. "
+         "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01."
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
