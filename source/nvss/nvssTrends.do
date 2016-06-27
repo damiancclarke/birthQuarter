@@ -49,6 +49,7 @@ if `allobs'== 1 local mc married
 use "$DAT/`data'"
 keep if birthOrder==1
 
+
 preserve
 if `allobs'==0 keep if married==1
 #delimit ;
@@ -408,6 +409,16 @@ legend(label(1 "28-31 Year-olds") label(2 "40-45 Year-olds"))
 ytitle("Proportion of All Births");
 graph export "$OUT/conceptionMonth.eps", as(eps) replace;
 
+twoway line birthProportion conceptionMonth if youngOld==1, `line1' ||
+       line birthProportion conceptionMonth if youngOld==2, `line2'
+xaxis(1 2) scheme(s1mono) xtitle("Month of Conception", axis(2))
+xlabel(1(1)12, valuelabels axis(2)) 
+xlabel(1 "Oct" 2 "Nov" 3 "Dec" 4 "Jan" 5 "Feb" 6 "Mar" 7 "Apr" 8 "May" 9 "Jun"
+10 "Jul" 11 "Aug" 12 "Sep", axis(1)) xtitle("Expected Month")
+legend(label(1 "28-31 Year-olds") label(2 "40-45 Year-olds"))
+ytitle("Proportion of All Births") ylabel(0.05(0.01)0.1);
+graph export "$OUT/conceptionMonthRescaled.eps", as(eps) replace;
+exit;
 twoway line birth conceptionMonth if youngOld==1, `line1'
 xaxis(1 2) scheme(s1mono) xtitle("Month of Conception", axis(2))
 xlabel(1(1)12, valuelabels axis(2)) 
@@ -1211,7 +1222,10 @@ gen Tvariation = hot-cold
 tempfile weather
 save `weather'
 
-
+*****
+***** DCC: Check state naming with spaces or without
+*****
+    
 use "$DAT/`data'"
 if `allobs'==0 keep if married==1
 
@@ -1242,7 +1256,7 @@ lab var hot         "Warmest monthly average (degree F)"
 lab var Tvariation  "Annual Variation in Temperature (degree F)"
 lab var meanT       "Mean monthly temperature (degree F)"
 format goodQuarter %5.2f
-
+/*
 foreach num of numlist 3 5 {
     local age young
     if `num'==5 local age old
@@ -1301,6 +1315,41 @@ foreach num of numlist 3 5 {
             legend(off) lpattern(dash)
     graph export "$OUT/`age'TempMean.eps", as(eps) replace
 }
+*/
+merge m:1 state using $USW/religion, gen(_religMerge)
+
+foreach relig in protestant catholic mormon jewish {
+    foreach cut in lower upper {
+        sum `relig' [pw=liveBirth], d
+        local median = r(p50)
+        if "`cut'"=="lower" local condr `relig'<`median'
+        if "`cut'"=="upper" local condr `relig'>=`median'
+        
+        foreach num of numlist 3 5 {
+            local cfinal if ageGroup==`num'&`condr'
+            local age young
+            if `num'==5 local age old
+
+            corr goodQuarter cold [aw=liveBirth] `cfinal'
+            local ccoef = string(r(rho),"%5.3f")
+            reg goodQuarter cold [aw=liveBirth] `cfinal'
+            local pval   = (1-ttail(e(df_r),(_b[cold]/_se[cold])))
+            local pvalue = string(`pval',"%5.3f")
+            if `pvalue' == 0 local pvalue 0.000
+            local fm1 msymbol(i) mlabel(state)
+            local fm2 msymbol(Oh)
+            local fm3 scheme(s1mono)
+            
+            twoway scatter goodQuarter cold `cfinal', `fm1' || ///
+           scatter goodQuarter cold `cfinal' [aw=li], `fm2' || ///
+              lfit goodQuarter cold `cfinal' [aw=li], `fm3'    ///
+            legend(off) lpattern(dash) lcolor(gs0)             ///
+            note("Correlation coefficient (p-value) =`ccoef' (`pvalue')")
+            graph export "$OUT/Temp_`relig'_`cut'_`age'.eps", as(eps) replace
+        }
+    }
+}
+
 exit
 restore
 
