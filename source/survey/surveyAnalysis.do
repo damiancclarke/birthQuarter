@@ -30,7 +30,7 @@ cap mkdir "$OUT"
 ********************************************************************************
 use "$DAT/BirthSurvey"
 keep if completed==1
-
+exit
 decode state, gen(statename)
 bys state: gen stateProportion = _N/3003
 
@@ -500,7 +500,7 @@ foreach var of local vnames {
     macro shift
 }
 file close mstats
-*/
+
 ********************************************************************************
 *** (6) Graphs
 ********************************************************************************
@@ -791,8 +791,8 @@ sum importance6plus if teacher==0&(plankids==1|plankids==3)
 sum importance6plus if childFlag==1
 sum importance6plus if plankids==1|plankids==3
 
-
 exit
+
 ********************************************************************************
 *** (7) Tables
 ********************************************************************************
@@ -806,17 +806,17 @@ file open bstats using "$OUT/SOBvalues.tex", write replace
 file write bstats "\begin{table}[htpb!]\caption{Season of Birth Descriptives}" 
                   _n "\begin{tabular}{lccccccccc} \toprule" _n
                   "& All & \multicolumn{2}{c}{Children} & "
-                  "\multicolumn{2}{c}{Occupation}&\multicolumn{2}{c}{Education}"
+                  "\multicolumn{2}{c}{Occupation}&\multicolumn{2}{c}{Some College +}"
                   "&\multicolumn{2}{c}{Target SOB}\\"
                   "\cmidrule(r){3-4}\cmidrule(r){5-6}\cmidrule(r){7-8}\cmidrule(r){9-10}" _n
-                  "&&Yes&Plan&Teacher&Non-Teacher&Degree&No-Degree&Yes&No\\" _n
+                  "&&Yes&Plan&Teacher&Non-Teacher&Yes&No&Yes&No\\" _n
                   "\midrule ";
 #delimit cr
 
 gen All = 1
 #delimit ;
-local conds All==1 childFlag==1 plankids==1|plankids==3 occ==6 occ!=6 educ>4
-            educ<5 SOBtarget==1|pSOBtarget==1 SOBtarget==0|pSOBtarget==0;
+local conds All==1 childFlag==1 plankids==1|plankids==3 occ==6 occ!=6 educ>3
+            educ<4 SOBtarget==1|pSOBtarget==1 SOBtarget==0|pSOBtarget==0;
 #delimit cr
 
 egen chooseSOB    = rowtotal(SOBtarget pSOBtarget), missing
@@ -846,7 +846,7 @@ foreach v of local vnames {
         file write bstats "`v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9' \\" _n
     }
     else if `j'==3 {
-        file write bstats "\multicolumn{10}{l}{\textbf{Reasons (Importance)}} \\ " _n
+        file write bstats "\multicolumn{10}{l}{\textbf{Reasons (Importance)}} \\" _n
         file write bstats "\ `v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
     }
     else if `j'>3&`j'<10 {
@@ -875,7 +875,7 @@ file write bstats "Observations&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" 
 
 #delimit ;
 file write bstats "\bottomrule "_n;
-file write bstats "\multicolumn{10}{p{22cm}}{{\footnotesize \textsc{Notes}:   "
+file write bstats "\multicolumn{10}{p{21.4cm}}{{\footnotesize \textsc{Notes}:"
 " Full sample of respondents who passed all attention checks and answered  "
 "consistently are included.  Importance of season of birth and all reasons "
 "are ranked on a 1 to 10 scale, where 1 is not important at all and 10 is  "
@@ -886,6 +886,89 @@ file write bstats "\end{tabular}\end{table}" _n;
 #delimit cr
 file close bstats
 
+preserve
+keep if sex==1
+file open bstats using "$OUT/SOBvaluesWomen.tex", write replace
+#delimit ;
+file write bstats "\begin{table}[htpb!]\caption{Season of Birth Descriptives (Women Only)}" 
+                  _n "\begin{tabular}{lccccccccc} \toprule" _n
+                  "& All & \multicolumn{2}{c}{Children} & "
+                  "\multicolumn{2}{c}{Occupation}&\multicolumn{2}{c}{Some College +}"
+                  "&\multicolumn{2}{c}{Target SOB}\\"
+                  "\cmidrule(r){3-4}\cmidrule(r){5-6}\cmidrule(r){7-8}\cmidrule(r){9-10}" _n
+                  "&&Yes&Plan&Teacher&Non-Teacher&Yes&No&Yes&No\\" _n
+                  "\midrule ";
+#delimit cr
+
+#delimit ;
+local conds All==1 childFlag==1 plankids==1|plankids==3 occ==6 occ!=6 educ>3
+            educ<4 SOBtarget==1|pSOBtarget==1 SOBtarget==0|pSOBtarget==0;
+#delimit cr
+
+#delimit ;
+local vnames `""Choose SOB" "Importance of SOB" "Lucky Dates" "Birthdays"
+"Tax" "Work" "School Entry" "Child Health" "Mom's Health"  "Diabetes Avoidance"
+"Choose SOB" "Difference (Diabetes $-$ SOB)" "';
+#delimit cr
+
+local j=1
+local reasons SOBlucky SOBbirthday SOBtax SOBjobs SOBschool SOBchealth SOBmhealth
+local variables  chooseSOB importSOB `reasons' WTPdiabetes WTPsob WTPdiff
+tokenize `variables'
+
+foreach v of local vnames {    
+    local c=1
+    foreach cond of local conds {
+        sum `1' if `cond'
+        local v`c'=round(r(mean)*1000)/1000
+        if `v`c''<1&`v`c''>0 local v`c' "0`v`c''"
+        local ++c
+    }
+    
+    if `j'<3 {
+        file write bstats "`v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9' \\" _n
+    }
+    else if `j'==3 {
+        file write bstats "\multicolumn{10}{l}{\textbf{Reasons (Importance)}} \\" _n
+        file write bstats "\ `v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
+    }
+    else if `j'>3&`j'<10 {
+        file write bstats "\ `v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
+    }
+    else if `j'==10 {
+        file write bstats "\multicolumn{10}{l}{\textbf{Willingness to Pay}} \\ " _n
+        file write bstats "\ `v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
+    }
+    else if `j'>10 {
+        file write bstats "\ `v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
+    }
+    macro shift
+    local ++j
+}
+
+local c=1
+foreach cond of local conds {
+    count if `cond'
+    local v`c'=r(N)
+    local ++c
+}
+file write bstats "&&&&&&&&&\\" _n
+file write bstats "Observations&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
+
+
+#delimit ;
+file write bstats "\bottomrule "_n;
+file write bstats "\multicolumn{10}{p{21.4cm}}{{\footnotesize \textsc{Notes}:"
+" Female sample of respondents who passed all attention checks and answered"
+" consistently are included. Importance of season of birth and all reasons "
+"are ranked on a 1 to 10 scale, where 1 is not important at all and 10 is  "
+"extremely important.  Questions about children and targeting are asked to "
+"all women who have children, and all women who do not have children below "
+"the age of 49.  These are 1,164 of the 1,439 eligible respondents.}}" _n;
+file write bstats "\end{tabular}\end{table}" _n;
+#delimit cr
+file close bstats
+restore
 
 exit
 #delimit ;
@@ -938,3 +1021,179 @@ married sexchild gestation fertmed SOBimport SOBtarget
 white black otherRace hispanic employed unemployed cbirthyr;
 #delimit cr
 estout using "$OUT/MTurkSum.tex", replace label style(tex) `statform'
+*/
+
+********************************************************************************
+*** (8) Basic regressions
+********************************************************************************
+use "$DAT/BirthSurvey", clear
+keep if completed==1
+keep if educ==educ_check
+gen age = 2016-birthyr
+gen ageBirth = age-(2016-cbirthyr)
+gen goodSeason = cbirthmonth>3&cbirthmonth<10 if cbirthmonth!=.
+gen teacher = occ == 6
+
+
+tab SOBtarget
+gen preferredGoodS = SOBprefer==2|SOBprefer==3 if SOBprefer!=.
+tab preferredGoodS
+count if SOBtarget == 0
+local indif = r(N)
+count if preferredGoodS==1
+local pgood = r(N)
+count if preferredGoodS==0
+local pbad = r(N)
+count if goodSeason == 1
+local agood = r(N)
+count if goodSeason == 0
+local abad = r(N)
+dis "Percent good season based on plan:" (`pgood'+`indif'/2)/(`pgood'+`pbad'+`indif')
+dis "Percent good season in reality:" `agood'/(`agood'+`abad')
+
+preserve
+keep if teacher==1
+count if SOBtarget == 0
+local indif = r(N)
+count if preferredGoodS==1
+local pgood = r(N)
+count if preferredGoodS==0
+local pbad = r(N)
+count if goodSeason == 1
+local agood = r(N)
+count if goodSeason == 0
+local abad = r(N)
+tab SOBtarget
+tab preferredGoodS
+dis "Percent good season based on plan:" (`pgood'+`indif'/2)/(`pgood'+`pbad'+`indif')
+dis "Percent good season in reality:" `agood'/(`agood'+`abad')
+tab goodSeason if preferredGoodS==1
+tab goodSeason if preferredGoodS==0
+restore
+
+preserve
+keep if teacher==0
+count if SOBtarget == 0
+local indif = r(N)
+count if preferredGoodS==1
+local pgood = r(N)
+count if preferredGoodS==0
+local pbad = r(N)
+count if goodSeason == 1
+local agood = r(N)
+count if goodSeason == 0
+local abad = r(N)
+tab SOBtarget
+tab preferredGoodS
+dis "Percent good season based on plan:" (`pgood'+`indif'/2)/(`pgood'+`pbad'+`indif')
+dis "Percent good season in reality:" `agood'/(`agood'+`abad')
+tab goodSeason if preferredGoodS==1
+tab goodSeason if preferredGoodS==0
+restore
+
+preserve
+keep if educ>3
+count if SOBtarget == 0
+local indif = r(N)
+count if preferredGoodS==1
+local pgood = r(N)
+count if preferredGoodS==0
+local pbad = r(N)
+count if goodSeason == 1
+local agood = r(N)
+count if goodSeason == 0
+local abad = r(N)
+tab SOBtarget
+tab preferredGoodS
+dis "Percent good season based on plan:" (`pgood'+`indif'/2)/(`pgood'+`pbad'+`indif')
+dis "Percent good season in reality:" `agood'/(`agood'+`abad')
+tab goodSeason if preferredGoodS==1
+tab goodSeason if preferredGoodS==0
+restore
+
+preserve
+keep if educ<4
+count if SOBtarget == 0
+local indif = r(N)
+count if preferredGoodS==1
+local pgood = r(N)
+count if preferredGoodS==0
+local pbad = r(N)
+count if goodSeason == 1
+local agood = r(N)
+count if goodSeason == 0
+local abad = r(N)
+tab SOBtarget
+tab preferredGoodS
+dis "Percent good season based on plan:" (`pgood'+`indif'/2)/(`pgood'+`pbad'+`indif')
+dis "Percent good season in reality:" `agood'/(`agood'+`abad')
+tab goodSeason if preferredGoodS==1
+tab goodSeason if preferredGoodS==0
+restore
+
+exit
+
+
+gen prematurity = gestation<4 if gestation != .
+gen goodPref    = SOBprefer==2|SOBprefer==3
+gen goodAchieve = cbirthmonth>3&cbirthmonth<10
+gen goodPlanAch = goodPref*goodAchieve
+lab var goodPref    "Prefers Good Season"
+lab var goodAchieve "Born Good Season"
+lab var goodPlanAch "Achieved Good Season Preference"
+lab var prematurity "Premature"
+
+*local ctl sex i.educ
+
+eststo: reg prematurity goodPref                          `ctl'
+eststo: reg prematurity goodAchieve                       `ctl'
+eststo: reg prematurity goodPref goodAchieve goodPlanAch  `ctl'
+
+eststo: areg prematurity goodPref                         `ctl', abs(ageBirth)
+eststo: areg prematurity goodAchieve                      `ctl', abs(ageBirth)
+eststo: areg prematurity goodPref goodAchieve goodPlanAch `ctl', abs(ageBirth)
+
+#delimit ;
+esttab est1 est2 est3 est4 est5 est6 using "$OUT/gestationSeason.tex", replace
+keep(_cons goodPref goodAchieve goodPlanAch) style(tex) mlabels(, depvar)
+cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) ))
+stats(N r2, fmt(%9.0g %5.3f) labels(Observations R-Squared))
+starlevel("*" 0.10 "**" 0.05 "***" 0.01) collabels(none) label
+title("Gestation and Good Season Preferences")
+postfoot("Age at Birth Controls&&&&Y&Y&Y\\ \bottomrule "
+         "\multicolumn{7}{p{20.2cm}}{{\footnotesize Gestation is measured in "
+         "months and premature is a binary variable referring to births      "
+         "occurring at 8 months or less of gestation. "
+         "Achieved good season preference refers to those individuals who    "
+         "both stated a preference for and achieved a good season birth.     "
+         "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.              "
+         "}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+
+keep if race==11&hispanic==0
+eststo: reg prematurity goodPref                          `ctl'
+eststo: reg prematurity goodAchieve                       `ctl'
+eststo: reg prematurity goodPref goodAchieve goodPlanAch  `ctl'
+
+eststo: areg prematurity goodPref                         `ctl', abs(ageBirth)
+eststo: areg prematurity goodAchieve                      `ctl', abs(ageBirth)
+eststo: areg prematurity goodPref goodAchieve goodPlanAch `ctl', abs(ageBirth)
+
+#delimit ;
+esttab est1 est2 est3 est4 est5 est6 using "$OUT/gestationSeasonSamp.tex", replace
+keep(_cons goodPref goodAchieve goodPlanAch) style(tex) mlabels(, depvar)
+cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) ))
+stats(N r2, fmt(%9.0g %5.3f) labels(Observations R-Squared))
+starlevel("*" 0.10 "**" 0.05 "***" 0.01) collabels(none) label
+title("Gestation and Good Season Preferences (White, non-hispanic)")
+postfoot("Age at Birth Controls&&&&Y&Y&Y\\ \bottomrule "
+         "\multicolumn{7}{p{20.2cm}}{{\footnotesize Gestation is measured in "
+         "months and premature is a binary variable referring to births      "
+         "occurring at 8 months or less of gestation. "
+         "Achieved good season preference refers to those individuals who    "
+         "both stated a preference for and achieved a good season birth.     "
+         "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.              "
+         "}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
