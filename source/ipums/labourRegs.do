@@ -105,6 +105,20 @@ lab var motherAge      "Age"
 lab var motherAge2     "Age$^2$ / 100"
 lab var highEduc       "Some College +"
 
+tab educ, gen(iEd)
+lab var iEd2  "Grade 1-4"
+lab var iEd3  "Grade 5-8"
+lab var iEd4  "Grade 9"
+lab var iEd5  "Grade 10"
+lab var iEd6  "Grade 11"
+lab var iEd7  "Grade 12"
+lab var iEd8  "1 Year College"
+lab var iEd9  "2 Years College"
+lab var iEd10 "4 Years College"
+lab var iEd11 "5+ Years College"
+
+
+
 ********************************************************************************
 *** (4) Regressions
 ********************************************************************************
@@ -160,7 +174,6 @@ postfoot("State and Year FE & Y & Y & Y & Y \\                    "
 #delimit cr
 estimates clear
 
-
 keep if marst==1
 
 eststo: areg logWage mother teacher teacherXmother `ctl' `wt'      , `abs' `se'
@@ -212,7 +225,7 @@ estimates clear
 
 
 */
-
+keep if marst==1
 local nam MLeave NoMLeave PLeaveAB PLeaveCE PLeaveF
 tokenize `nam'
 
@@ -252,7 +265,9 @@ restore
 macro shift
 
 }
-exit
+
+preserve
+drop if educ==0
 local ctl motherAge motherAge2 educYrs educYrsSq uhrswork i.year
 local cnd if motherAge>34
 local abs absorb(state)
@@ -283,6 +298,38 @@ postfoot("State and Year FE & Y & Y & Y & Y \\                   "
 estimates clear
 
 
+
+local educ iEd3 iEd4 iEd5 iEd6 iEd7 iEd8 iEd9 iEd10 iEd11
+local ctl motherAge motherAge2 `educ' uhrswork i.year
+local cnd if motherAge>34
+local abs absorb(state)
+local se  robust
+
+eststo: areg logIncome mother teacher teacherXmother `ctl' `wt'      , `abs' `se'
+eststo: areg income    mother teacher teacherXmother `ctl' `wt'      , `abs' `se'
+eststo: areg logIncome mother teacher teacherXmother `ctl' `wt' `cnd', `abs' `se'
+eststo: areg income    mother teacher teacherXmother `ctl' `wt' `cnd', `abs' `se'
+
+#delimit ;
+esttab est1 est2 est3 est4 using "$OUT/EducInd_ValueGoodSeasonInc.tex", replace
+`estopt' booktabs mlabels(, depvar)
+keep(mother teacher teacherXmother motherAge motherAge2 `educ') 
+mgroups("All" "$\geq$ 35 Years", pattern(1 0 1 0)
+prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
+title("The Value of Season of Birth (Education As Dummy Variables)"\label{tab:IPUMSInc}) 
+postfoot("State and Year FE & Y & Y & Y & Y \\                   "
+         "\bottomrule\multicolumn{5}{p{15.8cm}}{\begin{footnotesize} Main "
+         "ACS estimation sample is used augmented with non-mothers and    "
+         "with mothers of more than one child (or older children). Teacher"
+         "refers to occupational codes 2250-2500 (teachers, librarians and"
+         "educational occupations). Earnings refer to earned income in the"
+         "past 12 months, and are measured in dollars per year. Usual     "
+         "weekly hours of work are included as a control variable. `enote'"
+"\end{footnotesize}}\end{tabular}\end{table}") style(tex);
+#delimit cr
+estimates clear
+
+restore
 
 exit
 
