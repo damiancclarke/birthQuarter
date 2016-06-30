@@ -90,7 +90,7 @@ replace ParentalPolicy = "F" if state=="Alabama"|state=="Delaware"|
 replace ParentalPolicy = "CDE" if ParentalPolicy == "";
 #delimit cr
 
-/*
+
 ********************************************************************************
 *** (3a) Good Quarter Regressions
 ********************************************************************************
@@ -100,8 +100,10 @@ local add `" ""  "(excluding babies conceived in September)"
 local add `" "(maternal leave states)" "(non-maternal leave states)"
              "(Expecting Better: A-B)" "(Expecting Better: C-E)"
              "(Expecting Better F)" "';
+local add `" ""  "';
 local nam Main NoSep Bord2 Twin TwinS;
 local nam MLeave NoMLeave PLeaveAB PLeaveCE PLeaveF;
+local nam Main;
 #delimit cr
 tokenize `nam'
 
@@ -142,7 +144,9 @@ foreach type of local add {
     if   `F1' == 0 local F1 0.000
     local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
     local L1   = string((e(df_r)/2)*(e(N)^(2/e(N))-1), "%5.3f")
-    
+    local tL1  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
+
+
     eststo: areg goodQuarter `age'       _year* if e(sample) , `se' `yab'
     test `age'
     local F2a= string(r(F), "%5.3f")
@@ -165,6 +169,7 @@ foreach type of local add {
     if   `F4' == 0 local F4 0.000
     local opt4 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
     local L4   = string((e(df_r)/2)*(e(N)^(2/e(N))-1), "%5.3f")
+    local tL4  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
 
     eststo: areg goodQuarter `age' `edu' `con' `c2' _year* `spcnd', `se' `yab'
     test `age'
@@ -187,7 +192,9 @@ foreach type of local add {
              "\multicolumn{6}{p{21cm}}{\begin{footnotesize} All `samp1',     "
              "`samp2' children from the main sample are included. `Fnote'    "
              "Leamer critical values refer to Leamer/Schwartz/Deaton critical"
-             "5\% values adjusted for sample size.  `onote' `enote'          "
+             "5\% values adjusted for sample size. The Leamer critical value "
+             "for a t-statistic is `tL1' in columns 1-3 and `tL4' in columns "
+             "4 and 5. `onote' `enote'                                       "
              "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
              "\end{footnotesize}}\end{tabular}\end{table}");
     #delimit cr
@@ -196,8 +203,8 @@ foreach type of local add {
     macro shift
     restore
 }
-
-
+exit
+/*
 local age motherAge motherAge2
 local edu highEd
 local co1 smoker `mc' i.gestation
@@ -215,6 +222,7 @@ local F1 = round(r(p)*1000)/1000
 if   `F1' == 0 local F1 0.000
 local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 local L1   = string((e(df_r)/2)*(e(N)^(2/e(N))-1), "%5.3f")
+local tL1  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
 
 eststo: areg goodQuarter `age' `edu' `con' _year*              , `se' `yab'
 test `age'
@@ -238,7 +246,8 @@ local F4 = round(r(p)*1000)/1000
 if   `F4' == 0 local F4 0.000
 local opt4 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 local L4   = string((e(df_r)/2)*(e(N)^(2/e(N))-1), "%5.3f")
-
+local tL1  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
+           
 eststo: areg goodQuarter `age' `edu' `con' _year* `c2'        , `se' `yab'
 test `age'
 local F5a= string(r(F), "%5.3f")
@@ -260,20 +269,22 @@ esttab est3 est2 est1 est4 est5 est6 using
 title("Season of Birth Correlates (`tnote')" \label{tab:robustness})
 booktabs keep(`age' `edu' `c2' smoker value `mc')
 style(tex) mlabels(, depvar)
-postfoot("F-test of Age Variables&`F3a'&`F2a'&`F1a'&`F4a'&`F5a'&`F6a' \\"
-         "p-value of F-test      &`F3'&`F2'&`F1'&`F4'&`F5'&`F6' \\      "
-         "Leamer Critical Value  &`L1'&`L1'&`L1'&`L4'&`L4'&`F4' \\      "
-         "Optimal Age &`opt3'&`opt2'&`opt1'&`opt4'&`opt5'&`opt6' \\     "
-         "State and Year FE&Y&Y&Y&Y&Y&Y\\ Gestation FE &Y&Y&Y&Y&Y&Y\\   "
-         "State Specific Linear Trends&Y& &Y& & & Y \\                  "
-         "2009-2013 Only&&&&Y&Y&Y\\ \bottomrule                         "
-         "\multicolumn{7}{p{20cm}}{\begin{footnotesize} Independent     "
-	 "variables are binary, except for                              "
-         "unemployment, which is measured as the unemployment rate in   "
-         "the mother's state in the month of conception. `Fnote'        "
-         "Leamer critical values refer to Leamer/Schwartz/Deaton critical"
-         "5\% values adjusted for sample size. `onote'"
-         " `enote' ***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01."
+postfoot("F-test of Age Variables&`F3a'&`F2a'&`F1a'&`F4a'&`F5a'&`F6a' \\  "
+         "p-value of F-test      &`F3'&`F2'&`F1'&`F4'&`F5'&`F6' \\        "
+         "Leamer Critical Value  &`L1'&`L1'&`L1'&`L4'&`L4'&`F4' \\        "
+         "Optimal Age &`opt3'&`opt2'&`opt1'&`opt4'&`opt5'&`opt6' \\       "
+         "State and Year FE&Y&Y&Y&Y&Y&Y\\ Gestation FE &Y&Y&Y&Y&Y&Y\\     "
+         "State Specific Linear Trends&Y& &Y& & & Y \\                    "
+         "2009-2013 Only&&&&Y&Y&Y\\ \bottomrule                           "
+         "\multicolumn{7}{p{20cm}}{\begin{footnotesize} Independent       "
+         "variables are binary, except for                                "
+         "unemployment, which is measured as the unemployment rate in     "
+         "the mother's state in the month of conception. `Fnote'          "
+         "Leamer critical values refer to Leamer/Schwartz/Deaton critical "
+         "5\% values adjusted for sample size. The Leamer critical value  "
+         "for a t-statistic is `tL1' in columns 1-3 and `tL4' in columns  "
+         "4 and 5. `onote' `enote'                                        "
+         "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.           "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
@@ -318,9 +329,11 @@ local c1      twin==1&birthOrd==1&liveBir==1
               twin==1&birthOrd==1&liveBir==1&ParentalPolicy=="AB"
               twin==1&birthOrd==1&liveBir==1&ParentalPolicy=="CDE"
               twin==1&birthOrd==1&liveBir==1&ParentalPolicy=="F";
+local c1      twin==1&birthOrd==1&liveBir==1;
 local varsY   motherAge motherAge2;
 local control highEd smoker WIC underweight overweight obese ART `mc';
 local names   Main MLeave NoMLeave PLeaveAB PLeaveCE PLeaveF;
+local names   Main;
 #delimit cr
 tokenize `names'
 
@@ -340,7 +353,8 @@ foreach cond of local c1 {
         local F`jj'b  = string(r(F), "%5.3f")
         dis "`F`jj'b'"
         local L`jj'   = string((e(df_r)/2)*(e(N)^(2/e(N))-1), "%5.3f")
-
+        local tL`jj'  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
+        
         local smp if e(sample)==1        
         eststo: areg `y' goodQuarter         `yFE' `smp', `se' abs(fips)
 
@@ -357,10 +371,11 @@ foreach cond of local c1 {
              "Leamer Critical Value  &`L1'&`L2'&`L3'&`L4'&`L5'&`L6'       \\ "
              "\bottomrule                                                    "
              "\multicolumn{7}{p{18.8cm}}{\begin{footnotesize}Main estimation "
-	     "sample is used. State and year fixed effects are               "
+             "sample is used. State and year fixed effects are               "
              "included, and `Fnote' Leamer critical values refer to          "
              "Leamer/Schwartz/Deaton critical 5\% values adjusted for sample "
-             "size. `enote'                                                  "
+             "size. The maximum Leamer critical value for the t-statistic is "
+             "`tL5'. `enote'                                                 "
              "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
              "\end{footnotesize}}\end{tabular}\end{table}") booktabs replace;
 
@@ -370,7 +385,7 @@ foreach cond of local c1 {
     keep(_cons goodQuarter) style(tex) mlabels(, depvar) 
     postfoot("\bottomrule                                                    "
              "\multicolumn{7}{p{15cm}}{\begin{footnotesize}Main estimation   "
-	     "sample is used. State and year fixed effects are               "
+             "sample is used. State and year fixed effects are               "
              "included. `enote'                                              "
              "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
              "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
@@ -380,7 +395,7 @@ foreach cond of local c1 {
     restore
     macro shift
 }
-exit
+
 keep if `keepif'
 
 ********************************************************************************
@@ -402,6 +417,7 @@ local F1 = round(r(p)*1000)/1000
 if   `F1' == 0 local F1 0.000
 local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 local L1   = string((e(df_r)/2)*(e(N)^(2/e(N))-1), "%5.3f")
+local tL1  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
 
 eststo: areg goodQuarter `age' `con' _year*             , `se' `yab'
 test `age'
@@ -434,12 +450,13 @@ postfoot("F-test of Age Variables&`F4a'&`F3a'&`F2a'&`F1a' \\                 "
          "Optimal Age &`opt4'&`opt3'&`opt2'&`opt1' \\                        "
          "State and Year FE&&Y&Y&Y\\  Gestation FE &&&&Y \\ \bottomrule      "
          "\multicolumn{5}{p{15.2cm}}{\begin{footnotesize}  Main sample is    "
-	 "augmented to include fetal deaths occurring between 25 and 44      " 
-	 "weeks of gestation. Fetal death files include only a subset of the "
+         "augmented to include fetal deaths occurring between 25 and 44      " 
+         "weeks of gestation. Fetal death files include only a subset of the "
          "full set of variables included in the birth files, so education and"
          " ART controls are not included. `Fnote' Leamer critical values     "
          "refer to Leamer/Schwartz/Deaton critical 5\% values adjusted for   "
-         "sample size.`onote' `enote'                                        "
+         "sample size. The Leamer critical value for the t-statistic is      "
+         "`tL1'. `onote' `enote'                                             "
          "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.              "
          "\end{footnotesize}}\end{tabular}\end{table}") booktabs ;
 #delimit cr
