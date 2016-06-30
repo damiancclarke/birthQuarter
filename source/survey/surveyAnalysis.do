@@ -792,7 +792,7 @@ sum importance6plus if childFlag==1
 sum importance6plus if plankids==1|plankids==3
 
 exit
-
+*/
 ********************************************************************************
 *** (7) Tables
 ********************************************************************************
@@ -888,6 +888,7 @@ file close bstats
 
 preserve
 keep if sex==1
+
 file open bstats using "$OUT/SOBvaluesWomen.tex", write replace
 #delimit ;
 file write bstats "\begin{table}[htpb!]\caption{Season of Birth Descriptives (Women Only)}" 
@@ -970,6 +971,93 @@ file write bstats "\end{tabular}\end{table}" _n;
 file close bstats
 restore
 
+preserve
+keep if marst==1&race==11&hispanic==0
+
+file open bstats using "$OUT/SOBvaluesMarried.tex", write replace
+#delimit ;
+file write bstats "\begin{table}[htpb!]\caption{Season of Birth Descriptives (White, Married)}" 
+                  _n "\begin{tabular}{lccccccccc} \toprule" _n
+                  "& All & \multicolumn{2}{c}{Children} & "
+                  "\multicolumn{2}{c}{Occupation}&\multicolumn{2}{c}{Some College +}"
+                  "&\multicolumn{2}{c}{Target SOB}\\"
+                  "\cmidrule(r){3-4}\cmidrule(r){5-6}\cmidrule(r){7-8}\cmidrule(r){9-10}" _n
+                  "&&Yes&Plan&Teacher&Non-Teacher&Yes&No&Yes&No\\" _n
+                  "\midrule ";
+#delimit cr
+
+#delimit ;
+local conds All==1 childFlag==1 plankids==1|plankids==3 occ==6 occ!=6 educ>3
+            educ<4 SOBtarget==1|pSOBtarget==1 SOBtarget==0|pSOBtarget==0;
+#delimit cr
+
+#delimit ;
+local vnames `""Choose SOB" "Importance of SOB" "Lucky Dates" "Birthdays"
+"Tax" "Work" "School Entry" "Child Health" "Mom's Health"  "Diabetes Avoidance"
+"Choose SOB" "Difference (Diabetes $-$ SOB)" "';
+#delimit cr
+
+local j=1
+local reasons SOBlucky SOBbirthday SOBtax SOBjobs SOBschool SOBchealth SOBmhealth
+local variables  chooseSOB importSOB `reasons' WTPdiabetes WTPsob WTPdiff
+tokenize `variables'
+
+foreach v of local vnames {    
+    local c=1
+    foreach cond of local conds {
+        sum `1' if `cond'
+        local v`c'=round(r(mean)*1000)/1000
+        if `v`c''<1&`v`c''>0 local v`c' "0`v`c''"
+        local ++c
+    }
+    
+    if `j'<3 {
+        file write bstats "`v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9' \\" _n
+    }
+    else if `j'==3 {
+        file write bstats "\multicolumn{10}{l}{\textbf{Reasons (Importance)}} \\" _n
+        file write bstats "\ `v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
+    }
+    else if `j'>3&`j'<10 {
+        file write bstats "\ `v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
+    }
+    else if `j'==10 {
+        file write bstats "\multicolumn{10}{l}{\textbf{Willingness to Pay}} \\ " _n
+        file write bstats "\ `v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
+    }
+    else if `j'>10 {
+        file write bstats "\ `v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
+    }
+    macro shift
+    local ++j
+}
+
+local c=1
+foreach cond of local conds {
+    count if `cond'
+    local v`c'=r(N)
+    local ++c
+}
+file write bstats "&&&&&&&&&\\" _n
+file write bstats "Observations&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
+
+
+#delimit ;
+file write bstats "\bottomrule "_n;
+file write bstats "\multicolumn{10}{p{21.4cm}}{{\footnotesize \textsc{Notes}:"
+" Sample consists of all married, white, non-hispanic respondents who passed "
+"all attention checks and answered consistently are included. Importance of  "
+"season of birth and all reasons are ranked on a 1 to 10 scale, where 1 is   "
+"not important at all and 10 is extremely important. Questions about children"
+" and targeting are asked to all women who have children, and all women who  "
+"do not have children below the age of 49.  These are 910 of the 1,025       "
+"eligible respondents.}}" _n;
+file write bstats "\end{tabular}\end{table}" _n;
+#delimit cr
+file close bstats
+restore
+
+
 exit
 #delimit ;
 local statform cells("count(label(N)) mean(fmt(2) label(Mean))
@@ -1021,7 +1109,7 @@ married sexchild gestation fertmed SOBimport SOBtarget
 white black otherRace hispanic employed unemployed cbirthyr;
 #delimit cr
 estout using "$OUT/MTurkSum.tex", replace label style(tex) `statform'
-*/
+exit
 
 ********************************************************************************
 *** (8) Basic regressions
@@ -1035,9 +1123,15 @@ gen goodSeason = cbirthmonth>3&cbirthmonth<10 if cbirthmonth!=.
 gen teacher = occ == 6
 
 
+tab pSOBtarget
+gen ppreferredGood = pSOBprefer==2|pSOBprefer==3 if pSOBprefer!=.
+tab ppreferredGood
+
+
 tab SOBtarget
 gen preferredGoodS = SOBprefer==2|SOBprefer==3 if SOBprefer!=.
 tab preferredGoodS
+exit
 count if SOBtarget == 0
 local indif = r(N)
 count if preferredGoodS==1
