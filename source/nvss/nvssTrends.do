@@ -676,7 +676,7 @@ keep if motherAge>=20&motherAge<=45
 
 tab motherAge, gen(_age)
 reg goodQuarter _age1-_age20 if motherAge>=20&motherAge<=45
-reg expectGoodQ _age1-_age20 if motherAge>=20&motherAge<=45
+reg expectGoodQ _age1-_age20 if motherAge>=20&motherAge<=45, nocons
 
 
 gen ageES = .
@@ -699,7 +699,7 @@ twoway line ageES ageNM in 1/20, lpattern(solid) lcolor(black) lwidth(medthick)
 graph export "$OUT/goodSeasonAge.eps", as(eps) replace;
 #delimit cr
 restore
-
+exit
 ********************************************************************************
 *** (5) Prematurity
 ********************************************************************************
@@ -1256,12 +1256,14 @@ lab var hot         "Warmest monthly average (degree F)"
 lab var Tvariation  "Annual Variation in Temperature (degree F)"
 lab var meanT       "Mean monthly temperature (degree F)"
 format goodQuarter %5.2f
-/*
+
 foreach num of numlist 3 5 {
     local age young
     if `num'==5 local age old
     drop if state=="Alaska"
 
+    sum liveBirth if ageGroup==`num'
+    local SN = r(N)*r(mean)
     corr goodQuarter cold if ageGroup==`num'
     local ccoef = string(r(rho),"%5.3f")
     reg goodQuarter cold if ageGroup==`num'
@@ -1271,7 +1273,7 @@ foreach num of numlist 3 5 {
     twoway scatter goodQuarter cold if ageGroup==`num', mlabel(state) ||       ///
         lfit goodQuarter cold if ageGroup==`num', scheme(s1mono) lcolor(gs0)   ///
             legend(off) lpattern(dash)                                         ///
-    note("Correlation coefficient (p-value) =`ccoef' (`pvalue')")
+    note("Correlation coefficient (p-value) =`ccoef' (`pvalue'), N=`SN'")
     graph export "$OUT/`age'TempCold.eps", as(eps) replace
 
     corr goodQuarter cold [aw=liveBirth] if ageGroup==`num' 
@@ -1284,7 +1286,7 @@ foreach num of numlist 3 5 {
            scatter goodQuarter cold if ageGroup==`num' [aw=li], msymbol(Oh) || ///
               lfit goodQuarter cold if ageGroup==`num' [aw=li], scheme(s1mono) ///
             legend(off) lpattern(dash) lcolor(gs0)                             ///
-    note("Correlation coefficient (p-value) =`ccoef' (`pvalue')")
+    note("Correlation coefficient (p-value) =`ccoef' (`pvalue'), N=`SN'")
     graph export "$OUT/`age'TempCold_weight.eps", as(eps) replace
 
     corr goodQuarter Tvariation if ageGroup==`num'
@@ -1315,15 +1317,15 @@ foreach num of numlist 3 5 {
             legend(off) lpattern(dash)
     graph export "$OUT/`age'TempMean.eps", as(eps) replace
 }
-*/
+exit
+
 merge m:1 state using $USW/religion, gen(_religMerge)
+drop if state=="Alaska"
 
 foreach relig in protestant catholic mormon jewish {
     foreach cut in lower upper {
-        sum `relig' [pw=liveBirth], d
-        local median = r(p50)
-        if "`cut'"=="lower" local condr `relig'<`median'
-        if "`cut'"=="upper" local condr `relig'>=`median'
+        if "`cut'"=="lower" local condr `relig'< med`relig'
+        if "`cut'"=="upper" local condr `relig'>= med`relig'
         
         foreach num of numlist 3 5 {
             local cfinal if ageGroup==`num'&`condr'

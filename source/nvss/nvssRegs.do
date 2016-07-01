@@ -90,20 +90,20 @@ replace ParentalPolicy = "F" if state=="Alabama"|state=="Delaware"|
 replace ParentalPolicy = "CDE" if ParentalPolicy == "";
 #delimit cr
 
-
+/*
 ********************************************************************************
 *** (3a) Good Quarter Regressions
 ********************************************************************************
 #delimit ;
-local add `" ""  "(excluding babies conceived in September)"
-             "(including second births)" "(only twins)" "(including twins)" "';
 local add `" "(maternal leave states)" "(non-maternal leave states)"
              "(Expecting Better: A-B)" "(Expecting Better: C-E)"
              "(Expecting Better F)" "';
 local add `" ""  "';
-local nam Main NoSep Bord2 Twin TwinS;
+local add `" ""  "(excluding babies conceived in September)"
+             "(including second births)" "(only twins)" "(including twins)" "';
 local nam MLeave NoMLeave PLeaveAB PLeaveCE PLeaveF;
 local nam Main;
+local nam Main NoSep Bord2 Twin TwinS;
 #delimit cr
 tokenize `nam'
 
@@ -204,7 +204,7 @@ foreach type of local add {
     restore
 }
 exit
-/*
+
 local age motherAge motherAge2
 local edu highEd
 local co1 smoker `mc' i.gestation
@@ -289,7 +289,7 @@ postfoot("F-test of Age Variables&`F3a'&`F2a'&`F1a'&`F4a'&`F5a'&`F6a' \\  "
 #delimit cr
 estimates clear
 restore
-
+*/
 ********************************************************************************
 *** (4) ART and Teens
 ********************************************************************************
@@ -304,6 +304,7 @@ keep if e(sample) == 1
 eststo: areg goodQuarter age2024 noART highEd smoker _year*, abs(fips)
 eststo: areg goodQuarter age2024 noART               _year*, abs(fips)
 eststo:  reg goodQuarter age2024 noART                                
+local tL1  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
 
 #delimit ;
 esttab est4 est3 est2 est1 using "$OUT/ART2024.tex", replace
@@ -311,14 +312,15 @@ esttab est4 est3 est2 est1 using "$OUT/ART2024.tex", replace
 title("Season of Birth Correlates: Very Young (20-24) and ART users`lab'")
 postfoot("State and Year FE&&Y&Y&Y\\  \bottomrule                          "
          "\multicolumn{5}{p{16.4cm}}{\begin{footnotesize} Main sample is   "
-         "augmented include women aged 20-24.                              "
-         "Heteroscedasticity robust standard errors are reported.          "
+         "augmented include women aged 20-24. The Leamer critical value for"
+         "the t-statistic is `tL1'. Heteroscedasticity robust standard     "
+         "errors are reported.                                             "
          "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.            "
          " \end{footnotesize}}\end{tabular}\end{table}") mlabels(, depvar);
 #delimit cr
 estimates clear
 restore
-*/
+exit
 ********************************************************************************
 *** (5) Regressions (Quality on Age, season)
 ********************************************************************************
