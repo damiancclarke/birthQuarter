@@ -17,11 +17,13 @@ cap log close
 global DAT "~/investigacion/2015/birthQuarter/data/employ"
 global LOG "~/investigacion/2015/birthQuarter/log"
 global USG "~/investigacion/2015/birthQuarter/data/weather"
-
+global OUT "~/investigacion/2015/birthQuarter/results/occupation"
+global MAP "~/investigacion/2015/birthQuarter/data/maps"
+global GEO "~/investigacion/2015/birthQuarter/data/maps/states_simplified"
 
 log using "$LOG/occupationPrep.txt", replace text
 
-
+/*
 *-------------------------------------------------------------------------------
 *--- (2) Data
 *--------------------------------------------------------------------------------
@@ -90,6 +92,69 @@ collapse a_mean h_mean (sum) tot_emp, by(month seasonal cold)
 replace tot_emp = tot_emp/1000000
 
 
+*-------------------------------------------------------------------------------
+*--- (3) Graph
+*--------------------------------------------------------------------------------
+reshape wide a_mean h_mean tot_emp, i(seasonal cold) j(month) string
+lab def jtype 0 "No Seasonality" 1 "Seasonality" 2 "Education"
+lab val seasonal jtype
 
+graph bar tot_empMay tot_empNov, over(seasonal, label(labsize(small))) /*
+*/ over(cold, relabel(1 ">= -5 Celsius" 2 "< -5 Celsius")) /*
+*/ legend(lab(1 "May") lab(2 "November")) ytitle("Jobs (Millions)")
+graph export "$OUT/seasonalEmployment.eps", replace
 
+egen meanEmp = rowmean(tot_empMay tot_empNov)
+gen devMay = tot_empMay - meanEmp
+gen devNov = tot_empNov - meanEmp
 
+graph bar devMay devNov, over(seasonal, label(labsize(small))) /*
+*/ over(cold, relabel(1 ">= -5 Celsius" 2 "< -5 Celsius")) /*
+*/ legend(lab(1 "May") lab(2 "November")) ytitle("Jobs (Millions)")
+graph export "$OUT/seasonalEmploymentDeviation.eps", replace
+
+graph bar h_meanMay h_meanNov, over(seasonal, label(labsize(small))) /*
+*/ over(cold, relabel(1 ">= -5 Celsius" 2 "< -5 Celsius")) /*
+*/ legend(lab(1 "May") lab(2 "November")) exclude0 ylabel(17(0.5)19.5) /*
+*/ ytitle("Hourly Salary")
+graph export "$OUT/seasonalWages.eps", replace
+
+*/
+
+*-------------------------------------------------------------------------------
+*--- (2) Data
+*--------------------------------------------------------------------------------
+insheet using "$DAT/2013/state_M2013_dl.csv", delim(";") clear
+keep if occ_group=="major"
+#delimit ;
+gen seasonal=occ_code=="35-0000"|occ_code=="29-0000"|occ_code=="11-0000"|
+    occ_code=="43-0000"|occ_code=="39-0000" if occ_code!="00-0000";
+replace seasonal = 2 if occ_code=="25-0000";
+#delimit cr
+
+replace jobs_1000="" if jobs_1000=="**"
+destring jobs_1000, replace
+collapse (sum) jobs_1000, by(state seasonal)
+
+rename state NAME
+
+merge m:1 NAME using "$GEO/US_db"
+drop if _merge==1
+drop if NAME=="Alaska"|NAME=="Hawaii"|NAME=="Puerto Rico"
+
+format jobs_1000 %5.2f
+#delimit ;
+spmap jobs_1000 if seasonal==1 using "$GEO/US_coord_mercator", id(_ID)
+osize(thin) legtitle("Jobs per 1,000") legstyle(2) fcolor(Heat)
+legend(symy(*1.2) symx(*1.2) size(*1.5) rowgap(1)) title("Seasonal Jobs");
+graph export "$OUT/seasonalJobs.eps", replace;
+
+spmap jobs_1000 if seasonal==0 using "$GEO/US_coord_mercator", id(_ID)
+osize(thin) legtitle("Jobs per 1,000") legstyle(2) fcolor(Heat)
+legend(symy(*1.2) symx(*1.2) size(*1.5) rowgap(1)) title("Non-Seasonal Jobs");
+graph export "$OUT/nonseasonalJobs.eps", replace;
+spmap jobs_1000 if seasonal==2 using "$GEO/US_coord_mercator", id(_ID)
+osize(thin) legtitle("Jobs per 1,000") legstyle(2) fcolor(Heat)
+legend(symy(*1.2) symx(*1.2) size(*1.5) rowgap(1)) title("Education Jobs");
+graph export "$OUT/teacherJobs.eps", replace;
+#delimit cr
