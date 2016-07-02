@@ -1346,6 +1346,166 @@ postfoot("\bottomrule\multicolumn{9}{p{20.6cm}}{\begin{footnotesize} The     "
 estimates clear
 
 
+gen wt=1
+count
+local SN = r(N)
+gen old = age>=40 if age<=45
+
+
+preserve
+collapse WTPdifference minTemp (sum) wt, by(stateString)
+drop if stateString=="Alaska"
+drop if stateString=="North Dakota"
+
+
+corr WTPdifference minTemp [aw=wt] 
+local ccoef = string(r(rho),"%5.3f")
+reg WTPdifference minTemp [aw=wt]
+local pval   = (1-ttail(e(df_r),(_b[minTemp]/_se[minTemp])))
+local pvalue = string(`pval',"%5.3f")
+if `pvalue' == 0 local pvalue 0.000
+twoway scatter WTPdifference minTemp, msymbol(i) mlabel(state) || ///
+    scatter WTPdifference minTemp [aw=wt], msymbol(Oh) || ///
+    lfit WTPdifference minTemp [aw=wt], scheme(s1mono) ///
+    legend(off) lpattern(dash) lcolor(gs0)                             ///
+    ytitle("WTP Difference (SOB-Diabetes Avoidance)") ///
+    xtitle("Minimum Temperature") ///
+    note("Correlation coefficient (p-value) =`ccoef' (`pvalue'), N=`SN'")
+graph export "$OUT/TempCold_WTP.eps", as(eps) replace
+restore
+
+
+
+preserve
+keep if old==1
+count
+local SN = r(N)
+collapse WTPdifference minTemp (sum) wt, by(stateString)
+drop if stateString=="Alaska"
+drop if stateString=="North Dakota"
+
+
+corr WTPdifference minTemp [aw=wt] 
+local ccoef = string(r(rho),"%5.3f")
+reg WTPdifference minTemp [aw=wt]
+local pval   = (1-ttail(e(df_r),(_b[minTemp]/_se[minTemp])))
+local pvalue = string(`pval',"%5.3f")
+if `pvalue' == 0 local pvalue 0.000
+twoway scatter WTPdifference minTemp, msymbol(i) mlabel(state) || ///
+    scatter WTPdifference minTemp [aw=wt], msymbol(Oh) || ///
+    lfit WTPdifference minTemp [aw=wt], scheme(s1mono) ///
+    legend(off) lpattern(dash) lcolor(gs0)                             ///
+    ytitle("WTP Difference (SOB-Diabetes Avoidance)") ///
+    xtitle("Minimum Temperature") ///
+    note("Correlation coefficient (p-value) =`ccoef' (`pvalue'), N=`SN'")
+graph export "$OUT/TempCold_WTPold.eps", as(eps) replace
+restore
+
+preserve
+keep if old==0
+count
+local SN = r(N)
+collapse WTPdifference minTemp (sum) wt, by(stateString)
+drop if stateString=="Alaska"
+drop if stateString=="North Dakota"
+
+
+corr WTPdifference minTemp [aw=wt] 
+local ccoef = string(r(rho),"%5.3f")
+reg WTPdifference minTemp [aw=wt]
+local pval   = (1-ttail(e(df_r),(_b[minTemp]/_se[minTemp])))
+local pvalue = string(`pval',"%5.3f")
+if `pvalue' == 0 local pvalue 0.000
+twoway scatter WTPdifference minTemp, msymbol(i) mlabel(state) || ///
+    scatter WTPdifference minTemp [aw=wt], msymbol(Oh) ||         ///
+    lfit WTPdifference minTemp [aw=wt], scheme(s1mono)            ///
+    legend(off) lpattern(dash) lcolor(gs0)                        ///
+    ytitle("WTP Difference (SOB-Diabetes Avoidance)")             ///
+    xtitle("Minimum Temperature")                                 ///
+    note("Correlation coefficient (p-value) =`ccoef' (`pvalue'), N=`SN'")
+graph export "$OUT/TempCold_WTPyoung.eps", as(eps) replace
+restore
+
+
+
+keep if sex==1
+preserve
+collapse WTPdifference minTemp (sum) wt, by(stateString)
+drop if stateString=="Alaska"
+drop if stateString=="North Dakota"
+
+
+corr WTPdifference minTemp [aw=wt] 
+local ccoef = string(r(rho),"%5.3f")
+reg WTPdifference minTemp [aw=wt]
+local pval   = (1-ttail(e(df_r),(_b[minTemp]/_se[minTemp])))
+local pvalue = string(`pval',"%5.3f")
+if `pvalue' == 0 local pvalue 0.000
+twoway scatter WTPdifference minTemp, msymbol(i) mlabel(state) || ///
+    scatter WTPdifference minTemp [aw=wt], msymbol(Oh) || ///
+    lfit WTPdifference minTemp [aw=wt], scheme(s1mono) ///
+    legend(off) lpattern(dash) lcolor(gs0)                             ///
+    ytitle("WTP Difference (SOB-Diabetes Avoidance)") ///
+    xtitle("Minimum Temperature") ///
+    note("Correlation coefficient (p-value) =`ccoef' (`pvalue'), N=`SN'")
+graph export "$OUT/TempCold_WTP_women.eps", as(eps) replace
+restore
+
+
+
+preserve
+keep if old==1
+count
+local SN = r(N)
+collapse WTPdifference minTemp (sum) wt, by(stateString)
+drop if stateString=="Alaska"
+drop if stateString=="North Dakota"
+
+
+corr WTPdifference minTemp [aw=wt] 
+local ccoef = string(r(rho),"%5.3f")
+reg WTPdifference minTemp [aw=wt]
+local pval   = (1-ttail(e(df_r),(_b[minTemp]/_se[minTemp])))
+local pvalue = string(`pval',"%5.3f")
+if `pvalue' == 0 local pvalue 0.000
+twoway scatter WTPdifference minTemp, msymbol(i) mlabel(state) || ///
+    scatter WTPdifference minTemp [aw=wt], msymbol(Oh) || ///
+    lfit WTPdifference minTemp [aw=wt], scheme(s1mono) ///
+    legend(off) lpattern(dash) lcolor(gs0)                             ///
+    ytitle("WTP Difference (SOB-Diabetes Avoidance)") ///
+    xtitle("Minimum Temperature") ///
+    note("Correlation coefficient (p-value) =`ccoef' (`pvalue'), N=`SN'")
+graph export "$OUT/TempCold_WTPold_women.eps", as(eps) replace
+restore
+
+preserve
+keep if old==0
+count
+local SN = r(N)
+collapse WTPdifference minTemp (sum) wt, by(stateString)
+drop if stateString=="Alaska"
+drop if stateString=="North Dakota"
+
+
+corr WTPdifference minTemp [aw=wt] 
+local ccoef = string(r(rho),"%5.3f")
+reg WTPdifference minTemp [aw=wt]
+local pval   = (1-ttail(e(df_r),(_b[minTemp]/_se[minTemp])))
+local pvalue = string(`pval',"%5.3f")
+if `pvalue' == 0 local pvalue 0.000
+twoway scatter WTPdifference minTemp, msymbol(i) mlabel(state) || ///
+    scatter WTPdifference minTemp [aw=wt], msymbol(Oh) || ///
+    lfit WTPdifference minTemp [aw=wt], scheme(s1mono) ///
+    legend(off) lpattern(dash) lcolor(gs0)                             ///
+    ytitle("WTP Difference (SOB-Diabetes Avoidance)") ///
+    xtitle("Minimum Temperature") ///
+    note("Correlation coefficient (p-value) =`ccoef' (`pvalue'), N=`SN'")
+graph export "$OUT/TempCold_WTPyoung_women.eps", as(eps) replace
+restore
+
+
+
+
 exit
 
 
