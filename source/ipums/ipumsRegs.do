@@ -162,7 +162,7 @@ postfoot("F-test of Age Variables&0`F4'&0`F3'&0`F2'&0`F1' \\                   "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-
+*/
 ********************************************************************************
 *** (3e) regressions: industry
 ********************************************************************************
@@ -187,8 +187,8 @@ local lv1 _1occ*
 local lv2 _2occ*
 local lv3 _occ*
 local sig significantOccs insignificantOccs
-
-
+drop _2occ2
+/*
 eststo: areg goodQuarter `age' `edu' `une' _year* `lv3' `wt', `se' `abs'
 ds _occ*
 local tvar `r(varlist)'
@@ -198,8 +198,9 @@ if `F1' == 0 local F1 0.000
 test `age'
 local F1a = round(r(p)*1000)/1000
 local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+local tL1  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
 
-drop _2occ2
+
 eststo:  areg goodQuarter `age' `edu' `une' _year* `lv2' `wt', `se' `abs'
 ds _2occ*
 local tvar `r(varlist)'
@@ -225,6 +226,64 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
          "Optimal Age&`opt3'&`opt2'&`opt1'\\ \bottomrule                       "
          "\multicolumn{4}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
          " singleton first-born children in the US to white, non-hispanic      "
+         "`mnote' mothers aged 25-45 included in 2005-2014 ACS data where the  "
+         "mother is either the head of the household or the partner of the head"
+         " of the household and works in an occupation with at least 500       "
+         "workers in the sample. Occupation codes refer to the level of        "
+         "occupation codes (2 digit, or 3 digit). The omitted occupational     "
+         "category in column 2 and column 4 is Arts, Design, Entertainment,    "
+         "Sports, and Media, as this occupation has good quarter=0.500(0.500). "
+         "F-tests for occupation report p-values of joint significance of the  "
+         "dummies, and `Fnote' The Leamer critical value for the t-statistic is"
+         "`tL1'. `onote' `enote'"
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+*/
+
+********************************************************************************
+*** (3e-i) regressions: industry by temp
+********************************************************************************
+gen tsplit = cold<23    
+bys twoLevelOcc tsplit: gen counter2 = _N
+local cnd if cold<23&counter2>500
+eststo: areg goodQuarter `age' `edu' `une' _year* `lv3' `wt' `cnd', `se' `abs'
+ds _occ*
+local tvar `r(varlist)'
+test `tvar'
+local F1 = round(r(p)*1000)/1000
+if `F1' == 0 local F1 0.000
+test `age'
+local F1a = round(r(p)*1000)/1000
+local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+local tL1  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
+
+
+eststo:  areg goodQuarter `age' `edu' `une' _year* `lv2' `wt' `cnd', `se' `abs'
+ds _2occ*
+local tvar `r(varlist)'
+test `tvar'
+local F2 = round(r(p)*1000)/1000
+if `F2' == 0 local F2 0.000
+test `age'
+local F2a = round(r(p)*1000)/1000
+local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+
+eststo:  areg goodQuarter `age' `edu' `une' _year*       `wt' `cnd', `se' `abs'
+test `age'
+local F3a = round(r(p)*1000)/1000
+local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+
+#delimit ;
+esttab est3 est2 est1 using "$OUT/IPUMSIndustry_cold.tex", replace `estopt' 
+title("Season of Birth Correlates: Occupation ($<$ -5 celsius)")
+keep(`age' `edu' `une' `lv2') style(tex) booktabs mlabels(, depvar) 
+postfoot("Occupation Codes (level) &-&2&3\\                                    "
+         "F-test of Occupation Dummies&-&`F2'&`F1'\\                           "
+         "F-test of Age Variables&0`F3a'&0`F2a'&0`F1a'\\                       "
+         "Optimal Age&`opt3'&`opt2'&`opt1'\\ \bottomrule                       "
+         "\multicolumn{4}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
+         " singleton first-born children in the US to white, non-hispanic      "
 	 "`mnote' mothers aged 25-45 included in 2005-2014 ACS data where the  "
 	 "mother is either the head of the household or the partner of the head"
 	 " of the household and works in an occupation with at least 500       "
@@ -232,12 +291,68 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
 	 "occupation codes (2 digit, or 3 digit). The omitted occupational     "
 	 "category in column 2 and column 4 is Arts, Design, Entertainment,    "
          "Sports, and Media, as this occupation has good quarter=0.500(0.500). "
-         "F-tests for   "
-         "occupation report p-values of joint significance of the dummies, and "
-         "`Fnote' `onote' `enote'"
+         "F-tests for occupation report p-values of joint significance of the  "
+         "dummies, and `Fnote' The Leamer critical value for the t-statistic is"
+         "`tL1'. `onote' `enote'"
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
+
+local cnd if cold>=23&counter2>500
+eststo: areg goodQuarter `age' `edu' `une' _year* `lv3' `wt' `cnd', `se' `abs'
+ds _occ*
+local tvar `r(varlist)'
+test `tvar'
+local F1 = round(r(p)*1000)/1000
+if `F1' == 0 local F1 0.000
+test `age'
+local F1a = round(r(p)*1000)/1000
+local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+local tL1  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
+
+
+eststo:  areg goodQuarter `age' `edu' `une' _year* `lv2' `wt' `cnd', `se' `abs'
+ds _2occ*
+local tvar `r(varlist)'
+test `tvar'
+local F2 = round(r(p)*1000)/1000
+if `F2' == 0 local F2 0.000
+test `age'
+local F2a = round(r(p)*1000)/1000
+local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+
+eststo:  areg goodQuarter `age' `edu' `une' _year*       `wt' `cnd', `se' `abs'
+test `age'
+local F3a = round(r(p)*1000)/1000
+local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+
+#delimit ;
+esttab est3 est2 est1 using "$OUT/IPUMSIndustry_warm.tex", replace `estopt' 
+title("Season of Birth Correlates: Occupation ($\geq$ -5 celsius)")
+keep(`age' `edu' `une' `lv2') style(tex) booktabs mlabels(, depvar) 
+postfoot("Occupation Codes (level) &-&2&3\\                                    "
+         "F-test of Occupation Dummies&-&`F2'&`F1'\\                           "
+         "F-test of Age Variables&0`F3a'&0`F2a'&0`F1a'\\                       "
+         "Optimal Age&`opt3'&`opt2'&`opt1'\\ \bottomrule                       "
+         "\multicolumn{4}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
+         " singleton first-born children in the US to white, non-hispanic      "
+	 "`mnote' mothers aged 25-45 included in 2005-2014 ACS data where the  "
+	 "mother is either the head of the household or the partner of the head"
+	 " of the household and works in an occupation with at least 500       "
+	 "workers in the sample. Occupation codes refer to the level of        "
+	 "occupation codes (2 digit, or 3 digit). The omitted occupational     "
+	 "category in column 2 and column 4 is Arts, Design, Entertainment,    "
+         "Sports, and Media, as this occupation has good quarter=0.500(0.500). "
+         "F-tests for occupation report p-values of joint significance of the  "
+         "dummies, and `Fnote' The Leamer critical value for the t-statistic is"
+         "`tL1'. `onote' `enote'"
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+
+exit
+/*
+exit
 
 preserve
 drop if classwkr==1
@@ -624,7 +739,7 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-
+*/
 ********************************************************************************
 *** (3f) regressions: Teachers
 ********************************************************************************
@@ -661,6 +776,7 @@ eststo: areg goodQuarter `mnv'       `edu'       _year*  `wt', `abs' `se'
 eststo: areg goodQuarter             `edu'       _year*  `wt', `abs' `se'
 eststo: areg goodQuarter `mnv'                   _year*  `wt', `abs' `se'
 eststo:  reg goodQuarter `mnv'                           `wt',       `se'
+local tL1  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
 
 
 #delimit ;
@@ -673,7 +789,7 @@ postfoot("F-test of Age Variables &  &    &     &     &0`F2'\\                  
          "sample is used. Teacher refers to individuals employed in ``Education,"
          "Training and Library'' occupations (occupation codes 2200-2550). The  "
          "omitted occupational category is all non-educational occupations.     "
-         "`Fnote'                "
+         "`Fnote' The Leamer critical value for the t-statistic is `tL1'.       "
          "Heteroscedasticity robust standard errors are reported in parentheses."
          "clustered by state. "
          "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01."
@@ -1095,7 +1211,7 @@ graph export "$GRA/birthQuarterEducOld.eps", as(eps) replace;
 #delimit cr
 restore
 
-
+*/
 gen pop=1
 ********************************************************************************
 *** (6e) Figure 6-8
@@ -1123,6 +1239,9 @@ foreach cond of local c1 {
     bys state: gen statecount = _N
 
     keep if `cond'
+    qui count if statecount>500
+    local SN = r(N)
+
     collapse goodQuarter (min) cold (max) hot (sum) pop, /*
     */ by(statefip state fips state*)
     gen diff = hot-cold
@@ -1142,12 +1261,12 @@ foreach cond of local c1 {
         local pval   = (ttail(e(df_r),abs(_b[`tvar']/_se[`tvar'])))
         local pvalue = string(`pval',"%5.3f")
         if `pvalue' == 0 local pvalue 0.000
-
+        
         #delimit ;
         twoway scatter goodQuarter `tvar' if `cc', mlabel(state) ||      
                   lfit goodQuarter `tvar' if `cc', scheme(s1mono)
         lcolor(gs0) legend(off) lpattern(dash)
-        note("Correlation coefficient=`ccoef', p-value=`pvalue'");
+        note("Correlation coefficient=`ccoef', p-value=`pvalue', N=`SN'");
         graph export "$GRA/StateTemp_`1'_`tvar'.eps", as(eps) replace;
         #delimit cr
 
@@ -1163,7 +1282,7 @@ foreach cond of local c1 {
                scatter goodQuarter `tvar' if `cc' [aw=pop], msymbol(Oh) ||      
                   lfit goodQuarter `tvar' if `cc' [aw=pop], scheme(s1mono)
         lcolor(gs0) legend(off) lpattern(dash)
-        note("Correlation coefficient=`ccoef', p-value=`pvalue'");
+        note("Correlation coefficient=`ccoef', p-value=`pvalue', N=`SN'");
         graph export "$GRA/StateTemp_`1'_`tvar'_weight.eps", as(eps) replace;
         #delimit cr
     }
@@ -1619,7 +1738,7 @@ graph export "$GRA/incomeSeasons_4045.eps", as(eps) replace
 log close
 dis _newline(5) " Terminated without Error" _newline(5)
 
-*/
+
 
 
 gen educYrs = 0 if educd==2|educd==11|educd==12

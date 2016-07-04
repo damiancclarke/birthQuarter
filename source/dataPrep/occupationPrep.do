@@ -126,14 +126,20 @@ graph export "$OUT/seasonalWages.eps", replace
 *--------------------------------------------------------------------------------
 insheet using "$DAT/2013/state_M2013_dl.csv", delim(";") clear
 keep if occ_group=="major"
+
 #delimit ;
-gen seasonal=occ_code=="35-0000"|occ_code=="29-0000"|occ_code=="11-0000"|
-    occ_code=="43-0000"|occ_code=="39-0000" if occ_code!="00-0000";
+gen seasonal=occ_code=="13-0000"|occ_code=="21-0000"|occ_code=="15-0000"|
+    occ_code=="35-0000" if occ_code!="00-0000";
 replace seasonal = 2 if occ_code=="25-0000";
+gen seasonal2=occ_code=="35-0000"|occ_code=="29-0000"|occ_code=="11-0000"|
+    occ_code=="43-0000"|occ_code=="39-0000" if occ_code!="00-0000";
+replace seasonal2 = 2 if occ_code=="25-0000";
 #delimit cr
 
 replace jobs_1000="" if jobs_1000=="**"
 destring jobs_1000, replace
+
+preserve
 collapse (sum) jobs_1000, by(state seasonal)
 
 rename state NAME
@@ -147,13 +153,36 @@ format jobs_1000 %5.2f
 spmap jobs_1000 if seasonal==1 using "$GEO/US_coord_mercator", id(_ID)
 osize(thin) legtitle("Jobs per 1,000") legstyle(2) fcolor(Heat)
 legend(symy(*1.2) symx(*1.2) size(*1.5) rowgap(1)) title("Seasonal Jobs");
-graph export "$OUT/seasonalJobs.eps", replace;
+graph export "$OUT/seasonalJobs_t10.eps", replace;
 
 spmap jobs_1000 if seasonal==0 using "$GEO/US_coord_mercator", id(_ID)
 osize(thin) legtitle("Jobs per 1,000") legstyle(2) fcolor(Heat)
 legend(symy(*1.2) symx(*1.2) size(*1.5) rowgap(1)) title("Non-Seasonal Jobs");
+graph export "$OUT/nonseasonalJobs_t10.eps", replace;
+#delimit cr
+
+restore
+
+collapse (sum) jobs_1000, by(state seasonal2)
+
+rename state NAME
+
+merge m:1 NAME using "$GEO/US_db"
+drop if _merge==1
+drop if NAME=="Alaska"|NAME=="Hawaii"|NAME=="Puerto Rico"
+
+format jobs_1000 %5.2f
+#delimit ;
+spmap jobs_1000 if seasonal2==1 using "$GEO/US_coord_mercator", id(_ID)
+osize(thin) legtitle("Jobs per 1,000") legstyle(2) fcolor(Heat)
+legend(symy(*1.2) symx(*1.2) size(*1.5) rowgap(1)) title("Seasonal Jobs");
+graph export "$OUT/seasonalJobs.eps", replace;
+
+spmap jobs_1000 if seasonal2==0 using "$GEO/US_coord_mercator", id(_ID)
+osize(thin) legtitle("Jobs per 1,000") legstyle(2) fcolor(Heat)
+legend(symy(*1.2) symx(*1.2) size(*1.5) rowgap(1)) title("Non-Seasonal Jobs");
 graph export "$OUT/nonseasonalJobs.eps", replace;
-spmap jobs_1000 if seasonal==2 using "$GEO/US_coord_mercator", id(_ID)
+spmap jobs_1000 if seasonal2==2 using "$GEO/US_coord_mercator", id(_ID)
 osize(thin) legtitle("Jobs per 1,000") legstyle(2) fcolor(Heat)
 legend(symy(*1.2) symx(*1.2) size(*1.5) rowgap(1)) title("Education Jobs");
 graph export "$OUT/teacherJobs.eps", replace;
