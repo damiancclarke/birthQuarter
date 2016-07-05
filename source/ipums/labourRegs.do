@@ -123,14 +123,15 @@ lab var iEd11 "5+ Years College"
 *** (4) Regressions
 ********************************************************************************
 local ctl motherAge motherAge2 highEduc uhrswork i.year
+local ctl2 i.motherAge i.educ uhrswork i.year
 local cnd if motherAge>34
 local abs absorb(state)
 local se  robust
 /*
-eststo: areg logWage mother teacher teacherXmother `ctl' `wt'      , `abs' `se'
-eststo: areg wages   mother teacher teacherXmother `ctl' `wt'      , `abs' `se'
-eststo: areg logWage mother teacher teacherXmother `ctl' `wt' `cnd', `abs' `se'
-eststo: areg wages   mother teacher teacherXmother `ctl' `wt' `cnd', `abs' `se'
+eststo: areg logWage mother teacher teacherXmother `ctl'  `wt'      , `abs' `se'
+eststo: areg logWage mother teacher teacherXmother `ctl2' `wt'      , `abs' `se'
+eststo: areg logWage mother teacher teacherXmother `ctl'  `wt' `cnd', `abs' `se'
+eststo: areg logWage mother teacher teacherXmother `ctl2' `wt' `cnd', `abs' `se'
 
 #delimit ;
 esttab est1 est2 est3 est4 using "$OUT/ValueGoodSeason_all.tex", replace
@@ -140,6 +141,7 @@ mgroups("All" "$\geq$ 35 Years", pattern(1 0 1 0)
 prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
 title("The Value of Season of Birth (Wage Income)"\label{tab:IPUMSWagesAll}) 
 postfoot("State and Year FE & Y & Y & Y & Y \\                              "
+         "Age and Education FE &  & Y & & Y \\                              "
          "\bottomrule\multicolumn{5}{p{15.6cm}}{\begin{footnotesize}  Main  "
          "ACS estimation sample is used, augmenting to include un-married   "
          "women.  Teacher refers to occupational codes 2250-2500 (teachers, "
@@ -151,10 +153,12 @@ postfoot("State and Year FE & Y & Y & Y & Y \\                              "
 estimates clear
 
 
-eststo: areg logIncome mother teacher teacherXmother `ctl' `wt'      , `abs' `se'
-eststo: areg income    mother teacher teacherXmother `ctl' `wt'      , `abs' `se'
-eststo: areg logIncome mother teacher teacherXmother `ctl' `wt' `cnd', `abs' `se'
-eststo: areg income    mother teacher teacherXmother `ctl' `wt' `cnd', `abs' `se'
+eststo: areg logIncome mother teacher teacherXmother `ctl'  `wt'      , `abs' `se'
+eststo: areg logIncome mother teacher teacherXmother `ctl2' `wt'      , `abs' `se'
+local tL1  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
+eststo: areg logIncome mother teacher teacherXmother `ctl'  `wt' `cnd', `abs' `se'
+eststo: areg logIncome mother teacher teacherXmother `ctl2' `wt' `cnd', `abs' `se'
+local tL2  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
 
 #delimit ;
 esttab est1 est2 est3 est4 using "$OUT/ValueGoodSeasonInc_all.tex", replace
@@ -163,17 +167,20 @@ keep(mother teacher teacherXmother motherAge motherAge2 highEduc)
 mgroups("All" "$\geq$ 35 Years", pattern(1 0 1 0)
 prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
 title("The Value of Season of Birth"\label{tab:IPUMSIncAll}) 
-postfoot("State and Year FE & Y & Y & Y & Y \\                    "
+postfoot("State and Year FE & Y & Y & Y & Y \\                               "
+         "Age and Education FE &  & Y & & Y \\                               "
          "\bottomrule\multicolumn{5}{p{15.6cm}}{\begin{footnotesize}  Main   "
          "ACS estimation sample used, augmenting to include un-married women."
          "Teacher refers to occupational codes 2250-2500 (teachers,          "
          "librarians and educational occupations).  Earnings refers to total "
          "personal earned income, and is measured in dollars per year.  A    "
-         "control for regular hours worked is included. `enote'"
+         "control for regular hours worked is included. The Leamer critical  "
+         "value for the t-statistic is `tL1' (columns 1-2) and `tL2' (columns"
+         " 3-4).`enote'"
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
-
+*/
 keep if marst==1
 
 eststo: areg logWage mother teacher teacherXmother `ctl' `wt'      , `abs' `se'
@@ -199,10 +206,12 @@ postfoot("State and Year FE & Y & Y & Y & Y \\                              "
 estimates clear
 
 
-eststo: areg logIncome mother teacher teacherXmother `ctl' `wt'      , `abs' `se'
-eststo: areg income    mother teacher teacherXmother `ctl' `wt'      , `abs' `se'
-eststo: areg logIncome mother teacher teacherXmother `ctl' `wt' `cnd', `abs' `se'
-eststo: areg income    mother teacher teacherXmother `ctl' `wt' `cnd', `abs' `se'
+eststo: areg logIncome mother teacher teacherXmother `ctl'  `wt'      , `abs' `se'
+eststo: areg logIncome mother teacher teacherXmother `ctl2' `wt'      , `abs' `se'
+local tL1  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
+eststo: areg logIncome mother teacher teacherXmother `ctl'  `wt' `cnd', `abs' `se'
+eststo: areg logIncome mother teacher teacherXmother `ctl2' `wt' `cnd', `abs' `se'
+local tL2  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
 
 #delimit ;
 esttab est1 est2 est3 est4 using "$OUT/ValueGoodSeasonInc.tex", replace
@@ -211,20 +220,24 @@ keep(mother teacher teacherXmother motherAge motherAge2 highEduc)
 mgroups("All" "$\geq$ 35 Years", pattern(1 0 1 0)
 prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
 title("The Value of Season of Birth"\label{tab:IPUMSInc}) 
-postfoot("State and Year FE & Y & Y & Y & Y \\                   "
+postfoot("State and Year FE & Y & Y & Y & Y \\                            "
+         "Age and Education FE &  & Y & & Y \\                            "
          "\bottomrule\multicolumn{5}{p{15.8cm}}{\begin{footnotesize} Main "
          "ACS estimation sample is used augmented with non-mothers and    "
          "with mothers of more than one child (or older children). Teacher"
          "refers to occupational codes 2250-2500 (teachers, librarians and"
          "educational occupations). Earnings refer to earned income in the"
          "past 12 months, and are measured in dollars per year. Usual     "
-         "weekly hours of work are included as a control variable. `enote'"
+         "weekly hours of work are included as a control variable. The    "
+         "Leamer critical value for the t-statistic is `tL1' (columns 1-2)"
+         "and `tL2' (columns 3-4). `enote'     "
 "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
+exit
+/*
 
 
-*/
 keep if marst==1
 local nam MLeave NoMLeave PLeaveAB PLeaveCE PLeaveF
 tokenize `nam'
@@ -265,18 +278,17 @@ restore
 macro shift
 
 }
-
-preserve
-drop if educ==0
+*/
+keep if marst==1
 local ctl motherAge motherAge2 educYrs educYrsSq uhrswork i.year
 local cnd if motherAge>34
 local abs absorb(state)
 local se  robust
 
-eststo: areg logIncome mother teacher teacherXmother `ctl' `wt'      , `abs' `se'
-eststo: areg income    mother teacher teacherXmother `ctl' `wt'      , `abs' `se'
-eststo: areg logIncome mother teacher teacherXmother `ctl' `wt' `cnd', `abs' `se'
-eststo: areg income    mother teacher teacherXmother `ctl' `wt' `cnd', `abs' `se'
+eststo: areg logIncome mother teacher teacherXmother `ctl'  `wt'      , `abs' `se'
+eststo: areg logIncome mother teacher teacherXmother `ctl2' `wt'      , `abs' `se'
+eststo: areg logIncome mother teacher teacherXmother `ctl'  `wt' `cnd', `abs' `se'
+eststo: areg logIncome mother teacher teacherXmother `ctl2' `wt' `cnd', `abs' `se'
 
 #delimit ;
 esttab est1 est2 est3 est4 using "$OUT/EducSq_ValueGoodSeasonInc.tex", replace
@@ -285,7 +297,8 @@ keep(mother teacher teacherXmother motherAge motherAge2 educYrs educYrsSq)
 mgroups("All" "$\geq$ 35 Years", pattern(1 0 1 0)
 prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
 title("The Value of Season of Birth"\label{tab:IPUMSInc}) 
-postfoot("State and Year FE & Y & Y & Y & Y \\                   "
+postfoot("State and Year FE & Y & Y & Y & Y \\                            "
+         "Age and Education FE &  & Y & & Y \\                            "
          "\bottomrule\multicolumn{5}{p{15.8cm}}{\begin{footnotesize} Main "
          "ACS estimation sample is used augmented with non-mothers and    "
          "with mothers of more than one child (or older children). Teacher"
@@ -299,7 +312,7 @@ estimates clear
 
 
 
-local educ iEd3 iEd4 iEd5 iEd6 iEd7 iEd8 iEd9 iEd10 iEd11
+local educ iEd7 iEd8 iEd9 iEd10 iEd11
 local ctl motherAge motherAge2 `educ' uhrswork i.year
 local cnd if motherAge>34
 local abs absorb(state)
@@ -324,12 +337,14 @@ postfoot("State and Year FE & Y & Y & Y & Y \\                   "
          "refers to occupational codes 2250-2500 (teachers, librarians and"
          "educational occupations). Earnings refer to earned income in the"
          "past 12 months, and are measured in dollars per year. Usual     "
-         "weekly hours of work are included as a control variable. `enote'"
+         "weekly hours of work are included as a control variable.        "
+         "Education dummies are included based on the general attainment  "
+         "coding of the ACS.  The omitted category is less than highschool"
+         "education. `enote'"
 "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
 
-restore
 
 exit
 
