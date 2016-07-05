@@ -1150,7 +1150,7 @@ gen educ3 = educ==5
 gen educ4 = educ==6
 gen educ5 = educ>=7
 lab var educ1 "Highschool or less"
-lab var educ2 "Some College (no degree)"
+lab var educ2 "Some College"
 lab var educ3 "Two Year Degree"
 lab var educ4 "Four Year Degree"
 lab var educ5 "Higher Degree"
@@ -1194,6 +1194,7 @@ postfoot("\bottomrule\multicolumn{7}{p{15.8cm}}{\begin{footnotesize} All       "
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
+
 
 local cnd if age>=25&age<=45&race==11&hispanic==0
 local con parent teacher parentTeacher age ageSq highEduc
@@ -1249,7 +1250,7 @@ postfoot("\bottomrule\multicolumn{7}{p{15.8cm}}{\begin{footnotesize} All      "
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
-
+drop if occ==18|race!=11
 local cnd if age>=25&age<=45&WTPcheck==2
 local con parent teacher parentTeacher age ageSq highEduc
 eststo: reg WTPsob        `con' `cnd'
@@ -1271,7 +1272,8 @@ title("Parents, Teachers and Willingness to Pay (Definitely Sure Only)")
 postfoot("\bottomrule\multicolumn{7}{p{15.8cm}}{\begin{footnotesize} All      "
          "willingness-to-pay (WTP) measures are represented as the proportion "
          "of all financial resources to be paid as a one-off sum. The sample  "
-         "consists of all married and unmarried 25-45 5 year-old respondents  "
+         "consists of all married and unmarried white 25-45 year-old          "
+         " respondents who have ever worked,   "
          "who answered the attention checks consistently and who stated that  "
          "they were ``definitely sure'' about their stated WTP values.        "
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
@@ -1281,7 +1283,9 @@ estimates clear
 
 
 
-exit
+preserve
+keep if nchild!=0
+
 lab var WTPsob "WTP"
 lab var WTPdif "WTP"
 
@@ -1303,7 +1307,7 @@ keep(`ages' `educ' _cons)
 mgroups("Willingness to Pay (\%)" "Difference (SOB-Diabetes Avoid)",
         pattern(1 0 0 1 0 0) prefix(\multicolumn{@span}{c}{) suffix(}) span
         erepeat(\cmidrule(lr){@span}))
-title("Willingness to Pay MTurk (All Respondents)")
+title("Willingness to Pay MTurk (All Parents)")
 postfoot("\bottomrule\multicolumn{7}{p{16.6cm}}{\begin{footnotesize} The    "
          "willingness-to-pay (WTP) in columns 1-3 is measured as the        "
          "proportion of all financial resources as a one-off payment. WTP in"
@@ -1333,7 +1337,7 @@ keep(`ages' `educ' _cons)
 mgroups("Willingness to Pay (\%)" "Difference (SOB-Diabetes Avoid)",
         pattern(1 0 0 1 0 0) prefix(\multicolumn{@span}{c}{) suffix(}) span
         erepeat(\cmidrule(lr){@span}))
-title("Willingness to Pay MTurk (20-45 Year Olds)")
+title("Willingness to Pay MTurk (20-45 Year-Old Parents)")
 postfoot("\bottomrule\multicolumn{7}{p{16.6cm}}{\begin{footnotesize} The    "
          "willingness-to-pay (WTP) in columns 1-3 is measured as the        "
          "proportion of all financial resources as a one-off payment. WTP in"
@@ -1346,7 +1350,7 @@ postfoot("\bottomrule\multicolumn{7}{p{16.6cm}}{\begin{footnotesize} The    "
 #delimit cr
 estimates clear
 
-local cond if age>=20&age<=45&race==11&hisp==0
+local cond if age>=20&age<=45&race==11&hispanic==0
 eststo: reg WTPsob `ages'        `cond'
 eststo: reg WTPsob `educ'        `cond'
 eststo: reg WTPsob `ages' `educ' `cond'
@@ -1362,7 +1366,7 @@ keep(`ages' `educ' _cons)
 mgroups("Willingness to Pay (\%)" "Difference (SOB-Diabetes Avoid)",
         pattern(1 0 0 1 0 0) prefix(\multicolumn{@span}{c}{) suffix(}) span
         erepeat(\cmidrule(lr){@span}))
-title("Willingness to Pay MTurk (White non-Hispanic 20-45 Year Olds)")
+title("Willingness to Pay MTurk (White non-Hispanic 20-45 Year Old Parents)")
 postfoot("\bottomrule\multicolumn{7}{p{16.6cm}}{\begin{footnotesize} The    "
          "willingness-to-pay (WTP) in columns 1-3 is measured as the        "
          "proportion of all financial resources as a one-off payment. WTP in"
@@ -1376,7 +1380,7 @@ postfoot("\bottomrule\multicolumn{7}{p{16.6cm}}{\begin{footnotesize} The    "
 #delimit cr
 estimates clear
 
-local cond if age>=20&age<=45&race==11&hisp==0&sex==1
+local cond if age>=20&age<=45&race==11&sex==1
 eststo: reg WTPsob `ages'        `cond'
 eststo: reg WTPsob `educ'        `cond'
 eststo: reg WTPsob `ages' `educ' `cond'
@@ -1392,7 +1396,7 @@ keep(`ages' `educ' _cons)
 mgroups("Willingness to Pay (\%)" "Difference (SOB-Diabetes Avoid)",
         pattern(1 0 0 1 0 0) prefix(\multicolumn{@span}{c}{) suffix(}) span
         erepeat(\cmidrule(lr){@span}))
-title("Willingness to Pay MTurk (White non-Hispanic female 20-45 Year Olds)")
+title("Willingness to Pay MTurk (White female 20-45 Year Old Parents)")
 postfoot("\bottomrule\multicolumn{7}{p{16.6cm}}{\begin{footnotesize} The    "
          "willingness-to-pay (WTP) in columns 1-3 is measured as the        "
          "proportion of all financial resources as a one-off payment. WTP in"
@@ -1406,7 +1410,7 @@ postfoot("\bottomrule\multicolumn{7}{p{16.6cm}}{\begin{footnotesize} The    "
 #delimit cr
 estimates clear
 
-local cond if age>=20&age<=45&race==11&hisp==0&WTPcheck==2
+local cond if age>=20&age<=45&race==11&WTPcheck==2
 eststo: reg WTPsob `ages'        `cond'
 eststo: reg WTPsob `educ'        `cond'
 eststo: reg WTPsob `ages' `educ' `cond'
@@ -1438,7 +1442,7 @@ estimates clear
 
 
 
-local cond if age>=20&age<=45
+local cond if age>=20&age<=45&race==11
 eststo: reg WTPsob teacher               `cond'
 eststo: reg WTPsob teacher `ages'        `cond'
 eststo: reg WTPsob teacher `educ'        `cond'
@@ -1469,8 +1473,39 @@ postfoot("\bottomrule\multicolumn{9}{p{20.6cm}}{\begin{footnotesize} The    "
 #delimit cr
 estimates clear
 
+local cond if age>=20&age<=45&race==11&WTPcheck==2
+eststo: reg WTPsob teacher               `cond'
+eststo: reg WTPsob teacher `ages'        `cond'
+eststo: reg WTPsob teacher `educ'        `cond'
+eststo: reg WTPsob teacher `ages' `educ' `cond'
 
-local cond if age>=20&age<=45&race==11&hisp==0&sex==1
+eststo: reg WTPdif teacher               `cond'
+eststo: reg WTPdif teacher `ages'        `cond'
+eststo: reg WTPdif teacher `educ'        `cond'
+eststo: reg WTPdif teacher `ages' `educ' `cond'
+
+#delimit ;
+esttab est1 est2 est3 est4 est5 est6 est7 est8 using "$OUT/TeacherWTP_20-45_Sure.tex",
+replace `estopt' booktabs mlabels(, depvar)
+keep(teacher `ages' `educ' _cons)
+mgroups("Willingness to Pay (\%)" "Difference (SOB-Diabetes Avoid)",
+        pattern(1 0 0 0 1 0 0 0) prefix(\multicolumn{@span}{c}{) suffix(}) span
+        erepeat(\cmidrule(lr){@span}))
+title("Willingness to Pay and Teachers (20-45 Year Old White Parents: Sure Only)")
+postfoot("\bottomrule\multicolumn{9}{p{20.6cm}}{\begin{footnotesize} The    "
+         "willingness-to-pay (WTP) in columns 1-3 is measured as the        "
+         "proportion of all financial resources as a one-off payment. WTP in"
+         " columns 4-6 is the difference in WTP to perfectly time season of "
+         "birth and to avoid diabetes, where a positive coefficient implies "
+         "a greater relative WTP for season of birth. All MTurk respondents "
+         "aged between 20-45 who answer consistently are included. The      "
+         "omitted education category is highschool or lower."
+         "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
+#delimit cr
+estimates clear
+
+
+local cond if age>=20&age<=45&race==11&sex==1
 eststo: reg WTPsob teacher               `cond'
 eststo: reg WTPsob teacher `ages'        `cond'
 eststo: reg WTPsob teacher `educ'        `cond'
@@ -1501,8 +1536,12 @@ postfoot("\bottomrule\multicolumn{9}{p{20.6cm}}{\begin{footnotesize} The     "
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
+restore
 
 
+********************************************************************************
+*** (9) Temperature graphs
+********************************************************************************
 gen wt=1
 count
 local SN = r(N)
@@ -1510,234 +1549,76 @@ gen old = age>=40 if age<=45
 
 
 preserve
-collapse WTPdifference minTemp (sum) wt, by(stateString)
+collapse WTPdifference WTPsob minTemp (sum) wt, by(stateString)
 drop if stateString=="Alaska"
 drop if stateString=="North Dakota"
 
+foreach var of varlist WTPdifference WTPsob {
+    local fname WTP
+    local atitle "WTP Difference (SOB-Diabetes Avoidance)"
+    if `"`var'"'=="WTPsob" local fname WTPsob
+    if `"`var'"'=="WTPsob" local atitle "WTP (Choose Season of Birth)"
+    corr `var' minTemp [aw=wt] 
+    local ccoef = string(r(rho),"%5.3f")
+    reg `var' minTemp [aw=wt]
+    local pval   = (1-ttail(e(df_r),(_b[minTemp]/_se[minTemp])))
+    local pvalue = string(`pval',"%5.3f")
+    if `pvalue' == 0 local pvalue 0.000
 
-corr WTPdifference minTemp [aw=wt] 
-local ccoef = string(r(rho),"%5.3f")
-reg WTPdifference minTemp [aw=wt]
-local pval   = (1-ttail(e(df_r),(_b[minTemp]/_se[minTemp])))
-local pvalue = string(`pval',"%5.3f")
-if `pvalue' == 0 local pvalue 0.000
-twoway scatter WTPdifference minTemp, msymbol(i) mlabel(state) || ///
-    scatter WTPdifference minTemp [aw=wt], msymbol(Oh) || ///
-    lfit WTPdifference minTemp [aw=wt], scheme(s1mono) ///
-    legend(off) lpattern(dash) lcolor(gs0)                             ///
-    ytitle("WTP Difference (SOB-Diabetes Avoidance)") ///
-    xtitle("Minimum Temperature") ///
-    note("Correlation coefficient (p-value) =`ccoef' (`pvalue'), N=`SN'")
-graph export "$OUT/TempCold_WTP.eps", as(eps) replace
+    #delimit ;
+    twoway scatter `var' minTemp, msymbol(i) mlabel(state) || 
+           scatter `var' minTemp      [aw=wt], msymbol(Oh) || 
+              lfit `var' minTemp [aw=wt], scheme(s1mono)
+    legend(off) lpattern(dash) lcolor(gs0) ytitle(`atitle')
+    xtitle("Minimum Temperature")
+    note("Correlation coefficient (p-value) =`ccoef' (`pvalue'), N=`SN'");
+    #delimit cr
+    graph export "$OUT/TempCold_`fname'.eps", as(eps) replace
+}
 restore
 
+#delimit ;
+local cnd old==1 old==0 WTPcheck==2 WTPcheck==2&old==1
+          WTPcheck==2&old==0 nchild!=0 nchild!=0&old==1
+          nchild!=0&old==0;
+local nam old young check oldcheck youngcheck parent oldparent youngparent;
+#delimit cr
 
+tokenize `nam'
+foreach cond of local cnd {
+    preserve
+    keep if `cond'
+    count
+    local SN = r(N)
+    collapse WTPdifference minTemp WTPsob (sum) wt, by(stateString)
+    drop if stateString=="Alaska"
+    drop if stateString=="North Dakota"
 
-preserve
-keep if old==1
-count
-local SN = r(N)
-collapse WTPdifference minTemp (sum) wt, by(stateString)
-drop if stateString=="Alaska"
-drop if stateString=="North Dakota"
+    foreach var of varlist WTPdifference WTPsob {
+        local fname WTP
+        local atitle "WTP Difference (SOB-Diabetes Avoidance)"
+        if `"`var'"'=="WTPsob" local fname WTPsob
+        if `"`var'"'=="WTPsob" local atitle "WTP (Choose Season of Birth)"
+        corr `var' minTemp [aw=wt] 
+        local ccoef = string(r(rho),"%5.3f")
+        reg `var' minTemp [aw=wt]
+        local pval   = (1-ttail(e(df_r),(_b[minTemp]/_se[minTemp])))
+        local pvalue = string(`pval',"%5.3f")
+        if `pvalue' == 0 local pvalue 0.000
 
-
-corr WTPdifference minTemp [aw=wt] 
-local ccoef = string(r(rho),"%5.3f")
-reg WTPdifference minTemp [aw=wt]
-local pval   = (1-ttail(e(df_r),(_b[minTemp]/_se[minTemp])))
-local pvalue = string(`pval',"%5.3f")
-if `pvalue' == 0 local pvalue 0.000
-twoway scatter WTPdifference minTemp, msymbol(i) mlabel(state) || ///
-    scatter WTPdifference minTemp [aw=wt], msymbol(Oh) || ///
-    lfit WTPdifference minTemp [aw=wt], scheme(s1mono) ///
-    legend(off) lpattern(dash) lcolor(gs0)                             ///
-    ytitle("WTP Difference (SOB-Diabetes Avoidance)") ///
-    xtitle("Minimum Temperature") ///
-    note("Correlation coefficient (p-value) =`ccoef' (`pvalue'), N=`SN'")
-graph export "$OUT/TempCold_WTPold.eps", as(eps) replace
-restore
-
-preserve
-keep if old==0
-count
-local SN = r(N)
-collapse WTPdifference minTemp (sum) wt, by(stateString)
-drop if stateString=="Alaska"
-drop if stateString=="North Dakota"
-
-
-corr WTPdifference minTemp [aw=wt] 
-local ccoef = string(r(rho),"%5.3f")
-reg WTPdifference minTemp [aw=wt]
-local pval   = (1-ttail(e(df_r),(_b[minTemp]/_se[minTemp])))
-local pvalue = string(`pval',"%5.3f")
-if `pvalue' == 0 local pvalue 0.000
-twoway scatter WTPdifference minTemp, msymbol(i) mlabel(state) || ///
-    scatter WTPdifference minTemp [aw=wt], msymbol(Oh) ||         ///
-    lfit WTPdifference minTemp [aw=wt], scheme(s1mono)            ///
-    legend(off) lpattern(dash) lcolor(gs0)                        ///
-    ytitle("WTP Difference (SOB-Diabetes Avoidance)")             ///
-    xtitle("Minimum Temperature")                                 ///
-    note("Correlation coefficient (p-value) =`ccoef' (`pvalue'), N=`SN'")
-graph export "$OUT/TempCold_WTPyoung.eps", as(eps) replace
-restore
-
-
-preserve
-keep if WTPcheck==2
-collapse WTPdifference minTemp (sum) wt, by(stateString)
-drop if stateString=="Alaska"
-drop if stateString=="North Dakota"
-
-
-corr WTPdifference minTemp [aw=wt] 
-local ccoef = string(r(rho),"%5.3f")
-reg WTPdifference minTemp [aw=wt]
-local pval   = (1-ttail(e(df_r),(_b[minTemp]/_se[minTemp])))
-local pvalue = string(`pval',"%5.3f")
-if `pvalue' == 0 local pvalue 0.000
-twoway scatter WTPdifference minTemp, msymbol(i) mlabel(state) || ///
-    scatter WTPdifference minTemp [aw=wt], msymbol(Oh) || ///
-    lfit WTPdifference minTemp [aw=wt], scheme(s1mono) ///
-    legend(off) lpattern(dash) lcolor(gs0)                             ///
-    ytitle("WTP Difference (SOB-Diabetes Avoidance)") ///
-    xtitle("Minimum Temperature") ///
-    note("Correlation coefficient (p-value) =`ccoef' (`pvalue'), N=`SN'")
-graph export "$OUT/TempCold_WTP_check.eps", as(eps) replace
-restore
-
-
-
-preserve
-keep if old==1&WTPcheck==2
-count
-local SN = r(N)
-collapse WTPdifference minTemp (sum) wt, by(stateString)
-drop if stateString=="Alaska"
-drop if stateString=="North Dakota"
-
-
-corr WTPdifference minTemp [aw=wt] 
-local ccoef = string(r(rho),"%5.3f")
-reg WTPdifference minTemp [aw=wt]
-local pval   = (1-ttail(e(df_r),(_b[minTemp]/_se[minTemp])))
-local pvalue = string(`pval',"%5.3f")
-if `pvalue' == 0 local pvalue 0.000
-twoway scatter WTPdifference minTemp, msymbol(i) mlabel(state) || ///
-    scatter WTPdifference minTemp [aw=wt], msymbol(Oh) || ///
-    lfit WTPdifference minTemp [aw=wt], scheme(s1mono) ///
-    legend(off) lpattern(dash) lcolor(gs0)                             ///
-    ytitle("WTP Difference (SOB-Diabetes Avoidance)") ///
-    xtitle("Minimum Temperature") ///
-    note("Correlation coefficient (p-value) =`ccoef' (`pvalue'), N=`SN'")
-graph export "$OUT/TempCold_WTPold_check.eps", as(eps) replace
-restore
-
-preserve
-keep if old==0&WTPcheck==2
-count
-local SN = r(N)
-collapse WTPdifference minTemp (sum) wt, by(stateString)
-drop if stateString=="Alaska"
-drop if stateString=="North Dakota"
-
-
-corr WTPdifference minTemp [aw=wt] 
-local ccoef = string(r(rho),"%5.3f")
-reg WTPdifference minTemp [aw=wt]
-local pval   = (1-ttail(e(df_r),(_b[minTemp]/_se[minTemp])))
-local pvalue = string(`pval',"%5.3f")
-if `pvalue' == 0 local pvalue 0.000
-twoway scatter WTPdifference minTemp, msymbol(i) mlabel(state) || ///
-    scatter WTPdifference minTemp [aw=wt], msymbol(Oh) ||         ///
-    lfit WTPdifference minTemp [aw=wt], scheme(s1mono)            ///
-    legend(off) lpattern(dash) lcolor(gs0)                        ///
-    ytitle("WTP Difference (SOB-Diabetes Avoidance)")             ///
-    xtitle("Minimum Temperature")                                 ///
-    note("Correlation coefficient (p-value) =`ccoef' (`pvalue'), N=`SN'")
-graph export "$OUT/TempCold_WTPyoung_check.eps", as(eps) replace
-restore
-
-
-
-keep if sex==1
-preserve
-collapse WTPdifference minTemp (sum) wt, by(stateString)
-drop if stateString=="Alaska"
-drop if stateString=="North Dakota"
-
-
-corr WTPdifference minTemp [aw=wt] 
-local ccoef = string(r(rho),"%5.3f")
-reg WTPdifference minTemp [aw=wt]
-local pval   = (1-ttail(e(df_r),(_b[minTemp]/_se[minTemp])))
-local pvalue = string(`pval',"%5.3f")
-if `pvalue' == 0 local pvalue 0.000
-twoway scatter WTPdifference minTemp, msymbol(i) mlabel(state) || ///
-    scatter WTPdifference minTemp [aw=wt], msymbol(Oh) || ///
-    lfit WTPdifference minTemp [aw=wt], scheme(s1mono) ///
-    legend(off) lpattern(dash) lcolor(gs0)                             ///
-    ytitle("WTP Difference (SOB-Diabetes Avoidance)") ///
-    xtitle("Minimum Temperature") ///
-    note("Correlation coefficient (p-value) =`ccoef' (`pvalue'), N=`SN'")
-graph export "$OUT/TempCold_WTP_women.eps", as(eps) replace
-restore
-
-
-
-preserve
-keep if old==1
-count
-local SN = r(N)
-collapse WTPdifference minTemp (sum) wt, by(stateString)
-drop if stateString=="Alaska"
-drop if stateString=="North Dakota"
-
-
-corr WTPdifference minTemp [aw=wt] 
-local ccoef = string(r(rho),"%5.3f")
-reg WTPdifference minTemp [aw=wt]
-local pval   = (1-ttail(e(df_r),(_b[minTemp]/_se[minTemp])))
-local pvalue = string(`pval',"%5.3f")
-if `pvalue' == 0 local pvalue 0.000
-twoway scatter WTPdifference minTemp, msymbol(i) mlabel(state) || ///
-    scatter WTPdifference minTemp [aw=wt], msymbol(Oh) || ///
-    lfit WTPdifference minTemp [aw=wt], scheme(s1mono) ///
-    legend(off) lpattern(dash) lcolor(gs0)                             ///
-    ytitle("WTP Difference (SOB-Diabetes Avoidance)") ///
-    xtitle("Minimum Temperature") ///
-    note("Correlation coefficient (p-value) =`ccoef' (`pvalue'), N=`SN'")
-graph export "$OUT/TempCold_WTPold_women.eps", as(eps) replace
-restore
-
-preserve
-keep if old==0
-count
-local SN = r(N)
-collapse WTPdifference minTemp (sum) wt, by(stateString)
-drop if stateString=="Alaska"
-drop if stateString=="North Dakota"
-
-
-corr WTPdifference minTemp [aw=wt] 
-local ccoef = string(r(rho),"%5.3f")
-reg WTPdifference minTemp [aw=wt]
-local pval   = (1-ttail(e(df_r),(_b[minTemp]/_se[minTemp])))
-local pvalue = string(`pval',"%5.3f")
-if `pvalue' == 0 local pvalue 0.000
-twoway scatter WTPdifference minTemp, msymbol(i) mlabel(state) || ///
-    scatter WTPdifference minTemp [aw=wt], msymbol(Oh) || ///
-    lfit WTPdifference minTemp [aw=wt], scheme(s1mono) ///
-    legend(off) lpattern(dash) lcolor(gs0)                             ///
-    ytitle("WTP Difference (SOB-Diabetes Avoidance)") ///
-    xtitle("Minimum Temperature") ///
-    note("Correlation coefficient (p-value) =`ccoef' (`pvalue'), N=`SN'")
-graph export "$OUT/TempCold_WTPyoung_women.eps", as(eps) replace
-restore
-
-
-
+        #delimit ;
+        twoway scatter `var' minTemp, msymbol(i) mlabel(state) || 
+               scatter `var' minTemp      [aw=wt], msymbol(Oh) || 
+                  lfit `var' minTemp [aw=wt], scheme(s1mono)
+        legend(off) lpattern(dash) lcolor(gs0) ytitle(`atitle')
+        xtitle("Minimum Temperature")
+        note("Correlation coefficient (p-value) =`ccoef' (`pvalue'), N=`SN'");
+        #delimit cr
+        graph export "$OUT/TempCold_`fname'`1'.eps", as(eps) replace
+    }
+    restore
+    macro shift
+}
 
 exit
 
