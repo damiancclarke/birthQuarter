@@ -18,7 +18,7 @@ clear all
 set more off
 cap log close
 
-local allobs 0
+local allobs 1
 if `allobs'==0 local f nvss
 if `allobs'==1 local f nvssall
 
@@ -42,14 +42,14 @@ local mc
 if `twins' == 1 local app twins
 if `allobs'== 1 local mc married
 
-/*
+
 ********************************************************************************
 *** (2a) Use, descriptive graph
 ********************************************************************************
 use "$DAT/`data'"
 keep if birthOrder==1
 
-
+/*
 preserve
 if `allobs'==0 keep if married==1
 #delimit ;
@@ -64,9 +64,9 @@ twoway hist motherAge if motherAge>24&motherAge<=45, freq color(gs0) width(1) ||
                                         #delimit cr
 graph export "$OUT/ageDescriptive.eps", as(eps) replace
 restore
-
+*/
 keep if twin<3
-
+/*
 preserve
 keep if `keepif'
 if `allobs'==0 keep if married==1
@@ -96,7 +96,7 @@ bar(4, bcolor(ltblue)) scheme(s1mono) ytitle("Proportion ART");
 graph export "$OUT/ARTageGroup.eps", as(eps) replace;
 #delimit cr
 restore
-
+*/
 ********************************************************************************
 *** (2aii) Summary stats table
 ********************************************************************************
@@ -133,7 +133,7 @@ lab var normalBMI   "Normal Weight (BMI 18.5-25)"
 
 local Mum     motherAge `mc' young age2024 age2527 age2831 age3239 age4045
 local MumPart college educCat smoker ART WIC BMI underwe normalBM overwe obese
-
+/*
 gen tvar = abs(goodQuarter-1)
 foreach st in Mum Kid MumPart {
     local Kid goodBirthQ expectGoodQ twin fem birthweight lbw gest premature apg
@@ -170,9 +170,9 @@ foreach st in Mum Kid MumPart {
     #delimit cr
     restore
 }
-
+*/
 replace young     = . if motherAge<25|motherAge>45
-
+/*
 preserve
 keep if `keepif' &married!=.&smoker!=.&college!=.&young!=.&twin==0
 if `allobs'==0 keep if married==1
@@ -206,7 +206,7 @@ suest n1 n2 n3 n4 n5 n6 n7 n8
 test [n1_mean]gQ [n2_mean]gQ [n3_mean]gQ [n4_mean]gQ [n5_mean]gQ [n6_mean]gQ /*
 */   [n7_mean]gQ [n8_mean]gQ
 restore
-
+*/
 
 ********************************************************************************
 *** (2b) Subset
@@ -229,7 +229,7 @@ lab def Qua 1 "Q1 (Jan-Mar)" 2 "Q2 (Apr-Jun)" 3 "Q3 (Jul-Sep)" 4 "Q4 (Oct-Dec)"
 
 lab val ageGroup    aG0
 lab val educLevel   eL
-
+/*
 ********************************************************************************
 *** (3) Descriptives by month
 *******************************************************************************
@@ -667,7 +667,7 @@ legend(order(1 "Young-Old" 2 "95% CI"));
 graph export "$OUT/youngQuarterComparison.eps", as(eps) replace;  
 #delimit cr
 restore
-
+*/
 ********************************************************************************
 *** (4) Graph of good season by age
 ********************************************************************************
@@ -698,8 +698,31 @@ twoway line ageES ageNM in 1/20, lpattern(solid) lcolor(black) lwidth(medthick)
     xlabel(20(1)39) xtitle("Mother's Age") ytitle("Proportion Good Season" " ");
 graph export "$OUT/goodSeasonAge.eps", as(eps) replace;
 #delimit cr
+
+reg expectGoodQ _age1-_age26 if motherAge>=20&motherAge<=45, nocons
+
+drop ageES ageLB ageUB ageNM
+gen ageES = .
+gen ageLB = .
+gen ageUB = .
+gen ageNM = .
+foreach num of numlist 1(1)26 {
+    replace ageES = _b[_age`num']                     in `num'
+    replace ageLB = _b[_age`num']-1.96*_se[_age`num'] in `num'
+    replace ageUB = _b[_age`num']+1.96*_se[_age`num'] in `num'
+    replace ageNM = `num'+19                          in `num'
+}
+#delimit ;
+twoway line ageES ageNM in 1/26, lpattern(solid) lcolor(black) lwidth(medthick)
+    || line ageLB ageNM in 1/26, lpattern(dash)  lcolor(black) lwidth(medium)
+    || line ageUB ageNM in 1/26, lpattern(dash)  lcolor(black) lwidth(medium) ||
+    scatter ageES ageNM in 1/26, mcolor(black) m(S) 
+    scheme(s1mono) legend(order(1 "Point Estimate" 2 "95 % CI"))
+    xlabel(20(1)45) xtitle("Mother's Age") ytitle("Proportion Good Season" " ");
+graph export "$OUT/goodSeasonAge_2045.eps", as(eps) replace;
+#delimit cr
 restore
-exit
+/*
 ********************************************************************************
 *** (5) Prematurity
 ********************************************************************************
@@ -1218,13 +1241,13 @@ rename temptmpcst meanT
 rename temptminst cold
 rename temptmaxst hot
 gen Tvariation = hot-cold
+rename state stateSpace
+gen state = subinstr(stateSpace, " ", "", .)
+replace state = "DC" if state=="WashingtonDC"
 
 tempfile weather
 save `weather'
 
-*****
-***** DCC: Check state naming with spaces or without
-*****
     
 use "$DAT/`data'"
 if `allobs'==0 keep if married==1
@@ -1270,7 +1293,7 @@ foreach num of numlist 3 5 {
     local pval   = (1-ttail(e(df_r),(_b[cold]/_se[cold])))
     local pvalue = string(`pval',"%5.3f")
     if `pvalue' == 0 local pvalue 0.000
-    twoway scatter goodQuarter cold if ageGroup==`num', mlabel(state) ||       ///
+    twoway scatter goodQuarter cold if ageGroup==`num', mlabel(stateSpace) ||  ///
         lfit goodQuarter cold if ageGroup==`num', scheme(s1mono) lcolor(gs0)   ///
             legend(off) lpattern(dash)                                         ///
     note("Correlation coefficient (p-value) =`ccoef' (`pvalue'), N=`SN'")
@@ -1282,22 +1305,23 @@ foreach num of numlist 3 5 {
     local pval   = (1-ttail(e(df_r),(_b[cold]/_se[cold])))
     local pvalue = string(`pval',"%5.3f")
     if `pvalue' == 0 local pvalue 0.000
-    twoway scatter goodQuarter cold if ageGroup==`num', msymbol(i) mlabel(state) || ///
+    twoway scatter goodQuarter cold if ageGroup==`num', msymbol(i) mlabel(stateS) || ///
            scatter goodQuarter cold if ageGroup==`num' [aw=li], msymbol(Oh) || ///
               lfit goodQuarter cold if ageGroup==`num' [aw=li], scheme(s1mono) ///
             legend(off) lpattern(dash) lcolor(gs0)                             ///
     note("Correlation coefficient (p-value) =`ccoef' (`pvalue'), N=`SN'")
     graph export "$OUT/`age'TempCold_weight.eps", as(eps) replace
 
-    corr goodQuarter Tvariation if ageGroup==`num'
+    corr goodQuarter Tvariation [aw=liveBirth] if ageGroup==`num'
     local ccoef = string(r(rho),"%5.3f")
-    reg goodQuarter Tvariation if ageGroup==`num'
+    reg goodQuarter Tvariation [aw=liveBirth] if ageGroup==`num'
     local pval   = (ttail(e(df_r),(_b[Tvariation]/_se[Tvariation])))
     local pvalue = string(`pval',"%5.3f")
     if `pvalue' == 0 local pvalue 0.000
-    twoway scatter goodQuarter Tvariation if ageGroup==`num', mlabel(state) || ///
-        lfit goodQuarter Tvariation if ageGroup==`num', scheme(s1mono)         ///
-            lcolor(gs0) legend(off) lpattern(dash)                             ///
+    twoway scatter goodQuarter Tvariation if ageGroup==`num', mlabel(stateS) || ///
+           scatter goodQuarter Tvari if ageGroup==`num' [aw=li], msymbol(Oh) || ///
+              lfit goodQuarter Tvari if ageGroup==`num' [aw=li], scheme(s1mono) ///
+            lcolor(gs0) legend(off) lpattern(dash)                              ///
     note("Correlation coefficient (p-value) =`ccoef' (`pvalue')")
     graph export "$OUT/`age'TempVariation.eps", as(eps) replace
 
@@ -1317,7 +1341,7 @@ foreach num of numlist 3 5 {
             legend(off) lpattern(dash)
     graph export "$OUT/`age'TempMean.eps", as(eps) replace
 }
-exit
+
 
 merge m:1 state using $USW/religion, gen(_religMerge)
 drop if state=="Alaska"

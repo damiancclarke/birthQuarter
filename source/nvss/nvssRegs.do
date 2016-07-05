@@ -90,7 +90,6 @@ replace ParentalPolicy = "F" if state=="Alabama"|state=="Delaware"|
 replace ParentalPolicy = "CDE" if ParentalPolicy == "";
 #delimit cr
 
-/*
 ********************************************************************************
 *** (3a) Good Quarter Regressions
 ********************************************************************************
@@ -99,13 +98,20 @@ local add `" "(maternal leave states)" "(non-maternal leave states)"
              "(Expecting Better: A-B)" "(Expecting Better: C-E)"
              "(Expecting Better F)" "';
 local add `" ""  "';
-local add `" ""  "(excluding babies conceived in September)"
-             "(including second births)" "(only twins)" "(including twins)" "';
+local add `" "" "(excluding babies conceived in September)"
+           "(second births)" "(only twins)" "(including twins)" "';
+local add `" "(including twins)" "';
 local nam MLeave NoMLeave PLeaveAB PLeaveCE PLeaveF;
-local nam Main;
 local nam Main NoSep Bord2 Twin TwinS;
+local nam TwinS;
+local not "All singleton, first born children from the main sample are included.
+`Fnote' Leamer critical values refer to Leamer/Schwartz/Deaton critical 5\%
+values adjusted for sample size. The Leamer critical value for a t-statistic is
+`tL1' in columns 1-3 and `tL4' in columns 4 and 5. `onote' `enote'
+***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.";
 #delimit cr
 tokenize `nam'
+
 
 foreach type of local add {
     preserve
@@ -120,16 +126,13 @@ foreach type of local add {
     local samp1 "singleton"
     local samp2 "first born"
     
-    if `"`1'"' == "NoSep" local spcnd if birthMonth!=9
-    if `"`1'"' == "Bord2" local group `cnd'&birthOrder==2&liveBirth==1
-    if `"`1'"' == "Twin"  local group /*
+    if `"`1'"' == "NoSep"    local spcnd if birthMonth!=9
+    if `"`1'"' == "Bord2"    local group `cnd'&birthOrder==2&liveBirth==1
+    if `"`1'"' == "Twin"     local group /*
            */ if twin==2&motherAge>24&motherAge<46&`keepif'&liveBirth==1
-    if `"`1'"' == "TwinS" local group /*
+    if `"`1'"' == "TwinS"    local group /*
            */ if twin<=2&motherAge>24&motherAge<46&`keepif'&liveBirth==1
-    if `"`1'"' == "Bord2" local samp2 "second born"
-    if `"`1'"' == "Twin"  local samp1 "twin" 
-    if `"`1'"' == "TwinS" local samp1 "twin and singleton" 
-    if `"`1'"' == "MLeave" local group `cnd'&`keepif'&maternalPolicy==1
+    if `"`1'"' == "MLeave"   local group `cnd'&`keepif'&maternalPolicy==1
     if `"`1'"' == "NoMLeave" local group `cnd'&`keepif'&maternalPolicy==0
     if `"`1'"' == "PLeaveAB" local group `cnd'&`keepif'&ParentalPolicy=="AB"
     if `"`1'"' == "PLeaveCE" local group `cnd'&`keepif'&ParentalPolicy=="CDE"
@@ -179,6 +182,9 @@ foreach type of local add {
     local opt5 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
     #delimit ;
+    if `"`1'"' != "Main" local not "\textsc{Notes}: Refer to table 3 in the
+               main text. The Leamer critical value for a t-statistic is `tL1'
+               in columns 1-3 and `tL4' in columns 4 and 5.";
     esttab est3 est2 est1 est4 est5 using "$OUT/NVSSBinary`1'.tex",
     replace `estopt' keep(`age' `edu' smoker `c2' `mc') 
     title("Season of Birth Correlates `type'"\label{tab:bq`1'}) booktabs 
@@ -189,21 +195,16 @@ foreach type of local add {
              "Optimal Age &`opt3'&`opt2'&`opt1'&`opt4'&`opt5' \\             "
              "State and Year FE&&Y&Y&Y&Y\\ Gestation FE &&&Y&Y&Y\\           "
              "2009-2013 Only&&&&Y&Y\\ \bottomrule                            "
-             "\multicolumn{6}{p{21cm}}{\begin{footnotesize} All `samp1',     "
-             "`samp2' children from the main sample are included. `Fnote'    "
-             "Leamer critical values refer to Leamer/Schwartz/Deaton critical"
-             "5\% values adjusted for sample size. The Leamer critical value "
-             "for a t-statistic is `tL1' in columns 1-3 and `tL4' in columns "
-             "4 and 5. `onote' `enote'                                       "
-             "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.          "
+             "\multicolumn{6}{p{21cm}}{\begin{footnotesize} `not'"
              "\end{footnotesize}}\end{tabular}\end{table}");
     #delimit cr
     estimates clear
 
+
     macro shift
     restore
 }
-exit
+
 
 local age motherAge motherAge2
 local edu highEd
@@ -271,25 +272,19 @@ booktabs keep(`age' `edu' `c2' smoker value `mc')
 style(tex) mlabels(, depvar)
 postfoot("F-test of Age Variables&`F3a'&`F2a'&`F1a'&`F4a'&`F5a'&`F6a' \\  "
          "p-value of F-test      &`F3'&`F2'&`F1'&`F4'&`F5'&`F6' \\        "
-         "Leamer Critical Value  &`L1'&`L1'&`L1'&`L4'&`L4'&`F4' \\        "
+         "Leamer Critical Value  &`L1'&`L1'&`L1'&`L4'&`L4'&`L4' \\        "
          "Optimal Age &`opt3'&`opt2'&`opt1'&`opt4'&`opt5'&`opt6' \\       "
          "State and Year FE&Y&Y&Y&Y&Y&Y\\ Gestation FE &Y&Y&Y&Y&Y&Y\\     "
          "State Specific Linear Trends&Y& &Y& & & Y \\                    "
          "2009-2013 Only&&&&Y&Y&Y\\ \bottomrule                           "
-         "\multicolumn{7}{p{20cm}}{\begin{footnotesize} Independent       "
-         "variables are binary, except for                                "
-         "unemployment, which is measured as the unemployment rate in     "
-         "the mother's state in the month of conception. `Fnote'          "
-         "Leamer critical values refer to Leamer/Schwartz/Deaton critical "
-         "5\% values adjusted for sample size. The Leamer critical value  "
-         "for a t-statistic is `tL1' in columns 1-3 and `tL4' in columns  "
-         "4 and 5. `onote' `enote'                                        "
-         "***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.           "
+         "\multicolumn{7}{p{22cm}}{\begin{footnotesize} See table 3 in the"
+         " main text. The Leamer critical value for a t-statistic is `tL1'"
+         " in columns 1-4 and `tL4' in columns 5 and 6.                   "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
 restore
-*/
+exit
 ********************************************************************************
 *** (4) ART and Teens
 ********************************************************************************
