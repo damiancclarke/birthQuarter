@@ -1122,7 +1122,8 @@ exit
 *** (8) Basic regressions
 ********************************************************************************
 use "$DAT/BirthSurvey", clear
-local bage 0
+local bage 1
+local nomh 0
 
 keep if completed==1
 keep if educ==educ_check
@@ -1131,12 +1132,23 @@ if `bage'==0 {
     gen age = 2016-birthyr
     gen ageSq = age^2/100
     local f
+    local a Age is measured at the time of survey
 }
 if `bage'==1 {
     gen age = cbirthyr-birthyr
+    replace age = 2016-birthyr if nchild==0
     gen ageSq = age^2/100
     local f birthAge
+    local a Age refers to the age of the respondent when having their first birth
 }
+if `nomh'==1 {
+    local f nomh
+}
+if `bage'==1&`nomh'==1 {
+    local f birthAge/nomh
+}
+
+
 
 gen goodSeason = cbirthmonth>3&cbirthmonth<10 if cbirthmonth!=.
 gen teacher = occ == 6
@@ -1205,7 +1217,7 @@ postfoot("\bottomrule\multicolumn{7}{p{15.8cm}}{\begin{footnotesize} All       "
          "willingness-to-pay (WTP) measures are represented as the proportion  "
          "of all financial resources to be paid as a one-off sum. The sample   "
          "consists of all married 25-45 year-old white non-hispanic respondents"
-         "who answered the attention checks consistently."
+         "who answered the attention checks consistently. `a'."
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
@@ -1234,7 +1246,7 @@ postfoot("\bottomrule\multicolumn{7}{p{15.8cm}}{\begin{footnotesize} All     "
          "of all financial resources to be paid as a one-off sum. The sample "
          "consists of all married and unmarried 25-45 5 year-old white       "
          "non-hispanic respondents who answered the attention checks         "
-         "consistently."
+         "consistently. `a'."
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
@@ -1260,8 +1272,8 @@ title("Parents, Teachers and Willingness to Pay (All Race Married and Unmarried)
 postfoot("\bottomrule\multicolumn{7}{p{15.8cm}}{\begin{footnotesize} All      "
          "willingness-to-pay (WTP) measures are represented as the proportion "
          "of all financial resources to be paid as a one-off sum. The sample  "
-         "consists of all married and unmarried 25-45 5 year-old respondents  "
-         "who answered the attention checks consistently."
+         "consists of all married and unmarried 25-45 year-old respondents  "
+         "who answered the attention checks consistently. `a'."
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
@@ -1290,7 +1302,7 @@ postfoot("\bottomrule\multicolumn{7}{p{15.8cm}}{\begin{footnotesize} All      "
          "consists of all married and unmarried white 25-45 year-old          "
          " respondents who have ever worked,   "
          "who answered the attention checks consistently and who stated that  "
-         "they were definitely sure about their stated WTP values.        "
+         "they were definitely sure about their stated WTP values. `a'.       "
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
@@ -1330,7 +1342,7 @@ mgroups("Both Genders" "Women Only",
 title("Parents, Teachers and Willingness to Pay (Definitely Sure Only)")
 postfoot("\bottomrule\multicolumn{5}{p{12.8cm}}{\begin{footnotesize} Sample"
          "is identical to that in table S20.  log of Household income is   "
-         "measured as the midpoint of the ranges stated on MTurk."
+         "measured as the midpoint of the ranges stated on MTurk. `a'."
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
@@ -1362,7 +1374,7 @@ postfoot("\bottomrule\multicolumn{7}{p{15.8cm}}{\begin{footnotesize} All      "
          "consists of all married and unmarried white 25-45 year-old          "
          " respondents who have ever worked,   "
          "who answered the attention checks consistently and who stated that  "
-         "they were definitely sure about their stated WTP values.        "
+         "they were definitely sure about their stated WTP values. `a'.       "
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
@@ -1378,6 +1390,7 @@ lab var WTPdif "WTP"
 local ages age ageSq
 local educ highEduc
 local ctls noART married hispanic
+if `nomh'==1 local ctls hispanic
 
 *eststo: reg WTPsob `ages'
 *eststo: reg WTPsob `educ'
@@ -1402,7 +1415,7 @@ local ctls noART married hispanic
 *         "birth and to avoid diabetes, where a positive coefficient implies "
 *         "a greater relative WTP for season of birth. All MTurk respondents "
 *         "who answer consistently are included. The omitted education       "
-*         "category is highschool or lower."
+*         "category is highschool or lower. `a'."
 *         "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 *#delimit cr
 *estimates clear
@@ -1432,7 +1445,7 @@ postfoot("\bottomrule\multicolumn{7}{p{16.6cm}}{\begin{footnotesize} The    "
          "birth and to avoid diabetes, where a positive coefficient implies "
          "a greater relative WTP for season of birth. All MTurk respondents "
          "aged between 25-45 who answer consistently are included. The      "
-         "omitted education category is highschool or lower."
+         "omitted education category is highschool or lower. `a'."
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
@@ -1462,7 +1475,7 @@ postfoot("\bottomrule\multicolumn{7}{p{16.6cm}}{\begin{footnotesize} The    "
          "a greater relative WTP for season of birth. All white,            "
          "non-Hispanic MTurk respondents aged between 25-45 who answer      "
          "consistently are included. The omitted education category is      "
-         "highschool or lower."
+         "highschool or lower. `a'."
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
@@ -1492,7 +1505,7 @@ postfoot("\bottomrule\multicolumn{7}{p{16.6cm}}{\begin{footnotesize} The    "
          "a greater relative WTP for season of birth. All white,            "
          "non-Hispanic female MTurk respondents aged between 25-45 who      "
          "answer consistently are included. The omitted education category  "
-         "is highschool or lower."
+         "is highschool or lower. `a'."
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
@@ -1522,7 +1535,7 @@ postfoot("\bottomrule\multicolumn{7}{p{16.6cm}}{\begin{footnotesize} The    "
          "a greater relative WTP for season of birth. All white,            "
          "non-Hispanic MTurk respondents aged between 25-45 who answer      "
          "consistently are included. The omitted education category is      "
-         "highschool or lower."
+         "highschool or lower. `a'."
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
@@ -1555,8 +1568,8 @@ postfoot("\bottomrule\multicolumn{9}{p{20.6cm}}{\begin{footnotesize} The    "
          "birth and to avoid diabetes, where a positive coefficient implies "
          "a greater relative WTP for season of birth. All MTurk respondents "
          "aged between 25-45 who answer consistently and who have ever      "
-         "worked for pay are included. The      "
-         "omitted education category is highschool or lower."
+         "worked for pay are included. The omitted education category is    "
+         "highschool or lower. `a'."
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
@@ -1588,7 +1601,7 @@ postfoot("\bottomrule\multicolumn{9}{p{20.6cm}}{\begin{footnotesize} The    "
          "a greater relative WTP for season of birth. All MTurk respondents "
          "aged between 25-45 who answer consistently and who have ever      "
          "worked for pay are included. The      "
-         "omitted education category is highschool or lower."
+         "omitted education category is highschool or lower. `a'."
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
@@ -1621,7 +1634,7 @@ postfoot("\bottomrule\multicolumn{9}{p{20.6cm}}{\begin{footnotesize} The     "
          "a greater relative WTP for season of birth. All white, non-Hispanic"
          "female MTurk respondents aged between 25-45 who answer consistently"
          "and who have ever worked for pay are included. The omitted         "
-         "education category is highschool or lower."
+         "education category is highschool or lower. `a'."
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
@@ -1654,7 +1667,7 @@ postfoot("\bottomrule\multicolumn{9}{p{20.6cm}}{\begin{footnotesize} The     "
          "a greater relative WTP for season of birth. All white, non-Hispanic"
          "female MTurk respondents aged between 25-45 who answer consistently"
          "and who have ever worked for pay are included. The omitted         "
-         "education category is highschool or lower."
+         "education category is highschool or lower. `a'."
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
