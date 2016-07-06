@@ -1122,11 +1122,22 @@ exit
 *** (8) Basic regressions
 ********************************************************************************
 use "$DAT/BirthSurvey", clear
+local bage 0
+
 keep if completed==1
 keep if educ==educ_check
-gen age = 2016-birthyr
-gen ageSq = age^2
-gen ageBirth = age-(2016-cbirthyr)
+
+if `bage'==0 {
+    gen age = 2016-birthyr
+    gen ageSq = age^2/100
+    local f
+}
+if `bage'==1 {
+    gen age = cbirthyr-birthyr
+    gen ageSq = age^2/100
+    local f birthAge
+}
+
 gen goodSeason = cbirthmonth>3&cbirthmonth<10 if cbirthmonth!=.
 gen teacher = occ == 6
 gen WTPdifference = WTPsob - WTPdiabetes
@@ -1134,12 +1145,16 @@ gen age2024 = age>=20&age<=24
 gen age2527 = age>=25&age<=27
 gen age2831 = age>=28&age<=31
 gen age3239 = age>=32&age<=39
+gen noART   = fertmed== 0 if fertmed!=.
+gen married = marst==1
 
 lab var age2024 "Aged 20-24"
 lab var age2527 "Aged 25-27"
 lab var age2831 "Aged 28-31"
 lab var age3239 "Aged 32-39"
-
+lab var noART   "No ART"
+lab var hispani "Hispanic"
+lab var married "Married"
 
 gen young = age<39
 gen highEduc = educ>3
@@ -1165,7 +1180,7 @@ lab var parent        "Parent"
 lab var parentTeacher "Parent $\times$ Teacher"
 lab var teacher       "Teacher"
 lab var age           "Age"
-lab var ageSq         "Age Squared"
+lab var ageSq         "Age Squared/100"
 lab var highEduc      "Some College +"
 
 local cnd if age>=25&age<=45&race==11&hispanic==0&marst==1
@@ -1179,7 +1194,7 @@ eststo: reg WTPsob        `con' `cnd'
 eststo: reg WTPdiabetes   `con' `cnd'
 eststo: reg WTPdifference `con' `cnd'
 #delimit ;
-esttab est1 est2 est3 est4 est5 est6 using "$OUT/TeacherParentWTP.tex", replace
+esttab est1 est2 est3 est4 est5 est6 using "$OUT/`f'/TeacherParentWTP.tex", replace
 `estopt' booktabs mlabels(, depvar)
 keep(`con' _cons)
 mgroups("Both Genders" "Women Only",
@@ -1207,7 +1222,7 @@ eststo: reg WTPsob        `con' `cnd'
 eststo: reg WTPdiabetes   `con' `cnd'
 eststo: reg WTPdifference `con' `cnd'
 #delimit ;
-esttab est1 est2 est3 est4 est5 est6 using "$OUT/TeacherParentWTPBoth.tex", replace
+esttab est1 est2 est3 est4 est5 est6 using "$OUT/`f'/TeacherParentWTPBoth.tex", replace
 `estopt' booktabs mlabels(, depvar)
 keep(`con' _cons)
 mgroups("Both Genders" "Women Only",
@@ -1235,7 +1250,7 @@ eststo: reg WTPsob        `con' `cnd'
 eststo: reg WTPdiabetes   `con' `cnd'
 eststo: reg WTPdifference `con' `cnd'
 #delimit ;
-esttab est1 est2 est3 est4 est5 est6 using "$OUT/TeacherParentWTPAll.tex", replace
+esttab est1 est2 est3 est4 est5 est6 using "$OUT/`f'/TeacherParentWTPAll.tex", replace
 `estopt' booktabs mlabels(, depvar)
 keep(`con' _cons)
 mgroups("Both Genders" "Women Only",
@@ -1262,7 +1277,7 @@ eststo: reg WTPsob        `con' `cnd'
 eststo: reg WTPdiabetes   `con' `cnd'
 eststo: reg WTPdifference `con' `cnd'
 #delimit ;
-esttab est1 est2 est3 est4 est5 est6 using "$OUT/TeacherParentWTPSure.tex", replace
+esttab est1 est2 est3 est4 est5 est6 using "$OUT/`f'/TeacherParentWTPSure.tex", replace
 `estopt' booktabs mlabels(, depvar)
 keep(`con' _cons)
 mgroups("Both Genders" "Women Only",
@@ -1275,11 +1290,82 @@ postfoot("\bottomrule\multicolumn{7}{p{15.8cm}}{\begin{footnotesize} All      "
          "consists of all married and unmarried white 25-45 year-old          "
          " respondents who have ever worked,   "
          "who answered the attention checks consistently and who stated that  "
-         "they were ``definitely sure'' about their stated WTP values.        "
+         "they were definitely sure about their stated WTP values.        "
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
 
+gen income = 5000 if ftotinc==11
+replace income = 15000 if ftotinc==12
+replace income = 25000 if ftotinc==13
+replace income = 35000 if ftotinc==14
+replace income = 45000 if ftotinc==15
+replace income = 55000 if ftotinc==16
+replace income = 65000 if ftotinc==17
+replace income = 75000 if ftotinc==18
+replace income = 85000 if ftotinc==19
+replace income = 95000 if ftotinc==20
+replace income = 125000 if ftotinc==21
+replace income = 150000 if ftotinc==22
+
+gen logInc = log(income)
+lab var logInc "log(HH Inc)"
+local cnd if age>=25&age<=45&WTPcheck==2
+local con parent teacher parentTeacher age ageSq highEduc
+local con2 parent teacher parentTeacher age ageSq highEduc married hispanic
+eststo: reg logInc        `con' `cnd'
+eststo: reg logInc        `con2' `cnd'
+
+local cnd if age>=25&age<=45&sex==1&WTPcheck==2
+eststo: reg logInc        `con' `cnd'
+eststo: reg logInc        `con2' `cnd'
+
+#delimit ;
+esttab est1 est2 est3 est4 using "$OUT/`f'/TeacherParentlogInc.tex", replace
+`estopt' booktabs mlabels(, depvar)
+keep(`con2' _cons)
+mgroups("Both Genders" "Women Only",
+        pattern(1 0 1 0 ) prefix(\multicolumn{@span}{c}{) suffix(}) span
+        erepeat(\cmidrule(lr){@span}))
+title("Parents, Teachers and Willingness to Pay (Definitely Sure Only)")
+postfoot("\bottomrule\multicolumn{5}{p{12.8cm}}{\begin{footnotesize} Sample"
+         "is identical to that in table S20.  log of Household income is   "
+         "measured as the midpoint of the ranges stated on MTurk."
+         "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
+#delimit cr
+estimates clear
+
+
+
+
+local cnd if age>=25&age<=45&WTPcheck==2
+local con parent teacher parentTeacher age ageSq highEduc married hispanic
+eststo: reg WTPsob        `con' `cnd'
+eststo: reg WTPdiabetes   `con' `cnd'
+eststo: reg WTPdifference `con' `cnd'
+
+local cnd if age>=25&age<=45&sex==1&WTPcheck==2
+eststo: reg WTPsob        `con' `cnd'
+eststo: reg WTPdiabetes   `con' `cnd'
+eststo: reg WTPdifference `con' `cnd'
+#delimit ;
+esttab est1 est2 est3 est4 est5 est6 using "$OUT/`f'/TeacherParentWTPSure_con.tex", replace
+`estopt' booktabs mlabels(, depvar)
+keep(`con' _cons)
+mgroups("Both Genders" "Women Only",
+        pattern(1 0 0 1 0 0) prefix(\multicolumn{@span}{c}{) suffix(}) span
+        erepeat(\cmidrule(lr){@span}))
+title("Parents, Teachers and Willingness to Pay (Definitely Sure Only)")
+postfoot("\bottomrule\multicolumn{7}{p{15.8cm}}{\begin{footnotesize} All      "
+         "willingness-to-pay (WTP) measures are represented as the proportion "
+         "of all financial resources to be paid as a one-off sum. The sample  "
+         "consists of all married and unmarried white 25-45 year-old          "
+         " respondents who have ever worked,   "
+         "who answered the attention checks consistently and who stated that  "
+         "they were definitely sure about their stated WTP values.        "
+         "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
+#delimit cr
+estimates clear
 
 
 
@@ -1289,151 +1375,152 @@ keep if nchild!=0
 lab var WTPsob "WTP"
 lab var WTPdif "WTP"
 
-local ages age2024 age2527 age2831 age3239
-local educ educ2 educ3 educ4 educ5
+local ages age ageSq
+local educ highEduc
+local ctls noART married hispanic
 
-eststo: reg WTPsob `ages'
-eststo: reg WTPsob `educ'
-eststo: reg WTPsob `ages' `educ'
+*eststo: reg WTPsob `ages'
+*eststo: reg WTPsob `educ'
+*eststo: reg WTPsob `ages' `educ'
+*
+*eststo: reg WTPdif `ages'
+*eststo: reg WTPdif `educ'
+*eststo: reg WTPdif `ages' `educ'
+*
+*#delimit ;
+*esttab est1 est2 est3 est4 est5 est6 using "$OUT/`f'/WTP_all.tex", replace
+*`estopt' booktabs mlabels(, depvar)
+*keep(`ages' `educ' _cons)
+*mgroups("Willingness to Pay (\%)" "Difference (SOB-Diabetes Avoid)",
+*        pattern(1 0 0 1 0 0) prefix(\multicolumn{@span}{c}{) suffix(}) span
+*        erepeat(\cmidrule(lr){@span}))
+*title("Willingness to Pay MTurk (All Parents)")
+*postfoot("\bottomrule\multicolumn{7}{p{16.6cm}}{\begin{footnotesize} The    "
+*         "willingness-to-pay (WTP) in columns 1-3 is measured as the        "
+*         "proportion of all financial resources as a one-off payment. WTP in"
+*         " columns 4-6 is the difference in WTP to perfectly time season of "
+*         "birth and to avoid diabetes, where a positive coefficient implies "
+*         "a greater relative WTP for season of birth. All MTurk respondents "
+*         "who answer consistently are included. The omitted education       "
+*         "category is highschool or lower."
+*         "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
+*#delimit cr
+*estimates clear
 
-eststo: reg WTPdif `ages'
-eststo: reg WTPdif `educ'
-eststo: reg WTPdif `ages' `educ'
 
-#delimit ;
-esttab est1 est2 est3 est4 est5 est6 using "$OUT/WTP_all.tex", replace
-`estopt' booktabs mlabels(, depvar)
-keep(`ages' `educ' _cons)
-mgroups("Willingness to Pay (\%)" "Difference (SOB-Diabetes Avoid)",
-        pattern(1 0 0 1 0 0) prefix(\multicolumn{@span}{c}{) suffix(}) span
-        erepeat(\cmidrule(lr){@span}))
-title("Willingness to Pay MTurk (All Parents)")
-postfoot("\bottomrule\multicolumn{7}{p{16.6cm}}{\begin{footnotesize} The    "
-         "willingness-to-pay (WTP) in columns 1-3 is measured as the        "
-         "proportion of all financial resources as a one-off payment. WTP in"
-         " columns 4-6 is the difference in WTP to perfectly time season of "
-         "birth and to avoid diabetes, where a positive coefficient implies "
-         "a greater relative WTP for season of birth. All MTurk respondents "
-         "who answer consistently are included. The omitted education       "
-         "category is highschool or lower."
-         "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
-#delimit cr
-estimates clear
-
-
-local cond if age>=20&age<=45
+local cond if age>=25&age<=45
 eststo: reg WTPsob `ages'        `cond'
 eststo: reg WTPsob `educ'        `cond'
-eststo: reg WTPsob `ages' `educ' `cond'
+eststo: reg WTPsob `ages' `educ' `ctls' `cond'
 
 eststo: reg WTPdif `ages'        `cond'
 eststo: reg WTPdif `educ'        `cond'
-eststo: reg WTPdif `ages' `educ' `cond'
+eststo: reg WTPdif `ages' `educ' `ctls' `cond'
 
 #delimit ;
-esttab est1 est2 est3 est4 est5 est6 using "$OUT/WTP_20-45.tex", replace
+esttab est1 est2 est3 est4 est5 est6 using "$OUT/`f'/WTP_20-45.tex", replace
 `estopt' booktabs mlabels(, depvar)
-keep(`ages' `educ' _cons)
+keep(`ages' `educ' `ctls' _cons)
 mgroups("Willingness to Pay (\%)" "Difference (SOB-Diabetes Avoid)",
         pattern(1 0 0 1 0 0) prefix(\multicolumn{@span}{c}{) suffix(}) span
         erepeat(\cmidrule(lr){@span}))
-title("Willingness to Pay MTurk (20-45 Year-Old Parents)")
+title("Willingness to Pay MTurk (25-45 Year-Old Parents)")
 postfoot("\bottomrule\multicolumn{7}{p{16.6cm}}{\begin{footnotesize} The    "
          "willingness-to-pay (WTP) in columns 1-3 is measured as the        "
          "proportion of all financial resources as a one-off payment. WTP in"
          " columns 4-6 is the difference in WTP to perfectly time season of "
          "birth and to avoid diabetes, where a positive coefficient implies "
          "a greater relative WTP for season of birth. All MTurk respondents "
-         "aged between 20-45 who answer consistently are included. The      "
+         "aged between 25-45 who answer consistently are included. The      "
          "omitted education category is highschool or lower."
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
 
-local cond if age>=20&age<=45&race==11&hispanic==0
+local cond if age>=25&age<=45&race==11&hispanic==0
 eststo: reg WTPsob `ages'        `cond'
 eststo: reg WTPsob `educ'        `cond'
-eststo: reg WTPsob `ages' `educ' `cond'
+eststo: reg WTPsob `ages' `educ' `ctls' `cond'
 
 eststo: reg WTPdif `ages'        `cond'
 eststo: reg WTPdif `educ'        `cond'
-eststo: reg WTPdif `ages' `educ' `cond'
+eststo: reg WTPdif `ages' `educ' `ctls' `cond'
 
 #delimit ;
-esttab est1 est2 est3 est4 est5 est6 using "$OUT/WTP_20-45white.tex",
+esttab est1 est2 est3 est4 est5 est6 using "$OUT/`f'/WTP_20-45white.tex",
 replace `estopt' booktabs mlabels(, depvar)
-keep(`ages' `educ' _cons)
+keep(`ages' `educ' `ctls' _cons)
 mgroups("Willingness to Pay (\%)" "Difference (SOB-Diabetes Avoid)",
         pattern(1 0 0 1 0 0) prefix(\multicolumn{@span}{c}{) suffix(}) span
         erepeat(\cmidrule(lr){@span}))
-title("Willingness to Pay MTurk (White non-Hispanic 20-45 Year Old Parents)")
+title("Willingness to Pay MTurk (White non-Hispanic 25-45 Year Old Parents)")
 postfoot("\bottomrule\multicolumn{7}{p{16.6cm}}{\begin{footnotesize} The    "
          "willingness-to-pay (WTP) in columns 1-3 is measured as the        "
          "proportion of all financial resources as a one-off payment. WTP in"
          " columns 4-6 is the difference in WTP to perfectly time season of "
          "birth and to avoid diabetes, where a positive coefficient implies "
          "a greater relative WTP for season of birth. All white,            "
-         "non-Hispanic MTurk respondents aged between 20-45 who answer      "
+         "non-Hispanic MTurk respondents aged between 25-45 who answer      "
          "consistently are included. The omitted education category is      "
          "highschool or lower."
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
 
-local cond if age>=20&age<=45&race==11&sex==1
+local cond if age>=25&age<=45&race==11&sex==1
 eststo: reg WTPsob `ages'        `cond'
 eststo: reg WTPsob `educ'        `cond'
-eststo: reg WTPsob `ages' `educ' `cond'
+eststo: reg WTPsob `ages' `educ' `ctls' `cond'
 
 eststo: reg WTPdif `ages'        `cond'
 eststo: reg WTPdif `educ'        `cond'
-eststo: reg WTPdif `ages' `educ' `cond'
+eststo: reg WTPdif `ages' `educ' `ctls' `cond'
 
 #delimit ;
-esttab est1 est2 est3 est4 est5 est6 using "$OUT/WTP_20-45whiteFemale.tex",
+esttab est1 est2 est3 est4 est5 est6 using "$OUT/`f'/WTP_20-45whiteFemale.tex",
 replace `estopt' booktabs mlabels(, depvar)
-keep(`ages' `educ' _cons)
+keep(`ages' `educ' `ctls' _cons)
 mgroups("Willingness to Pay (\%)" "Difference (SOB-Diabetes Avoid)",
         pattern(1 0 0 1 0 0) prefix(\multicolumn{@span}{c}{) suffix(}) span
         erepeat(\cmidrule(lr){@span}))
-title("Willingness to Pay MTurk (White female 20-45 Year Old Parents)")
+title("Willingness to Pay MTurk (White female 25-45 Year Old Parents)")
 postfoot("\bottomrule\multicolumn{7}{p{16.6cm}}{\begin{footnotesize} The    "
          "willingness-to-pay (WTP) in columns 1-3 is measured as the        "
          "proportion of all financial resources as a one-off payment. WTP in"
          " columns 4-6 is the difference in WTP to perfectly time season of "
          "birth and to avoid diabetes, where a positive coefficient implies "
          "a greater relative WTP for season of birth. All white,            "
-         "non-Hispanic female MTurk respondents aged between 20-45 who      "
+         "non-Hispanic female MTurk respondents aged between 25-45 who      "
          "answer consistently are included. The omitted education category  "
          "is highschool or lower."
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
 
-local cond if age>=20&age<=45&race==11&WTPcheck==2
+local cond if age>=25&age<=45&race==11&WTPcheck==2
 eststo: reg WTPsob `ages'        `cond'
 eststo: reg WTPsob `educ'        `cond'
-eststo: reg WTPsob `ages' `educ' `cond'
+eststo: reg WTPsob `ages' `educ' `ctls' `cond'
 
 eststo: reg WTPdif `ages'        `cond'
 eststo: reg WTPdif `educ'        `cond'
-eststo: reg WTPdif `ages' `educ' `cond'
+eststo: reg WTPdif `ages' `educ' `ctls' `cond'
 
 #delimit ;
-esttab est1 est2 est3 est4 est5 est6 using "$OUT/WTP_20-45whiteCheck.tex",
+esttab est1 est2 est3 est4 est5 est6 using "$OUT/`f'/WTP_20-45whiteCheck.tex",
 replace `estopt' booktabs mlabels(, depvar)
-keep(`ages' `educ' _cons)
+keep(`ages' `educ' `ctls' _cons)
 mgroups("Willingness to Pay (\%)" "Difference (SOB-Diabetes Avoid)",
         pattern(1 0 0 1 0 0) prefix(\multicolumn{@span}{c}{) suffix(}) span
         erepeat(\cmidrule(lr){@span}))
-title("Willingness to Pay MTurk (White non-Hispanic 20-45 Year Olds: Sure)")
+title("Willingness to Pay MTurk (White 25-45 Year Olds: Sure)")
 postfoot("\bottomrule\multicolumn{7}{p{16.6cm}}{\begin{footnotesize} The    "
          "willingness-to-pay (WTP) in columns 1-3 is measured as the        "
          "proportion of all financial resources as a one-off payment. WTP in"
          " columns 4-6 is the difference in WTP to perfectly time season of "
          "birth and to avoid diabetes, where a positive coefficient implies "
          "a greater relative WTP for season of birth. All white,            "
-         "non-Hispanic MTurk respondents aged between 20-45 who answer      "
+         "non-Hispanic MTurk respondents aged between 25-45 who answer      "
          "consistently are included. The omitted education category is      "
          "highschool or lower."
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
@@ -1442,102 +1529,140 @@ estimates clear
 
 
 
-local cond if age>=20&age<=45&race==11
+local cond if age>=25&age<=45&race==11&occ!=18
 eststo: reg WTPsob teacher               `cond'
 eststo: reg WTPsob teacher `ages'        `cond'
 eststo: reg WTPsob teacher `educ'        `cond'
-eststo: reg WTPsob teacher `ages' `educ' `cond'
+eststo: reg WTPsob teacher `ages' `educ' `ctls' `cond'
 
 eststo: reg WTPdif teacher               `cond'
 eststo: reg WTPdif teacher `ages'        `cond'
 eststo: reg WTPdif teacher `educ'        `cond'
-eststo: reg WTPdif teacher `ages' `educ' `cond'
+eststo: reg WTPdif teacher `ages' `educ' `ctls' `cond'
 
 #delimit ;
-esttab est1 est2 est3 est4 est5 est6 est7 est8 using "$OUT/TeacherWTP_20-45.tex",
+esttab est1 est2 est3 est4 est5 est6 est7 est8 using "$OUT/`f'/TeacherWTP_20-45.tex",
 replace `estopt' booktabs mlabels(, depvar)
-keep(teacher `ages' `educ' _cons)
+keep(teacher `ages' `educ' `ctls' _cons)
 mgroups("Willingness to Pay (\%)" "Difference (SOB-Diabetes Avoid)",
         pattern(1 0 0 0 1 0 0 0) prefix(\multicolumn{@span}{c}{) suffix(}) span
         erepeat(\cmidrule(lr){@span}))
-title("Willingness to Pay and Teachers (20-45 Year Olds)")
+title("Willingness to Pay and Teachers (25-45 Year Olds)")
 postfoot("\bottomrule\multicolumn{9}{p{20.6cm}}{\begin{footnotesize} The    "
          "willingness-to-pay (WTP) in columns 1-3 is measured as the        "
          "proportion of all financial resources as a one-off payment. WTP in"
          " columns 4-6 is the difference in WTP to perfectly time season of "
          "birth and to avoid diabetes, where a positive coefficient implies "
          "a greater relative WTP for season of birth. All MTurk respondents "
-         "aged between 20-45 who answer consistently are included. The      "
+         "aged between 25-45 who answer consistently and who have ever      "
+         "worked for pay are included. The      "
          "omitted education category is highschool or lower."
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
 
-local cond if age>=20&age<=45&race==11&WTPcheck==2
+local cond if age>=25&age<=45&race==11&WTPcheck==2&occ!=18
 eststo: reg WTPsob teacher               `cond'
 eststo: reg WTPsob teacher `ages'        `cond'
 eststo: reg WTPsob teacher `educ'        `cond'
-eststo: reg WTPsob teacher `ages' `educ' `cond'
+eststo: reg WTPsob teacher `ages' `educ' `ctls' `cond'
 
 eststo: reg WTPdif teacher               `cond'
 eststo: reg WTPdif teacher `ages'        `cond'
 eststo: reg WTPdif teacher `educ'        `cond'
-eststo: reg WTPdif teacher `ages' `educ' `cond'
+eststo: reg WTPdif teacher `ages' `educ' `ctls' `cond'
 
 #delimit ;
-esttab est1 est2 est3 est4 est5 est6 est7 est8 using "$OUT/TeacherWTP_20-45_Sure.tex",
+esttab est1 est2 est3 est4 est5 est6 est7 est8 using "$OUT/`f'/TeacherWTP_20-45_Sure.tex",
 replace `estopt' booktabs mlabels(, depvar)
-keep(teacher `ages' `educ' _cons)
+keep(teacher `ages' `educ' `ctls' _cons)
 mgroups("Willingness to Pay (\%)" "Difference (SOB-Diabetes Avoid)",
         pattern(1 0 0 0 1 0 0 0) prefix(\multicolumn{@span}{c}{) suffix(}) span
         erepeat(\cmidrule(lr){@span}))
-title("Willingness to Pay and Teachers (20-45 Year Old White Parents: Sure Only)")
+title("Willingness to Pay and Teachers (25-45 Year Old White Parents: Sure Only)")
 postfoot("\bottomrule\multicolumn{9}{p{20.6cm}}{\begin{footnotesize} The    "
          "willingness-to-pay (WTP) in columns 1-3 is measured as the        "
          "proportion of all financial resources as a one-off payment. WTP in"
          " columns 4-6 is the difference in WTP to perfectly time season of "
          "birth and to avoid diabetes, where a positive coefficient implies "
          "a greater relative WTP for season of birth. All MTurk respondents "
-         "aged between 20-45 who answer consistently are included. The      "
+         "aged between 25-45 who answer consistently and who have ever      "
+         "worked for pay are included. The      "
          "omitted education category is highschool or lower."
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
 
 
-local cond if age>=20&age<=45&race==11&sex==1
+local cond if age>=25&age<=45&race==11&sex==1&occ!=18
 eststo: reg WTPsob teacher               `cond'
 eststo: reg WTPsob teacher `ages'        `cond'
 eststo: reg WTPsob teacher `educ'        `cond'
-eststo: reg WTPsob teacher `ages' `educ' `cond'
+eststo: reg WTPsob teacher `ages' `educ' `ctls' `cond'
 
 eststo: reg WTPdif teacher               `cond'
 eststo: reg WTPdif teacher `ages'        `cond'
 eststo: reg WTPdif teacher `educ'        `cond'
-eststo: reg WTPdif teacher `ages' `educ' `cond'
+eststo: reg WTPdif teacher `ages' `educ' `ctls' `cond'
 
 #delimit ;
-esttab est1 est2 est3 est4 est5 est6 est7 est8 using "$OUT/TeacherWTP_20-45WF.tex",
+esttab est1 est2 est3 est4 est5 est6 est7 est8 using "$OUT/`f'/TeacherWTP_20-45WF.tex",
 replace `estopt' booktabs mlabels(, depvar)
-keep(teacher `ages' `educ' _cons)
+keep(teacher `ages' `educ' `ctls' _cons)
 mgroups("Willingness to Pay (\%)" "Difference (SOB-Diabetes Avoid)",
         pattern(1 0 0 0 1 0 0 0) prefix(\multicolumn{@span}{c}{) suffix(}) span
         erepeat(\cmidrule(lr){@span}))
-title("Willingness to Pay MTurk and Teachers (20-45 Year-olds White Female)")
+title("Willingness to Pay MTurk and Teachers (25-45 Year-olds White Female)")
 postfoot("\bottomrule\multicolumn{9}{p{20.6cm}}{\begin{footnotesize} The     "
          "willingness-to-pay (WTP) in columns 1-3 is measured as the         "
          "proportion of all financial resources as a one-off payment. WTP in "
          " columns 4-6 is the difference in WTP to perfectly time season of  "
          "birth and to avoid diabetes, where a positive coefficient implies  "
          "a greater relative WTP for season of birth. All white, non-Hispanic"
-         "female MTurk respondents aged between 20-45 who answer consistently"
-         "are included. The omitted education category is highschool or      "
-         " lower."
+         "female MTurk respondents aged between 25-45 who answer consistently"
+         "and who have ever worked for pay are included. The omitted         "
+         "education category is highschool or lower."
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
-restore
 
+
+local cond if age>=25&age<=45&race==11&sex==1&WTPcheck==2&occ!=18
+eststo: reg WTPsob teacher               `cond'
+eststo: reg WTPsob teacher `ages'        `cond'
+eststo: reg WTPsob teacher `educ'        `cond'
+eststo: reg WTPsob teacher `ages' `educ' `ctls' `cond'
+
+eststo: reg WTPdif teacher               `cond'
+eststo: reg WTPdif teacher `ages'        `cond'
+eststo: reg WTPdif teacher `educ'        `cond'
+eststo: reg WTPdif teacher `ages' `educ' `ctls' `cond'
+
+#delimit ;
+esttab est1 est2 est3 est4 est5 est6 est7 est8 using "$OUT/`f'/TeacherWTP_20-45WFsure.tex",
+replace `estopt' booktabs mlabels(, depvar)
+keep(teacher `ages' `educ' `ctls' _cons)
+mgroups("Willingness to Pay (\%)" "Difference (SOB-Diabetes Avoid)",
+        pattern(1 0 0 0 1 0 0 0) prefix(\multicolumn{@span}{c}{) suffix(}) span
+        erepeat(\cmidrule(lr){@span}))
+title("Willingness to Pay MTurk and Teachers (25-45 Year-olds White Female: Sure Only)")
+postfoot("\bottomrule\multicolumn{9}{p{20.6cm}}{\begin{footnotesize} The     "
+         "willingness-to-pay (WTP) in columns 1-3 is measured as the         "
+         "proportion of all financial resources as a one-off payment. WTP in "
+         " columns 4-6 is the difference in WTP to perfectly time season of  "
+         "birth and to avoid diabetes, where a positive coefficient implies  "
+         "a greater relative WTP for season of birth. All white, non-Hispanic"
+         "female MTurk respondents aged between 25-45 who answer consistently"
+         "and who have ever worked for pay are included. The omitted         "
+         "education category is highschool or lower."
+         "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
+#delimit cr
+estimates clear
+
+
+
+restore
+exit
 
 ********************************************************************************
 *** (9) Temperature graphs
