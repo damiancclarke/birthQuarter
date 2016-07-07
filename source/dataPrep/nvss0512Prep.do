@@ -14,6 +14,8 @@ cap log close
 ********************************************************************************
 *** (1) globals and locals
 ********************************************************************************
+local nohisp 0
+
 global DAT "~/database/nvsscdc/births/dta"
 global UNE "~/investigacion/2015/birthQuarter/data/employ"
 global OUT "~/investigacion/2015/birthQuarter/data/nvss"
@@ -49,7 +51,9 @@ gen monthPrenat = mpcb
 replace monthPrenat = precare if monthPrenat == .
 
 keep if birthOrder<=2 
-keep if mracerec == 1 & umhisp == 0
+keep if mracerec == 1
+if `nohisp'==1 keep if umhisp == 0
+gen hispanic = umhisp!=0
 gen fatherWhiteNonHisp = fracerec==1 & ufhisp == 0
 
 gen birthQuarter = ceil(birthMonth/3)
@@ -78,7 +82,7 @@ gen bstate  = oterr
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
 */ female birthMonth oldEduc numPrenat monthPrenat birthOrder fatherWhiteNonH /*
-*/ liveBirth mcounty mstate bcounty bstate 
+*/ liveBirth mcounty mstate bcounty bstate hispanic
 tempfile B2005
 save `B2005'
 
@@ -111,7 +115,9 @@ gen monthPrenat = mpcb
 replace monthPrenat = precare if monthPrenat == .
 
 keep if birthOrder<=2 
-keep if mracerec == 1 & umhisp == 0
+keep if mracerec == 1
+if `nohisp'==1 keep if umhisp == 0
+gen hispanic = umhisp!=0
 gen fatherWhiteNonHisp = fracerec==1 & ufhisp == 0
 
 gen birthQuarter = ceil(birthMonth/3)
@@ -140,7 +146,7 @@ gen bstate  = oterr
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
 */ female birthMonth oldEduc numPrenat monthPrenat birthOrder fatherWhiteNonH /*
-*/ liveBirth mcounty mstate bcounty bstate
+*/ liveBirth mcounty mstate bcounty bstate hispanic
 tempfile B2006
 save `B2006'
 
@@ -173,7 +179,9 @@ gen monthPrenat = mpcb
 replace monthPrenat = precare if monthPrenat == .
 
 keep if birthOrder<=2 
-keep if mracerec == 1 & umhisp == 0
+keep if mracerec == 1
+if `nohisp'==1 keep if umhisp == 0
+gen hispanic = umhisp!=0
 gen fatherWhiteNonHisp = fracerec==1 & ufhisp == 0
 
 gen birthQuarter = ceil(birthMonth/3)
@@ -202,7 +210,7 @@ gen bstate  = oterr
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
 */ female birthMonth oldEduc numPrenat monthPrenat birthOrder fatherWhiteNonH /*
-*/ liveBirth mcounty mstate bcounty bstate
+*/ liveBirth mcounty mstate bcounty bstate hispanic
 tempfile B2007
 save `B2007'
 
@@ -235,7 +243,9 @@ gen monthPrenat = mpcb
 replace monthPrenat = precare if monthPrenat == .
 
 keep if birthOrder<=2 
-keep if mracerec == 1 & umhisp == 0
+keep if mracerec == 1
+if `nohisp'==1 keep if umhisp == 0
+gen hispanic = umhisp!=0
 gen fatherWhiteNonHisp = fracerec==1 & ufhisp == 0
 
 gen birthQuarter = ceil(birthMonth/3)
@@ -264,7 +274,7 @@ gen bstate  = oterr
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
 */ female birthMonth oldEduc numPrenat monthPrenat birthOrder fatherWhiteNonH /*
-*/ liveBirth mcounty mstate bcounty bstate
+*/ liveBirth mcounty mstate bcounty bstate hispanic
 tempfile B2008
 save `B2008'
 
@@ -307,7 +317,9 @@ gen overweight  = BMI>=25&BMI<30 if BMI!=.
 gen obese       = BMI>=30 if BMI!=.
 
 keep if birthOrder<=2 
-keep if mracerec == 1 & umhisp == 0
+keep if mracerec == 1
+if `nohisp'==1 keep if umhisp == 0
+gen hispanic = umhisp!=0
 gen fatherWhiteNonHisp = fracerec==1 & ufhisp == 0
 
 gen birthQuarter = ceil(birthMonth/3)
@@ -337,7 +349,7 @@ keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat  /
 */ premature motherAge education fatherAge ageGroupMan married smoker single   /*
 */ female birthMonth numPrenat monthPrenat prePregBMI birthOrder fatherWhiteNo /*
 */ infertTreat ART liveBirth mcounty mstate bcounty bstate WIC Presmoker       /*
-*/ PrePregWt height BMI underweight overweight obese
+*/ PrePregWt height BMI underweight overweight obese hispanic
 tempfile B2009
 save `B2009'
 
@@ -380,7 +392,9 @@ gen overweight  = BMI>=25&BMI<30 if BMI!=.
 gen obese       = BMI>=30 if BMI!=.
 
 keep if birthOrder<=2 
-keep if mracerec == 1 & umhisp == 0
+keep if mracerec == 1
+if `nohisp'==1 keep if umhisp == 0
+gen hispanic = umhisp!=0
 gen fatherWhiteNonHisp = fracerec==1 & ufhisp == 0
 
 gen birthQuarter = ceil(birthMonth/3)
@@ -410,7 +424,7 @@ keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat  /
 */ premature motherAge education fatherAge ageGroupMan married smoker single   /*
 */ female birthMonth numPrenat monthPrenat prePregBMI birthOrder fatherWhiteNo /*
 */ infertTreat ART liveBirth mcounty mstate bcounty bstate WIC Presmoker       /*
-*/ PrePregWt height BMI underweight overweight obese
+*/ PrePregWt height BMI underweight overweight obese hispanic
 tempfile B2010
 save `B2010'
 
@@ -453,7 +467,9 @@ gen overweight  = BMI>=25&BMI<30 if BMI!=.
 gen obese       = BMI>=30 if BMI!=.
 
 keep if birthOrder<=2 
-keep if mracerec == 1 & umhisp == 0
+keep if mracerec == 1
+if `nohisp'==1 keep if umhisp == 0
+gen hispanic = umhisp!=0
 gen fatherWhiteNonHisp = fracerec==1 & ufhisp == 0
 
 gen birthQuarter = ceil(birthMonth/3)
@@ -483,7 +499,7 @@ keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat  /
 */ premature motherAge education fatherAge ageGroupMan married smoker single   /*
 */ female birthMonth numPrenat monthPrenat prePregBMI birthOrder fatherWhiteNo /*
 */ infertTreat ART liveBirth mcounty mstate bcounty bstate WIC Presmoker       /*
-*/ PrePregWt height BMI underweight overweight obese
+*/ PrePregWt height BMI underweight overweight obese hispanic
 tempfile B2011
 save `B2011'
 
@@ -526,7 +542,9 @@ gen overweight  = BMI>=25&BMI<30 if BMI!=.
 gen obese       = BMI>=30 if BMI!=.
 
 keep if birthOrder<=2 
-keep if mracerec == 1 & umhisp == 0
+keep if mracerec == 1
+if `nohisp'==1 keep if umhisp == 0
+gen hispanic = umhisp!=0
 gen fatherWhiteNonHisp = fracerec==1 & ufhisp == 0
 
 gen birthQuarter = ceil(birthMonth/3)
@@ -556,7 +574,7 @@ keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
 */ female birthMonth numPrenatal monthPrenat prePregBMI birthOrder infertTreat/*
 */ fatherWhiteNonH ART liveBirth mcounty mstate bcounty bstate WIC Presmoker  /*
-*/ PrePregWt height BMI underweight overweight obese
+*/ PrePregWt height BMI underweight overweight obese hispanic
 tempfile B2012
 save `B2012'
 
@@ -599,7 +617,9 @@ gen overweight  = BMI>=25&BMI<30 if BMI!=.
 gen obese       = BMI>=30 if BMI!=.
 
 keep if birthOrder<=2 
-keep if mracerec == 1 & umhisp == 0
+keep if mracerec == 1
+if `nohisp'==1 keep if umhisp == 0
+gen hispanic = umhisp!=0
 gen fatherWhiteNonHisp = fracerec==1 & ufhisp == 0
 
 gen birthQuarter = ceil(birthMonth/3)
@@ -629,7 +649,7 @@ keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar gestat /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single  /*
 */ female birthMonth numPrenatal monthPrenat prePregBMI birthOrder infertTreat/*
 */ fatherWhiteNonH ART liveBirth mcounty mstate bcounty bstate WIC Presmoker  /*
-*/ PrePregWt height BMI underweight overweight obese
+*/ PrePregWt height BMI underweight overweight obese hispanic
 tempfile B2013
 save `B2013'
 
@@ -804,12 +824,20 @@ lab var BMIsq              "BMI Squared"
 lab var underweight        "Underweight (BMI $<$ 18.5)"
 lab var overweight         "Overweight (BMI 25-30)"
 lab var obese              "Obese (BMI $\geq$ 30)" 
+lab var hispanic           "Hispanic"
 
 ********************************************************************************
 *** (5) Save, clean
 ********************************************************************************
-lab dat "NVSS birth data 2005-2013 (first births, white, 25-45 year olds)"
-save "$OUT/nvss2005_2013.dta", replace
+if `nohisp'==1 {
+    lab dat "NVSS birth data 2005-2013 (first births, white, 25-45 year olds)"
+    save "$OUT/nvss2005_2013.dta", replace
+}
+if `nohisp'==0 {
+    lab dat "NVSS birth data 2005-2013 (first births, white/hisp, 25-45 years)"
+    save "$OUT/nvss2005_2013_hisp.dta", replace
+}
+
 
 exit
 ********************************************************************************
