@@ -19,8 +19,11 @@ set more off
 cap log close
 
 local allobs 1
+local hisp   1
 if `allobs'==0 local f nvss
 if `allobs'==1 local f nvssall
+if `hisp'  ==1 local f hisp
+if `hisp'  ==1&`allobs'==1 local f hispall
 
 ********************************************************************************
 *** (1) Globals and locals
@@ -36,6 +39,7 @@ cap mkdir "$SUM"
 cap mkdir "$OUT"
 
 local data    nvss2005_2013
+if `hisp'==1  local data    nvss2005_2013_hisp
 local keepif  birthOrder == 1 & motherAge > 24 & motherAge<=45
 local twins   0
 local mc
@@ -49,7 +53,6 @@ if `allobs'== 1 local mc married
 use "$DAT/`data'"
 keep if birthOrder==1
 
-/*
 preserve
 if `allobs'==0 keep if married==1
 #delimit ;
@@ -64,9 +67,8 @@ twoway hist motherAge if motherAge>24&motherAge<=45, freq color(gs0) width(1) ||
                                         #delimit cr
 graph export "$OUT/ageDescriptive.eps", as(eps) replace
 restore
-*/
+
 keep if twin<3
-/*
 preserve
 keep if `keepif'
 if `allobs'==0 keep if married==1
@@ -96,7 +98,7 @@ bar(4, bcolor(ltblue)) scheme(s1mono) ytitle("Proportion ART");
 graph export "$OUT/ARTageGroup.eps", as(eps) replace;
 #delimit cr
 restore
-*/
+
 ********************************************************************************
 *** (2aii) Summary stats table
 ********************************************************************************
@@ -133,7 +135,7 @@ lab var normalBMI   "Normal Weight (BMI 18.5-25)"
 
 local Mum     motherAge `mc' young age2024 age2527 age2831 age3239 age4045
 local MumPart college educCat smoker ART WIC BMI underwe normalBM overwe obese
-/*
+
 gen tvar = abs(goodQuarter-1)
 foreach st in Mum Kid MumPart {
     local Kid goodBirthQ expectGoodQ twin fem birthweight lbw gest premature apg
@@ -170,9 +172,9 @@ foreach st in Mum Kid MumPart {
     #delimit cr
     restore
 }
-*/
+
 replace young     = . if motherAge<25|motherAge>45
-/*
+
 preserve
 keep if `keepif' &married!=.&smoker!=.&college!=.&young!=.&twin==0
 if `allobs'==0 keep if married==1
@@ -206,7 +208,7 @@ suest n1 n2 n3 n4 n5 n6 n7 n8
 test [n1_mean]gQ [n2_mean]gQ [n3_mean]gQ [n4_mean]gQ [n5_mean]gQ [n6_mean]gQ /*
 */   [n7_mean]gQ [n8_mean]gQ
 restore
-*/
+
 
 ********************************************************************************
 *** (2b) Subset
@@ -229,7 +231,7 @@ lab def Qua 1 "Q1 (Jan-Mar)" 2 "Q2 (Apr-Jun)" 3 "Q3 (Jul-Sep)" 4 "Q4 (Oct-Dec)"
 
 lab val ageGroup    aG0
 lab val educLevel   eL
-/*
+
 ********************************************************************************
 *** (3) Descriptives by month
 *******************************************************************************
@@ -418,7 +420,7 @@ xlabel(1 "Oct" 2 "Nov" 3 "Dec" 4 "Jan" 5 "Feb" 6 "Mar" 7 "Apr" 8 "May" 9 "Jun"
 legend(label(1 "28-31 Year-olds") label(2 "40-45 Year-olds"))
 ytitle("Proportion of All Births") ylabel(0.05(0.01)0.1);
 graph export "$OUT/conceptionMonthRescaled.eps", as(eps) replace;
-exit;
+
 twoway line birth conceptionMonth if youngOld==1, `line1'
 xaxis(1 2) scheme(s1mono) xtitle("Month of Conception", axis(2))
 xlabel(1(1)12, valuelabels axis(2)) 
@@ -667,7 +669,7 @@ legend(order(1 "Young-Old" 2 "95% CI"));
 graph export "$OUT/youngQuarterComparison.eps", as(eps) replace;  
 #delimit cr
 restore
-*/
+
 ********************************************************************************
 *** (4) Graph of good season by age
 ********************************************************************************
@@ -722,7 +724,7 @@ twoway line ageES ageNM in 1/26, lpattern(solid) lcolor(black) lwidth(medthick)
 graph export "$OUT/goodSeasonAge_2045.eps", as(eps) replace;
 #delimit cr
 restore
-/*
+
 ********************************************************************************
 *** (5) Prematurity
 ********************************************************************************
@@ -1266,7 +1268,7 @@ keep if goodQuarter != .
 gen     young = 1 if ageGroup == 2|ageGroup==3|ageGroup==4
 replace young = 0 if ageGroup == 5
 
-*preserve
+preserve
 collapse goodQuarter expectGoodQ (sum) liveBirth, /*
 */ by(ageGroup fips state bstate)
 
@@ -1318,7 +1320,7 @@ foreach num of numlist 3 5 {
     local pval   = (ttail(e(df_r),(_b[Tvariation]/_se[Tvariation])))
     local pvalue = string(`pval',"%5.3f")
     if `pvalue' == 0 local pvalue 0.000
-    twoway scatter goodQuarter Tvariation if ageGroup==`num', mlabel(stateS) || ///
+    twoway scatter goodQuarter Tvari if ageGroup==`num', msymbol(i) mlabel(stateS) || ///
            scatter goodQuarter Tvari if ageGroup==`num' [aw=li], msymbol(Oh) || ///
               lfit goodQuarter Tvari if ageGroup==`num' [aw=li], scheme(s1mono) ///
             lcolor(gs0) legend(off) lpattern(dash)                              ///
@@ -1376,7 +1378,7 @@ foreach relig in protestant catholic mormon jewish {
     }
 }
 
-exit
+
 restore
 
 collapse goodQuarter expectGoodQ, by(ageGroup fips state bstate female)

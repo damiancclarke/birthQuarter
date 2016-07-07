@@ -16,10 +16,15 @@ clear all
 set more off
 cap log close
 
-local allobs 0
+local allobs 1
+local hisp   1
 if `allobs'==0 local f nvss
 if `allobs'==1 local f nvssall
 if `allobs'==0 local mnote " married "
+local fend
+if `hisp'==1 local fend _hisp
+if `hisp'==1 local f hisp
+if `hisp'==1&`allobs'==1 local f hispall
 
 ********************************************************************************
 *** (1) globals and locals
@@ -55,8 +60,8 @@ local enote  "Heteroscedasticity robust standard errors are reported in
 ********************************************************************************
 *** (2a) Open data for births and deaths
 ********************************************************************************
-use          "$DAT/nvss2005_2013"
-append using "$DAT/nvssFD2005_2013"
+use          "$DAT/nvss2005_2013`fend'"
+append using "$DAT/nvssFD2005_2013`fend'"
 if `allobs'==0 keep if married==1
 
 local mc 
@@ -100,10 +105,8 @@ local add `" "(maternal leave states)" "(non-maternal leave states)"
 local add `" ""  "';
 local add `" "" "(excluding babies conceived in September)"
            "(second births)" "(only twins)" "(including twins)" "';
-local add `" "(including twins)" "';
 local nam MLeave NoMLeave PLeaveAB PLeaveCE PLeaveF;
 local nam Main NoSep Bord2 Twin TwinS;
-local nam TwinS;
 local not "All singleton, first born children from the main sample are included.
 `Fnote' Leamer critical values refer to Leamer/Schwartz/Deaton critical 5\%
 values adjusted for sample size. The Leamer critical value for a t-statistic is
@@ -284,7 +287,7 @@ postfoot("F-test of Age Variables&`F3a'&`F2a'&`F1a'&`F4a'&`F5a'&`F6a' \\  "
 #delimit cr
 estimates clear
 restore
-exit
+
 ********************************************************************************
 *** (4) ART and Teens
 ********************************************************************************
@@ -315,7 +318,7 @@ postfoot("State and Year FE&&Y&Y&Y\\  \bottomrule                          "
 #delimit cr
 estimates clear
 restore
-exit
+
 ********************************************************************************
 *** (5) Regressions (Quality on Age, season)
 ********************************************************************************
