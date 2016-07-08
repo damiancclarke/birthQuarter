@@ -799,7 +799,7 @@ sum importance6plus if childFlag==1
 sum importance6plus if plankids==1|plankids==3
 
 exit
-
+*/
 ********************************************************************************
 *** (7) Tables
 ********************************************************************************
@@ -807,6 +807,554 @@ use "$DAT/BirthSurvey", clear
 keep if completed==1
 keep if educ==educ_check
 gen WTPdifference = WTPdiabetes-WTPsob
+gen age      = 2016-birthyr
+gen ageBirth = cbirthyr-birthyr
+
+
+file open bstats using "$OUT/SOBsum-tvals.tex", write replace
+#delimit ;
+file write bstats "\begin{table}[htpb!]\caption{Willingness to Pay Descriptives}" 
+                  _n "\begin{tabular}{lccccc} \toprule" _n
+                  "& Mean & Standard & $ t$         & Standard & Obs. \\ " _n
+                  "&      & Deviation & Statistics  & Error    &      \\ "
+                  "\midrule" _n;
+#delimit cr
+gen choose= pSOBtarget==1|SOBtarget==1
+gen notchoose = pSOBtarget==0|SOBtarget==0
+gen summer = SOBprefer==2|SOBprefer==3|pSOBprefer==2|pSOBprefer==3
+gen winter = SOBprefer==1|SOBprefer==4|pSOBprefer==1|pSOBprefer==4
+
+#delimit ;
+local vnames `""Choose SOB" "Don't Choose SOB" "Choose Summer" "Choose Winter""';
+local conds choose==1 notchoose==1 summer==1 winter==1;
+#delimit cr
+
+file write bstats "\textbf{Willingness to Pay (Sure)} &&&&& \\"_n
+tokenize `conds'
+foreach v of local vnames {
+    sum WTPsob if `1'&WTPcheck==2
+    local mean = string(r(mean),"%5.3f")
+    local stdd = string(r(sd),"%5.3f")
+    local SN   = r(N)
+    gen xvar = `1'
+    reg WTPsob xvar if WTPcheck==2, nocons
+    local tsta = string(_b[xvar]/_se[xvar],"%5.3f")
+    local stde = string(_se[xvar],"%5.3f")
+
+    file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN' \\" _n
+    drop xvar
+    macro shift
+}
+
+#delimit ;
+file write bstats "\bottomrule "_n;
+file write bstats "\multicolumn{6}{p{16cm}}{{\footnotesize \textsc{Notes}: "
+" Willingness to Pay is reported as the percent of total financial wealth  "
+"as a one-time payment. Questions about children and targeting are asked to"
+"all people who have children, but not to women above fertile age without  "
+"children. These are 2,380 of the 2,938 eligible respondents.}}" _n;
+file write bstats "\end{tabular}\end{table}" _n;
+#delimit cr
+file close bstats
+
+
+preserve
+keep if nchild!=0
+
+file open bstats using "$OUT/SOBsum-tvals-parents.tex", write replace
+#delimit ;
+file write bstats "\begin{table}[htpb!]"
+                  "\caption{Willingness to Pay Descriptives (Parents Only)}" 
+                  _n "\begin{tabular}{lccccc} \toprule" _n
+                  "& Mean & Standard & $ t$         & Standard & Obs. \\ " _n
+                  "&      & Deviation & Statistics  & Error    &      \\ "
+                  "\midrule" _n
+                  "\textbf{Willingness to Pay (All)} &&&&& \\" _n;
+#delimit cr
+
+#delimit ;
+local vnames `""Choose SOB" "Don't Choose SOB" "Choose Summer" "Choose Winter""';
+local conds choose==1 notchoose==1 summer==1 winter==1;
+#delimit cr
+tokenize `conds'
+
+foreach v of local vnames {
+    sum WTPsob if `1'
+    local mean = string(r(mean),"%5.3f")
+    local stdd = string(r(sd),"%5.3f")
+    local SN   = r(N)
+    gen xvar = `1'
+    reg WTPsob xvar, nocons
+    local tsta = string(_b[xvar]/_se[xvar],"%5.3f")
+    local stde = string(_se[xvar],"%5.3f")
+
+    file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN' \\" _n
+    drop xvar
+    macro shift
+}
+
+file write bstats "\textbf{Willingness to Pay (Sure)} &&&&& \\"_n
+tokenize `conds'
+foreach v of local vnames {
+    sum WTPsob if `1'&WTPcheck==2
+    local mean = string(r(mean),"%5.3f")
+    local stdd = string(r(sd),"%5.3f")
+    local SN   = r(N)
+    gen xvar = `1'
+    reg WTPsob xvar if WTPcheck==2, nocons
+    local tsta = string(_b[xvar]/_se[xvar],"%5.3f")
+    local stde = string(_se[xvar],"%5.3f")
+
+    file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN' \\" _n
+    drop xvar
+    macro shift
+}
+
+file write bstats "\textbf{Willingness to Pay (Not sure)} &&&&& \\"_n
+tokenize `conds'
+foreach v of local vnames {
+    sum WTPsob if `1'&WTPcheck==1
+    local mean = string(r(mean),"%5.3f")
+    local stdd = string(r(sd),"%5.3f")
+    local SN   = r(N)
+    gen xvar = `1'
+    reg WTPsob xvar if WTPcheck==1, nocons
+    local tsta = string(_b[xvar]/_se[xvar],"%5.3f")
+    local stde = string(_se[xvar],"%5.3f")
+
+    file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN' \\" _n
+    drop xvar
+    macro shift
+}
+
+#delimit ;
+file write bstats "\bottomrule "_n;
+file write bstats "\multicolumn{6}{p{16cm}}{{\footnotesize \textsc{Notes}: "
+" Willingness to Pay is reported as the percent of total financial wealth  "
+"as a one-time payment.}}" _n;
+file write bstats "\end{tabular}\end{table}" _n;
+#delimit cr
+file close bstats
+
+restore
+
+
+
+preserve
+keep if nchild!=0&race==11&age>=25&age<=45
+
+file open bstats using "$OUT/SOBsum-tvals-parents2545.tex", write replace
+#delimit ;
+file write bstats "\begin{table}[htpb!]"
+                  "\caption{Willingness to Pay Descriptives (Parents, White, 25-45)}" 
+                  _n "\begin{tabular}{lccccc} \toprule" _n
+                  "& Mean & Standard & $ t$         & Standard & Obs. \\ " _n
+                  "&      & Deviation & Statistics  & Error    &      \\ "
+                  "\midrule" _n
+                  "\textbf{Willingness to Pay (All)} &&&&& \\" _n;
+#delimit cr
+
+#delimit ;
+local vnames `""Choose SOB" "Don't Choose SOB" "Choose Summer" "Choose Winter""';
+local conds choose==1 notchoose==1 summer==1 winter==1;
+#delimit cr
+tokenize `conds'
+
+foreach v of local vnames {
+    sum WTPsob if `1'
+    local mean = string(r(mean),"%5.3f")
+    local stdd = string(r(sd),"%5.3f")
+    local SN   = r(N)
+    gen xvar = `1'
+    reg WTPsob xvar, nocons
+    local tsta = string(_b[xvar]/_se[xvar],"%5.3f")
+    local stde = string(_se[xvar],"%5.3f")
+
+    file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN' \\" _n
+    drop xvar
+    macro shift
+}
+
+file write bstats "\textbf{Willingness to Pay (Sure)} &&&&& \\"_n
+tokenize `conds'
+foreach v of local vnames {
+    sum WTPsob if `1'&WTPcheck==2
+    local mean = string(r(mean),"%5.3f")
+    local stdd = string(r(sd),"%5.3f")
+    local SN   = r(N)
+    gen xvar = `1'
+    reg WTPsob xvar if WTPcheck==2, nocons
+    local tsta = string(_b[xvar]/_se[xvar],"%5.3f")
+    local stde = string(_se[xvar],"%5.3f")
+
+    file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN' \\" _n
+    drop xvar
+    macro shift
+}
+
+file write bstats "\textbf{Willingness to Pay (Not sure)} &&&&& \\"_n
+tokenize `conds'
+foreach v of local vnames {
+    sum WTPsob if `1'&WTPcheck==1
+    local mean = string(r(mean),"%5.3f")
+    local stdd = string(r(sd),"%5.3f")
+    local SN   = r(N)
+    gen xvar = `1'
+    reg WTPsob xvar if WTPcheck==1, nocons
+    local tsta = string(_b[xvar]/_se[xvar],"%5.3f")
+    local stde = string(_se[xvar],"%5.3f")
+
+    file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN' \\" _n
+    drop xvar
+    macro shift
+}
+
+#delimit ;
+file write bstats "\bottomrule "_n;
+file write bstats "\multicolumn{6}{p{16cm}}{{\footnotesize \textsc{Notes}: "
+" Willingness to Pay is reported as the percent of total financial wealth  "
+"as a one-time payment.}}" _n;
+file write bstats "\end{tabular}\end{table}" _n;
+#delimit cr
+file close bstats
+
+restore
+
+
+preserve
+keep if nchild!=0&race==11&ageBirth>=25&ageBirth<=45
+
+file open bstats using "$OUT/SOBsum-tvals-parents2545b.tex", write replace
+#delimit ;
+file write bstats "\begin{table}[htpb!]"
+                  "\caption{WTP Descriptives (Parents, White, 25-45 at birth)}" 
+                  _n "\begin{tabular}{lccccc} \toprule" _n
+                  "& Mean & Standard & $ t$         & Standard & Obs. \\ " _n
+                  "&      & Deviation & Statistics  & Error    &      \\ "
+                  "\midrule" _n
+                  "\textbf{Willingness to Pay (All)} &&&&& \\" _n;
+#delimit cr
+
+#delimit ;
+local vnames `""Choose SOB" "Don't Choose SOB" "Choose Summer" "Choose Winter""';
+local conds choose==1 notchoose==1 summer==1 winter==1;
+#delimit cr
+tokenize `conds'
+
+foreach v of local vnames {
+    sum WTPsob if `1'
+    local mean = string(r(mean),"%5.3f")
+    local stdd = string(r(sd),"%5.3f")
+    local SN   = r(N)
+    gen xvar = `1'
+    reg WTPsob xvar, nocons
+    local tsta = string(_b[xvar]/_se[xvar],"%5.3f")
+    local stde = string(_se[xvar],"%5.3f")
+
+    file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN' \\" _n
+    drop xvar
+    macro shift
+}
+
+file write bstats "\textbf{Willingness to Pay (Sure)} &&&&& \\"_n
+tokenize `conds'
+foreach v of local vnames {
+    sum WTPsob if `1'&WTPcheck==2
+    local mean = string(r(mean),"%5.3f")
+    local stdd = string(r(sd),"%5.3f")
+    local SN   = r(N)
+    gen xvar = `1'
+    reg WTPsob xvar if WTPcheck==2, nocons
+    local tsta = string(_b[xvar]/_se[xvar],"%5.3f")
+    local stde = string(_se[xvar],"%5.3f")
+
+    file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN' \\" _n
+    drop xvar
+    macro shift
+}
+
+file write bstats "\textbf{Willingness to Pay (Not sure)} &&&&& \\"_n
+tokenize `conds'
+foreach v of local vnames {
+    sum WTPsob if `1'&WTPcheck==1
+    local mean = string(r(mean),"%5.3f")
+    local stdd = string(r(sd),"%5.3f")
+    local SN   = r(N)
+    gen xvar = `1'
+    reg WTPsob xvar if WTPcheck==1, nocons
+    local tsta = string(_b[xvar]/_se[xvar],"%5.3f")
+    local stde = string(_se[xvar],"%5.3f")
+
+    file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN' \\" _n
+    drop xvar
+    macro shift
+}
+
+#delimit ;
+file write bstats "\bottomrule "_n;
+file write bstats "\multicolumn{6}{p{16cm}}{{\footnotesize \textsc{Notes}: "
+" Willingness to Pay is reported as the percent of total financial wealth  "
+"as a one-time payment.}}" _n;
+file write bstats "\end{tabular}\end{table}" _n;
+#delimit cr
+file close bstats
+restore
+
+
+
+preserve
+keep if nchild!=0&race==11&age>=25&age<=45&sex==1
+
+file open bstats using "$OUT/SOBsum-tvals-parents2545Fem.tex", write replace
+#delimit ;
+file write bstats "\begin{table}[htpb!]"
+                  "\caption{Willingness to Pay Descriptives (Mothers, White, 25-45)}" 
+                  _n "\begin{tabular}{lccccc} \toprule" _n
+                  "& Mean & Standard & $ t$         & Standard & Obs. \\ " _n
+                  "&      & Deviation & Statistics  & Error    &      \\ "
+                  "\midrule" _n
+                  "\textbf{Willingness to Pay (All)} &&&&& \\" _n;
+#delimit cr
+
+#delimit ;
+local vnames `""Choose SOB" "Don't Choose SOB" "Choose Summer" "Choose Winter""';
+local conds choose==1 notchoose==1 summer==1 winter==1;
+#delimit cr
+tokenize `conds'
+
+foreach v of local vnames {
+    sum WTPsob if `1'
+    local mean = string(r(mean),"%5.3f")
+    local stdd = string(r(sd),"%5.3f")
+    local SN   = r(N)
+    gen xvar = `1'
+    reg WTPsob xvar, nocons
+    local tsta = string(_b[xvar]/_se[xvar],"%5.3f")
+    local stde = string(_se[xvar],"%5.3f")
+
+    file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN' \\" _n
+    drop xvar
+    macro shift
+}
+
+file write bstats "\textbf{Willingness to Pay (Sure)} &&&&& \\"_n
+tokenize `conds'
+foreach v of local vnames {
+    sum WTPsob if `1'&WTPcheck==2
+    local mean = string(r(mean),"%5.3f")
+    local stdd = string(r(sd),"%5.3f")
+    local SN   = r(N)
+    gen xvar = `1'
+    reg WTPsob xvar if WTPcheck==2, nocons
+    local tsta = string(_b[xvar]/_se[xvar],"%5.3f")
+    local stde = string(_se[xvar],"%5.3f")
+
+    file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN' \\" _n
+    drop xvar
+    macro shift
+}
+
+file write bstats "\textbf{Willingness to Pay (Not sure)} &&&&& \\"_n
+tokenize `conds'
+foreach v of local vnames {
+    sum WTPsob if `1'&WTPcheck==1
+    local mean = string(r(mean),"%5.3f")
+    local stdd = string(r(sd),"%5.3f")
+    local SN   = r(N)
+    gen xvar = `1'
+    reg WTPsob xvar if WTPcheck==1, nocons
+    local tsta = string(_b[xvar]/_se[xvar],"%5.3f")
+    local stde = string(_se[xvar],"%5.3f")
+
+    file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN' \\" _n
+    drop xvar
+    macro shift
+}
+
+#delimit ;
+file write bstats "\bottomrule "_n;
+file write bstats "\multicolumn{6}{p{16cm}}{{\footnotesize \textsc{Notes}: "
+" Willingness to Pay is reported as the percent of total financial wealth  "
+"as a one-time payment.}}" _n;
+file write bstats "\end{tabular}\end{table}" _n;
+#delimit cr
+file close bstats
+
+restore
+
+preserve
+keep if nchild!=0&race==11&age>=25&age<=45&sex==1&marst==1&hispanic==0
+
+file open bstats using "$OUT/SOBsum-tvals-parents2545MarriedF.tex", write replace
+#delimit ;
+file write bstats "\begin{table}[htpb!]"
+                  "\caption{WTP Descriptives (Married White, non-Hispance Mothers, 25-45)}" 
+                  _n "\begin{tabular}{lccccc} \toprule" _n
+                  "& Mean & Standard & $ t$         & Standard & Obs. \\ " _n
+                  "&      & Deviation & Statistics  & Error    &      \\ "
+                  "\midrule" _n
+                  "\textbf{Willingness to Pay (All)} &&&&& \\" _n;
+#delimit cr
+
+#delimit ;
+local vnames `""Choose SOB" "Don't Choose SOB" "Choose Summer" "Choose Winter""';
+local conds choose==1 notchoose==1 summer==1 winter==1;
+#delimit cr
+tokenize `conds'
+
+foreach v of local vnames {
+    sum WTPsob if `1'
+    local mean = string(r(mean),"%5.3f")
+    local stdd = string(r(sd),"%5.3f")
+    local SN   = r(N)
+    gen xvar = `1'
+    reg WTPsob xvar, nocons
+    local tsta = string(_b[xvar]/_se[xvar],"%5.3f")
+    local stde = string(_se[xvar],"%5.3f")
+
+    file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN' \\" _n
+    drop xvar
+    macro shift
+}
+
+file write bstats "\textbf{Willingness to Pay (Sure)} &&&&& \\"_n
+tokenize `conds'
+foreach v of local vnames {
+    sum WTPsob if `1'&WTPcheck==2
+    local mean = string(r(mean),"%5.3f")
+    local stdd = string(r(sd),"%5.3f")
+    local SN   = r(N)
+    gen xvar = `1'
+    reg WTPsob xvar if WTPcheck==2, nocons
+    local tsta = string(_b[xvar]/_se[xvar],"%5.3f")
+    local stde = string(_se[xvar],"%5.3f")
+
+    file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN' \\" _n
+    drop xvar
+    macro shift
+}
+
+file write bstats "\textbf{Willingness to Pay (Not sure)} &&&&& \\"_n
+tokenize `conds'
+foreach v of local vnames {
+    sum WTPsob if `1'&WTPcheck==1
+    local mean = string(r(mean),"%5.3f")
+    local stdd = string(r(sd),"%5.3f")
+    local SN   = r(N)
+    gen xvar = `1'
+    reg WTPsob xvar if WTPcheck==1, nocons
+    local tsta = string(_b[xvar]/_se[xvar],"%5.3f")
+    local stde = string(_se[xvar],"%5.3f")
+
+    file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN' \\" _n
+    drop xvar
+    macro shift
+}
+
+#delimit ;
+file write bstats "\bottomrule "_n;
+file write bstats "\multicolumn{6}{p{16cm}}{{\footnotesize \textsc{Notes}: "
+" Willingness to Pay is reported as the percent of total financial wealth  "
+"as a one-time payment.}}" _n;
+file write bstats "\end{tabular}\end{table}" _n;
+#delimit cr
+file close bstats
+
+restore
+
+
+exit
+
+
+
+
+
+
+gen All = 1
+#delimit ;
+local conds All==1 childFlag==1 plankids==1|plankids==3 occ==6 occ!=6 educ>3
+            educ<4 SOBtarget==1|pSOBtarget==1 SOBtarget==0|pSOBtarget==0;
+#delimit cr
+
+egen chooseSOB    = rowtotal(SOBtarget pSOBtarget), missing
+egen importSOB    = rowtotal(SOBimport pSOBimport), missing
+
+#delimit ;
+local vnames `""Choose SOB" "Importance of SOB" "Lucky Dates" "Birthdays"
+"Tax" "Work" "School Entry" "Child Health" "Mom's Health"  "Diabetes Avoidance"
+"Choose SOB" "Difference (Diabetes $-$ SOB)" "';
+#delimit cr
+
+local j=1
+local reasons SOBlucky SOBbirthday SOBtax SOBjobs SOBschool SOBchealth SOBmhealth
+local variables  chooseSOB importSOB `reasons' WTPdiabetes WTPsob WTPdiff
+tokenize `variables'
+
+foreach v of local vnames {    
+    local c=1
+    foreach cond of local conds {
+        sum `1' if `cond'
+        local v`c'=round(r(mean)*1000)/1000
+        if `v`c''<1&`v`c''>0 local v`c' "0`v`c''"
+        local ++c
+    }
+    
+    if `j'<3 {
+        file write bstats "`v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9' \\" _n
+    }
+    else if `j'==3 {
+        file write bstats "\multicolumn{10}{l}{\textbf{Reasons (Importance)}} \\" _n
+        file write bstats "\ `v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
+    }
+    else if `j'>3&`j'<10 {
+        file write bstats "\ `v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
+    }
+    else if `j'==10 {
+        file write bstats "\multicolumn{10}{l}{\textbf{Willingness to Pay}} \\ " _n
+        file write bstats "\ `v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
+    }
+    else if `j'>10 {
+        file write bstats "\ `v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
+    }
+    macro shift
+    local ++j
+}
+
+local c=1
+foreach cond of local conds {
+    count if `cond'
+    local v`c'=r(N)
+    local ++c
+}
+file write bstats "&&&&&&&&&\\" _n
+file write bstats "Observations&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
+
+
+#delimit ;
+file write bstats "\bottomrule "_n;
+file write bstats "\multicolumn{10}{p{21.4cm}}{{\footnotesize \textsc{Notes}:"
+" Full sample of respondents who passed all attention checks and answered  "
+"consistently are included.  Importance of season of birth and all reasons "
+"are ranked on a 1 to 10 scale, where 1 is not important at all and 10 is  "
+"extremely important.  Questions about children and targeting are asked to "
+"all people who have children, but not to women above fertile age without  "
+"children. These are 2,380 of the 2,938 eligible respondents.}}" _n;
+file write bstats "\end{tabular}\end{table}" _n;
+#delimit cr
+file close bstats
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 file open bstats using "$OUT/SOBvalues.tex", write replace
 #delimit ;
@@ -983,7 +1531,7 @@ keep if marst==1&race==11&hispanic==0
 
 file open bstats using "$OUT/SOBvaluesMarried.tex", write replace
 #delimit ;
-file write bstats "\begin{table}[htpb!]\caption{Season of Birth Descriptives (White, Married)}" 
+file write bstats "\begin{table}[htpb!]\caption{Season of Birth Descriptives (White, Married)}"
                   _n "\begin{tabular}{lccccccccc} \toprule" _n
                   "& All & \multicolumn{2}{c}{Children} & "
                   "\multicolumn{2}{c}{Occupation}&\multicolumn{2}{c}{Some College +}"
