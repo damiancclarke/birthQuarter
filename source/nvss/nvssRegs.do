@@ -16,7 +16,7 @@ clear all
 set more off
 cap log close
 
-local allobs 1
+local allobs 0
 local hisp   1
 if `allobs'==0 local f nvss
 if `allobs'==1 local f nvssall
@@ -65,7 +65,9 @@ append using "$DAT/nvssFD2005_2013`fend'"
 if `allobs'==0 keep if married==1
 
 local mc 
-if `allobs'==1 local mc married
+if `allobs'==1           local mc married
+if `hisp'==1             local mc hispanic
+if `allobs'==1&`hisp'==1 local mc married hispanic
 
 replace motherAge2 = motherAge2/100
 lab var motherAge2 "Mother's Age$^2$ / 100"
@@ -94,7 +96,7 @@ replace ParentalPolicy = "F" if state=="Alabama"|state=="Delaware"|
     state=="Utah"|state=="WestVirginia"|state=="Wyoming";
 replace ParentalPolicy = "CDE" if ParentalPolicy == "";
 #delimit cr
-
+/*
 ********************************************************************************
 *** (3a) Good Quarter Regressions
 ********************************************************************************
@@ -102,16 +104,12 @@ replace ParentalPolicy = "CDE" if ParentalPolicy == "";
 local add `" "(maternal leave states)" "(non-maternal leave states)"
              "(Expecting Better: A-B)" "(Expecting Better: C-E)"
              "(Expecting Better F)" "';
-local add `" ""  "';
 local add `" "" "(excluding babies conceived in September)"
            "(second births)" "(only twins)" "(including twins)" "';
+local add `" ""  "';
 local nam MLeave NoMLeave PLeaveAB PLeaveCE PLeaveF;
 local nam Main NoSep Bord2 Twin TwinS;
-local not "All singleton, first born children from the main sample are included.
-`Fnote' Leamer critical values refer to Leamer/Schwartz/Deaton critical 5\%
-values adjusted for sample size. The Leamer critical value for a t-statistic is
-`tL1' in columns 1-3 and `tL4' in columns 4 and 5. `onote' `enote'
-***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.";
+local nam Main;
 #delimit cr
 tokenize `nam'
 
@@ -150,7 +148,7 @@ foreach type of local add {
     if   `F1' == 0 local F1 0.000
     local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
     local L1   = string((e(df_r)/2)*(e(N)^(2/e(N))-1), "%5.3f")
-    local tL1  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
+    local tL1  = string(sqrt(  (e(df_r)/1)*(e(N)^(1/e(N))-1)     ), "%5.3f")
 
 
     eststo: areg goodQuarter `age'       _year* if e(sample) , `se' `yab'
@@ -185,6 +183,15 @@ foreach type of local add {
     local opt5 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
     #delimit ;
+    local not "All singleton, first born children from the main sample are included.
+    `Fnote' Leamer critical values refer to Leamer/Schwartz/Deaton critical 5\%
+    values adjusted for sample size. The Leamer critical value for a t-statistic is
+    `tL1' in columns 1-3 and `tL4' in columns 4 and 5. `onote' `enote'
+    ***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.";
+    #delimit cr
+
+
+    #delimit ;
     if `"`1'"' != "Main" local not "\textsc{Notes}: Refer to table 3 in the
                main text. The Leamer critical value for a t-statistic is `tL1'
                in columns 1-3 and `tL4' in columns 4 and 5.";
@@ -207,7 +214,7 @@ foreach type of local add {
     macro shift
     restore
 }
-
+exit
 
 local age motherAge motherAge2
 local edu highEd
@@ -287,26 +294,27 @@ postfoot("F-test of Age Variables&`F3a'&`F2a'&`F1a'&`F4a'&`F5a'&`F6a' \\  "
 #delimit cr
 estimates clear
 restore
-
+*/
 ********************************************************************************
 *** (4) ART and Teens
 ********************************************************************************
 local lab "\label{tab:ART2024}"
 local con smoker WIC underweight overweight obese `mc'
+local ageA age2024 age2527 age2831 age3239
 
 preserve
 keep if twin==1 & motherAge>=20 & motherAge<=45 & liveBirth==1 & `keepif'
-               
-eststo: areg goodQuarter age2024 noART highEd `con'  _year*, abs(fips)
+
+eststo: areg goodQuarter `ageA' noART highEd `con'  _year*, abs(fips)
 keep if e(sample) == 1                                     
-eststo: areg goodQuarter age2024 noART highEd smoker _year*, abs(fips)
-eststo: areg goodQuarter age2024 noART               _year*, abs(fips)
-eststo:  reg goodQuarter age2024 noART                                
+eststo: areg goodQuarter `ageA' noART highEd smoker _year*, abs(fips)
+eststo: areg goodQuarter `ageA' noART               _year*, abs(fips)
+eststo:  reg goodQuarter `ageA' noART                                
 local tL1  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
 
 #delimit ;
 esttab est4 est3 est2 est1 using "$OUT/ART2024.tex", replace
-`estopt' keep(age2024 noART highEd `con') style(tex) booktabs
+`estopt' keep(`ageA' noART highEd `con') style(tex) booktabs
 title("Season of Birth Correlates: Very Young (20-24) and ART users`lab'")
 postfoot("State and Year FE&&Y&Y&Y\\  \bottomrule                          "
          "\multicolumn{5}{p{16.4cm}}{\begin{footnotesize} Main sample is   "
@@ -318,6 +326,7 @@ postfoot("State and Year FE&&Y&Y&Y\\  \bottomrule                          "
 #delimit cr
 estimates clear
 restore
+exit
 
 ********************************************************************************
 *** (5) Regressions (Quality on Age, season)

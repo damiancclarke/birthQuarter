@@ -24,7 +24,9 @@ print('\n\n Producing tex files for output tables.\n\n')
 RES   = "/home/damian/investigacion/2015/birthQuarter/results/"
 TAB   = "/home/damian/investigacion/2015/birthQuarter/tables/"
 ftype = 'nvss'
-dloc  = './../'
+ftype = 'nvssall'
+#ftype = 'hisp'
+#ftype = 'hispall'
 
 singleNVSS       = RES + ftype + '/sumStats/FullSample.txt'
 singleEducNVSS   = RES + ftype + '/sumStats/EducSample.txt'
@@ -74,6 +76,7 @@ IPUMSind4 = RES + 'ipums/regressions/IPUMSIndustry_noSelfEmp.tex'
 IPUMSind5 = RES + 'ipums/regressions/IPUMSIndustry_SelfEmpD.tex' 
 IPUMSind6 = RES + 'ipums/regressions/IPUMSIndustryWeeksWork.tex' 
 IPUMSind7 = RES + 'ipums/regressions/IPUMSIndustryWeeks_Int.tex' 
+IPUMSind8 = RES + 'ipums/regressions/EducSq_IPUMSIndustry.tex' 
 
 SpainInd  = RES + 'spain/regressions/SpainIndustry.tex' 
 SpainTO   = RES + 'spain/regressions/SpainTradeoff.tex' 
@@ -90,7 +93,7 @@ br   = '\\bottomrule'
 mc1  = '\\multicolumn{'
 mc2  = '}}'
 twid = ['10','6','7','7','7','6','5','6','6']
-tcm  = ['}{p{16.6cm}}','}{p{14.2cm}}','}{p{15.6cm}}','}{p{17.6cm}}',
+tcm  = ['}{p{16.6cm}}','}{p{17.6cm}}','}{p{15.6cm}}','}{p{17.6cm}}',
         '}{p{11.8cm}}','}{p{11.4cm}}','}{p{9.0cm}}','}{p{12.2cm}}' ,
         '}{p{16.2cm}}']
 mc3  = '{\\begin{footnotesize}\\textsc{Notes:} '
@@ -220,7 +223,7 @@ NVj = open(allEducIPUMS,    'r').readlines()
 
 
 sumT.write("\\begin{table}[htpb!]"
-           "\\caption{Percent of Births (IPUMS 2005-2014)} \n"
+           "\\caption{Percent of Births (ACS 2005-2014)} \n"
            "\\label{bqTab:SpainSum}\\begin{center}"
            "\\begin{tabular}{lcccc}\n\\toprule \\toprule \n"
            "& Bad    & Good   & Diff. & Ratio \\\\\n"
@@ -256,6 +259,53 @@ sumT.write('\n'+mr+mc1+twid[6]+tcm[6]+mc3+
            "\\end{center}\\end{table}")
     
 sumT.close()
+
+
+sumT = open(TAB + 'sumIPUMS_hisp.tex', 'w')
+singleIPUMSh      = RES + 'hisp/ipums/sumStats/FullSample.txt'
+allEducIPUMSh     = RES + 'hisp/ipums/sumStats/JustEduc.txt'
+NVh  = open(singleIPUMSh,     'r').readlines()
+NVhj = open(allEducIPUMSh,    'r').readlines()
+
+sumT.write("\\begin{table}[htpb!]"
+           "\\caption{Percent of Births (ACS 2005-2014)} \n"
+           "\\label{bqTab:SpainSum}\\begin{center}"
+           "\\begin{tabular}{lcccc}\n\\toprule \\toprule \n"
+           "& Bad    & Good   & Diff. & Ratio \\\\\n"
+           "& Season & Season &       &       \\\\\\midrule"
+           "\multicolumn{5}{l}{\\textsc{Panel A: By Age Groups}}\\\\"
+           "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
+           "\\begin{footnotesize}\\end{footnotesize}\\\\ \n")
+    
+sumT.write(NVh[1]+'\\\\ \n'+NVh[2]+'\\\\ \n'+NVh[3]+'\\\\ \n'
+           +NVh[4]+'\\\\ \n'+NVh[5]+'\\\\ \n &&&& \\\\'
+           "\multicolumn{5}{l}{\\textsc{Panel B: By Education}}\\\\"
+           "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
+           "\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
+           NVhj[1]+'\\\\ \n'+
+           NVhj[2]+'\\\\ \n &&&& \\\\'
+           ##"\multicolumn{5}{l}{\\textsc{Panel C: By Age and Education}}\\\\"
+           ##"\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
+           ##"\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
+           ##NVe[1]+'\\\\ \n'+
+           ##NVe[2]+'\\\\ \n'+
+           ##NVe[3]+'\\\\ \n'+
+           ##NVe[4]+'\\\\ \n'+
+           ##NVe[5]+'\\\\ \n'+
+           ##NVe[6]+'\\\\ \n &&&& \\\\'
+           )
+    
+    
+sumT.write('\n'+mr+mc1+twid[6]+tcm[6]+mc3+
+           "Good season refers to birth quarters 2 and 3 (Apr-Jun and      " 
+           "Jul-Sept).  Bad season refers to quarters 1 and 4 (Jan-Mar     "
+           "and Oct-Dec). \n"
+           "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}"
+           "\\end{center}\\end{table}")
+    
+sumT.close()
+
+
 
 #==============================================================================
 #== (3a) Basic Sum stats (NVSS)
@@ -301,16 +351,28 @@ sumT.write('\n'+mr+mc1+twid[1]+tcm[1]+mc3+
 sumT.close()
 
 if ftype == 'nvss':
-    mnote = ' married '
-    mnum  = 11
-elif ftype == 'nvssall':
-    mnote = ' '
+    mnote = ', Non-Hispanic married '
     mnum  = 12
-
+    mnu2  = 16
+elif ftype=='hisp':
+    mnote = ', married '
+    mnum  = 12
+    mnu2  = 17
+elif ftype == 'nvssall':
+    mnote = ' Non-Hispanic '
+    mnum  = 13
+    mnu2  = 17
+elif ftype=='hispall':
+    mnote = ' '
+    mnum  = 13
+    mnu2  = 18
+    
+    
 sumT = open(TAB + 'sumStatsSamp'+ftype+'.tex', 'w')
 sumT.write('\\begin{table}[htpb!] \n \\begin{center} \n' 
 '\\caption{Descriptive Statistics (NVSS 2005-2013)}\n '
 '\\label{bqTab:SumStatsMain}'
+'\\scalebox{0.85}{'
 '\\begin{tabular}{lccccc} '
 '\n \\toprule\\toprule \\vspace{5mm} \n'
 '& N & Mean & Std. Dev. & Min. & Max. \\\\ \\midrule \n'
@@ -324,13 +386,20 @@ for i,line in enumerate(Mu2):
     if i>8 and i< mnum:
         line = line.replace('\\hline','\\midrule')
         sumT.write(line)
-    if i>mnum and i<16:
+    if i>mnum and i<mnu2:
         line = line.replace('\\hline','\\midrule')
         sumT.write(line)
 for i,line in enumerate(MP2):
     if i>8 and i<19:
         line = line.replace('\\hline','\\midrule')
         line = line.replace('At least some college','Some College +')
+        line = line.replace('Used ART (2009-2013 only)','Used ART$^{a}$')
+        line = line.replace('Received WIC food in Pregnancy','Received WIC food in Pregnancy$^{a}$')
+        line = line.replace('Underweight (BMI $<$ 18.5)','Pre-pregnancy Underweight (BMI $<$ 18.5)$^{a}$')
+        line = line.replace('Normal Weight (BMI 18.5-25)','Pre-pregnancy Normal Weight (18.5 $\leq$ BMI $<$ 25)$^{a}$')
+        line = line.replace('Overweight (BMI 25-30)','Pre-pregnancy Overweight (25 $\leq$ BMI $<$ 30)$^{a}$')
+        line = line.replace('Obese (BMI $\geq$ 30)','Pre-pregnancy Obese (BMI $\geq$ 30)$^{a}$')
+        line = line.replace('BMI  ','Pre-pregnancy BMI$^{a}$')
         sumT.write(line)
 
 sumT.write(' \n \\multicolumn{6}{l}{\\textbf{Panel B: Child}}\\\\ \n ')
@@ -343,13 +412,14 @@ for i,line in enumerate(Ki2):
 
 sumT.write('\n'+mr+mc1+twid[1]+tcm[1]+mc3+
            "Sample consists of all first-born, singleton children born to    "
-           "White, Non-Hispanic" + mnote + "mothers aged 25-45 for whom      "
+           "White" + mnote + "mothers aged 25-45 for whom      "
            "education and smoking during pregnancy are available. Good season"
-           " refers to birth quarters 2 and 3 (Apr-Jun and Jul-Sept). Bad    "
+           "refers to birth quarters 2 and 3 (Apr-Jun and Jul-Sept). Bad     "
            "season refers to quarters 1 and 4 (Jan-Mar and Oct-Dec). ART     "
            "refers to the proportion of women who undertook assisted         "
            "reproductive technologies that resulted in these births.         "
-           "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}         "
+           "$^{a}$ Only available from 2009."
+           "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}}        "
            "\\end{center}\\end{table}")
 sumT.close()
 
@@ -444,7 +514,7 @@ sumT = open(TAB + 'sumStatsIPUMS.tex', 'w')
 SI = open(sumIPUMS, 'r').readlines()
 
 sumT.write('\\begin{table}[htpb!] \n \\begin{center} \n' 
-'\\caption{Descriptive Statistics (IPUMS 2005-2014)}\n '
+'\\caption{Descriptive Statistics (ACS 2005-2014)}\n '
 '\\label{bqTab:SumStatsIPUM}'
 '\\begin{tabular}{lccccc} '
 '\n \\toprule\\toprule \\vspace{5mm} \n'
@@ -457,17 +527,50 @@ for i,line in enumerate(SI):
         sumT.write(line)
 
 sumT.write('\n'+mr+mc1+twid[7]+tcm[7]+mc3+
-           "Sample consists of all singleton first-born children from the ACS "
-           "born in the USA to white non-hispanic married mothers aged 25-45  "
-           "who are either the head of their household or the partner         "
-           "           of the head of the household, and who work in an       "
-           "occupation with at least 500 workers in the sample. Good season   "
-           "refers to children born in birth quarters 2 and 3 (Apr-Jun and    "
-           "Jul-Sept)."
+           "We focus on White non-Hispanic married women aged 25-45 who are   "
+           "either head of the household or spouse of the head of the         "
+           "household, and have a first singleton child who is \emph{at most} "
+           "one year old. We exclude women who are in the military, in a farm "
+           "household, or currently in school. We retain only women who had   "
+           "worked within the previous five years where each occupation must  "
+           "have at least 500 women over the entire range of survey years.    "
+           "Good season refers to children born in birth quarters 2 and 3     "
+           "(Apr-Jun and Jul-Sept)."
            "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}\\end{center}"
            "\\end{table}")
 sumT.close()
 
+
+sumIPUMSh = RES + 'hisp/ipums/sumStats/IPUMSstats.tex'
+sumT = open(TAB + 'sumStatsIPUMS_hisp.tex', 'w')
+SI = open(sumIPUMSh, 'r').readlines()
+
+sumT.write('\\begin{table}[htpb!] \n \\begin{center} \n' 
+'\\caption{Descriptive Statistics (ACS 2005-2014)}\n '
+'\\label{bqTab:SumStatsIPUM}'
+'\\begin{tabular}{lccccc} '
+'\n \\toprule\\toprule \\vspace{5mm} \n'
+'& N & Mean & Std. Dev. & Min. & Max. \\\\ \\midrule \n')
+
+for i,line in enumerate(SI):
+    if i>8 and i<19:
+        line = line.replace('\\hline','\\midrule')
+        line = line.replace('Quarter','season of birth')
+        sumT.write(line)
+
+sumT.write('\n'+mr+mc1+twid[7]+tcm[7]+mc3+
+           "We focus on White married women aged 25-45 who are   "
+           "either head of the household or spouse of the head of the         "
+           "household, and have a first singleton child who is \emph{at most} "
+           "one year old. We exclude women who are in the military, in a farm "
+           "household, or currently in school. We retain only women who had   "
+           "worked within the previous five years where each occupation must  "
+           "have at least 500 women over the entire range of survey years.    "
+           "Good season refers to children born in birth quarters 2 and 3     "
+           "(Apr-Jun and Jul-Sept)."
+           "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}\\end{center}"
+           "\\end{table}")
+sumT.close()
 
 #==============================================================================
 #== (4) IPUMS Industry clean
@@ -475,7 +578,11 @@ sumT.close()
 IndTabs = ['IPUMSIndustry_IncEduc.tex'  ,'IPUMSIndustry.tex'         ,
            'IPUMSIndustry_Income.tex'   ,'IPUMSIndustry_NoEduc.tex'  ,
            'IPUMSIndustry_noSelfEmp.tex','IPUMSIndustry_SelfEmpD.tex',
-           'IPUMSIndustryWeeksWork.tex' ,'IPUMSIndustryWeeks_Int.tex',]
+           'IPUMSIndustryWeeksWork.tex' ,'IPUMSIndustryWeeks_Int.tex',
+           'EducSq_IPUMSIndustry.tex'   ,'IPUMSIndustryMLeave.tex'   ,
+           'IPUMSIndustryNoMLeave.tex'  ,'IPUMSIndustryPLeaveAB.tex' ,
+           'IPUMSIndustry_cold.tex'     ,'IPUMSIndustry_warm.tex'    ,
+           'IPUMSIndustryPLeaveCE.tex'  ,'IPUMSIndustryPLeaveF.tex'  ]
 for table in IndTabs:
     IPUMSind  = RES + 'ipums/regressions/'+table
 
@@ -495,6 +602,55 @@ for table in IndTabs:
 
     ipoT.close()
 
+
+#HISPANIC TABS
+IPUMSind  = RES + 'hisp/ipums/regressions/IPUMSIndustry.tex'
+ipoT = open(TAB + 'IPUMSIndustry_hisp.tex', 'w')
+ipiT = open(IPUMSind, 'r').readlines()
+for i,line in enumerate(ipiT):
+    line = line.replace('oneLevelOcc==','')
+    line = line.replace('twoLevelOcc==','')
+    line = line.replace('Occupations','')
+    line = line.replace('Occpations==','')
+    line = line.replace('\\end{footnotesize}}\\end{tabular}\\end{table}',
+                        '\\end{footnotesize}}\\end{tabular}}\\end{table}')
+    line = line.replace('\\begin{tabular}{l*{3}{c}}',
+                        '\\scalebox{0.76}{\\begin{tabular}{l*{3}{c}}')
+    ipoT.write(line)
+ipoT.close()
+IPUMSind  = RES + 'hisp/ipums/regressions/IPUMSIndustry_IncEduc.tex'
+ipoT = open(TAB + 'IPUMSIndustry_IncEduc_hisp.tex', 'w')
+ipiT = open(IPUMSind, 'r').readlines()
+for i,line in enumerate(ipiT):
+    line = line.replace('oneLevelOcc==','')
+    line = line.replace('twoLevelOcc==','')
+    line = line.replace('Occupations','')
+    line = line.replace('Occpations==','')
+    line = line.replace('\\end{footnotesize}}\\end{tabular}\\end{table}',
+                        '\\end{footnotesize}}\\end{tabular}}\\end{table}')
+    line = line.replace('\\begin{tabular}{l*{3}{c}}',
+                        '\\scalebox{0.76}{\\begin{tabular}{l*{3}{c}}')
+    ipoT.write(line)
+ipoT.close()
+IPUMSind  = RES + 'hispall/ipums/regressions/IPUMSIndustry.tex'
+ipoT = open(TAB + 'IPUMSIndustryBoth_hisp.tex', 'w')
+ipiT = open(IPUMSind, 'r').readlines()
+for i,line in enumerate(ipiT):
+    line = line.replace('oneLevelOcc==','')
+    line = line.replace('twoLevelOcc==','')
+    line = line.replace('Occupations','')
+    line = line.replace('Occpations==','')
+    line = line.replace('\\end{footnotesize}}\\end{tabular}\\end{table}',
+                        '\\end{footnotesize}}\\end{tabular}}\\end{table}')
+    line = line.replace('\\begin{tabular}{l*{3}{c}}',
+                        '\\scalebox{0.76}{\\begin{tabular}{l*{3}{c}}')
+    ipoT.write(line)
+ipoT.close()
+
+    
+    
+
+    
 ipoT = open(TAB + 'IPUMSIndustry_GSample.tex', 'w')
 ipiT = open(IPUMSind2, 'r').readlines()
 
@@ -612,15 +768,15 @@ final.close()
 #===== TABLE A3: IPUMS birth quarters
 #==============================================================================
 final = open(TAB + "appendixTablesA.tex", 'w')
-TABLES = [nvss +'NVSSBinaryNoSep.tex'   , tabs+'sumStatsIPUMS.tex'      , 
+TABLES = [nvss +'NVSSBinaryNoSep.tex'   , tabs+'sumStatsIPUMS.tex'          , 
           tabs +'sumIPUMS.tex'          , nvss +'NVSSBinaryMain_robust.tex' ,
-          nvss +'NVSSBinaryBord2.tex'   , nvss +'NVSSBinaryTwinS.tex'       ,
-          nvss +'NVSSBinaryTwin.tex'    , tabs +'IPUMSIndustry_IncEduc.tex' ,
-          ipum+'ValueGoodSeason.tex']
+          nvss +'NVSSBinaryFDeaths.tex' , nvss +'NVSSBinaryBord2.tex'       ,
+          nvss +'NVSSBinaryTwinS.tex'   , nvss +'NVSSBinaryTwin.tex'        ,
+          tabs +'IPUMSIndustry_IncEduc.tex' ,     ipum+'ValueGoodSeason.tex']
 
 i = 1
 for table in TABLES:
-    if i==2 or i==3 or i==8:
+    if i==2 or i==3 or i==5 or i==9:
         final.write('\\input{' +table+ '}\n')
     else:
         final.write('\\begin{landscape}\n\\input{'
