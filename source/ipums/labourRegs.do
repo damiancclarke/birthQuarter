@@ -16,8 +16,12 @@ cap log close
 ********************************************************************************
 *** (1) globals and locals
 ********************************************************************************
+local f ipums/
+local hisp 1
+if `hisp'==1 local f hisp/ipums/
+
 global DAT "~/investigacion/2015/birthQuarter/data/raw"
-global OUT "~/investigacion/2015/birthQuarter/results/ipums/regressions"
+global OUT "~/investigacion/2015/birthQuarter/results/`f'/regressions"
 global LOG "~/investigacion/2015/birthQuarter/log"
 
 
@@ -40,7 +44,10 @@ local enote  "Heteroscedasticity robust standard errors are reported in
 use "$DAT/`data'"
 keep if motherAge>=25 & motherAge <=45
 drop if occ2010 == 9920
-keep if race==1 & hispan==0
+keep if race==1
+if `hisp'==0 keep if hispan==0
+if `hisp'==1 local his hispanic 
+
 
 gen educYrs = 0 if educd==2|educd==11|educd==12
 replace educYrs = 3 if educd==10
@@ -122,12 +129,12 @@ lab var iEd11 "5+ Years College"
 ********************************************************************************
 *** (4) Regressions
 ********************************************************************************
-local ctl motherAge motherAge2 highEduc uhrswork i.year
-local ctl2 i.motherAge i.educ uhrswork i.year
+local ctl motherAge motherAge2 highEduc married `his' uhrswork i.year
+local ctl2 married `his' i.motherAge i.educ uhrswork i.year
 local cnd if motherAge>34
 local abs absorb(state)
 local se  robust
-/*
+
 eststo: areg logWage mother teacher teacherXmother `ctl'  `wt'      , `abs' `se'
 eststo: areg logWage mother teacher teacherXmother `ctl2' `wt'      , `abs' `se'
 eststo: areg logWage mother teacher teacherXmother `ctl'  `wt' `cnd', `abs' `se'
@@ -136,7 +143,7 @@ eststo: areg logWage mother teacher teacherXmother `ctl2' `wt' `cnd', `abs' `se'
 #delimit ;
 esttab est1 est2 est3 est4 using "$OUT/ValueGoodSeason_all.tex", replace
 `estopt' booktabs mlabels(, depvar)
-keep(mother teacher teacherXmother motherAge motherAge2 highEduc) 
+keep(mother teacher teacherXmother motherAge motherAge2 highEduc  married `his') 
 mgroups("All" "$\geq$ 35 Years", pattern(1 0 1 0)
 prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
 title("The Value of Season of Birth (Wage Income)"\label{tab:IPUMSWagesAll}) 
@@ -163,7 +170,7 @@ local tL2  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
 #delimit ;
 esttab est1 est2 est3 est4 using "$OUT/ValueGoodSeasonInc_all.tex", replace
 `estopt' booktabs mlabels(, depvar)
-keep(mother teacher teacherXmother motherAge motherAge2 highEduc) 
+keep(mother teacher teacherXmother motherAge motherAge2 highEduc  married `his') 
 mgroups("All" "$\geq$ 35 Years", pattern(1 0 1 0)
 prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
 title("The Value of Season of Birth"\label{tab:IPUMSIncAll}) 
@@ -180,27 +187,35 @@ postfoot("State and Year FE & Y & Y & Y & Y \\                               "
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
-*/
-keep if marst==1
 
-eststo: areg logWage mother teacher teacherXmother `ctl' `wt'      , `abs' `se'
-eststo: areg wages   mother teacher teacherXmother `ctl' `wt'      , `abs' `se'
+keep if marst==1
+local ctl motherAge motherAge2 highEduc `his' uhrswork i.year
+local ctl2 `his' i.motherAge i.educ uhrswork i.year
+
+
+eststo: areg logWage mother teacher teacherXmother `ctl'  `wt'      , `abs' `se'
+eststo: areg logWage mother teacher teacherXmother `ctl2' `wt'      , `abs' `se'
+local tL1  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
 eststo: areg logWage mother teacher teacherXmother `ctl' `wt' `cnd', `abs' `se'
-eststo: areg wages   mother teacher teacherXmother `ctl' `wt' `cnd', `abs' `se'
+eststo: areg logWage mother teacher teacherXmother `ctl2' `wt' `cnd', `abs' `se'
+local tL2  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
 
 #delimit ;
 esttab est1 est2 est3 est4 using "$OUT/ValueGoodSeason.tex", replace
 `estopt' booktabs mlabels(, depvar)
-keep(mother teacher teacherXmother motherAge motherAge2 highEduc) 
+keep(mother teacher teacherXmother motherAge motherAge2 highEduc `his')  
 mgroups("All" "$\geq$ 35 Years", pattern(1 0 1 0)
 prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
 title("The Value of Season of Birth (Wage Income)"\label{tab:IPUMSWages}) 
 postfoot("State and Year FE & Y & Y & Y & Y \\                              "
+         "Age and Education FE &  & Y & & Y \\                              "
          "\bottomrule\multicolumn{5}{p{15.8cm}}{\begin{footnotesize}  Main  "
          "ACS estimation sample used.  Teacher refers to occupational codes "
          "2250-2500 (teachers, librarians and educational occupations).     "
          "Wages refer to wage and salary income, and are measured in dollars"
-         " per year. A control for regular hours worked is included. `enote'"
+         " per year. A control for regular hours worked is included. The    "
+         "Leamer critical value for the t-statistic is `tL1' (columns 1-2)  "
+         "and `tL2' (columns 3-4).`enote'"
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
@@ -216,7 +231,7 @@ local tL2  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
 #delimit ;
 esttab est1 est2 est3 est4 using "$OUT/ValueGoodSeasonInc.tex", replace
 `estopt' booktabs mlabels(, depvar)
-keep(mother teacher teacherXmother motherAge motherAge2 highEduc) 
+keep(mother teacher teacherXmother motherAge motherAge2 highEduc `his') 
 mgroups("All" "$\geq$ 35 Years", pattern(1 0 1 0)
 prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
 title("The Value of Season of Birth"\label{tab:IPUMSInc}) 

@@ -13,17 +13,20 @@ cap log close
 set matsize 2000
 
 local allobs 0
+local hisp   1
 if `allobs' == 0 local mnote " married "
-if `allobs' == 0 local f
-if `allobs' == 1 local f "both/"
+if `allobs' == 0 local f "ipums/"
+if `allobs' == 1 local f "ipums/both/"
+if `hisp'==1     local f "hisp/ipums/"
+if `hisp'==1&`allobs'==1 local f "hispall/ipums/" 
 
 ********************************************************************************
 *** (1) globals and locals
 ********************************************************************************
 global DAT "~/investigacion/2015/birthQuarter/data/raw"
-global OUT "~/investigacion/2015/birthQuarter/results/ipums/`f'regressions"
-global GRA "~/investigacion/2015/birthQuarter/results/ipums/`f'graphs"
-global SUM "~/investigacion/2015/birthQuarter/results/ipums/`f'sumStats"
+global OUT "~/investigacion/2015/birthQuarter/results/`f'regressions"
+global GRA "~/investigacion/2015/birthQuarter/results/`f'graphs"
+global SUM "~/investigacion/2015/birthQuarter/results/`f'sumStats"
 global LOG "~/investigacion/2015/birthQuarter/log"
 
 log using "$LOG/ipumsRegs.txt", text replace
@@ -33,6 +36,7 @@ cap mkdir "$SUM"
 
 #delimit ;
 local data   ACS_20052014_cleaned.dta;
+if `hisp'==1 local data   ACS_20052014_cleaned_hisp.dta;
 local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats 
              (N, fmt(%9.0g) label(Observations))     
              starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(none) label;
@@ -181,6 +185,8 @@ local se  robust
 local abs abs(statefip)
 local age motherAge motherAge2
 local edu highEduc
+if `hisp'==1             local edu highEduc hispanic
+if `hisp'==1&`allobs'==1 local edu highEduc hispanic married
 local une unemployment
 local une 
 local lv1 _1occ*
@@ -188,7 +194,7 @@ local lv2 _2occ*
 local lv3 _occ*
 local sig significantOccs insignificantOccs
 drop _2occ2
-/*
+
 eststo: areg goodQuarter `age' `edu' `une' _year* `lv3' `wt', `se' `abs'
 ds _occ*
 local tvar `r(varlist)'
@@ -239,7 +245,7 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-*/
+
 
 ********************************************************************************
 *** (3e-i) regressions: industry by temp
@@ -350,220 +356,9 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
 #delimit cr
 estimates clear
 
-exit
-/*
-exit
-
-preserve
-drop if classwkr==1
-
-eststo: areg goodQuarter `age' `edu' `une' _year* `lv3' `wt', `se' `abs'
-ds _occ*
-local tvar `r(varlist)'
-test `tvar'
-local F1 = round(r(p)*1000)/1000
-if `F1' == 0 local F1 0.000
-test `age'
-local F1a = round(r(p)*1000)/1000
-local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-
-eststo:  areg goodQuarter `age' `edu' `une' _year* `lv2' `wt', `se' `abs'
-ds _2occ*
-local tvar `r(varlist)'
-test `tvar'
-local F2 = round(r(p)*1000)/1000
-if `F2' == 0 local F2 0.000
-test `age'
-local F2a = round(r(p)*1000)/1000
-local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-
-eststo:  areg goodQuarter `age' `edu' `une' _year*       `wt', `se' `abs'
-test `age'
-local F3a = round(r(p)*1000)/1000
-local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-
-#delimit ;
-esttab est3 est2 est1 using "$OUT/IPUMSIndustry_noSelfEmp.tex", replace `estopt' 
-title("Season of Birth Correlates: Occupation (No Self Employed)")
-keep(_cons `age' `edu' `une' `lv2') style(tex) booktabs mlabels(, depvar) 
-postfoot("Occupation Codes (level) &-&2&3\\                                    "
-         "F-test of Occupation Dummies&-&`F2'&`F1'\\                           "
-         "F-test of Age Variables&0`F3a'&0`F2a'&0`F1a'\\                       "
-         "Optimal Age&`opt3'&`opt2'&`opt1'\\ \bottomrule                       "
-         "\multicolumn{4}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
-         " singleton first-born children in the US  to white, non-hispanic     "
-	 "married mothers aged 25-45 included in 2005-2014 ACS data where the  "
-	 "mother is either the head of the household or the partner of the head"
-	 " of the household and works in an occupation with at least 500       "
-	 "workers in the sample. Occupation codes refer to the level of        "
-	 "occupation codes (2 digit, or 3 digit). The omitted occupational     "
-	 "category in column 2 and column 4 is Arts, Design, Entertainment,    "
-         "Sports, and Media, as this occupation has good quarter=0.500(0.500). "
-         "F-tests for   "
-         "occupation report p-values of joint significance of the dummies, and "
-         "`Fnote' `onote' `enote'"
-         "\end{footnotesize}}\end{tabular}\end{table}");
-#delimit cr
-estimates clear
-restore
-
-gen selfEmployed = classwkr == 1
-lab var selfEmployed "Self Employed"     
-local edu highEduc selfEmployed
-      
-eststo: areg goodQuarter `age' `edu' `une' _year* `lv3' `wt', `se' `abs'
-ds _occ*
-local tvar `r(varlist)'
-test `tvar'
-local F1 = round(r(p)*1000)/1000
-if `F1' == 0 local F1 0.000
-test `age'
-local F1a = round(r(p)*1000)/1000
-local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-
-eststo:  areg goodQuarter `age' `edu' `une' _year* `lv2' `wt', `se' `abs'
-ds _2occ*
-local tvar `r(varlist)'
-test `tvar'
-local F2 = round(r(p)*1000)/1000
-if `F2' == 0 local F2 0.000
-test `age'
-local F2a = round(r(p)*1000)/1000
-local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-
-eststo:  areg goodQuarter `age' `edu' `une' _year*       `wt', `se' `abs'
-test `age'
-local F3a = round(r(p)*1000)/1000
-local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-
-#delimit ;
-esttab est3 est2 est1 using "$OUT/IPUMSIndustry_SelfEmpD.tex", replace `estopt' 
-title("Season of Birth Correlates: Occupation"\label{tab:Occupation})
-keep(_cons `age' `edu' `une' `lv2') style(tex) booktabs mlabels(, depvar) 
-postfoot("Occupation Codes (level) &-&2&3\\                                    "
-         "F-test of Occupation Dummies&-&`F2'&`F1'\\                           "
-         "F-test of Age Variables&0`F3a'&0`F2a'&0`F1a'\\                       "
-         "Optimal Age&`opt3'&`opt2'&`opt1'\\ \bottomrule                       "
-         "\multicolumn{4}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
-         " singleton first-born children in the US  to white, non-hispanic     "
-	 "married mothers aged 25-45 included in 2005-2014 ACS data where the  "
-	 "mother is either the head of the household or the partner of the head"
-	 " of the household and works in an occupation with at least 500       "
-	 "workers in the sample. Occupation codes refer to the level of        "
-	 "occupation codes (2 digit, or 3 digit). The omitted occupational     "
-	 "category in column 2 and column 4 is Arts, Design, Entertainment,    "
-         "Sports, and Media, as this occupation has good quarter=0.500(0.500). "
-         "F-tests for   "
-         "occupation report p-values of joint significance of the dummies, and "
-         "`Fnote' `onote' `enote'"
-         "\end{footnotesize}}\end{tabular}\end{table}");
-#delimit cr
-estimates clear
-
-
-eststo: areg goodQuarter `age' `une' _year* `lv3' `wt', `se' `abs'
-ds _occ*
-local tvar `r(varlist)'
-test `tvar'
-local F1 = round(r(p)*1000)/1000
-if `F1' == 0 local F1 0.000
-test `age'
-local F1a = round(r(p)*1000)/1000
-local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-
-eststo:  areg goodQuarter `age' `une' _year* `lv2' `wt', `se' `abs'
-ds _2occ*
-local tvar `r(varlist)'
-test `tvar'
-local F2 = round(r(p)*1000)/1000
-if `F2' == 0 local F2 0.000
-test `age'
-local F2a = round(r(p)*1000)/1000
-local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-
-eststo:  areg goodQuarter `age' `une' _year*       `wt', `se' `abs'
-test `age'
-local F3a = round(r(p)*1000)/1000
-local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-
-#delimit ;
-esttab est3 est2 est1 using "$OUT/IPUMSIndustry_NoEduc.tex", replace `estopt' 
-title("Season of Birth Correlates: Occupation (No Education Control)")
-keep(_cons `age' `une' `lv2') style(tex) booktabs mlabels(, depvar) 
-postfoot("Occupation Codes (level) &-&2&3\\                                    "
-         "F-test of Occupation Dummies&-&`F2'&`F1'\\                           "
-         "F-test of Age Variables&0`F3a'&0`F2a'&0`F1a'\\                       "
-         "Optimal Age&`opt3'&`opt2'&`opt1'\\ \bottomrule                       "
-         "\multicolumn{4}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
-         " singleton first-born children in the US  to white, non-hispanic     "
-	 "married mothers aged 25-45 included in 2005-2014 ACS data where the  "
-	 "mother is either the head of the household or the partner of the head"
-	 " of the household and works in an occupation with at least 500       "
-	 "workers in the sample. Occupation codes refer to the level of        "
-	 "occupation codes (2 digit, or 3 digit). The omitted occupational     "
-	 "category in column 2 and column 4 is Arts, Design, Entertainment,    "
-         "Sports, and Media, as this occupation has good quarter=0.500(0.500). "
-         "F-tests for   "
-         "occupation report p-values of joint significance of the dummies, and "
-         "`Fnote' `onote' `enote'"
-         "\end{footnotesize}}\end{tabular}\end{table}");
-#delimit cr
-estimates clear
 
 gen logInc = log(hhincome)
 lab var logInc "log(household income)"
-local inc logInc
-
-eststo: areg goodQuarter `age' `inc' `une' _year* `lv3' `wt', `se' `abs'
-ds _occ*
-local tvar `r(varlist)'
-test `tvar'
-local F1 = round(r(p)*1000)/1000
-if `F1' == 0 local F1 0.000
-test `age'
-local F1a = round(r(p)*1000)/1000
-local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-
-eststo:  areg goodQuarter `age' `inc' `une' _year* `lv2' `wt', `se' `abs'
-ds _2occ*
-local tvar `r(varlist)'
-test `tvar'
-local F2 = round(r(p)*1000)/1000
-if `F2' == 0 local F2 0.000
-test `age'
-local F2a = round(r(p)*1000)/1000
-local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-
-eststo:  areg goodQuarter `age' `inc' `une' _year*       `wt', `se' `abs'
-test `age'
-local F3a = round(r(p)*1000)/1000
-local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-
-#delimit ;
-esttab est3 est2 est1 using "$OUT/IPUMSIndustry_Income.tex", replace `estopt' 
-title("Season of Birth Correlates: Occupation")
-keep(_cons `age' `inc' `une' `lv2') style(tex) booktabs mlabels(, depvar) 
-postfoot("Occupation Codes (level) &-&2&3\\                                    "
-         "F-test of Occupation Dummies&-&`F2'&`F1'\\                           "
-         "F-test of Age Variables&0`F3a'&0`F2a'&0`F1a'\\                       "
-         "Optimal Age&`opt3'&`opt2'&`opt1'\\ \bottomrule                       "
-         "\multicolumn{4}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
-         " singleton first-born children in the US  to white, non-hispanic     "
-	 "married mothers aged 25-45 included in 2005-2014 ACS data where the  "
-	 "mother is either the head of the household or the partner of the head"
-	 " of the household and works in an occupation with at least 500       "
-	 "workers in the sample. Occupation codes refer to the level of        "
-	 "occupation codes (2 digit, or 3 digit). The omitted occupational     "
-	 "category in column 2 and column 4 is Arts, Design, Entertainment,    "
-         "Sports, and Media, as this occupation has good quarter=0.500(0.500). "
-         "F-tests for   "
-         "occupation report p-values of joint significance of the dummies, and "
-         "`Fnote' `onote' `enote'"
-         "\end{footnotesize}}\end{tabular}\end{table}");
-#delimit cr
-estimates clear
-
-
 local inc logInc highEduc
 
 eststo: areg goodQuarter `age' `inc' `une' _year* `lv3' `wt', `se' `abs'
@@ -599,22 +394,13 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
          "F-test of Occupation Dummies&-&`F2'&`F1'\\                           "
          "F-test of Age Variables&0`F3a'&0`F2a'&0`F1a'\\                       "
          "Optimal Age&`opt3'&`opt2'&`opt1'\\ \bottomrule                       "
-         "\multicolumn{4}{p{16.2cm}}{\begin{footnotesize}Sample consists of all"
-         " singleton first-born children in the US  to white, non-hispanic     "
-	 "married mothers aged 25-45 included in 2005-2014 ACS data where the  "
-	 "mother is either the head of the household or the partner of the head"
-	 " of the household and works in an occupation with at least 500       "
-	 "workers in the sample. Occupation codes refer to the level of        "
-	 "occupation codes (2 digit, or 3 digit). The omitted occupational     "
-	 "category in column 2 and column 4 is Arts, Design, Entertainment,    "
-         "Sports, and Media, as this occupation has good quarter=0.500(0.500). "
-         "F-tests for   "
-         "occupation report p-values of joint significance of the dummies, and "
-         "`Fnote' `onote' `enote'"
+         "\multicolumn{4}{p{16.2cm}}{\begin{footnotesize} Refer to notes in    "
+         "table 6 of the main text. The Leamer critical value for the          "
+         "t-statistic is `tL1'."
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-
+/*
 ********************************************************************************
 *** (3e-ii) regressions: industry -- weeks worked
 ********************************************************************************
@@ -748,6 +534,8 @@ gen logIncEarn = log(incwage) if incwage>0
 local se  robust
 local abs abs(statefip)
 local age motherAge motherAge2
+if `hisp'==1             local age motherAge motherAge2 hispanic
+if `hisp'==1&`allobs'==1 local age motherAge motherAge2 hispanic married
 local edu highEduc
 local une unemployment
 local une
@@ -797,7 +585,7 @@ postfoot("F-test of Age Variables &  &    &     &     &0`F2'\\                  
 #delimit cr
 estimates clear
 
-exit
+/*
 local se robust
 preserve
 keep if motherAge>=28&motherAge<=31
@@ -895,7 +683,7 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\ Occupation FE&&&&&Y\\ \bottomrule       "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-
+*/
 
 ********************************************************************************
 *** (4) Sumstats of good season by various levels
@@ -1013,11 +801,12 @@ lab var young     "Young (aged 25-39)"
 lab var highEduc  "Some College +"
 lab var goodQuart "Good Season of Birth"
 lab var motherAge "Mother's Age"
-
+local his hispanic
+if `hisp'==0 local his
 
 #delimit ;
 estpost tabstat motherAge married young age2527 age2831 age3239 age4045
-                highEduc educYrs goodQuarter,
+                highEduc educYrs goodQuarter `his',
 statistics(count mean sd min max) columns(statistics);
 
 esttab using "$SUM/IPUMSstats.tex", title("Descriptive Statistics (NVSS)")
@@ -1025,7 +814,7 @@ esttab using "$SUM/IPUMSstats.tex", title("Descriptive Statistics (NVSS)")
   replace label noobs;
 #delimit cr
 restore
-
+exit
 ********************************************************************************
 *** (6a) Figure 1
 ********************************************************************************
@@ -1211,7 +1000,7 @@ graph export "$GRA/birthQuarterEducOld.eps", as(eps) replace;
 #delimit cr
 restore
 
-*/
+
 gen pop=1
 ********************************************************************************
 *** (6e) Figure 6-8
@@ -1290,8 +1079,103 @@ foreach cond of local c1 {
     restore
 }
 preserve
-exit
+cap drop teachers
+generat teachers = 1 if twoLev == "Education, Training, and Library Occupations"
+replace teachers = 2 if teachers==.
+bys state: gen statecount = _N
+keep if motherAge>=28&motherAge<=31
 
+qui count if statecount>500&teacher==1
+local SN1 = r(N)
+qui count if statecount>500&teacher==2
+local SN2 = r(N)
+
+collapse goodQuarter (min) cold (max) hot (sum) pop, by(fips state* teachers)
+gen diff = hot-cold
+lab var goodQuarter "Proportion good season"
+lab var cold        "Coldest monthly average (degree F)"
+lab var diff        "Annual variation in Temperature (degree F)"
+drop if state=="Alaska"|state=="Nebraska"
+
+format goodQuarter %5.2f
+
+
+foreach tvar of varlist cold diff {
+    local c1 statecount>500&teachers==1
+    local c2 statecount>500&teachers==2
+    foreach num of numlist 1 2 {
+        corr goodQuarter `tvar' [aw=pop] if `c`num''
+        local ccoef`num' = string(r(rho),"%5.3f")
+        reg goodQuarter `tvar' [aw=pop]  if `c`num'', nohead
+        local pval`num'   = (ttail(e(df_r),abs(_b[`tvar']/_se[`tvar'])))
+        local pvalue`num' = string(`pval`num'',"%5.3f")
+        if `pvalue`num'' == 0 local pvalue`num' 0.000
+    }
+    #delimit ;
+    twoway scatter goodQuarter `tvar' if `c1', msymbol(i) mlabel(state) ||
+           scatter goodQuarter `tvar' if `c1' [aw=pop], msymbol(Oh)     ||      
+              lfit goodQuarter `tvar' if `c1' [aw=pop],                 ||
+           scatter goodQuarter `tvar' if `c2', msymbol(i) mlabel(state) ||
+           scatter goodQuarter `tvar' if `c2' [aw=pop], msymbol(Oh)     ||      
+              lfit goodQuarter `tvar' if `c2' [aw=pop], scheme(s1mono)
+    lcolor(gs0) legend(off) lpattern(dash)
+    note("Teachers: Correlation coefficient=`ccoef1', p-value=`pvalue1', N=`SN1'"
+         "Non-teachers: Correlation coefficient=`ccoef2', p-value=`pvalue2', N=`SN2'");
+    graph export "$GRA/Combined`tvar'_Young.eps", as(eps) replace;
+    #delimit cr
+}
+restore
+
+preserve
+cap drop teachers
+generat teachers = 1 if twoLev == "Education, Training, and Library Occupations"
+replace teachers = 2 if teachers==.
+bys state: gen statecount = _N
+keep if motherAge>=40&motherAge<=45
+
+qui count if statecount>500&teacher==1
+local SN1 = r(N)
+qui count if statecount>500&teacher==2
+local SN2 = r(N)
+
+collapse goodQuarter (min) cold (max) hot (sum) pop, by(fips state* teachers)
+gen diff = hot-cold
+lab var goodQuarter "Proportion good season"
+lab var cold        "Coldest monthly average (degree F)"
+lab var diff        "Annual variation in Temperature (degree F)"
+drop if state=="Alaska"|state=="Nebraska"
+
+format goodQuarter %5.2f
+
+
+foreach tvar of varlist cold diff {
+    local c1 statecount>500&teachers==1
+    local c2 statecount>500&teachers==2
+    foreach num of numlist 1 2 {
+        corr goodQuarter `tvar' [aw=pop] if `c`num''
+        local ccoef`num' = string(r(rho),"%5.3f")
+        reg goodQuarter `tvar' [aw=pop]  if `c`num'', nohead
+        local pval`num'   = (ttail(e(df_r),abs(_b[`tvar']/_se[`tvar'])))
+        local pvalue`num' = string(`pval`num'',"%5.3f")
+        if `pvalue`num'' == 0 local pvalue`num' 0.000
+    }
+
+    #delimit ;
+    twoway scatter goodQuarter `tvar' if `c1', msymbol(i) mlabel(state) ||
+           scatter goodQuarter `tvar' if `c1' [aw=pop], msymbol(Oh)     ||      
+              lfit goodQuarter `tvar' if `c1' [aw=pop],                 ||
+           scatter goodQuarter `tvar' if `c2', msymbol(i) mlabel(state) ||
+           scatter goodQuarter `tvar' if `c2' [aw=pop], msymbol(Oh)     ||      
+              lfit goodQuarter `tvar' if `c2' [aw=pop], scheme(s1mono)
+    lcolor(gs0) legend(off) lpattern(dash)
+    note("Teachers: Correlation coefficient=`ccoef1', p-value=`pvalue1', N=`SN1'"
+         "Non-teachers: Correlation coefficient=`ccoef2', p-value=`pvalue2', N=`SN2'");
+    graph export "$GRA/Combined`tvar'_Old.eps", as(eps) replace;
+    #delimit cr
+}
+restore
+
+preserve
 bys state: gen statecount = _N
 keep if age2831==1
 cap drop teachers
@@ -1538,6 +1422,8 @@ replace occAlt2 = 3 if twoL=="Architecture and Engineering Occupations"
 
 
 preserve
+count if occAlt!=.
+local SN = r(N)
 collapse (sum) birth, by(birthQuarter occAlt2)
 drop if occAlt == .
 bys occAlt: egen totalbirth = sum(birth)
@@ -1548,10 +1434,44 @@ gen birthProportion = birth/totalbirth
 graph bar birthProportion, over(birthQuar, relabel(1 "Q1" 2 "Q2" 3 "Q3" 4 "Q4"))
 over(occAlt, relabel(1 "Education" 2 "Significant" 3 "Architecture/Engineering"))
 scheme(s1mono) exclude0 ytitle("Proportion of Births in Quarter")
-yline(0.25, lpattern(dash) lcolor(red)); 
+yline(0.25, lpattern(dash) lcolor(red))
+note("Total Observations (All Occupations) = `SN'"); 
 graph export "$GRA/birthsOccupation2.eps", as(eps) replace;
 #delimit cr
 restore
+
+preserve
+cap gen tsplit = cold<23    
+count if occAlt!=.&tsplit==1
+local SN1 = r(N)
+count if occAlt!=.&tsplit==0
+local SN2 = r(N)
+bys twoLevelOcc tsplit: gen counter2 = _N
+keep if counter2>=500
+collapse (sum) birth, by(birthQuarter occAlt2 tsplit)
+drop if occAlt == .
+bys occAlt tsplit: egen totalbirth = sum(birth)
+gen birthProportion = birth/totalbirth
+
+
+#delimit ;
+graph bar birthProportion if tsplit==1, yline(0.25, lpattern(dash) lcolor(red))
+over(birthQuar, relabel(1 "Q1" 2 "Q2" 3 "Q3" 4 "Q4"))
+over(occAlt, relabel(1 "Education" 2 "Significant" 3 "Architecture/Engineering"))
+scheme(s1mono) exclude0 ytitle("Proportion of Births in Quarter")
+ylabel(0.22(0.02)0.3) note("Total Observations (All Occupations) = `SN1'"); ; 
+graph export "$GRA/birthsOccupation_cold.eps", as(eps) replace;
+
+graph bar birthProportion if tsplit==0, yline(0.25, lpattern(dash) lcolor(red))
+over(birthQuar, relabel(1 "Q1" 2 "Q2" 3 "Q3" 4 "Q4"))
+over(occAlt, relabel(1 "Education" 2 "Significant" 3 "Architecture/Engineering"))
+scheme(s1mono) exclude0 ytitle("Proportion of Births in Quarter")
+ylabel(0.22(0.02)0.3) note("Total Observations (All Occupations) = `SN2'"); 
+graph export "$GRA/birthsOccupation_warm.eps", as(eps) replace;
+
+#delimit cr
+restore
+
 
 cap mkdir "$GRA/occ"
 
@@ -1737,6 +1657,47 @@ graph export "$GRA/incomeSeasons_4045.eps", as(eps) replace
 ********************************************************************************
 log close
 dis _newline(5) " Terminated without Error" _newline(5)
+
+
+
+exit
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
