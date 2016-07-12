@@ -68,7 +68,7 @@ graph export "$OUT/surveyCoverage.eps", as(eps) replace;
 restore
 
 preserve
-keep  if ageBirth>=25&ageBirth<=45&race==11&WTPcheck==2&occ!=18&marst==1
+keep  if ageBirth>=25&ageBirth<=45&race==11&WTPcheck==2&occ!=18&marst==1&sex==1
 keep if educ==educ_check
 
 keep if nchild!=0
@@ -102,7 +102,7 @@ restore
 
 preserve
 gen N = 1
-keep  if ageBirth>=25&ageBirth<=45&race==11&WTPcheck==2&occ!=18&marst==1
+keep  if ageBirth>=25&ageBirth<=45&race==11&WTPcheck==2&occ!=18&marst==1&sex==1
 keep if educ==educ_check
 replace ftotinc = 5000   if ftotinc==11
 replace ftotinc = 15000  if ftotinc==12
@@ -231,7 +231,7 @@ legend(order(1 "MTurk Survey Sample" 2 "95% CI" 4 "NVSS Birth Data"))
 ytitle("Proportion of Births");
 graph export "$OUT/birthsMonth.eps", as(eps) replace;
 #delimit cr
-exit
+
 use "$NVS/natl2013", clear
 
 gen N = 1
@@ -516,11 +516,10 @@ save `ACSSum'
 merge 1:1 var using `MTurkSum2'
 local i = 1
 #delimit ;
-local vnames `""Family Income" "Education (Years)" "Some College +" "Married"
-               "Currently Employed" "Hispanic" "White" "';
+local vnames `""Family Income" "Education (Years)" "Some College +" 
+               "Currently Employed" "Hispanic" "';
 #delimit cr
-local variables ftotinc educY someCollege married employed hispanic /*
-*/ black white otherRace
+local variables ftotinc educY someCollege employed hispanic  
 tokenize `variables'
 file open mstats using "$OUT/ACScomp.txt", write replace
 foreach var of local vnames {
@@ -540,7 +539,7 @@ foreach var of local vnames {
     macro shift
 }
 file close mstats
-*/
+
 ********************************************************************************
 *** (6) Graphs
 ********************************************************************************
@@ -662,6 +661,13 @@ foreach v of local vnames {
     file write bstats "`v'& `c1'& `c2'& `c3'& `c4'\\"_n
     macro shift
 }
+foreach num of numlist 1(1)4 {
+    count if cond`num'==1&SOBlucky!=.
+    local n`num'= r(N)
+}
+file write bstats "\midrule"_na
+file write bstats "Observations& `n1'& `n2'& `n3'& `n4'\\"_n
+
 #delimit ;
 file write bstats "\bottomrule "_n;
 file write bstats "\multicolumn{5}{p{10.8cm}}{{\footnotesize \textsc{Notes}:    "
@@ -854,352 +860,6 @@ file write bstats "\end{tabular}\end{table}" _n;
 file close bstats
 restore
 
-
-
-/*
-gen All = 1
-#delimit ;
-local conds All==1 childFlag==1 plankids==1|plankids==3 occ==6 occ!=6 educ>3
-            educ<4 SOBtarget==1|pSOBtarget==1 SOBtarget==0|pSOBtarget==0;
-#delimit cr
-
-egen chooseSOB    = rowtotal(SOBtarget pSOBtarget), missing
-egen importSOB    = rowtotal(SOBimport pSOBimport), missing
-
-#delimit ;
-local vnames `""Choose SOB" "Importance of SOB" "Lucky Dates" "Birthdays"
-"Tax" "Work" "School Entry" "Child Health" "Mom's Health"  "Diabetes Avoidance"
-"Choose SOB" "Difference (Diabetes $-$ SOB)" "';
-#delimit cr
-
-local j=1
-local reasons SOBlucky SOBbirthday SOBtax SOBjobs SOBschool SOBchealth SOBmhealth
-local variables  chooseSOB importSOB `reasons' WTPdiabetes WTPsob WTPdiff
-tokenize `variables'
-
-foreach v of local vnames {    
-    local c=1
-    foreach cond of local conds {
-        sum `1' if `cond'
-        local v`c'=round(r(mean)*1000)/1000
-        if `v`c''<1&`v`c''>0 local v`c' "0`v`c''"
-        local ++c
-    }
-    
-    if `j'<3 {
-        file write bstats "`v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9' \\" _n
-    }
-    else if `j'==3 {
-        file write bstats "\multicolumn{10}{l}{\textbf{Reasons (Importance)}} \\" _n
-        file write bstats "\ `v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
-    }
-    else if `j'>3&`j'<10 {
-        file write bstats "\ `v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
-    }
-    else if `j'==10 {
-        file write bstats "\multicolumn{10}{l}{\textbf{Willingness to Pay}} \\ " _n
-        file write bstats "\ `v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
-    }
-    else if `j'>10 {
-        file write bstats "\ `v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
-    }
-    macro shift
-    local ++j
-}
-
-local c=1
-foreach cond of local conds {
-    count if `cond'
-    local v`c'=r(N)
-    local ++c
-}
-file write bstats "&&&&&&&&&\\" _n
-file write bstats "Observations&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
-
-
-#delimit ;
-file write bstats "\bottomrule "_n;
-file write bstats "\multicolumn{10}{p{21.4cm}}{{\footnotesize \textsc{Notes}:"
-" Full sample of respondents who passed all attention checks and answered  "
-"consistently are included.  Importance of season of birth and all reasons "
-"are ranked on a 1 to 10 scale, where 1 is not important at all and 10 is  "
-"extremely important.  Questions about children and targeting are asked to "
-"all people who have children, but not to women above fertile age without  "
-"children. These are 2,380 of the 2,938 eligible respondents.}}" _n;
-file write bstats "\end{tabular}\end{table}" _n;
-#delimit cr
-file close bstats
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-file open bstats using "$OUT/SOBvalues.tex", write replace
-#delimit ;
-file write bstats "\begin{table}[htpb!]\caption{Season of Birth Descriptives}" 
-                  _n "\begin{tabular}{lccccccccc} \toprule" _n
-                  "& All & \multicolumn{2}{c}{Children} & "
-                  "\multicolumn{2}{c}{Occupation}&\multicolumn{2}{c}{Some College +}"
-                  "&\multicolumn{2}{c}{Target SOB}\\"
-                  "\cmidrule(r){3-4}\cmidrule(r){5-6}\cmidrule(r){7-8}\cmidrule(r){9-10}" _n
-                  "&&Yes&Plan&Teacher&Non-Teacher&Yes&No&Yes&No\\" _n
-                  "\midrule ";
-#delimit cr
-
-gen All = 1
-#delimit ;
-local conds All==1 childFlag==1 plankids==1|plankids==3 occ==6 occ!=6 educ>3
-            educ<4 SOBtarget==1|pSOBtarget==1 SOBtarget==0|pSOBtarget==0;
-#delimit cr
-
-egen chooseSOB    = rowtotal(SOBtarget pSOBtarget), missing
-egen importSOB    = rowtotal(SOBimport pSOBimport), missing
-
-#delimit ;
-local vnames `""Choose SOB" "Importance of SOB" "Lucky Dates" "Birthdays"
-"Tax" "Work" "School Entry" "Child Health" "Mom's Health"  "Diabetes Avoidance"
-"Choose SOB" "Difference (Diabetes $-$ SOB)" "';
-#delimit cr
-
-local j=1
-local reasons SOBlucky SOBbirthday SOBtax SOBjobs SOBschool SOBchealth SOBmhealth
-local variables  chooseSOB importSOB `reasons' WTPdiabetes WTPsob WTPdiff
-tokenize `variables'
-
-foreach v of local vnames {    
-    local c=1
-    foreach cond of local conds {
-        sum `1' if `cond'
-        local v`c'=round(r(mean)*1000)/1000
-        if `v`c''<1&`v`c''>0 local v`c' "0`v`c''"
-        local ++c
-    }
-    
-    if `j'<3 {
-        file write bstats "`v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9' \\" _n
-    }
-    else if `j'==3 {
-        file write bstats "\multicolumn{10}{l}{\textbf{Reasons (Importance)}} \\" _n
-        file write bstats "\ `v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
-    }
-    else if `j'>3&`j'<10 {
-        file write bstats "\ `v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
-    }
-    else if `j'==10 {
-        file write bstats "\multicolumn{10}{l}{\textbf{Willingness to Pay}} \\ " _n
-        file write bstats "\ `v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
-    }
-    else if `j'>10 {
-        file write bstats "\ `v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
-    }
-    macro shift
-    local ++j
-}
-
-local c=1
-foreach cond of local conds {
-    count if `cond'
-    local v`c'=r(N)
-    local ++c
-}
-file write bstats "&&&&&&&&&\\" _n
-file write bstats "Observations&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
-
-
-#delimit ;
-file write bstats "\bottomrule "_n;
-file write bstats "\multicolumn{10}{p{21.4cm}}{{\footnotesize \textsc{Notes}:"
-" Full sample of respondents who passed all attention checks and answered  "
-"consistently are included.  Importance of season of birth and all reasons "
-"are ranked on a 1 to 10 scale, where 1 is not important at all and 10 is  "
-"extremely important.  Questions about children and targeting are asked to "
-"all people who have children, but not to women above fertile age without  "
-"children. These are 2,380 of the 2,938 eligible respondents.}}" _n;
-file write bstats "\end{tabular}\end{table}" _n;
-#delimit cr
-file close bstats
-
-preserve
-keep if sex==1
-
-file open bstats using "$OUT/SOBvaluesWomen.tex", write replace
-#delimit ;
-file write bstats "\begin{table}[htpb!]\caption{Season of Birth Descriptives (Women Only)}" 
-                  _n "\begin{tabular}{lccccccccc} \toprule" _n
-                  "& All & \multicolumn{2}{c}{Children} & "
-                  "\multicolumn{2}{c}{Occupation}&\multicolumn{2}{c}{Some College +}"
-                  "&\multicolumn{2}{c}{Target SOB}\\"
-                  "\cmidrule(r){3-4}\cmidrule(r){5-6}\cmidrule(r){7-8}\cmidrule(r){9-10}" _n
-                  "&&Yes&Plan&Teacher&Non-Teacher&Yes&No&Yes&No\\" _n
-                  "\midrule ";
-#delimit cr
-
-#delimit ;
-local conds All==1 childFlag==1 plankids==1|plankids==3 occ==6 occ!=6 educ>3
-            educ<4 SOBtarget==1|pSOBtarget==1 SOBtarget==0|pSOBtarget==0;
-#delimit cr
-
-#delimit ;
-local vnames `""Choose SOB" "Importance of SOB" "Lucky Dates" "Birthdays"
-"Tax" "Work" "School Entry" "Child Health" "Mom's Health"  "Diabetes Avoidance"
-"Choose SOB" "Difference (Diabetes $-$ SOB)" "';
-#delimit cr
-
-local j=1
-local reasons SOBlucky SOBbirthday SOBtax SOBjobs SOBschool SOBchealth SOBmhealth
-local variables  chooseSOB importSOB `reasons' WTPdiabetes WTPsob WTPdiff
-tokenize `variables'
-
-foreach v of local vnames {    
-    local c=1
-    foreach cond of local conds {
-        sum `1' if `cond'
-        local v`c'=round(r(mean)*1000)/1000
-        if `v`c''<1&`v`c''>0 local v`c' "0`v`c''"
-        local ++c
-    }
-    
-    if `j'<3 {
-        file write bstats "`v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9' \\" _n
-    }
-    else if `j'==3 {
-        file write bstats "\multicolumn{10}{l}{\textbf{Reasons (Importance)}} \\" _n
-        file write bstats "\ `v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
-    }
-    else if `j'>3&`j'<10 {
-        file write bstats "\ `v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
-    }
-    else if `j'==10 {
-        file write bstats "\multicolumn{10}{l}{\textbf{Willingness to Pay}} \\ " _n
-        file write bstats "\ `v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
-    }
-    else if `j'>10 {
-        file write bstats "\ `v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
-    }
-    macro shift
-    local ++j
-}
-
-local c=1
-foreach cond of local conds {
-    count if `cond'
-    local v`c'=r(N)
-    local ++c
-}
-file write bstats "&&&&&&&&&\\" _n
-file write bstats "Observations&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
-
-
-#delimit ;
-file write bstats "\bottomrule "_n;
-file write bstats "\multicolumn{10}{p{21.4cm}}{{\footnotesize \textsc{Notes}:"
-" Female sample of respondents who passed all attention checks and answered"
-" consistently are included. Importance of season of birth and all reasons "
-"are ranked on a 1 to 10 scale, where 1 is not important at all and 10 is  "
-"extremely important.  Questions about children and targeting are asked to "
-"all women who have children, and all women who do not have children below "
-"the age of 49.  These are 1,164 of the 1,439 eligible respondents.}}" _n;
-file write bstats "\end{tabular}\end{table}" _n;
-#delimit cr
-file close bstats
-restore
-
-preserve
-keep if marst==1&race==11&hispanic==0
-
-file open bstats using "$OUT/SOBvaluesMarried.tex", write replace
-#delimit ;
-file write bstats "\begin{table}[htpb!]\caption{Season of Birth Descriptives (White, Married)}"
-                  _n "\begin{tabular}{lccccccccc} \toprule" _n
-                  "& All & \multicolumn{2}{c}{Children} & "
-                  "\multicolumn{2}{c}{Occupation}&\multicolumn{2}{c}{Some College +}"
-                  "&\multicolumn{2}{c}{Target SOB}\\"
-                  "\cmidrule(r){3-4}\cmidrule(r){5-6}\cmidrule(r){7-8}\cmidrule(r){9-10}" _n
-                  "&&Yes&Plan&Teacher&Non-Teacher&Yes&No&Yes&No\\" _n
-                  "\midrule ";
-#delimit cr
-
-#delimit ;
-local conds All==1 childFlag==1 plankids==1|plankids==3 occ==6 occ!=6 educ>3
-            educ<4 SOBtarget==1|pSOBtarget==1 SOBtarget==0|pSOBtarget==0;
-#delimit cr
-
-#delimit ;
-local vnames `""Choose SOB" "Importance of SOB" "Lucky Dates" "Birthdays"
-"Tax" "Work" "School Entry" "Child Health" "Mom's Health"  "Diabetes Avoidance"
-"Choose SOB" "Difference (Diabetes $-$ SOB)" "';
-#delimit cr
-
-local j=1
-local reasons SOBlucky SOBbirthday SOBtax SOBjobs SOBschool SOBchealth SOBmhealth
-local variables  chooseSOB importSOB `reasons' WTPdiabetes WTPsob WTPdiff
-tokenize `variables'
-
-foreach v of local vnames {    
-    local c=1
-    foreach cond of local conds {
-        sum `1' if `cond'
-        local v`c'=round(r(mean)*1000)/1000
-        if `v`c''<1&`v`c''>0 local v`c' "0`v`c''"
-        local ++c
-    }
-    
-    if `j'<3 {
-        file write bstats "`v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9' \\" _n
-    }
-    else if `j'==3 {
-        file write bstats "\multicolumn{10}{l}{\textbf{Reasons (Importance)}} \\" _n
-        file write bstats "\ `v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
-    }
-    else if `j'>3&`j'<10 {
-        file write bstats "\ `v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
-    }
-    else if `j'==10 {
-        file write bstats "\multicolumn{10}{l}{\textbf{Willingness to Pay}} \\ " _n
-        file write bstats "\ `v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
-    }
-    else if `j'>10 {
-        file write bstats "\ `v'&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
-    }
-    macro shift
-    local ++j
-}
-
-local c=1
-foreach cond of local conds {
-    count if `cond'
-    local v`c'=r(N)
-    local ++c
-}
-file write bstats "&&&&&&&&&\\" _n
-file write bstats "Observations&`v1'&`v2'&`v3'&`v4'&`v5'&`v6'&`v7'&`v8'&`v9'\\" _n
-
-
-#delimit ;
-file write bstats "\bottomrule "_n;
-file write bstats "\multicolumn{10}{p{21.4cm}}{{\footnotesize \textsc{Notes}:"
-" Sample consists of all married, white, non-hispanic respondents who passed "
-"all attention checks and answered consistently are included. Importance of  "
-"season of birth and all reasons are ranked on a 1 to 10 scale, where 1 is   "
-"not important at all and 10 is extremely important. Questions about children"
-" and targeting are asked to all women who have children, and all women who  "
-"do not have children below the age of 49.  These are 910 of the 1,025       "
-"eligible respondents.}}" _n;
-file write bstats "\end{tabular}\end{table}" _n;
-#delimit cr
-file close bstats
-restore
-
-*/
 preserve    
 #delimit ;
 local statform cells("count(label(N)) mean(fmt(2) label(Mean))
@@ -1223,15 +883,27 @@ replace educY = 20 if educ==8
 replace educY = 18 if educ==9
 gen married = marst == 1
 replace gestation = gestation + 5
+gen plankids1 = plankids==1 if plankids!=.
+gen plankids2 = plankids==2 if plankids!=.
+gen plankids3 = plankids==3 if plankids!=.
+gen morekids1 = morekids==1 if morekids!=.
+gen morekids2 = morekids==2 if morekids!=.
+gen morekids3 = morekids==3 if morekids!=.
+gen pregnant1 = pregnant==1 if pregnant!=.
+
 
 lab var sex      "Female"
 lab var birthyr  "Year of Birth"
 lab var age      "Age"
 lab var educY    "Years of Education"
 lab var nchild   "Number of Children"
-lab var plankids "Plans to have children"
-lab var morekids "Plans for more children"
-lab var pregnant "Currently Pregnant"
+lab var pregnant1 "Currently Pregnant"
+lab var plankids1 "Plans to have children (Yes)"
+lab var morekids1 "Plans for more children (Yes)"
+lab var plankids2 "Plans to have children (No)"
+lab var morekids2 "Plans for more children (No)"
+lab var plankids3 "Plans to have children (Don't Know)"
+lab var morekids3 "Plans for more children (Don't Know)"
 lab var married  "Married"
 lab var sexchild "Female Child"
 lab var gestatio "Gestation (Months)"
@@ -1249,8 +921,8 @@ lab var WTPdiab  "WTP (Avoid Diabetes)"
 lab var unemploy "Unemployed"
 
 #delimit ;
-estpost sum sex age birthyr educY nchild plankids morekids pregnant 
-married sexchild gestation fertmed SOBimport SOBtarget 
+estpost sum sex age birthyr educY nchild plankids1-plankids3 morekids1-morekids3
+pregnant1 married sexchild gestation fertmed SOBimport SOBtarget 
 white black otherRace hispanic employed unemployed cbirthyr WTPsob WTPdiab;
 #delimit cr
 estout using "$OUT/MTurkSum.tex", replace label style(tex) `statform'
@@ -1279,6 +951,10 @@ replace educY = 20 if educ==8
 replace educY = 18 if educ==9
 gen married = marst == 1
 replace gestation = gestation + 5
+gen morekids1 = morekids==1 if morekids!=.
+gen morekids2 = morekids==2 if morekids!=.
+gen morekids3 = morekids==3 if morekids!=.
+gen pregnant1 = pregnant==1 if pregnant!=.
 
 lab var sex      "Female"
 lab var birthyr  "Year of Birth"
@@ -1287,7 +963,10 @@ lab var educY    "Years of Education"
 lab var nchild   "Number of Children"
 lab var plankids "Plans to have children"
 lab var morekids "Plans for more children"
-lab var pregnant "Currently Pregnant"
+lab var pregnant1 "Currently Pregnant"
+lab var morekids1 "Plans for more children (Yes)"
+lab var morekids2 "Plans for more children (No)"
+lab var morekids3 "Plans for more children (Don't Know)"
 lab var married  "Married"
 lab var sexchild "Female Child"
 lab var gestatio "Gestation (Months)"
@@ -1305,14 +984,14 @@ lab var WTPsob   "WTP (Season of Birth)"
 lab var WTPdiab  "WTP (Avoid Diabetes)"
 
 #delimit ;
-estpost sum sex ageBirth birthyr educY nchild morekids pregnant 
-married sexchild gestation fertmed SOBimport SOBtarget 
-white hispanic employed unemployed cbirthyr WTPsob WTPdiab;
+estpost sum sex ageBirth birthyr educY nchild morekids1-morekids3
+pregnant1 sexchild gestation fertmed SOBimport SOBtarget 
+hispanic employed unemployed cbirthyr WTPsob WTPdiab;
 #delimit cr
 estout using "$OUT/MTurkSum_Main.tex", replace label style(tex) `statform'
 
 restore
-
+*/
 ********************************************************************************
 *** (8) Basic regressions
 ********************************************************************************
@@ -1478,6 +1157,8 @@ estimates clear
 
 
 restore
+
+
 exit
 
 ********************************************************************************
