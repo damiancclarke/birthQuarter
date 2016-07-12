@@ -37,13 +37,16 @@ cap mkdir "$OUT"
 ********************************************************************************
 use "$DAT/BirthSurvey"
 keep if completed==1
-exit
+gen age      = 2016-birthyr
+gen ageBirth = cbirthyr-birthyr
+
 decode state, gen(statename)
 bys state: gen stateProportion = _N/3003
 
 ********************************************************************************
 *** (3) Test geographic var
 ********************************************************************************
+
 preserve
 collapse stateProportion, by(statename)
 rename statename NAME
@@ -65,6 +68,9 @@ graph export "$OUT/surveyCoverage.eps", as(eps) replace;
 restore
 
 preserve
+keep  if ageBirth>=25&ageBirth<=45&race==11&WTPcheck==2&occ!=18&marst==1
+keep if educ==educ_check
+
 keep if nchild!=0
 gen N = 1
 gen gest = gestation + 5
@@ -96,6 +102,8 @@ restore
 
 preserve
 gen N = 1
+keep  if ageBirth>=25&ageBirth<=45&race==11&WTPcheck==2&occ!=18&marst==1
+keep if educ==educ_check
 replace ftotinc = 5000   if ftotinc==11
 replace ftotinc = 15000  if ftotinc==12
 replace ftotinc = 25000  if ftotinc==13
@@ -157,12 +165,23 @@ restore
 preserve
 gen N = 1
 
-collapse (sum) N, by(cbirthmonth)
-drop if cbirthmonth == .
-egen totbirth = sum(N)
-replace N = N/totbirth
-rename N birthProp
-rename cbirthmonth Month
+keep if cbirthmonth<=12
+tab cbirthmonth, gen(_month)
+
+gen birthProp = .
+gen birthSE   = .
+gen Month     = _n
+foreach num of numlist 1(1)12 {
+    sum _month`num'
+    replace birthProp = r(mean) in `num'
+    local se = r(sd)/sqrt(r(N))
+    replace birthSE = `se'      in `num'
+}
+keep in 1/12
+keep birthProp birthSE Month 
+gen lower = birthProp-1.96*birthSE
+gen upper = birthProp+1.96*birthSE
+
 
 tempfile bmonth
 save `bmonth'
@@ -180,27 +199,39 @@ save `nchild'
 
 use "$NVS/birthCond", clear
 
-gen N = 1
-collapse (sum) N, by(birthMonth)
-egen totbirth = sum(N)
-replace N = N/totbirth
-rename N birthPropNVSS
-rename birthMonth Month
+tab birthMonth, gen(_month)
+
+gen birthPropNVSS = .
+gen birthSENVSS   = .
+gen Month         = _n
+foreach num of numlist 1(1)12 {
+    sum _month`num'
+    replace birthPropNVSS = r(mean) in `num'
+    local se = r(sd)/sqrt(r(N))
+    replace birthSENVSS = `se'      in `num'
+}
+keep in 1/12
+keep birthPropNVSS birthSENVSS Month 
+gen lowerN = birthPropNVSS-1.96*birthSENVSS
+gen upperN = birthPropNVSS+1.96*birthSENVSS
+
 
 merge 1:1 Month using `bmonth'
 local line1 lpattern(solid)    lcolor(black) lwidth(thick)
 local line2 lpattern(dash)     lcolor(black) lwidth(medium)
 
 #delimit ;
-twoway line birthProp     Month, `line1' ||
+twoway line birthProp     Month, `line1'       ||
+       rcap lower upper   Month,  lcolor(gs10) ||
+       rcap lowerN upperN Month, lcolor(gs10)  ||
        line birthPropNVSS Month, `line2' scheme(s1mono) 
 xlabel(1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug"
        9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec", axis(1)) xtitle("Birth Month")
-legend(label(1 "MTurk Survey Sample") label(2 "NVSS Birth Data"))
+legend(order(1 "MTurk Survey Sample" 2 "95% CI" 4 "NVSS Birth Data"))
 ytitle("Proportion of Births");
 graph export "$OUT/birthsMonth.eps", as(eps) replace;
 #delimit cr
-
+exit
 use "$NVS/natl2013", clear
 
 gen N = 1
@@ -272,8 +303,9 @@ foreach var of local vnames {
     }
     qui ttesti `valN' `valmean' `valstdev' `valN_NV' `valmeanNV' `valstdevNV'
     foreach val in mu_1 sd_1 mu_2 sd_2 t {
-        local `val'=round(r(`val')*1000)/1000
-        if ``val''<1&``val''>0 local `val' = "0``val''"
+        local `val'=string(r(`val'), "%5.3f")
+        *local `val'=round(r(`val')*1000)/1000
+        *if ``val''<1&``val''>0 local `val' = "0``val''"
     }
     local dif = round((`mu_1'-`mu_2')*1000)/1000
     if `dif'<1&`dif'>0 local dif = "0`dif'" 
@@ -311,7 +343,7 @@ foreach var in occ educ ftotinc {
 }
 
 preserve
-use "$ACS/ACS_20052014_cleaned", clear
+use "$ACS/ACS_20052014_cleaned_hisp", clear
 keep if motherAge>=25&motherAge<=45&twins==0
 keep if marst==1
 drop if occ2010 == 9920
@@ -347,7 +379,7 @@ restore
 
 
 preserve
-use "$ACS/ACS_20052014_cleaned", clear
+use "$ACS/ACS_20052014_cleaned_hisp", clear
 
 keep if motherAge>=25&motherAge<=45&twins==0
 keep if marst==1
@@ -389,7 +421,7 @@ graph export "$OUT/education.eps", as(eps) replace
 restore
 
 preserve
-use "$ACS/ACS_20052014_cleaned", clear
+use "$ACS/ACS_20052014_cleaned_hisp", clear
 
 keep if motherAge>=25&motherAge<=45&twins==0
 drop if occ2010 == 9920
@@ -432,9 +464,9 @@ restore
 
 
 preserve
-use "$ACS/ACS_20052014_cleaned", clear
+use "$ACS/ACS_20052014_cleaned_hisp", clear
 
-keep if motherAge>=25&motherAge<=45&twins==0
+keep if motherAge>=25&motherAge<=45&twins==0&married==1
 drop if occ2010 == 9920
 gen N_ACS = 1
 replace ftotinc = ftotinc/1000
@@ -455,7 +487,7 @@ gen white     = race == 1
 gen black     = race == 2
 gen otherRace = race!=1&race!=2
 gen employed  = empstat==1
-rename hispan hispanic
+*rename hispan hispanic
 
 collapse (sum) N_ACS (mean) ftotinc educY someCollege married employed hispanic /*
 */ black white otherRace (sd) sd_ftotinc=ftotinc sd_educY=educY             /*
@@ -485,7 +517,7 @@ merge 1:1 var using `MTurkSum2'
 local i = 1
 #delimit ;
 local vnames `""Family Income" "Education (Years)" "Some College +" "Married"
-               "Currently Employed" "Hispanic" "Black" "White" "Other Race""';
+               "Currently Employed" "Hispanic" "White" "';
 #delimit cr
 local variables ftotinc educY someCollege married employed hispanic /*
 */ black white otherRace
@@ -498,8 +530,9 @@ foreach var of local vnames {
     }
     qui ttesti `valN' `valmean' `valstdev' `valN_ACS' `valmeanACS' `valstdevACS'
     foreach val in mu_1 sd_1 mu_2 sd_2 t {
-        local `val'=round(r(`val')*1000)/1000
-        if ``val''<1&``val''>0 local `val' = "0``val''"
+        local `val'=string(r(`val'), "%5.3f")
+        *local `val'=round(r(`val')*1000)/1000
+        *if ``val''<1&``val''>0 local `val' = "0``val''"
     }
     local dif = round((`mu_1'-`mu_2')*1000)/1000
     if `dif'<1&`dif'>0 local dif = "0`dif'" 
@@ -507,284 +540,141 @@ foreach var of local vnames {
     macro shift
 }
 file close mstats
-
+*/
 ********************************************************************************
 *** (6) Graphs
 ********************************************************************************
 use "$DAT/BirthSurvey", clear
 keep if completed==1
 keep if educ==educ_check
-
-foreach n of numlist 0 1 {
-    if `n'== 0 local app
-    if `n'== 1 {
-        local app Msample
-        keep if race==11&hispanic==0
-    }
-    
-    twoway scatter WTPsob WTPdiabetes, jitter(0.5 ) scheme(lean1) /*
-    */ ytitle("... to have baby in preferred season")
-    *|| lfit WTPsob WTPdiabetes, /**/ lcolor(red) legend(off)
-    graph export "$OUT/WTPboth`app'.eps", replace
-
-    cap gen age = 2016-birthyr
-
-    hist age, scheme(lean1) discrete xtitle("Respondent's Age") frac
-    graph export "$OUT/ageMTurk`app'.eps", replace
-
-    cap gen WTPratio = WTPsob/WTPdiabetes
-    cap gen WTPdifference = WTPdiabetes-WTPsob
-
-    sum WTPdifference
-    local avedif = r(mean)
-    sum WTPsob
-    local avesob = round(r(mean)*100)/100
-
-    #delimit ;
-    hist WTPdifference, scheme(lean1) xtitle("Difference in Willingess to Pay") 
-      frac discrete xline(`avedif', lcolor(red) lwidth(thick) lpattern(dash))  
-      note(Average willingness to pay to avoid season of birth is `avesob'%);
-    graph export "$OUT/WTPdifference`app'.eps", replace;
+gen age      = 2016-birthyr
+gen ageBirth = cbirthyr-birthyr
+keep  if ageBirth>=25&ageBirth<=45&race==11&WTPcheck==2&occ!=18&marst==1
 
 
-    local cond sex==1 sex==0 minTemp<14 minTemp>=14 childFlag==1 childFlag!=1
-         educ<5 educ>4 educ<5&minTemp<14 educ<5&minTemp>=14 educ>4&minTemp<14
-         educ>4&minTemp>=14;
-    local name F M cold warm kids nokids noDegree Degree noDegreeCold
-    noDegreeWarm DegreeCold DegreeWarm;
-    tokenize `name';
-    #delimit cr
-    
-    foreach c of local cond {
-        preserve
-        keep if `c'
-        sum WTPdifference
-        local avedif = r(mean)
-        sum WTPsob
-        local avesob = round(r(mean)*100)/100
-
-        #delimit ;
-        hist WTPdifference, scheme(lean1) frac discrete
-        xtitle("Difference in Willingess to Pay")
-        xline(`avedif', lcolor(red) lwidth(thick) lpattern(dash))
-        note(Average willingness to choose season of birth is `avesob'%);
-        graph export "$OUT/WTPdifference`1'`app'.eps", replace;
-        #delimit cr
-        
-        restore
-        macro shift
-    }
-
-
-    cap gen importance= SOBimport
-    replace importance = pSOBimport if pSOBimport!=.
-
-    preserve
-    gen N = 1
-    collapse (sum) N, by(importance)
-    egen tot = sum(N)
-    gen quantity = N/tot
-    graph bar quantity, over(importance) scheme(lean1) /*
-    */ ytitle("Proportion of Respondents")
-    graph export "$OUT/SOBimportance`app'.eps", replace
-    restore
-
-    preserve
-    gen N = 1
-    replace childFlag=0 if childFlag==.
-    collapse (sum) N, by(importance childFlag)
-    drop if importance==.
-    bys childFlag: egen tot = sum(N)
-    gen quantity = N/tot
-    drop N tot
-    reshape wide quantity, i(importance) j(childFlag)
-
-    graph bar quantity1 quantity0, over(importance) scheme(lean1) /*
-    */ ytitle("Proportion of Respondents") /*
-    */ legend(lab(1 "Had Children") lab(2 "Will Have Children"))
-    graph export "$OUT/SOBimportanceKids`app'.eps", replace
-    restore
-
-    preserve
-    gen N = 1
-    gen cold = minTemp <14
-    collapse (sum) N, by(importance cold)
-    drop if importance==.
-    bys cold: egen tot = sum(N)
-    gen quantity = N/tot
-    drop N tot
-    reshape wide quantity, i(importance) j(cold)
-
-    graph bar quantity1 quantity0, over(importance) scheme(lean1) /*
-    */ ytitle("Proportion of Respondents") /*
-    */ legend(lab(1 "Cold Winter") lab(2 "Mild Winter"))
-    graph export "$OUT/SOBimportanceWeather`app'.eps", replace
-    restore
-
-    preserve
-    gen N = 1
-    gen degree = educ > 4
-    collapse (sum) N, by(importance degree)
-    drop if importance==.
-    bys degree: egen tot = sum(N)
-    gen quantity = N/tot
-    drop N tot
-    reshape wide quantity, i(importance) j(degree)
-
-    graph bar quantity0 quantity1, over(importance) scheme(lean1) /*
-    */ ytitle("Proportion of Respondents") /*
-    */ legend(lab(1 "No College Degree") lab(2 "College Degree"))
-    graph export "$OUT/SOBimportanceEduc`app'.eps", replace
-    restore
-
-    preserve
-    gen N = 1
-    keep if plankids==1|plankids==3|childFlag==1
-    gen ageGroup = 1 if age>=25&age<35
-    replace ageGroup = 2 if age>35
-    drop if ageGroup==.
-    collapse (sum) N, by(importance ageGroup)
-    drop if importance==.
-    bys ageGroup: egen tot = sum(N)
-    gen quantity = N/tot
-    drop N tot
-    reshape wide quantity, i(importance) j(ageGroup)
-
-    graph bar quantity1 quantity2, over(importance) scheme(lean1) /*
-    */ ytitle("Proportion of Respondents") /*
-    */ legend(lab(1 "25-34 Year-Olds") lab(2 "> 35 Year-Olds"))
-    graph export "$OUT/SOBimportanceAge`app'.eps", replace
-    restore
-    
-    preserve
-    gen N = 1
-    gen teacher = occ == 6
-    collapse (sum) N, by(importance teacher)
-    drop if importance==.
-    bys teacher: egen tot = sum(N)
-    gen quantity = N/tot
-    drop N tot
-    reshape wide quantity, i(importance) j(teacher)
-
-    graph bar quantity0 quantity1, over(importance) scheme(lean1) /*
-    */ ytitle("Proportion of Respondents") /*
-    */ legend(lab(1 "Non-Teachers") lab(2 "Teachers"))
-    graph export "$OUT/SOBimportanceTeachers`app'.eps", replace
-    restore
-
-    preserve
-    gen N = 1
-    gen teacher = occ == 6
-    keep if childFlag==1
-    collapse (sum) N, by(importance teacher)
-    drop if importance==.
-    bys teacher: egen tot = sum(N)
-    gen quantity = N/tot
-    drop N tot
-    reshape wide quantity, i(importance) j(teacher)
-
-    graph bar quantity0 quantity1, over(importance) scheme(lean1) /*
-    */ ytitle("Proportion of Respondents") /*
-    */ legend(lab(1 "Non-Teachers") lab(2 "Teachers"))
-    graph export "$OUT/SOBimportanceParentTeachers`app'.eps", replace
-    restore
-
-    preserve
-    gen N = 1
-    gen teacher = occ == 6 
-    keep if plankids==1|plankids==3
-    collapse (sum) N, by(importance teacher)
-    drop if importance==.
-    bys teacher: egen tot = sum(N)
-    gen quantity = N/tot
-    drop N tot
-    reshape wide quantity, i(importance) j(teacher)
-
-    graph bar quantity0 quantity1, over(importance) scheme(lean1) /*
-    */ ytitle("Proportion of Respondents") /*
-    */ legend(lab(1 "Non-Teachers") lab(2 "Teachers"))
-    graph export "$OUT/SOBimportancePlansTeachers`app'.eps", replace
-    restore
+cap gen importance= SOBimport
+replace importance = pSOBimport if pSOBimport!=.
 
     
-    
-    preserve
-    collapse SOBbirthday SOBluck SOBjob SOBsch SOBtax SOBchea SOBmhea
-    local i = 1
-    foreach v in birthday lucky jobs school tax chealth mhealth {
-        rename SOB`v' SOB`i'
-        local ++i
-    }
-    gen N = 1
-    reshape long SOB, i(N) j(var)
-    gen varname = ""
-    local i = 1
-    foreach v in birthday lucky jobs school tax {
-        replace varname = "`v'" if var==`i'
-        local ++i
-    }
-    replace varname = "child health" if var==6
-    replace varname = "mom health" if var==7
+preserve
+collapse SOBbirthday SOBluck SOBjob SOBsch SOBtax SOBchea SOBmhea
+local i = 1
+foreach v in birthday lucky jobs school tax chealth mhealth {
+    rename SOB`v' SOB`i'
+    local ++i
+}
+gen N = 1
+reshape long SOB, i(N) j(var)
+gen varname = ""
+local i = 1
+foreach v in birthday lucky jobs school tax {
+    replace varname = "`v'" if var==`i'
+    local ++i
+}
+replace varname = "child health" if var==6
+replace varname = "mom health" if var==7
 
-    graph bar SOB, over(varname, sort(1)) scheme(lean1) /*
-    */ ytitle("Importance of Factor")
-    graph export "$OUT/SOBreason`app'.eps", replace
-    restore
+graph bar SOB, over(varname, sort(1)) scheme(lean1) /*
+*/ ytitle("Importance of Factor")
+graph export "$OUT/SOBreason`app'.eps", replace
+restore
 
-    preserve
-    gen cold = minTemp <14
-    collapse SOBbirth SOBluck SOBjob SOBsch SOBtax SOBche SOBmhea, by(cold)
-    local i = 1
-    foreach v in birthday lucky jobs school tax chealth mhealth {
-        rename SOB`v' SOB`i'
-        local ++i
-    }
-
-    reshape long SOB, i(cold) j(var)
-    gen varname = ""
-    local i = 1
-    foreach v in birthday lucky jobs school tax {
-        replace varname = "`v'" if var==`i'
-        local ++i
-    }
-    replace varname = "child" if var==6
-    replace varname = "mother" if var==7
-    reshape wide SOB , i(varname) j(cold)
-    
-    graph bar SOB1 SOB0, over(varname, sort(1)) scheme(lean1)  /*
-    */ legend(lab(1 "Cold Winters") lab(2 "Mild Winters")) /*
-    */ ytitle("Importance of Factor")
-    graph export "$OUT/SOBreasonCold`app'.eps", replace
-    restore
-
-    preserve
-    gen college = educ > 4
-    collapse SOBbirth SOBluck SOBjob SOBsch SOBtax SOBche SOBmhe, by(college)
-    local i = 1
-    foreach v in birthday lucky jobs school tax chealth mhealth {
-        rename SOB`v' SOB`i'
-        local ++i
-    }
-
-    reshape long SOB, i(college) j(var)
-    gen varname = ""
-    local i = 1
-    foreach v in birthday lucky jobs school tax {
-        replace varname = "`v'" if var==`i'
-        local ++i
-    }
-    replace varname = "child" if var==6
-    replace varname = "mother" if var==7
-    reshape wide SOB , i(varname) j(college)
-    
-    graph bar SOB1 SOB0, over(varname, sort(1)) scheme(lean1) /*
-    */ legend(lab(1 "College Degree") lab(2 "No Degree"))     /*
-    */ ytitle("Importance of Factor")
-    graph export "$OUT/SOBreasonCollege`app'.eps", replace
-    restore
+preserve
+gen cold = minTemp <14
+collapse SOBbirth SOBluck SOBjob SOBsch SOBtax SOBche SOBmhea, by(cold)
+local i = 1
+foreach v in birthday lucky jobs school tax chealth mhealth {
+    rename SOB`v' SOB`i'
+    local ++i
 }
 
+reshape long SOB, i(cold) j(var)
+gen varname = ""
+local i = 1
+foreach v in birthday lucky jobs school tax {
+    replace varname = "`v'" if var==`i'
+    local ++i
+}
+replace varname = "child" if var==6
+replace varname = "mother" if var==7
+reshape wide SOB , i(varname) j(cold)
+
+graph bar SOB1 SOB0, over(varname, sort(1)) scheme(lean1)  /*
+*/ legend(lab(1 "Cold Winters") lab(2 "Mild Winters")) /*
+*/ ytitle("Importance of Factor")
+graph export "$OUT/SOBreasonCold`app'.eps", replace
+restore
+
+preserve
+gen college = educ > 4
+collapse SOBbirth SOBluck SOBjob SOBsch SOBtax SOBche SOBmhe, by(college)
+local i = 1
+foreach v in birthday lucky jobs school tax chealth mhealth {
+    rename SOB`v' SOB`i'
+    local ++i
+}
+
+reshape long SOB, i(college) j(var)
+gen varname = ""
+local i = 1
+foreach v in birthday lucky jobs school tax {
+    replace varname = "`v'" if var==`i'
+    local ++i
+}
+replace varname = "child" if var==6
+replace varname = "mother" if var==7
+reshape wide SOB , i(varname) j(college)
+
+graph bar SOB1 SOB0, over(varname, sort(1)) scheme(lean1) /*
+*/ legend(lab(1 "College Degree") lab(2 "No Degree"))     /*
+*/ ytitle("Importance of Factor")
+graph export "$OUT/SOBreasonCollege`app'.eps", replace
+restore
+
+
+file open bstats using "$OUT/reasons.tex", write replace
+#delimit ;
+file write bstats "\begin{table}[htpb!]"
+                  "\caption{MTurk: Reasons for Targeting Season of Birth}" 
+                  _n "\begin{tabular}{lcccc} \toprule" _n
+                  "& All     & Mothers & Teachers & Non       \\ " _n
+                  "& Parents & Only    & Only     & Teachers  \\ "
+                  "\midrule" _n;
+#delimit cr
 gen teacher = occ == 6
+gen cond1=1
+gen cond2=sex==1
+gen cond3=teacher==1
+gen cond4=teacher==0
+#delimit ;
+
+local vnames `""Lucky Birth Dates" "Tax Benefits" "Birthday Parties"
+"Job Requirements" "School Entry Rules" "Child's Wellbeing" "Mom's Wellbeing" "';
+#delimit cr
+local rv SOBlucky SOBtax SOBbirthday SOBjobs SOBschool SOBmhealth SOBchealth
+tokenize `rv'
+
+foreach v of local vnames {
+    foreach num of numlist 1(1)4 {
+        sum `1' if cond`num'==1
+        local c`num'=string(r(mean), "%5.3f")
+    }
+    file write bstats "`v'& `c1'& `c2'& `c3'& `c4'\\"_n
+    macro shift
+}
+#delimit ;
+file write bstats "\bottomrule "_n;
+file write bstats "\multicolumn{5}{p{10.8cm}}{{\footnotesize \textsc{Notes}:    "
+" Main estimation sample from table S5 is used.  Reasons are given by these     "
+"who state that they chose season of birth. The importance of each aspect is    "
+"ranked between 1 (not important) to 10 (very important).}}"_n;
+file write bstats "\end{tabular}\end{table}" _n;
+#delimit cr
+file close bstats
+
+
+sum SOBbirth SOBluck SOBjob SOBsch SOBtax SOBche SOBmhe
+
 gen importance6plus=importance>=6 if importance!=.
 sum importance6plus if teacher==1
 sum importance6plus if teacher==0
@@ -799,7 +689,7 @@ sum importance6plus if childFlag==1
 sum importance6plus if plankids==1|plankids==3
 
 exit
-*/
+
 ********************************************************************************
 *** (7) Tables
 ********************************************************************************
@@ -811,8 +701,8 @@ gen age      = 2016-birthyr
 gen ageBirth = cbirthyr-birthyr
 gen choose= pSOBtarget==1|SOBtarget==1
 gen notchoose = pSOBtarget==0|SOBtarget==0
-gen summer = SOBprefer==2|SOBprefer==3|pSOBprefer==2|pSOBprefer==3
-gen winter = SOBprefer==1|SOBprefer==4|pSOBprefer==1|pSOBprefer==4
+gen summer = SOBprefer==2|SOBprefer==3|pSOBprefer==2|pSOBprefer==3 if choose==1
+gen winter = SOBprefer==1|SOBprefer==4|pSOBprefer==1|pSOBprefer==4 if choose==1
 
 ********************************************************************************
 *** (7a) WTP descriptive age
@@ -822,25 +712,30 @@ local vnames `""Choose SOB" "Don't Choose SOB" "Choose Summer" "Choose Winter""'
 local conds choose==1 notchoose==1 summer==1 winter==1;
 #delimit cr
 
-
 *Married Parents, white, 25-45 at birth
 preserve
-keep if nchild!=0&race==11&ageBirth>=25&ageBirth<=45&marst==1
+keep if nchild!=0&race==11&ageBirth>=25&ageBirth<=45&marst==1&WTPcheck==2
 file open bstats using "$OUT/SOBDiabsum-tvals-parents2545bMarried.tex", write replace
 #delimit ;
 file write bstats "\begin{table}[htpb!]"
-                  "\caption{WTP Descriptives (Married Parents, White, 25-45 at birth)}" 
-                  _n "\begin{tabular}{lccccc} \toprule" _n
-                  "& Mean & Standard & $ t$         & Standard & Obs. \\ " _n
-                  "&      & Deviation & Statistic  & Error    &      \\ "
+                  "\caption{MTurk: Willingess to Pay for Season of Birth by actual choice of SOB}" 
+                  _n "\begin{tabular}{p{5cm}cccccc} \toprule" _n
+                  "& Mean & Standard & $ t$         & Standard & Obs. & Equal \\ " _n
+                  "&      & Deviation & Statistic  & Error    &       & Means ($ t$) \\ "
                   "\midrule" _n;
 local vnames `""Choose SOB" "Don't Choose SOB" "Choose Summer" "Choose Winter""';
 local conds choose==1 notchoose==1 summer==1 winter==1;
 #delimit cr
-file write bstats "\textbf{Willingness to Pay (S-o-B)} &&&&& \\"_n
+file write bstats "\multicolumn{7}{l}{\textsc{Panel A: Both Genders}}\\"_n
+file write bstats "\multicolumn{7}{l}{\textbf{Willingness to Pay (Preferred Season)}}\\"_n
 tokenize `conds'
+ttest WTPsob, by(notchoose)
+local t1 = string(r(t), "%5.3f")
+ttest WTPsob, by(summer)
+local t2 = string(-1*r(t), "%5.3f")
+local j = 1
 foreach v of local vnames {
-    sum WTPsob if `1'&WTPcheck==2
+    sum WTPsob if `1'
     local mean = string(r(mean),"%5.3f")
     local stdd = string(r(sd),"%5.3f")
     local SN   = r(N)
@@ -848,12 +743,21 @@ foreach v of local vnames {
     reg WTPsob xvar if WTPcheck==2, nocons
     local tsta = string(_b[xvar]/_se[xvar],"%5.3f")
     local stde = string(_se[xvar],"%5.3f")
-    file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN' \\" _n
+    if `j'==1 file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN'&\multirow{2}{*}{`t1'} \\" _n
+    if `j'==2|`j'==4 file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN'& \\" _n
+    if `j'==3 file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN'&\multirow{2}{*}{`t2'} \\" _n
     drop xvar
     macro shift
+    local ++j
 }
-file write bstats "\textbf{Willingness to Pay (No Diab)} &&&&& \\"_n
+
+file write bstats "\multicolumn{7}{l}{\textbf{Willingness to Pay (Avoid Diabetes)}}\\"_n
 tokenize `conds'
+ttest WTPdiab, by(notchoose)
+local t1 = string(r(t), "%5.3f")
+ttest WTPdiab, by(summer)
+local t2 = string(-1*r(t), "%5.3f")
+local j=1
 foreach v of local vnames {
     sum WTPdiab if `1'&WTPcheck==2
     local mean = string(r(mean),"%5.3f")
@@ -863,38 +767,33 @@ foreach v of local vnames {
     reg WTPdiab xvar if WTPcheck==2, nocons
     local tsta = string(_b[xvar]/_se[xvar],"%5.3f")
     local stde = string(_se[xvar],"%5.3f")
-    file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN' \\" _n
+    if `j'==1 file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN'&\multirow{2}{*}{`t1'} \\" _n
+    if `j'==2|`j'==4 file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN'& \\" _n
+    if `j'==3 file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN'&\multirow{2}{*}{`t2'} \\" _n
     drop xvar
     macro shift
+    local ++j
 }
-#delimit ;
-file write bstats "\bottomrule "_n;
-file write bstats "\multicolumn{6}{p{15cm}}{{\footnotesize \textsc{Notes}: "
-" Willingness to Pay is reported as the percent of total financial wealth  "
-"as a one-time payment.}}" _n;
-file write bstats "\end{tabular}\end{table}" _n;
-#delimit cr
-file close bstats
 restore
 
 
 
 *Married Mothers, white, 25-45 at birth
 preserve
-keep if nchild!=0&race==11&ageBirth>=25&ageBirth<=45&sex==1&marst==1
-file open bstats using "$OUT/SOBDiabsum-tvals-parents2545bFemMarried.tex", write replace
+keep if nchild!=0&race==11&ageBirth>=25&ageBirth<=45&sex==1&marst==1&WTPcheck==2
 #delimit ;
-file write bstats "\begin{table}[htpb!]"
-                  "\caption{WTP Descriptives (Married Mothers, White, 25-45 at birth)}" 
-                  _n "\begin{tabular}{lccccc} \toprule" _n
-                  "& Mean & Standard & $ t$         & Standard & Obs. \\ " _n
-                  "&      & Deviation & Statistic  & Error    &      \\ "
-                  "\midrule" _n;
+file write bstats "\midrule" _n;
 local vnames `""Choose SOB" "Don't Choose SOB" "Choose Summer" "Choose Winter""';
 local conds choose==1 notchoose==1 summer==1 winter==1;
 #delimit cr
-file write bstats "\textbf{Willingness to Pay (S-o-B)} &&&&& \\"_n
+ttest WTPsob, by(notchoose)
+local t1 = string(r(t), "%5.3f")
+*ttest WTPsob, by(summer)
+*local t2 = string(-1*r(t), "%5.3f")
+file write bstats "\multicolumn{7}{l}{\textsc{Panel B: Women Only}}\\"_n
+file write bstats "\multicolumn{7}{l}{\textbf{Willingness to Pay (Preferred Season)}}\\"_n
 tokenize `conds'
+local j = 1
 foreach v of local vnames {
     sum WTPsob if `1'&WTPcheck==2
     local mean = string(r(mean),"%5.3f")
@@ -904,12 +803,20 @@ foreach v of local vnames {
     reg WTPsob xvar if WTPcheck==2, nocons
     local tsta = string(_b[xvar]/_se[xvar],"%5.3f")
     local stde = string(_se[xvar],"%5.3f")
-    file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN' \\" _n
+    if `j'==1 file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN'&\multirow{2}{*}{`t1'} \\" _n
+    if `j'==2|`j'==4 file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN'& \\" _n
+    if `j'==3 file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN'&\multirow{2}{*}{.} \\" _n
     drop xvar
     macro shift
+    local ++j
 }
-file write bstats "\textbf{Willingness to Pay (No Diab)} &&&&& \\"_n
+file write bstats "\multicolumn{7}{l}{\textbf{Willingness to Pay (Avoid Diabetes)}}\\"_n
 tokenize `conds'
+ttest WTPdiab, by(notchoose)
+local t1 = string(r(t), "%5.3f")
+*ttest WTPdiab, by(summer)
+*local t2 = string(-1*r(t), "%5.3f")
+local j=1
 foreach v of local vnames {
     sum WTPdiab if `1'&WTPcheck==2
     local mean = string(r(mean),"%5.3f")
@@ -919,15 +826,29 @@ foreach v of local vnames {
     reg WTPdiab xvar if WTPcheck==2, nocons
     local tsta = string(_b[xvar]/_se[xvar],"%5.3f")
     local stde = string(_se[xvar],"%5.3f")
-    file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN' \\" _n
+    if `j'==1 file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN'&\multirow{2}{*}{`t1'} \\" _n
+    if `j'==2|`j'==4 file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN'& \\" _n
+    if `j'==3 file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN'&\multirow{2}{*}{.} \\" _n
     drop xvar
     macro shift
+    local ++j
 }
 #delimit ;
 file write bstats "\bottomrule "_n;
-file write bstats "\multicolumn{6}{p{15cm}}{{\footnotesize \textsc{Notes}: "
-" Willingness to Pay is reported as the percent of total financial wealth  "
-"as a one-time payment.}}" _n;
+file write bstats "\multicolumn{7}{p{16.2cm}}{{\footnotesize \textsc{Notes}:    "
+"The sample consists of married white respondents who are parents and had their "
+"first child when they were between 25 and 45 years old, and who      "
+"answered that they were definitely sure about their willingness to   "
+"pay assessment.  The small portion of respondents who incorrectly    "
+"responded to consistency checks in the survey are removed from the   "
+"sample.  Parents are asked: \emph{When deciding to become pregnant   "
+"(you or your partner), what percentage of your financial resources   "
+"(income, savings, etc.) would you be willing to pay as a one-off     "
+"payment to have your baby born in your preferred season [avoid your  "
+"child being born with diabetes]?} and are prompted to enter a value  "
+"between 0 and 100. Equal Means refers to the value of a $ t$-test    "
+"between the mean for choosing and not choosing season of birth, and  "
+"between choosing summer and choosing winter (where defined).}} " _n;
 file write bstats "\end{tabular}\end{table}" _n;
 #delimit cr
 file close bstats
@@ -1278,8 +1199,8 @@ file write bstats "\end{tabular}\end{table}" _n;
 file close bstats
 restore
 
-
-exit
+*/
+preserve    
 #delimit ;
 local statform cells("count(label(N)) mean(fmt(2) label(Mean))
 sd(fmt(2) label(Std.\ Dev.)) min(fmt(2) label(Min)) max(fmt(2) label(Max))");
@@ -1323,14 +1244,75 @@ lab var white    "White"
 lab var otherRac "Other Race"
 lab var employed "Employed"
 lab var cbirthyr "Child's Year of Birth"
+lab var WTPsob   "WTP (Season of Birth)"
+lab var WTPdiab  "WTP (Avoid Diabetes)"
+lab var unemploy "Unemployed"
 
 #delimit ;
 estpost sum sex age birthyr educY nchild plankids morekids pregnant 
 married sexchild gestation fertmed SOBimport SOBtarget 
-white black otherRace hispanic employed unemployed cbirthyr;
+white black otherRace hispanic employed unemployed cbirthyr WTPsob WTPdiab;
 #delimit cr
 estout using "$OUT/MTurkSum.tex", replace label style(tex) `statform'
-*/
+restore
+preserve
+keep  if ageBirth>=25&ageBirth<=45&race==11&WTPcheck==2&occ!=18&marst==1
+#delimit ;
+local statform cells("count(label(N)) mean(fmt(2) label(Mean))
+sd(fmt(2) label(Std.\ Dev.)) min(fmt(2) label(Min)) max(fmt(2) label(Max))");
+#delimit cr
+
+gen white     = race == 11
+gen black     = race == 12
+gen otherRace = race!=11&race!=12
+gen employed = empstat==1
+gen unemployed = empstat==2
+
+gen educY     = 8 if educ==1
+replace educY = 10 if educ==2
+replace educY = 12 if educ==3
+replace educY = 13 if educ==4
+replace educY = 14 if educ==5
+replace educY = 16 if educ==6
+replace educY = 17 if educ==7
+replace educY = 20 if educ==8
+replace educY = 18 if educ==9
+gen married = marst == 1
+replace gestation = gestation + 5
+
+lab var sex      "Female"
+lab var birthyr  "Year of Birth"
+lab var ageBirth "Age at Birth"
+lab var educY    "Years of Education"
+lab var nchild   "Number of Children"
+lab var plankids "Plans to have children"
+lab var morekids "Plans for more children"
+lab var pregnant "Currently Pregnant"
+lab var married  "Married"
+lab var sexchild "Female Child"
+lab var gestatio "Gestation (Months)"
+lab var fertmed  "Used Fertility Treatment"
+lab var SOBimpor "Importance of Conception Season"
+lab var SOBtarge "Targeting Season of Conception"
+lab var hispanic "Hispanic"
+lab var black    "Black"
+lab var white    "White"
+lab var otherRac "Other Race"
+lab var employed "Employed"
+lab var unemploy "Unemployed" 
+lab var cbirthyr "Child's Year of Birth"
+lab var WTPsob   "WTP (Season of Birth)"
+lab var WTPdiab  "WTP (Avoid Diabetes)"
+
+#delimit ;
+estpost sum sex ageBirth birthyr educY nchild morekids pregnant 
+married sexchild gestation fertmed SOBimport SOBtarget 
+white hispanic employed unemployed cbirthyr WTPsob WTPdiab;
+#delimit cr
+estout using "$OUT/MTurkSum_Main.tex", replace label style(tex) `statform'
+
+restore
+
 ********************************************************************************
 *** (8) Basic regressions
 ********************************************************************************
@@ -1409,7 +1391,7 @@ lab var educ2 "Some College"
 lab var educ3 "Two Year Degree"
 lab var educ4 "Four Year Degree"
 lab var educ5 "Higher Degree"
-lab var WTPsob "SOB"
+lab var WTPsob "WTP"
 lab var WTPdia "Avoid Diab"
 lab var WTPdif "Difference"
 
@@ -1439,20 +1421,15 @@ eststo: reg WTPsob        `con' `cnd'
 eststo: reg WTPdiabetes   `con' `cnd'
 eststo: reg WTPdifference `con' `cnd'
 #delimit ;
-esttab est1 est2 est3 est4 est5 est6 using "$OUT/`f'/TeacherParentWTPSure_conMarried.tex", replace
+esttab est1 est4  using "$OUT/`f'/TeacherParentWTPSure_conMarried.tex", replace
 `estopt' booktabs mlabels(, depvar)
 keep(`con')
 mgroups("Both Genders" "Women Only",
-        pattern(1 0 0 1 0 0) prefix(\multicolumn{@span}{c}{) suffix(}) span
+        pattern(1 1) prefix(\multicolumn{@span}{c}{) suffix(}) span
         erepeat(\cmidrule(lr){@span}))
-title("Married Parents, Teachers and Willingness to Pay (Definitely Sure Only)")
-postfoot("\bottomrule\multicolumn{7}{p{15.8cm}}{\begin{footnotesize} All      "
-         "willingness-to-pay (WTP) measures are represented as the proportion "
-         "of all financial resources to be paid as a one-off sum. The sample  "
-         "consists of all married white 25-45 year-old          "
-         " respondents who have ever worked,   "
-         "who answered the attention checks consistently and who stated that  "
-         "they were definitely sure about their stated WTP values. `a'.       "
+title("MTurk: Willingness to Pay for SOB -- Parents and Teachers")
+postfoot("\bottomrule\multicolumn{3}{p{8.4cm}}{\begin{footnotesize} The main estimation "
+         " sample is used, augmented with non-parents aged 25-45."
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
@@ -1478,66 +1455,26 @@ eststo: reg WTPsob teacher `ages'        `cond'
 eststo: reg WTPsob teacher `educ'        `cond'
 eststo: reg WTPsob teacher `ages' `educ' `ctlsM' `cond'
 
-eststo: reg WTPdif teacher               `cond'
-eststo: reg WTPdif teacher `ages'        `cond'
-eststo: reg WTPdif teacher `educ'        `cond'
-eststo: reg WTPdif teacher `ages' `educ' `ctlsM' `cond'
-
-#delimit ;
-esttab est1 est2 est3 est4 est5 est6 est7 est8 using "$OUT/`f'/TeacherWTP_20-45_SureMarried.tex",
-replace `estopt' booktabs mlabels(, depvar)
-keep(teacher `ages' `educ' `ctlsM')
-mgroups("Willingness to Pay (\%)" "Difference (SOB-Diabetes Avoid)",
-        pattern(1 0 0 0 1 0 0 0) prefix(\multicolumn{@span}{c}{) suffix(}) span
-        erepeat(\cmidrule(lr){@span}))
-title("Willingness to Pay and Teachers (Married 25-45 Year Old White Parents: Sure Only)")
-postfoot("\bottomrule\multicolumn{9}{p{20.6cm}}{\begin{footnotesize} The    "
-         "willingness-to-pay (WTP) in columns 1-3 is measured as the        "
-         "proportion of all financial resources as a one-off payment. WTP in"
-         " columns 4-6 is the difference in WTP to perfectly time season of "
-         "birth and to avoid diabetes, where a positive coefficient implies "
-         "a greater relative WTP for season of birth. All married MTurk respondents "
-         "aged between 25-45 who answer consistently and who have ever      "
-         "worked for pay are included. The      "
-         "omitted education category is highschool or lower. `a'."
-         "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
-#delimit cr
-estimates clear
-
-
-*XXX: S20
 local cond if age>=25&age<=45&race==11&sex==1&WTPcheck==2&occ!=18&marst==1
 eststo: reg WTPsob teacher               `cond'
 eststo: reg WTPsob teacher `ages'        `cond'
 eststo: reg WTPsob teacher `educ'        `cond'
 eststo: reg WTPsob teacher `ages' `educ' `ctlsM' `cond'
 
-eststo: reg WTPdif teacher               `cond'
-eststo: reg WTPdif teacher `ages'        `cond'
-eststo: reg WTPdif teacher `educ'        `cond'
-eststo: reg WTPdif teacher `ages' `educ' `ctlsM' `cond'
-
 #delimit ;
-esttab est1 est2 est3 est4 est5 est6 est7 est8 using "$OUT/`f'/TeacherWTP_20-45WFsureMarried.tex",
+esttab est1 est2 est3 est4 est5 est6 est7 est8 using "$OUT/`f'/TeacherWTP_20-45_SureMarried.tex",
 replace `estopt' booktabs mlabels(, depvar)
 keep(teacher `ages' `educ' `ctlsM')
-mgroups("Willingness to Pay (\%)" "Difference (SOB-Diabetes Avoid)",
+mgroups("Both Genders" "Women Only",
         pattern(1 0 0 0 1 0 0 0) prefix(\multicolumn{@span}{c}{) suffix(}) span
         erepeat(\cmidrule(lr){@span}))
-title("Willingness to Pay MTurk and Teachers (25-45 Year-olds White Female: Sure Only)")
-postfoot("\bottomrule\multicolumn{9}{p{20.6cm}}{\begin{footnotesize} The     "
-         "willingness-to-pay (WTP) in columns 1-3 is measured as the         "
-         "proportion of all financial resources as a one-off payment. WTP in "
-         " columns 4-6 is the difference in WTP to perfectly time season of  "
-         "birth and to avoid diabetes, where a positive coefficient implies  "
-         "a greater relative WTP for season of birth. All married white, non-Hispanic"
-         "female MTurk respondents aged between 25-45 who answer consistently"
-         "and who have ever worked for pay are included. The omitted         "
-         "education category is highschool or lower. `a'."
+title("MTurk: Willingess to Pay for Season of Birth and Teachers")
+postfoot("\bottomrule\multicolumn{9}{p{19.2cm}}{\begin{footnotesize} The main  "
+         " estimation sample is used.  The omitted education category is       "
+         "highschool or lower. "
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
-
 
 
 restore
