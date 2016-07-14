@@ -43,6 +43,7 @@ gen ageBirth = cbirthyr-birthyr
 decode state, gen(statename)
 bys state: gen stateProportion = _N/3003
 
+
 ********************************************************************************
 *** (3) Test geographic var
 ********************************************************************************
@@ -78,17 +79,20 @@ gen Q1 = cbirthmonth >= 1 & cbirthmonth <=3
 gen Q2 = cbirthmonth >= 4 & cbirthmonth <=6
 gen Q3 = cbirthmonth >= 7 & cbirthmonth <=9
 gen Q4 = cbirthmonth >=10 & cbirthmonth <=12
+gen highEduc  = educ>3
 
 collapse (sum) N (mean) nchild sexchild fertmed gest Q1 Q2 Q3 Q4 ageBirth /*
-*/ (sd) sd_nchild=nchild sd_sexchild=sexchild sd_fertmed=fertmed /*
-*/ sd_gest=gest sd_Q1=Q1 sd_Q2=Q2 sd_Q3=Q3 sd_Q4=Q4 sd_ageBirth=ageBirth
-expand 9
+*/ hispanic highEduc (sd) sd_nchild=nchild sd_sexchild=sexchild           /*
+*/ sd_fertmed=fertmed sd_gest=gest sd_Q1=Q1 sd_Q2=Q2 sd_Q3=Q3 sd_Q4=Q4    /*
+*/ sd_ageBirth=ageBirth sd_hispanic=hispanic sd_highEduc=highEduc
+expand 11
 gen mean  = .
 gen stdev = .
 gen var   = "" 
 
 local i = 1
-foreach var of varlist nchild sexchild fertmed gest Q1 Q2 Q3 Q4 ageBirth {
+foreach var of varlist nchild sexchild fertmed gest Q1 Q2 Q3 Q4 ageBirth /*
+*/ hispanic highEduc {
     replace mean  = `var' in `i'
     replace stdev = sd_`var' in `i'
     replace var = "`var'" in `i'
@@ -252,6 +256,7 @@ restore
 
 preserve
 use "$NVS/natl2013", clear
+keep if mbrace==1&mar==1
 gen N_NV = 1
 gen gest = 6 if estgest<=29
 replace gest = 7  if estgest>29 & estgest<=34
@@ -268,17 +273,21 @@ gen Q2 = dob_mm >= 4 & dob_mm <=6
 gen Q3 = dob_mm >= 7 & dob_mm <=9
 gen Q4 = dob_mm >=10 & dob_mm <=12
 gen ageBirth = mager
+gen highEduc = meduc>=4 if meduc!=9&meduc!=.
+gen hispanic = umhisp!=0
 
 collapse (sum) N (mean) nchild sexchild fertmed gest Q1 Q2 Q3 Q4 ageBirth /*
-*/ (sd) sd_nchild=nchild sd_sexchild=sexchild sd_fertmed=fertmed          /*
-*/ sd_gest=gest sd_Q1=Q1 sd_Q2=Q2 sd_Q3=Q3 sd_Q4=Q4 sd_ageBirth=ageBirth
-expand 9
+*/ highEduc hispanic (sd) sd_nchild=nchild sd_sexchild=sexchild           /*
+*/ sd_fertmed=fertmed sd_gest=gest sd_Q1=Q1 sd_Q2=Q2 sd_Q3=Q3 sd_Q4=Q4    /*
+*/ sd_ageBirth=ageBirth sd_hispanic=hispanic sd_highEduc=highEduc
+expand 11
 gen meanNV  = .
 gen stdevNV = .
 gen var   = "" 
 
 local i = 1
-foreach var of varlist nchild sexchild fertmed gest Q1 Q2 Q3 Q4 ageBirth {
+foreach var of varlist nchild sexchild fertmed gest Q1 Q2 Q3 Q4 ageBirth /*
+*/ hispanic highEduc {
     replace meanNV  = `var' in `i'
     replace stdevNV = sd_`var' in `i'
     replace var = "`var'" in `i'
@@ -293,11 +302,12 @@ merge 1:1 var using `MTurkSum'
 local i = 1
 #delimit ;
 local vnames `""Number of Children" "Age at First Birth" "Female Child"
-               "Used Fertility Treatment" "Gestation (months)"
-               "Born January-March" "Born April-June"
+               "Used Fertility Treatment" "Gestation (months)" "Hispanic"
+               "Some College +" "Born January-March" "Born April-June"
                "Born July-September" "Born October-December" "';
 #delimit cr
-local variables nchild ageBirth sexchild fertmed gest Q1 Q2 Q3 Q4
+local variables nchild ageBirth sexchild fertmed gest hispanic highEduc /*
+*/ Q1 Q2 Q3 Q4
 tokenize `variables'
 file open bstats using "$OUT/NVSScomp.txt", write replace
 foreach var of local vnames {
@@ -320,7 +330,7 @@ file close bstats
 
 restore
 
-
+exit
 ********************************************************************************
 *** (5) Compare with ACS
 ********************************************************************************
@@ -781,16 +791,14 @@ file write bstats "\begin{table}[htpb!]"
                   "& Mean & Standard & $ t$         & Standard & Obs. & Equal \\ " _n
                   "&      & Deviation & Statistic  & Error    &       & Means ($ t$) \\ "
                   "\midrule" _n;
-local vnames `""Choose SOB" "Don't Choose SOB" "Choose Spring/Summer" "Choose Fall/Winter""';
-local conds choose==1 notchoose==1 summer==1 winter==1;
+local vnames `""Choose SOB" "Don't Choose SOB" "';
+local conds choose==1 notchoose==1 ;
 #delimit cr
-file write bstats "\multicolumn{7}{l}{\textsc{Panel A: Both Genders}}\\"_n
-file write bstats "\multicolumn{7}{l}{\textbf{Willingness to Pay (Preferred Season)}}\\"_n
+file write bstats "\multicolumn{7}{l}{\textsc{Panel A: Willingness to Pay (Preferred Season)}}\\"_n
+file write bstats "\multicolumn{7}{l}{\textbf{Both Genders}}\\"_n
 tokenize `conds'
 ttest WTPsob, by(notchoose)
 local t1 = string(r(t), "%5.3f")
-ttest WTPsob, by(summer)
-local t2 = string(-1*r(t), "%5.3f")
 local j = 1
 foreach v of local vnames {
     sum WTPsob if `1'
@@ -809,20 +817,18 @@ foreach v of local vnames {
     local ++j
 }
 
-file write bstats "\multicolumn{7}{l}{\textbf{Willingness to Pay (Avoid Diabetes)}}\\"_n
+file write bstats "\multicolumn{7}{l}{\textbf{Women Only}}\\"_n
 tokenize `conds'
-ttest WTPdiab, by(notchoose)
+ttest WTPsob if sex==1, by(notchoose)
 local t1 = string(r(t), "%5.3f")
-ttest WTPdiab, by(summer)
-local t2 = string(-1*r(t), "%5.3f")
 local j=1
 foreach v of local vnames {
-    sum WTPdiab if `1'&WTPcheck==2
+    sum WTPsob if `1'&WTPcheck==2&sex==1
     local mean = string(r(mean),"%5.3f")
     local stdd = string(r(sd),"%5.3f")
     local SN   = r(N)
     gen xvar = `1'
-    reg WTPdiab xvar if WTPcheck==2, nocons
+    reg WTPsob xvar if WTPcheck==2&sex==1, nocons
     local tsta = string(_b[xvar]/_se[xvar],"%5.3f")
     local stde = string(_se[xvar],"%5.3f")
     if `j'==1 file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN'&\multirow{2}{*}{`t1'} \\" _n
@@ -838,27 +844,27 @@ restore
 
 *Married Mothers, white, 25-45 at birth
 preserve
-keep if nchild!=0&race==11&ageBirth>=25&ageBirth<=45&sex==1&marst==1&WTPcheck==2
+keep if nchild!=0&race==11&ageBirth>=25&ageBirth<=45&marst==1&WTPcheck==2
 #delimit ;
 file write bstats "\midrule" _n;
-local vnames `""Choose SOB" "Don't Choose SOB" "Choose Spring/Summer" "Choose Fall/Winter""';
-local conds choose==1 notchoose==1 summer==1 winter==1;
+local vnames `""Choose SOB" "Don't Choose SOB" "';
+local conds choose==1 notchoose==1 ;
 #delimit cr
-ttest WTPsob, by(notchoose)
+ttest WTPdiab, by(notchoose)
 local t1 = string(r(t), "%5.3f")
-*ttest WTPsob, by(summer)
+*ttest WTPdiab, by(summer)
 *local t2 = string(-1*r(t), "%5.3f")
-file write bstats "\multicolumn{7}{l}{\textsc{Panel B: Women Only}}\\"_n
-file write bstats "\multicolumn{7}{l}{\textbf{Willingness to Pay (Preferred Season)}}\\"_n
+file write bstats "\multicolumn{7}{l}{\textsc{Panel B: Willingness to Pay (Avoid Diabetes)}}\\"_n
+file write bstats "\multicolumn{7}{l}{\textbf{Both Genders}}\\"_n
 tokenize `conds'
 local j = 1
 foreach v of local vnames {
-    sum WTPsob if `1'&WTPcheck==2
+    sum WTPdiab if `1'&WTPcheck==2
     local mean = string(r(mean),"%5.3f")
     local stdd = string(r(sd),"%5.3f")
     local SN   = r(N)
     gen xvar = `1'
-    reg WTPsob xvar if WTPcheck==2, nocons
+    reg WTPdiab xvar if WTPcheck==2, nocons
     local tsta = string(_b[xvar]/_se[xvar],"%5.3f")
     local stde = string(_se[xvar],"%5.3f")
     if `j'==1 file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN'&\multirow{2}{*}{`t1'} \\" _n
@@ -868,20 +874,20 @@ foreach v of local vnames {
     macro shift
     local ++j
 }
-file write bstats "\multicolumn{7}{l}{\textbf{Willingness to Pay (Avoid Diabetes)}}\\"_n
+file write bstats "\multicolumn{7}{l}{\textbf{Women Only}}\\"_n
 tokenize `conds'
-ttest WTPdiab, by(notchoose)
+ttest WTPdiab if sex==1, by(notchoose)
 local t1 = string(r(t), "%5.3f")
-*ttest WTPdiab, by(summer)
+*ttest WTPdiab if sex==1, by(summer)
 *local t2 = string(-1*r(t), "%5.3f")
 local j=1
 foreach v of local vnames {
-    sum WTPdiab if `1'&WTPcheck==2
+    sum WTPdiab if `1'&WTPcheck==2&sex==1
     local mean = string(r(mean),"%5.3f")
     local stdd = string(r(sd),"%5.3f")
     local SN   = r(N)
     gen xvar = `1'
-    reg WTPdiab xvar if WTPcheck==2, nocons
+    reg WTPdiab xvar if WTPcheck==2&asex==1, nocons
     local tsta = string(_b[xvar]/_se[xvar],"%5.3f")
     local stde = string(_se[xvar],"%5.3f")
     if `j'==1 file write bstats "`v'&`mean'&`stdd'&`tsta'&`stde'&`SN'&\multirow{2}{*}{`t1'} \\" _n
@@ -1048,6 +1054,7 @@ estout using "$OUT/MTurkSum_Main.tex", replace label style(tex) `statform'
 
 restore
 
+exit
 */
 ********************************************************************************
 *** (8) Basic regressions
@@ -1176,7 +1183,7 @@ lab var SOBcheal "C Health"
 
 
 local cnd if age>=25&age<=45&WTPcheck==2&marst==1
-local con parent teacher parentTeacher age ageSq highEduc hispanic 
+local con parent teacher parentTeacher age ageSq highEduc 
 eststo: reg SOBlucky   `con' `cnd'
 eststo: reg SOBtax     `con' `cnd'
 eststo: reg SOBbirthda `con' `cnd'
@@ -1188,14 +1195,16 @@ eststo: reg SOBchealth `con' `cnd'
 esttab est1 est2 est3 est4 est5 est6 est7  using "$OUT/`f'/TeacherParentReasons.tex", 
 replace `estopt' booktabs mlabels(, depvar) keep(`con')
 title("MTurk: Reasons for SOB -- Parents and Teachers (Both Genders)")
-postfoot("\bottomrule\multicolumn{8}{p{15.8cm}}{\begin{footnotesize} The main estimation "
+postfoot("\bottomrule\multicolumn{8}{p{16.4cm}}{\begin{footnotesize} The main estimation "
          " sample is used, augmented with non-parents aged 25-45. The importance of each"
          " reason is ranked between 1 and 10, with 1 being not important at all, and 10 "
-         "being very important."
+         "being very important.  The hispanic control is dropped as there is no         "
+         "variation in this indicator in the estimation sample."
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
 
+local con parent teacher parentTeacher age ageSq
 local cnd if age>=25&age<=45&sex==1&WTPcheck==2&marst==1
 eststo: reg SOBlucky   `con' `cnd'
 eststo: reg SOBtax     `con' `cnd'
@@ -1208,8 +1217,10 @@ eststo: reg SOBchealth `con' `cnd'
 esttab est1 est2 est3 est4 est5 est6 est7  using "$OUT/`f'/TeacherParentReasonsF.tex", 
 replace `estopt' booktabs mlabels(, depvar) keep(`con')
 title("MTurk: Reasons for SOB -- Parents and Teachers (Women Only)")
-postfoot("\bottomrule\multicolumn{8}{p{15.8cm}}{\begin{footnotesize} Women from the main"
-         " estimation sample are used, augmented with non-parents aged 25-45."
+postfoot("\bottomrule\multicolumn{8}{p{16.4cm}}{\begin{footnotesize} Women from the main"
+         " estimation sample are used, augmented with non-parents aged 25-45. The       "
+         "hispanic and some college or greater controls are dropped as there is no      "
+         "variation in these indicators in the estimation sample."
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
@@ -1231,27 +1242,56 @@ if `nomh'==1 local ctls hispanic
 
 local cond if age>=25&age<=45&race==11&WTPcheck==2&occ!=18&marst==1
 eststo: reg WTPsob teacher `ctls'               `cond'
+local tL1  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
 eststo: reg WTPsob teacher `ctls' `ages'        `cond'
+test `ages'
+local F2 = string(r(F), "%5.3f")
+local p2 = string(r(p), "%5.3f")
+local L2 = string((e(df_r)/2)*(e(N)^(2/e(N))-1), "%5.3f")
+
 eststo: reg WTPsob teacher `ctls' `educ'        `cond'
 eststo: reg WTPsob teacher `ctls' `ages' `educ' `ctlsM' `cond'
+test `ages'
+local F4 = string(r(F), "%5.3f")
+local p4 = string(r(p), "%5.3f")
+local L4 = string((e(df_r)/2)*(e(N)^(2/e(N))-1), "%5.3f")
+
 
 local cond if age>=25&age<=45&race==11&sex==1&WTPcheck==2&occ!=18&marst==1
 eststo: reg WTPsob teacher `ctls'              `cond'
 eststo: reg WTPsob teacher `ctls' `ages'        `cond'
+test `ages'
+local F6 = string(r(F), "%5.3f")
+local p6 = string(r(p), "%5.3f")
+local L6 = string((e(df_r)/2)*(e(N)^(2/e(N))-1), "%5.3f")
 eststo: reg WTPsob teacher `ctls' `educ'        `cond'
 eststo: reg WTPsob teacher `ctls' `ages' `educ' `ctlsM' `cond'
+test `ages'
+local F8 = string(r(F), "%5.3f")
+local p8 = string(r(p), "%5.3f")
+local L8 = string((e(df_r)/2)*(e(N)^(2/e(N))-1), "%5.3f")
 
 #delimit ;
-esttab est1 est2 est3 est4 est5 est6 est7 est8 using "$OUT/`f'/TeacherWTP_20-45_SureMarried.tex",
+esttab est1 est2 est3 est4 est5 est6 est7 est8
+using "$OUT/`f'/TeacherWTP_20-45_SureMarried.tex",
 replace `estopt' booktabs mlabels(, depvar)
 keep(teacher `ages' `educ' `ctls')
 mgroups("Both Genders" "Women Only",
         pattern(1 0 0 0 1 0 0 0) prefix(\multicolumn{@span}{c}{) suffix(}) span
         erepeat(\cmidrule(lr){@span}))
 title("MTurk: Willingess to Pay for Season of Birth and Teachers")
-postfoot("\bottomrule\multicolumn{9}{p{19.2cm}}{\begin{footnotesize} The main  "
+postfoot("F-test of Age Variables&`F1'&`F2'&`F3'&`F4'&`F5'&`F6'&`F7'&`F8' \\   "
+         "p-value of F-test      &`p1'&`p2'&`p3'&`p4'&`p5'&`p6'&`p7'&`p8' \\   "
+         "%Leamer Critical Value  &`L1'&`L2'&`L3'&`L4'&`L5'&`L6'&`L7'&`L8' \\   "
+         "\bottomrule\multicolumn{9}{p{21.6cm}}{\begin{footnotesize} The main  "
          " estimation sample is used.  The omitted education category is       "
-         "highschool or lower. "
+         "highschool or lower, and education dummies are included for some     "
+         "college, 2 year degree, 4 year degree, or higher degree. F-test of   "
+         "age variables refers to the test that the coefficients on mother's   "
+         "age and age squared are jointly equal to zero. Reported p-values are "
+         "those corresponding to this classical F-test. % Leamer critical values"
+         "%refer to Leamer/Schwartz/Deaton critical 5\% values adjusted for     "
+         "%sample size. The Leamer critical value for a t-statistic is `tL1'.   "
          "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
 #delimit cr
 estimates clear
