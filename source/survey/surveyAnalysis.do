@@ -79,16 +79,16 @@ gen Q2 = cbirthmonth >= 4 & cbirthmonth <=6
 gen Q3 = cbirthmonth >= 7 & cbirthmonth <=9
 gen Q4 = cbirthmonth >=10 & cbirthmonth <=12
 
-collapse (sum) N (mean) nchild sexchild fertmed gest Q1 Q2 Q3 Q4 /*
+collapse (sum) N (mean) nchild sexchild fertmed gest Q1 Q2 Q3 Q4 ageBirth /*
 */ (sd) sd_nchild=nchild sd_sexchild=sexchild sd_fertmed=fertmed /*
-*/ sd_gest=gest sd_Q1=Q1 sd_Q2=Q2 sd_Q3=Q3 sd_Q4=Q4
-expand 8
+*/ sd_gest=gest sd_Q1=Q1 sd_Q2=Q2 sd_Q3=Q3 sd_Q4=Q4 sd_ageBirth=ageBirth
+expand 9
 gen mean  = .
 gen stdev = .
 gen var   = "" 
 
 local i = 1
-foreach var of varlist nchild sexchild fertmed gest Q1 Q2 Q3 Q4 {
+foreach var of varlist nchild sexchild fertmed gest Q1 Q2 Q3 Q4 ageBirth {
     replace mean  = `var' in `i'
     replace stdev = sd_`var' in `i'
     replace var = "`var'" in `i'
@@ -133,21 +133,23 @@ gen black     = race == 12
 gen otherRace = race!=11&race!=12
 gen employed  = empstat==1
 gen married   = marst==1
+gen highEduc  = educ>3
+replace age   = ageBirth
 
+collapse (sum) N (mean) ftotinc highEduc someCollege married employed hispanic /*
+*/ black white otherRace age (sd) sd_ftotinc=ftotinc sd_highEduc=highEduc      /*
+*/ sd_someCollege=someCollege sd_married=married sd_employed=employed          /*
+*/ sd_hispanic=hispanic sd_black=black sd_white=white sd_otherRace=otherRace   /*
+*/ sd_age=age
 
-collapse (sum) N (mean) ftotinc educY someCollege married employed hispanic /*
-*/ black white otherRace (sd) sd_ftotinc=ftotinc sd_educY=educY             /*
-*/ sd_someCollege=someCollege sd_married=married sd_employed=employed       /*
-*/ sd_hispanic=hispanic sd_black=black sd_white=white sd_otherRace=otherRace
-
-expand 9
+expand 10
 gen mean  = .
 gen stdev = .
 gen var   = "" 
 
 local i = 1
-foreach var of varlist ftotinc educY someCollege married employed hispanic /*
-*/ black white otherRace {
+foreach var of varlist ftotinc highEduc someCollege married employed hispanic /*
+*/ black white otherRace age {
     replace mean  = `var' in `i'
     replace stdev = sd_`var' in `i'
     replace var = "`var'" in `i'
@@ -265,17 +267,18 @@ gen Q1 = dob_mm >= 1 & dob_mm <=3
 gen Q2 = dob_mm >= 4 & dob_mm <=6
 gen Q3 = dob_mm >= 7 & dob_mm <=9
 gen Q4 = dob_mm >=10 & dob_mm <=12
+gen ageBirth = mager
 
-collapse (sum) N (mean) nchild sexchild fertmed gest Q1 Q2 Q3 Q4 /*
-*/ (sd) sd_nchild=nchild sd_sexchild=sexchild sd_fertmed=fertmed /*
-*/ sd_gest=gest sd_Q1=Q1 sd_Q2=Q2 sd_Q3=Q3 sd_Q4=Q4
-expand 8
+collapse (sum) N (mean) nchild sexchild fertmed gest Q1 Q2 Q3 Q4 ageBirth /*
+*/ (sd) sd_nchild=nchild sd_sexchild=sexchild sd_fertmed=fertmed          /*
+*/ sd_gest=gest sd_Q1=Q1 sd_Q2=Q2 sd_Q3=Q3 sd_Q4=Q4 sd_ageBirth=ageBirth
+expand 9
 gen meanNV  = .
 gen stdevNV = .
 gen var   = "" 
 
 local i = 1
-foreach var of varlist nchild sexchild fertmed gest Q1 Q2 Q3 Q4 {
+foreach var of varlist nchild sexchild fertmed gest Q1 Q2 Q3 Q4 ageBirth {
     replace meanNV  = `var' in `i'
     replace stdevNV = sd_`var' in `i'
     replace var = "`var'" in `i'
@@ -289,11 +292,12 @@ save `NVSSSum'
 merge 1:1 var using `MTurkSum'
 local i = 1
 #delimit ;
-local vnames `""Number of Children" "Female Child" "Used Fertility Treatment"
-               "Gestation (months)" "Born January-March" "Born April-June"
-               "Born July-September" "Born October-December""';
+local vnames `""Number of Children" "Age at First Birth" "Female Child"
+               "Used Fertility Treatment" "Gestation (months)"
+               "Born January-March" "Born April-June"
+               "Born July-September" "Born October-December" "';
 #delimit cr
-local variables nchild sexchild fertmed gest Q1 Q2 Q3 Q4
+local variables nchild ageBirth sexchild fertmed gest Q1 Q2 Q3 Q4
 tokenize `variables'
 file open bstats using "$OUT/NVSScomp.txt", write replace
 foreach var of local vnames {
@@ -307,8 +311,8 @@ foreach var of local vnames {
         *local `val'=round(r(`val')*1000)/1000
         *if ``val''<1&``val''>0 local `val' = "0``val''"
     }
-    local dif = round((`mu_1'-`mu_2')*1000)/1000
-    if `dif'<1&`dif'>0 local dif = "0`dif'" 
+    local dif = string((`mu_1'-`mu_2'),"%5.3f")
+    *if `dif'<1&`dif'>0 local dif = "0`dif'" 
     file write bstats "`var'&`mu_1'&(`sd_1')&`mu_2'&(`sd_2')&`dif'&`t'\\ " _n
     macro shift
 }
@@ -465,7 +469,7 @@ restore
 
 preserve
 use "$ACS/ACS_20052014_cleaned_hisp", clear
-
+keep if year==2014
 keep if motherAge>=25&motherAge<=45&twins==0&married==1
 drop if occ2010 == 9920
 gen N_ACS = 1
@@ -488,21 +492,23 @@ gen black     = race == 2
 gen otherRace = race!=1&race!=2
 gen employed  = empstat==1
 *rename hispan hispanic
+gen age       = motherAge 
 
-collapse (sum) N_ACS (mean) ftotinc educY someCollege married employed hispanic /*
-*/ black white otherRace (sd) sd_ftotinc=ftotinc sd_educY=educY             /*
-*/ sd_someCollege=someCollege sd_married=married sd_employed=employed       /*
-*/ sd_hispanic=hispanic sd_black=black sd_white=white sd_otherRace=otherRace
+collapse (sum) N_ACS (mean) ftotinc highEduc someCollege married employed hispanic /*
+*/ black white otherRace age (sd) sd_ftotinc=ftotinc sd_highEduc=highEduc          /*
+*/ sd_someCollege=someCollege sd_married=married sd_employed=employed              /*
+*/ sd_hispanic=hispanic sd_black=black sd_white=white sd_otherRace=otherRace       /*
+*/ sd_age=age
 
-expand 9
+expand 10
 gen meanACS  = .
 gen stdevACS = .
 gen var      = "" 
 
 
 local i = 1
-foreach var of varlist ftotinc educY someCollege married employed hispanic /*
-*/ black white otherRace {
+foreach var of varlist ftotinc highEduc married employed hispanic /*
+*/ black white otherRace age {
     replace mean  = `var' in `i'
     replace stdev = sd_`var' in `i'
     replace var = "`var'" in `i'
@@ -516,10 +522,10 @@ save `ACSSum'
 merge 1:1 var using `MTurkSum2'
 local i = 1
 #delimit ;
-local vnames `""Family Income" "Education (Years)" "Some College +" 
-               "Currently Employed" "Hispanic" "';
+local vnames `""Family Income" "Age at Birth" "Some College +" "Currently Employed"
+               "Hispanic" "';
 #delimit cr
-local variables ftotinc educY someCollege employed hispanic  
+local variables ftotinc age highEduc employed hispanic 
 tokenize `variables'
 file open mstats using "$OUT/ACScomp.txt", write replace
 foreach var of local vnames {
@@ -665,7 +671,7 @@ foreach num of numlist 1(1)4 {
     count if cond`num'==1&SOBlucky!=.
     local n`num'= r(N)
 }
-file write bstats "\midrule"_na
+file write bstats "\midrule"_n
 file write bstats "Observations& `n1'& `n2'& `n3'& `n4'\\"_n
 
 #delimit ;
@@ -679,22 +685,68 @@ file write bstats "\end{tabular}\end{table}" _n;
 file close bstats
 
 
-sum SOBbirth SOBluck SOBjob SOBsch SOBtax SOBche SOBmhe
 
-gen importance6plus=importance>=6 if importance!=.
-sum importance6plus if teacher==1
-sum importance6plus if teacher==0
+use "$DAT/BirthSurvey", clear
+keep if completed==1
+keep if educ==educ_check
+gen age      = 2016-birthyr
+gen ageBirth = cbirthyr-birthyr
+replace ageBirth = age if ageBirth==.
 
-sum importance6plus if teacher==1&childFlag==1
-sum importance6plus if teacher==0&childFlag==1
+keep  if ageBirth>=25&ageBirth<=45&race==11&WTPcheck==2&occ!=18&marst==1
 
-sum importance6plus if teacher==1&(plankids==1|plankids==3)
-sum importance6plus if teacher==0&(plankids==1|plankids==3)
 
-sum importance6plus if childFlag==1
-sum importance6plus if plankids==1|plankids==3
+cap gen importance= SOBimport
+replace importance = pSOBimport if pSOBimport!=.
+file open bstats using "$OUT/reasonsAll.tex", write replace
+#delimit ;
+file write bstats "\begin{table}[htpb!]"
+                  "\caption{MTurk: Reasons for Targeting Season of Birth}" 
+                  _n "\begin{tabular}{lcccc} \toprule" _n
+                  "& All     & Women   & Teachers & Non       \\ " _n
+                  "&         & Only    & Only     & Teachers  \\ "
+                  "\midrule" _n;
+#delimit cr
+gen teacher = occ == 6
+gen cond1=1
+gen cond2=sex==1
+gen cond3=teacher==1
+gen cond4=teacher==0
+#delimit ;
+
+local vnames `""Lucky Birth Dates" "Tax Benefits" "Birthday Parties"
+"Job Requirements" "School Entry Rules" "Child's Wellbeing" "Mom's Wellbeing" "';
+#delimit cr
+local rv SOBlucky SOBtax SOBbirthday SOBjobs SOBschool SOBmhealth SOBchealth
+tokenize `rv'
+
+foreach v of local vnames {
+    foreach num of numlist 1(1)4 {
+        sum `1' if cond`num'==1
+        local c`num'=string(r(mean), "%5.3f")
+    }
+    file write bstats "`v'& `c1'& `c2'& `c3'& `c4'\\"_n
+    macro shift
+}
+foreach num of numlist 1(1)4 {
+    count if cond`num'==1&SOBlucky!=.
+    local n`num'= r(N)
+}
+file write bstats "\midrule"_n
+file write bstats "Observations& `n1'& `n2'& `n3'& `n4'\\"_n
+
+#delimit ;
+file write bstats "\bottomrule "_n;
+file write bstats "\multicolumn{5}{p{10.8cm}}{{\footnotesize \textsc{Notes}:    "
+" Main estimation sample from table S6 is used.  Reasons are given by these     "
+"who state that they chose or would choose season of birth. The importance of   "
+"each aspect is ranked between 1 (not important) to 10 (very important).}}"   _n;
+file write bstats "\end{tabular}\end{table}" _n;
+#delimit cr
+file close bstats
 
 exit
+
 
 ********************************************************************************
 *** (7) Tables
@@ -729,7 +781,7 @@ file write bstats "\begin{table}[htpb!]"
                   "& Mean & Standard & $ t$         & Standard & Obs. & Equal \\ " _n
                   "&      & Deviation & Statistic  & Error    &       & Means ($ t$) \\ "
                   "\midrule" _n;
-local vnames `""Choose SOB" "Don't Choose SOB" "Choose Summer" "Choose Winter""';
+local vnames `""Choose SOB" "Don't Choose SOB" "Choose Spring/Summer" "Choose Fall/Winter""';
 local conds choose==1 notchoose==1 summer==1 winter==1;
 #delimit cr
 file write bstats "\multicolumn{7}{l}{\textsc{Panel A: Both Genders}}\\"_n
@@ -789,7 +841,7 @@ preserve
 keep if nchild!=0&race==11&ageBirth>=25&ageBirth<=45&sex==1&marst==1&WTPcheck==2
 #delimit ;
 file write bstats "\midrule" _n;
-local vnames `""Choose SOB" "Don't Choose SOB" "Choose Summer" "Choose Winter""';
+local vnames `""Choose SOB" "Don't Choose SOB" "Choose Spring/Summer" "Choose Fall/Winter""';
 local conds choose==1 notchoose==1 summer==1 winter==1;
 #delimit cr
 ttest WTPsob, by(notchoose)
@@ -854,7 +906,8 @@ file write bstats "\multicolumn{7}{p{16.2cm}}{{\footnotesize \textsc{Notes}:    
 "child being born with diabetes]?} and are prompted to enter a value  "
 "between 0 and 100. Equal Means refers to the value of a $ t$-test    "
 "between the mean for choosing and not choosing season of birth, and  "
-"between choosing summer and choosing winter (where defined).}} " _n;
+"between choosing spring or summer and choosing fall or winter (where "
+"defined).}} " _n;
 file write bstats "\end{tabular}\end{table}" _n;
 #delimit cr
 file close bstats
@@ -890,13 +943,13 @@ gen morekids1 = morekids==1 if morekids!=.
 gen morekids2 = morekids==2 if morekids!=.
 gen morekids3 = morekids==3 if morekids!=.
 gen pregnant1 = pregnant==1 if pregnant!=.
+gen highEduc  = educ>3
 
-
-lab var sex      "Female"
-lab var birthyr  "Year of Birth"
-lab var age      "Age"
-lab var educY    "Years of Education"
-lab var nchild   "Number of Children"
+lab var sex       "Female"
+lab var birthyr   "Year of Birth"
+lab var age       "Age"
+lab var educY     "Years of Education"
+lab var nchild    "Number of Children"
 lab var pregnant1 "Currently Pregnant"
 lab var plankids1 "Plans to have children (Yes)"
 lab var morekids1 "Plans for more children (Yes)"
@@ -904,24 +957,25 @@ lab var plankids2 "Plans to have children (No)"
 lab var morekids2 "Plans for more children (No)"
 lab var plankids3 "Plans to have children (Don't Know)"
 lab var morekids3 "Plans for more children (Don't Know)"
-lab var married  "Married"
-lab var sexchild "Female Child"
-lab var gestatio "Gestation (Months)"
-lab var fertmed  "Used Fertility Treatment"
-lab var SOBimpor "Importance of Conception Season"
-lab var SOBtarge "Targeting Season of Conception"
-lab var hispanic "Hispanic"
-lab var black    "Black"
-lab var white    "White"
-lab var otherRac "Other Race"
-lab var employed "Employed"
-lab var cbirthyr "Child's Year of Birth"
-lab var WTPsob   "WTP (Season of Birth)"
-lab var WTPdiab  "WTP (Avoid Diabetes)"
-lab var unemploy "Unemployed"
+lab var married   "Married"
+lab var sexchild  "Female Child"
+lab var gestatio  "Gestation (Months)"
+lab var fertmed   "Used Fertility Treatment"
+lab var SOBimpor  "Importance of Season of Birth"
+lab var SOBtarge  "Targeting Season of Birth"
+lab var hispanic  "Hispanic"
+lab var black     "Black"
+lab var white     "White"
+lab var otherRac  "Other Race"
+lab var employed  "Employed"
+lab var cbirthyr  "Child's Year of Birth"
+lab var WTPsob    "WTP (Season of Birth)"
+lab var WTPdiab   "WTP (Avoid Diabetes)"
+lab var unemploy  "Unemployed"
+lab var highEduc  "Some College +"
 
 #delimit ;
-estpost sum sex age birthyr educY nchild plankids1-plankids3 morekids1-morekids3
+estpost sum sex age birthyr highEduc nchild plankids1-plankids3 morekids1-morekids3
 pregnant1 married sexchild gestation fertmed SOBimport SOBtarget 
 white black otherRace hispanic employed unemployed cbirthyr WTPsob WTPdiab;
 #delimit cr
@@ -955,42 +1009,45 @@ gen morekids1 = morekids==1 if morekids!=.
 gen morekids2 = morekids==2 if morekids!=.
 gen morekids3 = morekids==3 if morekids!=.
 gen pregnant1 = pregnant==1 if pregnant!=.
+gen highEduc  = educ>3
 
-lab var sex      "Female"
-lab var birthyr  "Year of Birth"
-lab var ageBirth "Age at Birth"
-lab var educY    "Years of Education"
-lab var nchild   "Number of Children"
-lab var plankids "Plans to have children"
-lab var morekids "Plans for more children"
+lab var sex       "Female"
+lab var birthyr   "Year of Birth"
+lab var ageBirth  "Age at Birth"
+lab var educY     "Years of Education"
+lab var nchild    "Number of Children"
+lab var plankids  "Plans to have children"
+lab var morekids  "Plans for more children"
 lab var pregnant1 "Currently Pregnant"
 lab var morekids1 "Plans for more children (Yes)"
 lab var morekids2 "Plans for more children (No)"
 lab var morekids3 "Plans for more children (Don't Know)"
-lab var married  "Married"
-lab var sexchild "Female Child"
-lab var gestatio "Gestation (Months)"
-lab var fertmed  "Used Fertility Treatment"
-lab var SOBimpor "Importance of Conception Season"
-lab var SOBtarge "Targeting Season of Conception"
-lab var hispanic "Hispanic"
-lab var black    "Black"
-lab var white    "White"
-lab var otherRac "Other Race"
-lab var employed "Employed"
-lab var unemploy "Unemployed" 
-lab var cbirthyr "Child's Year of Birth"
-lab var WTPsob   "WTP (Season of Birth)"
-lab var WTPdiab  "WTP (Avoid Diabetes)"
+lab var married   "Married"
+lab var sexchild  "Female Child"
+lab var gestatio  "Gestation (Months)"
+lab var fertmed   "Used Fertility Treatment"
+lab var SOBimpor  "Importance of Season of Birth"
+lab var SOBtarge  "Targeting Season of Birth"
+lab var hispanic  "Hispanic"
+lab var black     "Black"
+lab var white     "White"
+lab var otherRac  "Other Race"
+lab var employed  "Employed"
+lab var unemploy  "Unemployed" 
+lab var cbirthyr  "Child's Year of Birth"
+lab var WTPsob    "WTP (Season of Birth)"
+lab var WTPdiab   "WTP (Avoid Diabetes)"
+lab var highEduc  "Some College +"
 
 #delimit ;
-estpost sum sex ageBirth birthyr educY nchild morekids1-morekids3
+estpost sum sex ageBirth birthyr highEduc nchild morekids1-morekids3
 pregnant1 sexchild gestation fertmed SOBimport SOBtarget 
 hispanic employed unemployed cbirthyr WTPsob WTPdiab;
 #delimit cr
 estout using "$OUT/MTurkSum_Main.tex", replace label style(tex) `statform'
 
 restore
+
 */
 ********************************************************************************
 *** (8) Basic regressions
@@ -1083,24 +1140,20 @@ lab var teacher       "Teacher"
 lab var age           "Age"
 lab var ageSq         "Age Squared/100"
 lab var highEduc      "Some College +"
-
+gen currentPreg = pregnant==1
 
 
 drop if occ==18|race!=11
 
 *XXX: S18
 local cnd if age>=25&age<=45&WTPcheck==2&marst==1
-local con parent teacher parentTeacher age ageSq highEduc hispanic
+local con parent teacher parentTeacher age ageSq highEduc hispanic 
 eststo: reg WTPsob        `con' `cnd'
-eststo: reg WTPdiabetes   `con' `cnd'
-eststo: reg WTPdifference `con' `cnd'
 
 local cnd if age>=25&age<=45&sex==1&WTPcheck==2&marst==1
 eststo: reg WTPsob        `con' `cnd'
-eststo: reg WTPdiabetes   `con' `cnd'
-eststo: reg WTPdifference `con' `cnd'
 #delimit ;
-esttab est1 est4  using "$OUT/`f'/TeacherParentWTPSure_conMarried.tex", replace
+esttab est1 est2  using "$OUT/`f'/TeacherParentWTPSure_conMarried.tex", replace
 `estopt' booktabs mlabels(, depvar)
 keep(`con')
 mgroups("Both Genders" "Women Only",
@@ -1113,6 +1166,55 @@ postfoot("\bottomrule\multicolumn{3}{p{8.4cm}}{\begin{footnotesize} The main est
 #delimit cr
 estimates clear
 
+lab var SOBlucky "Luck"
+lab var SOBtax   "Tax"
+lab var SOBbirth "Birthdays"
+lab var SOBjobs  "Jobs"
+lab var SOBschoo "School"
+lab var SOBmheal "M Health"
+lab var SOBcheal "C Health"
+
+
+local cnd if age>=25&age<=45&WTPcheck==2&marst==1
+local con parent teacher parentTeacher age ageSq highEduc hispanic 
+eststo: reg SOBlucky   `con' `cnd'
+eststo: reg SOBtax     `con' `cnd'
+eststo: reg SOBbirthda `con' `cnd'
+eststo: reg SOBjobs    `con' `cnd'
+eststo: reg SOBschool  `con' `cnd'
+eststo: reg SOBmhealth `con' `cnd'
+eststo: reg SOBchealth `con' `cnd'
+#delimit ;
+esttab est1 est2 est3 est4 est5 est6 est7  using "$OUT/`f'/TeacherParentReasons.tex", 
+replace `estopt' booktabs mlabels(, depvar) keep(`con')
+title("MTurk: Reasons for SOB -- Parents and Teachers (Both Genders)")
+postfoot("\bottomrule\multicolumn{8}{p{15.8cm}}{\begin{footnotesize} The main estimation "
+         " sample is used, augmented with non-parents aged 25-45. The importance of each"
+         " reason is ranked between 1 and 10, with 1 being not important at all, and 10 "
+         "being very important."
+         "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
+#delimit cr
+estimates clear
+
+local cnd if age>=25&age<=45&sex==1&WTPcheck==2&marst==1
+eststo: reg SOBlucky   `con' `cnd'
+eststo: reg SOBtax     `con' `cnd'
+eststo: reg SOBbirthda `con' `cnd'
+eststo: reg SOBjobs    `con' `cnd'
+eststo: reg SOBschool  `con' `cnd'
+eststo: reg SOBmhealth `con' `cnd'
+eststo: reg SOBchealth `con' `cnd'
+#delimit ;
+esttab est1 est2 est3 est4 est5 est6 est7  using "$OUT/`f'/TeacherParentReasonsF.tex", 
+replace `estopt' booktabs mlabels(, depvar) keep(`con')
+title("MTurk: Reasons for SOB -- Parents and Teachers (Women Only)")
+postfoot("\bottomrule\multicolumn{8}{p{15.8cm}}{\begin{footnotesize} Women from the main"
+         " estimation sample are used, augmented with non-parents aged 25-45."
+         "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
+#delimit cr
+estimates clear
+
+
 
 
 preserve
@@ -1123,27 +1225,26 @@ lab var WTPdif "WTP"
 
 local ages age ageSq
 local educ highEduc
-local ctls married hispanic
+local ctls hispanic 
 if `nomh'==1 local ctls hispanic
 
 
-*XXX: S19
 local cond if age>=25&age<=45&race==11&WTPcheck==2&occ!=18&marst==1
-eststo: reg WTPsob teacher               `cond'
-eststo: reg WTPsob teacher `ages'        `cond'
-eststo: reg WTPsob teacher `educ'        `cond'
-eststo: reg WTPsob teacher `ages' `educ' `ctlsM' `cond'
+eststo: reg WTPsob teacher `ctls'               `cond'
+eststo: reg WTPsob teacher `ctls' `ages'        `cond'
+eststo: reg WTPsob teacher `ctls' `educ'        `cond'
+eststo: reg WTPsob teacher `ctls' `ages' `educ' `ctlsM' `cond'
 
 local cond if age>=25&age<=45&race==11&sex==1&WTPcheck==2&occ!=18&marst==1
-eststo: reg WTPsob teacher               `cond'
-eststo: reg WTPsob teacher `ages'        `cond'
-eststo: reg WTPsob teacher `educ'        `cond'
-eststo: reg WTPsob teacher `ages' `educ' `ctlsM' `cond'
+eststo: reg WTPsob teacher `ctls'              `cond'
+eststo: reg WTPsob teacher `ctls' `ages'        `cond'
+eststo: reg WTPsob teacher `ctls' `educ'        `cond'
+eststo: reg WTPsob teacher `ctls' `ages' `educ' `ctlsM' `cond'
 
 #delimit ;
 esttab est1 est2 est3 est4 est5 est6 est7 est8 using "$OUT/`f'/TeacherWTP_20-45_SureMarried.tex",
 replace `estopt' booktabs mlabels(, depvar)
-keep(teacher `ages' `educ' `ctlsM')
+keep(teacher `ages' `educ' `ctls')
 mgroups("Both Genders" "Women Only",
         pattern(1 0 0 0 1 0 0 0) prefix(\multicolumn{@span}{c}{) suffix(}) span
         erepeat(\cmidrule(lr){@span}))
