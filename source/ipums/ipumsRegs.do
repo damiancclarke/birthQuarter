@@ -72,13 +72,56 @@ gen motherAge2      = motherAge*motherAge/100
 lab var motherAge       "Mother's Age"
 lab var motherAge2      "Mother's Age$^2$ / 100"
 
-exit
+
 ********************************************************************************
 *** (3-z) regressions: State and Year
 ********************************************************************************
+preserve
+gen teachers     = twoLevelOcc=="Education, Training, and Library Occupations"
+gen teachWage    = incwage if teachers==1
+gen nonteachWage = incwage if teachers==0
+bys state year: egen meanTeachWage    = mean(teachWage)
+bys state year: egen meanNonteachWage = mean(nonteachWage)
+gen respond = 1
 
-    
+local cvar coldLag hotLag meanTLag unemployment teachers meanTeachWage meanNonteachWage
+collapse goodQuarter `cvar' (sum) respond, by(state year)
+bys state: egen population = mean(respond)
+replace population = round(population)
+encode state, gen(scode)
+xtset scode year
+local cva1 coldLag hotLag meanTLag unemployment teachers
 
+eststo: xtreg goodQuarter `cva1' [pw=population], fe robust
+eststo: xtreg goodQuarter `cva1' i.year [pw=population], fe robust
+eststo: xtreg goodQuarter `cvar' [pw=population], fe robust
+eststo: xtreg goodQuarter `cvar' i.year [pw=population], fe robust
+
+eststo: xtreg goodQuarter `cva1', fe robust
+eststo: xtreg goodQuarter `cvar', fe robust
+eststo: xtreg goodQuarter `cva1' i.year, fe robust
+eststo: xtreg goodQuarter `cvar' i.year, fe robust
+
+#delimit ;
+esttab est1 est2 est3 est4 using "$OUT/stateRegression.tex", replace
+`estopt' booktabs mlabels(, depvar) keep(`cvar')
+mgroups("Unweighted" "Respondent Weights", pattern(1 0 0 0 1 0 0 0)
+        prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
+title("Season of Birth Averages by State"\label{tab:IPUMSInc})
+postfoot("Stat FE & Y & Y & Y & Y & Y & Y & Y & Y \\                      "
+         "Year FE &   & Y &   & Y &   & Y &   & Y \\                      "
+         "\bottomrule\multicolumn{8}{p{24.8cm}}{\begin{footnotesize} Main "
+         "ACS estimation sample is used augmented. Teacher refers to      "
+         "occupational codes 2250-2500 (teachers, librarians and          "
+         "educational occupations). Wage refers to wage income in the past"
+         "12 months, and are measured in dollars per year. Temperature and"
+         "unemployment vary by state and year. `enote'"
+         "\end{footnotesize}}\end{tabular}\end{table}") style(tex);
+#delimit cr
+
+estimates clear
+restore
+exit
 ********************************************************************************
 *** (3a) regressions: Birth Quarter
 ********************************************************************************
