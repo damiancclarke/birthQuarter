@@ -16,6 +16,7 @@ cap log close
 ********************************************************************************
 *** (1) Globals and locals
 ********************************************************************************
+local nohisp 0
 global ACS "~/investigacion/2015/birthQuarter/data/raw"
 global UNE "~/investigacion/2015/birthQuarter/data/employ"
 global OCC "~/investigacion/2015/birthQuarter/data/occup"
@@ -31,7 +32,9 @@ local data noallocatedagesexrelate_children__withmother_bio_reshaped_2005_2014
 ********************************************************************************
 use "$ACS/`data'"
 keep if (bpl1<150 & firstborn_1==1) | (bpl2<150 & firstborn_1==0)
-keep if race==1 & hispan==0 
+keep if race==1
+if `nohisp'==1 keep if hispan==0
+gen hispanic = hispan!=0
 keep if school==1
 keep if ((nchild==1)|(nchild==2 & twins==1)|(nchild==2&twins==0&firstborn_1==0))
 keep if age>19&age<46
@@ -115,6 +118,7 @@ replace state= "Washington DC" if expanded==1
 drop expanded
 keep if year>1997&year<=1999
 
+
 destring temp, replace
 reshape wide temp, i(state fips year month) j(type) string
 gen birthQuarter = ceil(month/3)
@@ -147,6 +151,7 @@ foreach sname of local snam {
     replace stateabbrev="`1'" if state=="`sname'"
     macro shift
 }
+
 collapse meanT (min) cold (max) hot, by(state fips stateabb)
 rename state stateTemp
 rename fips  fipsTemp
@@ -156,6 +161,64 @@ save `temperature'
 restore
 
 merge m:1 stateabbrev using `temperature'
+** All except for 208 observations merge from IPUMS data.
+** 208 obs are from Hawaii, where no temperature data, so _merge==1
+** Observations with _merge==2 is because temperature data goes back a long way
+drop if _merge==2
+drop _merge
+
+preserve
+insheet using "$USW/usaWeather.txt", delim(";") names clear
+expand 2 if fips == 24, gen(expanded)
+replace fips = 11 if expanded==1
+replace state= "Washington DC" if expanded==1
+drop expanded
+keep if year>2003&year<=2013
+replace year=year+1
+
+destring temp, replace
+reshape wide temp, i(state fips year month) j(type) string
+gen birthQuarter = ceil(month/3)
+rename temptmpcst meanT
+rename temptminst cold
+rename temptmaxst hot
+
+
+#delimit ;
+local stat AK AL AR AZ CA CO CT DC DE FL GA HI IA ID IL IN KS KY LA MA MD ME
+           MI MN MO MS MT NC ND NE NH NJ NM NV NY OH OK OR PA RI SC SD TN TX
+           UT VA VT WA WI WV WY;
+local snam " `"Alaska"' `"Alabama"' `"Arkansas"' `"Arizona"' `"California"'
+             `"Colorado"' `"Connecticut"' `"Washington DC"' `"Delaware"'
+             `"Florida"' `"Georgia"' `"Hawaii"' `"Iowa"' `"Idaho"' `"Illinois"'
+             `"Indiana"' `"Kansas"' `"Kentucky"' `"Louisiana"' `"Massachusetts"'
+             `"Maryland"' `"Maine"' `"Michigan"' `"Minnesota"' `"Missouri"'
+             `"Mississippi"' `"Montana"' `"North Carolina"' `"North Dakota"'
+             `"Nebraska"' `"New Hampshire"' `"New Jersey"' `"New Mexico"'
+             `"Nevada"' `"New York"' `"Ohio"' `"Oklahoma"' `"Oregon"'
+             `"Pennsylvania"' `"Rhode Island"' `"South Carolina"'
+             `"South Dakota"' `"Tennessee"' `"Texas"' `"Utah"' `"Virginia"'
+             `"Vermont"' `"Washington"' `"Wisconsin"' `"West Virginia"'
+             `"Wyoming"'";
+#delimit cr
+tokenize `stat'
+gen stateabbrev = ""
+foreach sname of local snam {
+    dis "`1' <--> `sname'"
+    replace stateabbrev="`1'" if state=="`sname'"
+    macro shift
+}
+
+collapse meanT (min) cold (max) hot, by(stateabb year)
+keep stateabbrev year meanT cold hot
+rename meanT meanTLag
+rename cold coldLag
+rename hot  hotLag
+
+save `temperature', replace
+restore
+
+merge m:1 stateabbrev year using `temperature'
 ** All except for 208 observations merge from IPUMS data.
 ** 208 obs are from Hawaii, where no temperature data, so _merge==1
 ** Observations with _merge==2 is because temperature data goes back a long way
@@ -276,11 +339,15 @@ lab var meanT        "Average monthly temperature in state"
 lab var cold         "Coldest monthly temperature in state"
 lab var hot          "Warmest monthly temperature in state"
 lab var GoldinClass  "Occupation grouping from Goldin (2014)"
-
+lab var hispanic     "Hispanic"
+lab var meanTLag     "Time varying average monthly temperature in state (1 lag)"
+lab var coldLag      "Time varying coldest monthly temperature in state (1 lag)"
+lab var hotLag       "Time varying warmest monthly temperature in state (1 lag)"
 
 lab dat "ACS data from 2005-2014 with temp, occupation and employment (DCC)"
 ********************************************************************************
 *** (7) Save, close
 ********************************************************************************
-save "$ACS/ACS_20052014_cleaned", replace
+if `nohisp'==1 save "$ACS/ACS_20052014_cleaned", replace
+if `nohisp'==0 save "$ACS/ACS_20052014_cleaned_hisp", replace
 log close
