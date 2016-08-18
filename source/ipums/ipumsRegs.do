@@ -252,7 +252,7 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
 #delimit cr
 estimates clear
 
-
+exit
 ********************************************************************************
 *** (3e-i) regressions: industry by temp
 ********************************************************************************
@@ -1445,6 +1445,27 @@ note("Total Observations (All Occupations) = `SN'");
 graph export "$GRA/birthsOccupation2.eps", as(eps) replace;
 #delimit cr
 restore
+
+replace occAlt2 = 4 if twoL=="Unemployed"
+preserve
+count if occAlt!=.
+local SN = r(N)
+collapse (sum) birth, by(birthQuarter occAlt2)
+drop if occAlt == .
+bys occAlt: egen totalbirth = sum(birth)
+gen birthProportion = birth/totalbirth
+
+
+#delimit ;
+graph bar birthProportion, over(birthQuar, relabel(1 "Q1" 2 "Q2" 3 "Q3" 4 "Q4"))
+over(occAlt, relabel(1 "Education" 2 "Significant" 3 "Sciences" 4 "No Work Experience"))
+scheme(s1mono) exclude0 ytitle("Proportion of Births in Quarter")
+yline(0.25, lpattern(dash) lcolor(red))
+note("Total Observations (All Occupations) = `SN'"); 
+graph export "$GRA/birthsOccupation_NoWork.eps", as(eps) replace;
+#delimit cr
+restore
+exit
 
 preserve
 cap gen tsplit = cold<23    
