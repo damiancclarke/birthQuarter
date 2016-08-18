@@ -72,7 +72,13 @@ gen motherAge2      = motherAge*motherAge/100
 lab var motherAge       "Mother's Age"
 lab var motherAge2      "Mother's Age$^2$ / 100"
 
-/*
+exit
+********************************************************************************
+*** (3-z) regressions: State and Year
+********************************************************************************
+
+    
+
 ********************************************************************************
 *** (3a) regressions: Birth Quarter
 ********************************************************************************
@@ -166,7 +172,7 @@ postfoot("F-test of Age Variables&0`F4'&0`F3'&0`F2'&0`F1' \\                   "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-*/
+
 ********************************************************************************
 *** (3e) regressions: industry
 ********************************************************************************
@@ -359,7 +365,7 @@ estimates clear
 
 gen logInc = log(hhincome)
 lab var logInc "log(household income)"
-local inc logInc highEduc
+local inc logInc `edu'  
 
 eststo: areg goodQuarter `age' `inc' `une' _year* `lv3' `wt', `se' `abs'
 ds _occ*
@@ -400,7 +406,7 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-/*
+
 ********************************************************************************
 *** (3e-ii) regressions: industry -- weeks worked
 ********************************************************************************
@@ -525,7 +531,7 @@ postfoot("Occupation Codes (level) &-&2&3\\                                    "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-*/
+
 ********************************************************************************
 *** (3f) regressions: Teachers
 ********************************************************************************
@@ -585,7 +591,7 @@ postfoot("F-test of Age Variables &  &    &     &     &0`F2'\\                  
 #delimit cr
 estimates clear
 
-/*
+
 local se robust
 preserve
 keep if motherAge>=28&motherAge<=31
@@ -683,7 +689,7 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\ Occupation FE&&&&&Y\\ \bottomrule       "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-*/
+
 
 ********************************************************************************
 *** (4) Sumstats of good season by various levels
@@ -1365,7 +1371,7 @@ foreach hS in Alabama Arkansas Arizona {
     graph export "$GRA/birthQuarter`hS'Wisconsin_old.eps", as(eps) replace;
     #delimit cr
 }
-
+*/
 ********************************************************************************
 *** (7) Occupations
 ********************************************************************************
@@ -1418,7 +1424,7 @@ gen sigOccs =_2occ6==1|_2occ8==1|_2occ9==1|_2occ13==1|_2occ14==1|_2occ15==1
 
 generat occAlt2 = 1 if twoL=="Education, Training, and Library Occupations"
 replace occAlt2 = 2 if sigOccs==1
-replace occAlt2 = 3 if twoL=="Architecture and Engineering Occupations"
+replace occAlt2 = 3 if twoL=="Life, Physical, and Social Science Occupations"
 
 
 preserve
@@ -1432,7 +1438,7 @@ gen birthProportion = birth/totalbirth
 
 #delimit ;
 graph bar birthProportion, over(birthQuar, relabel(1 "Q1" 2 "Q2" 3 "Q3" 4 "Q4"))
-over(occAlt, relabel(1 "Education" 2 "Significant" 3 "Architecture/Engineering"))
+over(occAlt, relabel(1 "Education" 2 "Significant" 3 "Life/Physical/Soc Science"))
 scheme(s1mono) exclude0 ytitle("Proportion of Births in Quarter")
 yline(0.25, lpattern(dash) lcolor(red))
 note("Total Observations (All Occupations) = `SN'"); 
@@ -1457,21 +1463,22 @@ gen birthProportion = birth/totalbirth
 #delimit ;
 graph bar birthProportion if tsplit==1, yline(0.25, lpattern(dash) lcolor(red))
 over(birthQuar, relabel(1 "Q1" 2 "Q2" 3 "Q3" 4 "Q4"))
-over(occAlt, relabel(1 "Education" 2 "Significant" 3 "Architecture/Engineering"))
+over(occAlt, relabel(1 "Education" 2 "Significant" 3 "Life/Physical/Soc Science"))
 scheme(s1mono) exclude0 ytitle("Proportion of Births in Quarter")
 ylabel(0.22(0.02)0.3) note("Total Observations (All Occupations) = `SN1'"); ; 
 graph export "$GRA/birthsOccupation_cold.eps", as(eps) replace;
 
 graph bar birthProportion if tsplit==0, yline(0.25, lpattern(dash) lcolor(red))
 over(birthQuar, relabel(1 "Q1" 2 "Q2" 3 "Q3" 4 "Q4"))
-over(occAlt, relabel(1 "Education" 2 "Significant" 3 "Architecture/Engineering"))
+over(occAlt, relabel(1 "Education" 2 "Significant" 3 "Life/Physical/Soc Science"))
 scheme(s1mono) exclude0 ytitle("Proportion of Births in Quarter")
 ylabel(0.22(0.02)0.3) note("Total Observations (All Occupations) = `SN2'"); 
 graph export "$GRA/birthsOccupation_warm.eps", as(eps) replace;
 
 #delimit cr
 restore
-
+dis "hello"
+exit
 
 cap mkdir "$GRA/occ"
 
