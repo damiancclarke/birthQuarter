@@ -155,7 +155,7 @@ Season of birth is a choice made \emph{entirely before} (and perhaps well before
 \frametitle{Data}
 \begin{itemize}
 \item \textbf{National Vital Statistics System (NVSS)}: 2005-2013
-\item Main analysis: Singleton first births born to White Non-Hispanic married women in the US 20(25)-45 years old (\hyperlink{ageHist}{\textcolor{blue}{selection?}}).
+\item Main analysis: Singleton first births born to White (and Hispanic) married women in the US 20(25)-45 years old (\hyperlink{ageHist}{\textcolor{blue}{selection?}}).
 \begin{itemize}
 \item First births: higher-order births also involve the additional decision of birth spacing and the role of experience (does planning improve with higher-order pregnancies?)
 %\item Additional material (not here): using second-births, including twins, fetal deaths, etc.
@@ -382,7 +382,7 @@ ART clinics do not offer complex fertility treatments such as IVF or embryo tran
 \end{frame}
 
 
-\begin{frame}
+\begin{frame}[label=MMain]
   \begin{center}
     \textbf{Results II: Willingness to Pay in Stated Survey Data}
   \end{center}
@@ -397,7 +397,8 @@ ART clinics do not offer complex fertility treatments such as IVF or embryo tran
   \item Reasons
   \item Willingness to pay for desired SOB
   \item No restrictions on respondent characteristics
-  \item \textcolor[rgb]{1.00,0.00,0.00}{Analysis based on first wave}
+  %\item \textcolor[rgb]{1.00,0.00,0.00}{Analysis based on first wave}
+  \item \hyperlink{MSum}{\textcolor{blue}{Full summary statistics}}   
   \end{itemize}
 \end{frame}
 
@@ -426,6 +427,7 @@ ART clinics do not offer complex fertility treatments such as IVF or embryo tran
 \end{frame}
 
 \setcounter{figure}{7}
+
 \begin{frame}[label=MTurkCover]
   \frametitle{MTurk Coverage (geographic)}
   \begin{figure}[htpb!]
@@ -439,6 +441,29 @@ ART clinics do not offer complex fertility treatments such as IVF or embryo tran
   %\hyperlink{MTurk}{\beamerreturnbutton{Back}}
 \end{frame}
 
+\begin{frame}[label=MTurkCover3]
+  \frametitle{MTurk Coverage (fertility)}
+  \begin{figure}[htpb!]
+    \begin{center}
+      \centering
+      \caption{Number of Children (MTurk and NVSS)}
+      \includegraphics[scale=0.6]{./../results/MTurk/main/descriptives/nchild.eps}
+    \end{center}
+  \end{figure}
+  \vspace{-5mm}
+  %\hyperlink{MTurk}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}
+  \frametitle{MTurk Births and Administrative Births}
+  \begin{figure}[htpb!]
+  \begin{center}
+    \caption{Birth Months from MTurk Respondents and the NVSS}
+    \label{fig:compBmonth}
+    \includegraphics[scale=0.7]{./../results/MTurk/main/descriptives/birthsMonth.eps}
+  \end{center}
+\end{figure}
+\end{frame}
 
 \begin{frame}[label=MTurkCover2]
   \frametitle{MTurk Coverage (by observable measures)}
@@ -465,30 +490,6 @@ ART clinics do not offer complex fertility treatments such as IVF or embryo tran
 \end{frame}
 
 
-\begin{frame}[label=MTurkCover3]
-  \frametitle{MTurk Coverage (fertility)}
-  \begin{figure}[htpb!]
-    \begin{center}
-      \centering
-      \caption{Number of Children (MTurk and NVSS)}
-      \includegraphics[scale=0.6]{./../results/MTurk/main/descriptives/nchild.eps}
-    \end{center}
-  \end{figure}
-  \vspace{-5mm}
-  %\hyperlink{MTurk}{\beamerreturnbutton{Back}}
-\end{frame}
-
-\begin{frame}
-  \frametitle{MTurk Births and Administrative Births}
-  \begin{figure}[htpb!]
-  \begin{center}
-    \caption{Birth Months from MTurk Respondents and the NVSS}
-    \label{fig:compBmonth}
-    \includegraphics[scale=0.7]{./../results/MTurk/main/descriptives/birthsMonth.eps}
-  \end{center}
-\end{figure}
-\end{frame}
-
 \begin{frame}
   \frametitle{Willingness to Pay Descriptives}
     \input{./tables/SOBDiabsum-tvals-parents2545bMarried.tex}
@@ -502,6 +503,12 @@ ART clinics do not offer complex fertility treatments such as IVF or embryo tran
 \begin{frame}
   \frametitle{Willingness to Pay, Teachers and Parents}
     \input{./tables/TeacherParentWTPSure_conMarried.tex}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Why Target Season of Birth?}
+  Suggestive evidence from main sample of birth season targeters.
+  \input{./tables/reasonsAll.tex}
 \end{frame}
 
 
@@ -564,13 +571,13 @@ ART clinics do not offer complex fertility treatments such as IVF or embryo tran
 \end{frame}
 
 \begin{frame}
-\frametitle{Alternative explanations?}
+\frametitle{Discussion}
 \begin{itemize}
-\item Birth seasonality pattern inconsistent with marriage seasonality timing (Lam et al., 1999): inconsistent with Honeymoon effects
-\item Birth seasonality pattern linked to seasonality at which women stop contracepting (Rodgers and Udry,  1998)
-\item Women on average take 6 months to get pregnant after stopping contracepting: our estimates provide lower bounds
-\item The observed seasonality patterns cannot be explained by the fact that the sperm is better in Winter and early Spring (Levitas et al., 2013)
-\item Winter months may be tougher birth months because of \underline{cold} weather and \underline{higher disease} prevalence (Buckles and Hungerman, 2013; Currie and Schwandt, 2013).  However, very hard to justify the multiple gradients in age, occupation, ART\ldots
+\item Season of birth is a matter of choice/preferences above and beyond biology.
+\item It is difficult to reconcile the stylised facts documented here with competing explanations, especially when these explanations are constant throughout the US, or across industries (eg influenza)
+\item Mothers who can respond to incentives, do respond to incentives, and these incentives are not universally for one quarter
+\item Even conditional exogeneity-type assumptions are likely to fail
+\item The selection into season of birth is important: multitude links to later life health and socioeconomic outcomes
 \end{itemize}
 \end{frame}
 
@@ -584,6 +591,16 @@ ART clinics do not offer complex fertility treatments such as IVF or embryo tran
 \end{figure}
 \end{frame}
 
+\begin{frame}
+\frametitle{Alternative explanations?}
+\begin{itemize}
+\item Birth seasonality pattern inconsistent with marriage seasonality timing (Lam et al., 1999): inconsistent with Honeymoon effects
+\item Birth seasonality pattern linked to seasonality at which women stop contracepting (Rodgers and Udry,  1998)
+\item Women on average take 6 months to get pregnant after stopping contracepting: our estimates provide lower bounds
+\item The observed seasonality patterns cannot be explained by the fact that the sperm is better in Winter and early Spring (Levitas et al., 2013)
+\item Winter months may be tougher birth months because of \underline{cold} weather and \underline{higher disease} prevalence (Buckles and Hungerman, 2013; Currie and Schwandt, 2013).  However, very hard to justify the multiple gradients in age, occupation, ART\ldots
+\end{itemize}
+\end{frame}
 
 \begin{frame}
 \hypertarget{robustness}{}
@@ -597,16 +614,6 @@ ART clinics do not offer complex fertility treatments such as IVF or embryo tran
 \item Controlling for household income (Table 8A)
 \item Using wage income instead of earned income (Table 9A)
 \item Including unmarried mothers (Section B in the online appendix)
-\end{itemize}
-\end{frame}
-
-\begin{frame}
-\frametitle{Discussion}
-\begin{itemize}
-\item Season of birth is a matter of choice/preferences above and beyond biology.
-\item It is difficult to reconcile the stylised facts documented here with competing explanations, especially when these explanations are constant throughout the US, or across industries (eg influenza)
-\item Mothers who can respond to incentives, do respond to incentives, and these incentives are not universally for one quarter
-\item Even conditional exogeneity-type assumptions are likely to fail
 \end{itemize}
 \end{frame}
 
@@ -709,7 +716,7 @@ This looks like a constrained choice, or \underline{demand for season of birth}.
 \begin{itemize}
 \item We observe a \emph{Revealed Preference} for spring/summer births in the universe of births
 \item We observe an \emph{Explicitly Stated Preference} for these births in new survey data
-\item Ongoing work: How do we remove priming effects to confirm preferences?
+%\item Ongoing work: How do we remove priming effects to confirm preferences?
 \end{itemize}
 \end{frame}
 
@@ -764,6 +771,19 @@ This looks like a constrained choice, or \underline{demand for season of birth}.
 \hyperlink{Data}{\beamerreturnbutton{Back}}
 \end{frame}
 
+\begin{frame}[label=MSum]
+  \begin{table}[htpb!]
+    \caption{Summary of MTurk Variables (Full Sample)}
+    \scalebox{0.55}{
+    \begin{tabular}{lccccc} \toprule
+      \input{./tables/MTurkSum.tex}
+      \bottomrule
+      \multicolumn{6}{p{13.8cm}}{{\footnotesize\textsc{Notes:} Full sample consists of 3,003 respondents.  The total number of respondents who have had a child is 1,234.  Women over the age of 49 (259 respondents) were not asked questions about pregnancy status and desired future fertility.  The remaining 2,744 respondents were asked these questions.  When the respondent is male, responses refer to the pregnancy of their partner (if present).}}
+    \end{tabular}}
+  \end{table}
+\hyperlink{MMain}{\beamerreturnbutton{Back}}  
+\end{frame}
+
 
 
 \begin{frame}
@@ -815,7 +835,7 @@ variables are all binary measures. F-test of age variables refers to the p-value
                     & Good Season   & Good Season   & Good Season   & Good Season   \\
 \midrule
 Mother's Age (years)&       0.007***&       0.005***&       0.005***&       0.005***\\
-                    &     [0.001]   &     [0.001]   &     [0.001]   &     [0.001]   \\
+&     [0.001]   &     [0.001]   &     [0.001]   &     [0.001]   \\
 Mother's Age$^2$ / 100&      -0.012***&      -0.011***&      -0.010***&      -0.010***\\
                     &     [0.002]   &     [0.002]   &     [0.002]   &     [0.002]   \\
 Smoked in Pregnancy &               &               &      -0.015***&      -0.014***\\
@@ -920,6 +940,22 @@ full set of variables included in the birth files, so education and
 
 
 \end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 \begin{frame}
 \frametitle{Season of birth as a choice variable: available info?}
