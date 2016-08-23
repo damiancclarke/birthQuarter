@@ -1,0 +1,5 @@
+Gender,Boy,Girl
+Premature?,Yes,No
+Monetary costs not covered by health insurance,0,50,100,250,500,1000,2500,5000,10000
+Season of Birth, January February March,April May June,July August September, October November December
+Day of Birth, Weekday, Weekend
