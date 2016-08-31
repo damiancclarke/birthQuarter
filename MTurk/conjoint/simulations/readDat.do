@@ -47,11 +47,11 @@ foreach n of numlist 1(1)5{
     replace dob_p         = `n'   if q`n'=="Day of Birth"
 }
 rename qid chooses
-drop q*
+drop q* mturkcode
 
     
 destring cost, replace
-gen chosen = (chooses=="Choice 1"&option==1)|(chooses=="Choice 2"&option==2)
+gen chosen = (chooses=="Birth Outcome 1"&option==1)|(chooses=="Birth Outcome 2"&option==2)
 
 lab dat "Simulated data with no patterns"
 save "simulatedBase_1000", replace
