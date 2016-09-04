@@ -17,22 +17,33 @@ global OUT "~/investigacion/2015/birthQuarter/data/survey/conjoint"
 
 cap mkdir $OUT
 
-use "$DAT/BirthSurvey", clear
+
+********************************************************************************
+*** (2) Import
+********************************************************************************
+insheet using "$DAT/MTurk_returned_Principal.csv", delimit(";") names clear
+replace approve = "839884" if regexm(approve,"839884,")==1
+drop if approve=="A2I2L0WL1UTLTM"
+drop if regexm(approve,"facebook")==1
+drop if approve=="sfkhalf74heuiuew284d"
+drop if approve=="{}"
+
+destring approve, gen(qualtricsCode)
+merge 1:m qualtricsCode using "$DAT/BirthSurvey"
+
 keep if completed==1
 keep if educ==educ_check
 gen age      = 2016-birthyr
 gen ageBirth = cbirthyr-birthyr
 
 replace ageBirth = age if ageBirth==.
-replace ageBirth = .   if  plankids ==2
 
-count if ageBirth>=25&ageBirth<=45&race==11&occ!=18&marst==1
-
+count if ageBirth>=25&ageBirth<=45&race==11&occ!=18&marst==1&qualtricsCode!=.
 keep if  ageBirth>=25&ageBirth<=45&race==11&occ!=18&marst==1
 
-keep qualtricsid educ birthyr state address ipaddress
+keep qualtricsid workerid assignmentstatus educ birthyr state address ipaddress
 
 save $OUT/surveyComparison, replace
 
-keep qualtricsid
+keep assignmentstatus
 outsheet using "$OUT/qualification.csv", comma replace
