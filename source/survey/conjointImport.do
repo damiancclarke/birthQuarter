@@ -21,7 +21,7 @@ log using "$LOG/conjointImport.do", text replace
 *-------------------------------------------------------------------------------
 *-- (2) Import
 *-------------------------------------------------------------------------------
-insheet using "$DAT/conjointResponseA.csv", delim(";") names clear
+insheet using "$DAT/conjointResponseD.csv", delim(";") names clear
 gen ID = _n
 
 rename qid17    respAgrees
@@ -84,5 +84,15 @@ gen chosen = (chooses==">Scenario 1</span>"&option==1)|(chooses==">Scenario 2</s
 *-------------------------------------------------------------------------------
 *-- (3) Export
 *-------------------------------------------------------------------------------
-lab dat "First 29 responses to conjoint analysis"
+lab dat "First 358 responses to conjoint analysis"
 save "$DAT/conjointBase", replace
+
+*-------------------------------------------------------------------------------
+*-- (4) Merge to qualtrics
+*-------------------------------------------------------------------------------
+insheet using "$DAT/Batch_PART-A.csv", delim(";") names clear
+rename answersurveycode mturkcode
+merge 1:m mturkcode using "$DAT/conjointBase"
+
+
+save "$DAT/conjointBase", replace 
