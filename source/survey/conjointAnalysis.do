@@ -28,9 +28,11 @@ tab birthweight, gen(_bwt)
 tab sob        , gen(_sob)
 tab dob        , gen(_dob)
 
-drop _gend1 _cost4 _bwt2 _sob5 _dob1
+drop _gend1 _cost5 _bwt2 _sob5 _dob1
+rename _cost1 _costx
+rename _cost4 _cost1
 rename _cost3 _cost4
-rename _cost1 _cost3
+rename _costx _cost3
 rename _cost2 _cost11
 rename _cost10 _cost2
 rename _cost11 _cost10
@@ -55,10 +57,19 @@ rename _sob10 _sobx
 rename _sob11 _sob10
 rename _sobx _sob11
 
+gen Q2 = sob=="April"  |sob=="May"     |sob=="June"
+gen Q3 = sob=="July"   |sob=="August"  |sob=="September"
+gen Q4 = sob=="October"|sob=="November"|sob=="December"
 *-------------------------------------------------------------------------------
 *--- (3) Estimate
 *-------------------------------------------------------------------------------
-reg chosen _gend* _cost* _bwt* _sob* _dob* i.round i.option, cluster(ID)
+local oFEs i.round i.option
+local qFEs i.cost_position i.birthweight_position i.gender_p i.sob_p i.dob_p
+local eFEs i.n1 i.n2 i.n3 i.n4 i.n5
+
+gen age = 2016-respYOB
+order _sob2 _sob3 _sob4 _sob5 _sob6 _sob7 _sob8 _sob9 _sob10 _sob11 _sob12
+reg chosen `oFEs' `qFEs' _gend* _cost* _bwt* _sob* _dob*, cluster(ID)
 
 gen Est = .
 gen UB  = .
@@ -84,7 +95,7 @@ foreach var of local vars {
     }
     else if `i'==4|`i'==16|`i'==28|`i'==42|`i'==46 {
     }
-    else if `i'==2|`i'==6|`i'==18|`i'==30|`i'==44 {
+    else if `i'==2|`i'==10|`i'==18|`i'==30|`i'==44 {
         qui replace Est = 0 in `i'
         qui replace UB  = 0 in `i'
         qui replace LB  = 0 in `i'
@@ -99,13 +110,13 @@ foreach var of local vars {
 
 
 replace Y = -Y
-lab def names -1 "GENDER" -2 "Male" -3 "Female" -4 " " -5 "COST" -6 "250" -7 "750"  /*
+lab def names -1 "Gender" -2 "Male" -3 "Female" -4 " " -5 "Cost" -6 "250" -7 "750"  /*
 */ -8 "1000" -9 "2000" -10 "3000" -11 "4000" -12 "5000" -13 "6000" -14 "7500"       /*
-*/ -15 "10000" -16 " " -17 "BIRTH WEIGHT" -18 "6lbs, 9oz" -19 "6lbs, 13oz"          /*
+*/ -15 "10000" -16 " " -17 "Birth Weight" -18 "6lbs, 9oz" -19 "6lbs, 13oz"          /*
 */ -20 "7lbs, 0oz" -21 "7lbs, 4oz" -22 "7lbs, 7oz" -23 "7lbs, 11oz" -24 "7lbs, 15oz"/*
-*/ -25 "8lbs, 2oz" -26 "8lbs, 6oz" -27 "8lbs, 9oz" -28 " " -29 "MONTH OF BIRTH"     /*
+*/ -25 "8lbs, 2oz" -26 "8lbs, 6oz" -27 "8lbs, 9oz" -28 " " -29 "Month of Birth"     /*
 */ -30 "Jan" -31 "Feb" -32 "Mar" -33 "Apr" -34 "May" -35 "June" -36 "Jul" -37 "Aug" /*
-*/ -38 "Sep" -39 "Oct" -40 "Nov" -41 "Dec" -42 " " -43 "DAY OF BIRTH" -44 "Weekday" /*
+*/ -38 "Sep" -39 "Oct" -40 "Nov" -41 "Dec" -42 " " -43 "Day of Birth" -44 "Weekday" /*
 */ -45 "Weekend" -46 " "
 lab val Y names
 
@@ -115,8 +126,30 @@ lab val Y names
 #delimit ;
 twoway rcap  LB UB Y in 1/46, horizontal scheme(s1mono) lcolor(black) ||
        scatter Y Est in 1/46, mcolor(black) msymbol(oh) mlwidth(thin)
-xline(0, lpattern(dash) lcolor(gs7)) ylabel(-1(-1)-44, valuelabel angle(0))
+xline(0, lpattern(dash) lcolor(gs7)) ylabel(-1 -5 -17 -29 -43, valuelabel angle(0))
+ymlabel(-2 -3 -4 -6(-1)-16 -18(-1)-28 -30(-1)-42 -44 -45, valuelabel angle(0))
 ytitle("") xtitle("Effect Size (Probability)") legend(off) ysize(8);
 *legend(lab(1 "95% CI") lab(2 "Point Estimate"));
 #delimit cr
 graph export "$OUT/conjointMain.eps", replace  
+
+*-------------------------------------------------------------------------------
+*--- (5) Regressions
+*-------------------------------------------------------------------------------
+gen bwtValues = 3000 if birthweight=="6 pounds 9 ounces"
+replace bwtValues = 3100 if birthweight=="6 pounds 13 ounces"
+replace bwtValues = 3200 if birthweight=="7 pounds 0 ounces"
+replace bwtValues = 3300 if birthweight=="7 pounds 4 ounces"
+replace bwtValues = 3400 if birthweight=="7 pounds 7 ounces"
+replace bwtValues = 3500 if birthweight=="7 pounds 11 ounces"
+replace bwtValues = 3600 if birthweight=="7 pounds 15 ounces"
+replace bwtValues = 3700 if birthweight=="8 pounds 2 ounces"
+replace bwtValues = 3800 if birthweight=="8 pounds 6 ounces"
+replace bwtValues = 3900 if birthweight=="8 pounds 9 ounces"
+gen costValues = subinstr(cost, "$", "", 1)
+replace costValues = subinstr(costValues, ",", "", 1)
+destring costValues, replace
+
+
+clogit chosen bwtValues costValues _sob* _dob* _gend* i.round, cluster(ID) group(ID)
+dis _b[bwtValues]/_b[costValues]
