@@ -58,7 +58,7 @@ rename _sobx _sob11
 *-------------------------------------------------------------------------------
 *--- (3) Estimate
 *-------------------------------------------------------------------------------
-reg chosen _gend* _cost* _bwt* _sob* _dob* i.round, cluster(ID)
+reg chosen _gend* _cost* _bwt* _sob* _dob* i.round i.option, cluster(ID)
 
 gen Est = .
 gen UB  = .
@@ -103,7 +103,7 @@ lab def names -1 "GENDER" -2 "Male" -3 "Female" -4 " " -5 "COST" -6 "250" -7 "75
 */ -8 "1000" -9 "2000" -10 "3000" -11 "4000" -12 "5000" -13 "6000" -14 "7500"       /*
 */ -15 "10000" -16 " " -17 "BIRTH WEIGHT" -18 "6lbs, 9oz" -19 "6lbs, 13oz"          /*
 */ -20 "7lbs, 0oz" -21 "7lbs, 4oz" -22 "7lbs, 7oz" -23 "7lbs, 11oz" -24 "7lbs, 15oz"/*
-*/ -25 "8lbs, 2oz" -26 "8lbs, 6oz" -27 "8lbs, 9oz" -28 " " -29 "SEASON OF BIRTH"    /*
+*/ -25 "8lbs, 2oz" -26 "8lbs, 6oz" -27 "8lbs, 9oz" -28 " " -29 "MONTH OF BIRTH"     /*
 */ -30 "Jan" -31 "Feb" -32 "Mar" -33 "Apr" -34 "May" -35 "June" -36 "Jul" -37 "Aug" /*
 */ -38 "Sep" -39 "Oct" -40 "Nov" -41 "Dec" -42 " " -43 "DAY OF BIRTH" -44 "Weekday" /*
 */ -45 "Weekend" -46 " "
