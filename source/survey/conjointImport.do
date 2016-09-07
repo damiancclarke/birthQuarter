@@ -21,7 +21,7 @@ log using "$LOG/conjointImport.do", text replace
 *-------------------------------------------------------------------------------
 *-- (2) Import
 *-------------------------------------------------------------------------------
-insheet using "$DAT/conjointResponseD.csv", delim(";") names clear
+insheet using "$DAT/conjointResponseE.csv", delim(";") names clear
 gen ID = _n
 
 rename qid17    respAgrees
@@ -84,15 +84,20 @@ gen chosen = (chooses==">Scenario 1</span>"&option==1)|(chooses==">Scenario 2</s
 *-------------------------------------------------------------------------------
 *-- (3) Export
 *-------------------------------------------------------------------------------
-lab dat "First 358 responses to conjoint analysis"
 save "$DAT/conjointBase", replace
 
 *-------------------------------------------------------------------------------
 *-- (4) Merge to qualtrics
 *-------------------------------------------------------------------------------
-insheet using "$DAT/Batch_PART-A.csv", delim(";") names clear
+insheet using "$DAT/conjointMTurk.csv", delim(";") names clear
 rename answersurveycode mturkcode
+replace mturkcode="5643353" if regexm(mturkcode,"5643353")==1
+destring mturkcode, replace
+
 merge 1:m mturkcode using "$DAT/conjointBase"
+keep if _merge==3 //remove 7 surveys that no one has claimed yet on MTurk (repeats?)
+drop _merge
+merge m:1 workerid using "$DAT/firstRoundQualitrcs", force gen(_mergeR1R2)
 
-
+lab dat "First 408 responses to conjoint analysis with round 1 data"
 save "$DAT/conjointBase", replace 
