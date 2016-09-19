@@ -21,6 +21,7 @@ log using "$LOG/conjointAnalysisMain.txt", text replace
 *--- (2) Generate
 *-------------------------------------------------------------------------------
 use "$DAT/conjointBWgroup"
+keep if _mergeMTQT==3
 
 tab gender     , gen(_gend)
 tab cost       , gen(_cost)
@@ -50,7 +51,10 @@ rename _bwt10 _bwt9
 rename _bwt11 _bwt10
 rename _bwtx _bwt11
 rename _sob1 _sob4
-
+gen goodSeason=_sob2==1|_sob3==1
+gen     costNumerical = subinstr(cost,"$","",1)
+replace costNumerical = subinstr(costNumerical,",","",1)
+destring costNumerical, replace
 *-------------------------------------------------------------------------------
 *--- (3) Estimate
 *-------------------------------------------------------------------------------
@@ -59,6 +63,12 @@ local qFEs i.cost_position i.birthweight_position i.gender_p i.sob_p
 local eFEs i.n1 i.n2 i.n3 i.n4
 
 reg chosen `oFEs' `qFEs' _gend* _cost* _bwt* _sob*, cluster(ID)
+reg chosen `oFEs' `qFEs' _gend* _cost* _bwt* goodSeason, cluster(ID)
+reg chosen `oFEs' `qFEs' _gend* _bwt* goodSeason costNumerical, cluster(ID)
+dis _b[goodSeason]/_b[costNumerical]
+reg chosen `oFEs' `qFEs' _gend* _cost* _bwt* _sob*, cluster(ID)
+
+
 
 local Nobs = e(N)
 
@@ -124,11 +134,79 @@ note(Total respondents = `=`Nobs'/14'.  Total profiles = `Nobs'.);
 graph export "$OUT/Conjoint-BwtGroup.eps", replace
 
 
+*-------------------------------------------------------------------------------
+*--- (5) good season
+*-------------------------------------------------------------------------------
+local oFEs i.round i.option
+local qFEs i.cost_position i.birthweight_position i.gender_p i.sob_p 
+local eFEs i.n1 i.n2 i.n3 i.n4
+
+reg chosen `oFEs' `qFEs' _gend* _cost* _bwt* goodSeason, cluster(ID)
+
+drop Est UB LB Y
+gen Est = .
+gen UB  = .
+gen LB  = .
+gen Y   = .
+local i = 1
+local vars GENDER _gend1 _gend2 s COST _cost1 _cost2 _cost3 _cost4 _cost5     /*
+*/ _cost6 _cost7 _cost8 _cost9 _cost10 s BIRTH-WEIGHT _bwt1 _bwt2 _bwt3 _bwt4 /*
+*/ _bwt5 _bwt6 _bwt7 _bwt8 _bwt9 _bwt10 _bwt11 s SEASON-OF_BIRTH _sob1        /*
+*/ goodSeason s
+
+foreach var of local vars {
+    qui replace Y = `i' in `i'
+    if `i'==1|`i'==5|`i'==17|`i'==30 {
+        dis "``i''"
+        dis "`var'"
+    }
+    else if `i'==4|`i'==16|`i'==29|`i'==33 {
+    }
+    else if `i'==2|`i'==10|`i'==18|`i'==31 {
+        qui replace Est = 0 in `i'
+        qui replace UB  = 0 in `i'
+        qui replace LB  = 0 in `i'
+    }
+    else {
+        qui replace Est = _b[`var'] in `i'
+        qui replace UB  = _b[`var']+1.96*_se[`var'] in `i'
+        qui replace LB  = _b[`var']-1.96*_se[`var'] in `i'
+    }
+    local ++i
+}
+    
+
+replace Y = -Y
+lab def names2 -1 "Gender" -2 "Male" -3 "Female" -4 " " -5 "Cost" -6 "250"   /*
+*/ -7 "750" -8 "1000" -9 "2000" -10 "3000" -11 "4000" -12 "5000" -13 "6000" /*
+*/ -14 "7500" -15 "10000" -16 " " -17 "Birth Weight" -18 "5lbs, 8oz"        /*
+*/ -19 "5lbs, 13oz" -20 "6lbs, 3oz" -21 "6lbs, 8oz" -22 "6lbs, 13oz"        /*
+*/ -23 "7lbs, 3oz" -24 "7lbs, 8oz" -25 "7lbs, 13oz" -26 "8lbs, 3oz"         /*
+*/ -27 "8lbs, 8oz" -28 "8lbs, 13oz"  -29 " " -30 "Season of Birth"          /*
+*/ -31 "Bad Season" -32 "Good Season" -33 " "
+lab val Y names2
+
+*-------------------------------------------------------------------------------
+*--- (4) Graph
+*-------------------------------------------------------------------------------
+#delimit ;
+twoway rcap  LB UB Y in 1/33, horizontal scheme(s1mono) lcolor(black) ||
+    scatter Y Est in 1/33, mcolor(black) msymbol(oh) mlwidth(thin)
+xline(0, lpattern(dash) lcolor(gs7)) ylabel(-1 -5 -17 -30, valuelabel angle(0))
+ymlabel(-2 -3 -4 -6(-1)-15 -18(-1)-28 -31(-1)-32, valuelabel angle(0))
+ytitle("") xtitle("Effect Size (Probability)") legend(off) ysize(8)
+note(Total respondents = `=`Nobs'/14'.  Total profiles = `Nobs'.);
+*legend(lab(1 "95% CI") lab(2 "Point Estimate"));
+#delimit cr
+graph export "$OUT/Conjoint-BwtGroup_binary.eps", replace
+
+
 
 *-------------------------------------------------------------------------------
 *--- (2) Generate
 *-------------------------------------------------------------------------------
 use "$DAT/conjointDOBgroup", clear
+keep if _mergeMTQT==3
 
 tab gender, gen(_gend)
 tab cost  , gen(_cost)
@@ -144,6 +222,7 @@ rename _cost2 _cost11
 rename _cost10 _cost2
 rename _cost11 _cost10
 rename _sob1 _sob4
+gen goodSeason=_sob2==1|_sob3==1
 
 *-------------------------------------------------------------------------------
 *--- (3) Estimate
@@ -213,6 +292,60 @@ note(Total respondents = `=`Nobs'/14'.  Total profiles = `Nobs'.);
 #delimit cr
 graph export "$OUT/Conjoint-DobGroup.eps", replace
 
+
+reg chosen `oFEs' `qFEs' _gend* _cost* _dob* goodSeason, cluster(ID)
+
+drop Est UB LB Y
+gen Est = .
+gen UB  = .
+gen LB  = .
+gen Y   = .
+local i = 1
+local vars GENDER _gend1 _gend2 s COST _cost1 _cost2 _cost3 _cost4 _cost5     /*
+*/ _cost6 _cost7 _cost8 _cost9 _cost10 s SEASON-OF-BIRTH _sob1 goodSeason     /*
+*/ s DAY-OF-BIRTH _dob1 _dob2 s
+
+foreach var of local vars {
+    qui replace Y = `i' in `i'
+    if `i'==1|`i'==5|`i'==17|`i'==21 {
+        dis "``i''"
+    }
+    else if `i'==4|`i'==16|`i'==20|`i'==24 {
+    }
+    else if `i'==2|`i'==10|`i'==18|`i'==22 {
+        qui replace Est = 0 in `i'
+        qui replace UB  = 0 in `i'
+        qui replace LB  = 0 in `i'
+    }
+    else {
+        qui replace Est = _b[`var'] in `i'
+        qui replace UB  = _b[`var']+1.96*_se[`var'] in `i'
+        qui replace LB  = _b[`var']-1.96*_se[`var'] in `i'
+    }
+    local ++i
+}
+    
+
+replace Y = -Y
+lab def names2 -1 "Gender" -2 "Male" -3 "Female" -4 " " -5 "Cost" -6 "250"   /*
+*/ -7 "750" -8 "1000" -9 "2000" -10 "3000" -11 "4000" -12 "5000" -13 "6000"  /*
+*/ -14 "7500" -15 "10000" -16 " " -17 "Season of Birth" -18 "Bad Season"     /*
+*/ -19 "Good Season" -20 " " -21 "Day of Birth" -22 "Weekday" -23 "Weekend" -24 ""
+lab val Y names2
+
+*-------------------------------------------------------------------------------
+*--- (4) Graph
+*-------------------------------------------------------------------------------
+#delimit ;
+twoway rcap  LB UB Y in 1/24, horizontal scheme(s1mono) lcolor(black) ||
+    scatter Y Est in 1/24, mcolor(black) msymbol(oh) mlwidth(thin)
+xline(0, lpattern(dash) lcolor(gs7)) ylabel(-1 -5 -17 -21, valuelabel angle(0))
+ymlabel(-2 -3 -4 -6(-1)-15 -18 -19 -22 -23, valuelabel angle(0))
+ytitle("") xtitle("Effect Size (Probability)") legend(off) ysize(8)
+note(Total respondents = `=`Nobs'/14'.  Total profiles = `Nobs'.);
+*legend(lab(1 "95% CI") lab(2 "Point Estimate"));
+#delimit cr
+graph export "$OUT/Conjoint-DobGroup_binary.eps", replace
 
 
 

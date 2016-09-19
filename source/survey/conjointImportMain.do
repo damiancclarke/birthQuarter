@@ -22,8 +22,28 @@ log using "$LOG/conjointImportMain.do", text replace
 *-- (2) Import
 *-------------------------------------------------------------------------------   
 insheet using "$DAT/conjointResponse.csv", delim(";") names clear
-drop if mturkcode==.
+*FIX ONE PERSON'S TYPO
+replace mturkcode = 263905 if mturkcode==2639053
+*KEEP ONLY FIRST SURVEY FROM PERSON WHO HAD TO DO RE-DO IT
+replace mturkcode = 99999999 if mturkcode== 7530533
+replace mturkcode = 7530533 if mturkcode == 8215989
+
+rename mturkcode answersurveycode
+merge m:1 answersurveycode using "$DAT/MTurkResults", gen(_mergeMTQT)
+
+drop if answersurveycode==.
 gen ID = _n
+rename qid3    RespSex
+rename qid5_1  RespYOB
+rename qid87_1 RespState
+rename qid11   RespEduc
+rename qid188  RespMariatl
+rename qid74   RespRace
+rename qid75   RespHisp
+rename qid86   RespEducCheck
+rename qid76   RespEmployment
+rename qid77   RespOccupation
+
 
 preserve
 keep if qid173!=""
@@ -48,7 +68,7 @@ foreach round of numlist 1(1)7 {
 local qs ff1 ff2 ff3 ff4 ff5
 local cs ff1c1 ff2c1 ff3c1 ff4c1 ff1c2 ff2c2 ff3c2 ff4c2 
 reshape long ffid `qs' `cs', i(ID) j(round)
-reshape long ff1c ff2c ff3c ff4c ff5c, i(ID round) j(option)
+reshape long ff1c ff2c ff3c ff4c ff5c, i(ID round ) j(option)
 
 
 foreach var in cost birthweight gender sob {
