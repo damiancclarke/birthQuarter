@@ -15,8 +15,14 @@ cap log close
 *-------------------------------------------------------------------------------
 global DAT "~/investigacion/2015/birthQuarter/data/survey/conjoint-main"
 global LOG "~/investigacion/2015/birthQuarter/log"
+global USG "~/investigacion/2015/birthQuarter/data/weather"
 
 log using "$LOG/conjointImportMain.do", text replace
+
+foreach ado in geo2xy {
+    cap which `ado'
+    if _rc!=0 ssc install `ado'
+}
 
 *-------------------------------------------------------------------------------
 *-- (2) Import
@@ -30,6 +36,7 @@ replace mturkcode = 7530533 if mturkcode == 8215989
 
 rename mturkcode answersurveycode
 merge m:1 answersurveycode using "$DAT/MTurkResults", gen(_mergeMTQT)
+keep if _mergeMTQT==3
 
 drop if answersurveycode==.
 gen ID = _n
@@ -37,12 +44,116 @@ rename qid3    RespSex
 rename qid5_1  RespYOB
 rename qid87_1 RespState
 rename qid11   RespEduc
-rename qid188  RespMariatl
+rename qid188  RespMarital
 rename qid74   RespRace
 rename qid75   RespHisp
 rename qid86   RespEducCheck
 rename qid76   RespEmployment
 rename qid77   RespOccupation
+rename qid12   RespNumKids
+rename qid126  RespPregnant
+rename qid141  RespPlansKids
+rename qid169  RespMoreKids
+rename qid166  RespKidUSBorn
+rename qid167  RespKidGender
+rename qid168  RespKidBMonth
+rename qid189_1 RespKidBYear
+rename qid190  RespTargetMonth
+rename qid191  RespTargetWhich
+rename qid78   RespMTurkType
+rename qid79   RespMTurkSalary
+rename qid82   RespSalary
+rename qid192  RespSure
+
+drop qid58
+split startdate, gen(start)
+split enddate  , gen(end)
+split start2   , gen(stime) parse(:) destring
+split end2     , gen(etime) parse(:) destring
+
+rename start1 surveyStartDate
+rename end1   surveyEndDate
+rename start2 surveyStartTime
+rename end2   surveyEndTime
+
+gen surveyTime = etime2-stime2 + (etime1-stime1)*60 + (etime3-etime2)/60
+gen surveyTimeMin = floor(surveyTime)
+gen surveyTimeSec = round((surveyTime - surveyTimeMin)*60)
+
+drop stime* etime*
+    
+
+count
+local Numb = r(N)
+rename locationlatitude latitude
+rename locationlongitude longitude
+
+gen address = ""
+foreach num of numlist 1(1)1600 {
+    sum latitude in `num'
+    if `r(N)'!=0 {
+        local lat = `r(mean)'
+        sum longitude in `num'
+        local long = `r(mean)'
+        gcode_dcc `lat',`long'
+        cap replace address = "`r(address)'" in `num'
+    }
+}
+foreach num of numlist 1601(1)`Numb' {
+    sum latitude in `num'
+    if `r(N)'!=0 {
+        local lat = `r(mean)'
+        sum longitude in `num'
+        local long = `r(mean)'
+        gcode_dcc `lat',`long'
+        cap replace address = "`r(address)'" in `num'
+    }
+}
+lab var address "Address based on GEOcode (google maps search)"
+split address, generate(_add) parse(",")
+gen country = _add7
+replace country = _add6 if country==""
+replace country = _add5 if country==""
+replace country = _add4 if country==""
+replace country = _add3 if country==""
+replace country = _add2 if country==""
+replace country = subinstr(country, " ", "", 1)
+gen notUSA = country !="USA"
+gen stateGEO = _add3 if notUSA==0
+replace stateGEO = _add4 if stateGEO==" Buffalo"
+replace stateGEO = _add4 if stateGEO==" Charlottesville"
+rename country countryGEO
+
+geo2xy latitude longitude, gen(lat2 long2) projection(albers)
+geo2xy latitude longitude, gen(lat3 long3) projection(web_mercator)
+
+lab var lat2       "Albers projection of latitude (mapping only)"
+lab var long2      "Albers projection of longitude (mapping only)"
+lab var lat3       "Web Mercator projection of latitude (mapping only)"
+lab var long3      "Web Mercator projection of longitude (mapping only)"
+
+preserve
+insheet using $USG/usaWeather.txt, names delim(";") clear
+keep if year==2013
+collapse temp (min) minTemp=temp (max) maxTemp=temp, by(state)
+rename state stateString
+
+tempfile temperature
+save `temperature'
+restore
+gen stateString = RespState
+
+
+merge m:1 stateString using `temperature'
+replace temp = 54.71944 if stateS=="District of Columbia"
+replace minTemp = 26.5 if stateS=="District of Columbia"
+replace maxTemp = 86.5 if stateS=="District of Columbia"
+drop if _merge==2
+drop _merge
+
+save "$DAT/conjointMergedAddresses", replace
+
+use "$DAT/conjointMergedAddresses", clear
 
 
 preserve
@@ -55,6 +166,7 @@ rename qid176 ffid4
 rename qid177 ffid5
 rename qid178 ffid6
 rename qid179 ffid7
+drop qid181-qid187
 
 foreach round of numlist 1(1)7 {
     foreach aspect of numlist 1 2 3 4 {
@@ -106,6 +218,7 @@ rename qid184 ggid4
 rename qid185 ggid5
 rename qid186 ggid6
 rename qid187 ggid7
+drop qid173-qid179
 
 foreach round of numlist 1(1)7 {
     foreach aspect of numlist 1 2 3 4 {
@@ -145,14 +258,3 @@ drop n1 n2 n3 n4
 
 save "$DAT/conjointDOBgroup.dta", replace
 restore
-
-
-
-
-
-
-
-
-
-
-
