@@ -94,11 +94,11 @@ lab var TP "Teacher $\times$ Parent"
 lab var TG "Teacher $\times$ Good Season"
 lab var PG "Parent $\times$ Good Season"
 
-tab RespTargetMonth if age>=25&age<=45&married==1&(parent==1|planning==1)
-tab RespTargetWhich if age>=25&age<=45&married==1&(parent==1|planning==1)
+tab RespTargetMonth if age>=25&age<=45&married==1&(parent==1|planning==1)&white==1
+tab RespTargetWhich if age>=25&age<=45&married==1&(parent==1|planning==1)&white==1
 
-tab RespTargetMonth if age>=25&age<=45&married==1&(parent==1|planning==1)&teacher==1
-tab RespTargetWhich if age>=25&age<=45&married==1&(parent==1|planning==1)&teacher==1
+tab RespTargetMonth if age>=25&age<=45&married==1&(parent==1|planning==1)&teacher==1&white==1
+tab RespTargetWhich if age>=25&age<=45&married==1&(parent==1|planning==1)&teacher==1&white==1
 
 *-------------------------------------------------------------------------------
 *--- (B3) Estimate
@@ -106,7 +106,7 @@ tab RespTargetWhich if age>=25&age<=45&married==1&(parent==1|planning==1)&teache
 local oFEs i.round i.option
 local qFEs i.cost_position i.birthweight_position i.gender_p i.sob_p 
 local eFEs i.n1 i.n2 i.n3 i.n4
-local base age>=25&age<=45&married==1
+local base age>=25&age<=45&married==1&white==1
 
 #delimit ;
 local conds `base'&(parent==1|planning==1)
@@ -202,7 +202,7 @@ esttab m1 m2 m3 m4 using "$OUT/conjointWTP-bwt.tex", replace
 cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
 (wtp N, fmt(%5.1f %9.0g) label("Willingness to Pay" Observations))
 starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none)
-mlabels("Main Sample" "Women Only" "Teachers Only" "Women Teachers")
+mlabels("Main Sample" "Teachers Only" "Women Only" "Women Teachers")
 label title("Conjoint Analysis Regressions")
 keep(goodSeason costNumerical) style(tex) booktabs
 postfoot("\bottomrule           "
@@ -223,7 +223,7 @@ cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
 (wtpSp wtpSu N, fmt(%5.1f %5.1f %9.0g)
  label("WTP (spring)" "WTP (summer)" Observations))
 starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none)
-mlabels("Main Sample" "Women Only" "Teachers Only" "Women Teachers")
+mlabels("Main Sample" "Teachers Only" "Women Only" "Women Teachers")
 label title("Conjoint Analysis Regressions")
 keep(spring summer costNumerical) style(tex) booktabs
 postfoot("\bottomrule           "
@@ -407,11 +407,11 @@ lab var TP "Teacher $\times$ Parent"
 lab var TG "Teacher $\times$ Good Season"
 lab var PG "Parent $\times$ Good Season"
 
-tab RespTargetMonth if age>=25&age<=45&married==1&(parent==1|planning==1)
-tab RespTargetWhich if age>=25&age<=45&married==1&(parent==1|planning==1)
+tab RespTargetMonth if age>=25&age<=45&married==1&(parent==1|planning==1)&white==1
+tab RespTargetWhich if age>=25&age<=45&married==1&(parent==1|planning==1)&white==1
 
-tab RespTargetMonth if age>=25&age<=45&married==1&(parent==1|planning==1)&teacher==1
-tab RespTargetWhich if age>=25&age<=45&married==1&(parent==1|planning==1)&teacher==1
+tab RespTargetMonth if age>=25&age<=45&married==1&(parent==1|planning==1)&teacher==1&white==1
+tab RespTargetWhich if age>=25&age<=45&married==1&(parent==1|planning==1)&teacher==1&white==1
 exit
 
 *-------------------------------------------------------------------------------
@@ -420,7 +420,7 @@ exit
 local oFEs i.round i.option
 local qFEs i.cost_position i.dob_position i.gender_p i.sob_p 
 local eFEs i.n1 i.n2 i.n3 i.n4
-local base age>=25&age<=45&married==1
+local base age>=25&age<=45&married==1&white==1
 
 #delimit ;
 local conds `base'&(parent==1|planning==1)
@@ -514,7 +514,7 @@ esttab m1 m2 m3 m4 using "$OUT/conjointWTP-dob.tex", replace
 cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
 (wtp N, fmt(%5.1f %9.0g) label("Willingness to Pay" Observations))
 starlevel ("*" 0.10 "**" 0.05 "***" 0.01) label collabels(,none)
-mlabels("Main Sample" "Women Only" "Teachers Only" "Women Teachers")
+mlabels("Main Sample" "Teachers Only" "Women Only" "Women Teachers")
 title("Conjoint Analysis Regressions")
 keep(goodSeason costNumerical) style(tex) booktabs
 postfoot("\bottomrule           "
@@ -537,7 +537,7 @@ cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
 (wtpSp wtpSu N, fmt(%5.1f %5.1f %9.0g)
  label("WTP (spring)" "WTP (summer)" Observations))
 starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none)
-mlabels("Main Sample" "Women Only" "Teachers Only" "Women Teachers")
+mlabels("Main Sample" "Teachers Only" "Women Only" "Women Teachers")
 label title("Conjoint Analysis Regressions")
 keep(spring summer costNumerical) style(tex) booktabs
 postfoot("\bottomrule           "
