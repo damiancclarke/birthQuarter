@@ -48,9 +48,137 @@ gen white      = RespRace=="White"
 gen married    = RespMarital=="Married"
 gen teacher    = RespOccupation=="Education, Training, Library"
 
-/*
 save "$DAT/combined", replace
 
+preserve
+gen ageBirth=age
+gen race=11 if white==1
+gen marst=married
+gen sex=RespSex=="Female"
+gen hispanic=RespHisp=="Yes"
+encode RespNumKids, gen(nchild)
+replace nchild=nchild-1
+gen cbirthmonth     = 1  if RespKidBMonth=="January"
+replace cbirthmonth = 2  if RespKidBMonth=="February"
+replace cbirthmonth = 3  if RespKidBMonth=="March"
+replace cbirthmonth = 4  if RespKidBMonth=="April"
+replace cbirthmonth = 5  if RespKidBMonth=="May"
+replace cbirthmonth = 6  if RespKidBMonth=="June"
+replace cbirthmonth = 7  if RespKidBMonth=="July"
+replace cbirthmonth = 8  if RespKidBMonth=="August"
+replace cbirthmonth = 9  if RespKidBMonth=="September"
+replace cbirthmonth = 10 if RespKidBMonth=="October"
+replace cbirthmonth = 11 if RespKidBMonth=="November"
+replace cbirthmonth = 12 if RespKidBMonth=="December"
+
+keep  if ageBirth>=25&ageBirth<=45&race==11&marst==1&sex==1
+keep if nchild!=0
+gen N = 1
+gen Q1 = cbirthmonth >= 1 & cbirthmonth <=3
+gen Q2 = cbirthmonth >= 4 & cbirthmonth <=6
+gen Q3 = cbirthmonth >= 7 & cbirthmonth <=9
+gen Q4 = cbirthmonth >=10 & cbirthmonth <=12
+gen highEduc  = RespEduc!="Eighth Grade or Less"/*
+*/ &RespEduc!="High School Degree/GED"&RespEduc!="Some High School"
+gen     sexchild = 1 if RespKidGender=="Girl"
+replace sexchild = 0 if RespKidGender=="Boy"
+
+
+collapse (sum) N (mean) nchild sexchild Q1 Q2 Q3 Q4 ageBirth    /*
+*/ hispanic highEduc (sd) sd_nchild=nchild sd_sexchild=sexchild /*
+*/ sd_Q1=Q1 sd_Q2=Q2 sd_Q3=Q3 sd_Q4=Q4                          /*
+*/ sd_ageBirth=ageBirth sd_hispanic=hispanic sd_highEduc=highEduc
+expand 9
+gen mean  = .
+gen stdev = .
+gen var   = ""
+
+local i = 1
+foreach var of varlist nchild sexchild Q1 Q2 Q3 Q4 ageBirth /*
+*/ hispanic highEduc {
+    replace mean  = `var' in `i'
+    replace stdev = sd_`var' in `i'
+    replace var = "`var'" in `i'
+    local ++i
+}
+gen data = "MTurk"
+keep mean stdev var data N
+tempfile MTurkSum
+save `MTurkSum'
+restore
+
+
+
+preserve
+use "$NVS/natl2013", clear
+keep if mbrace==1&mar==1
+gen N_NV = 1
+gen nchild = lbo_rec
+replace nchild = 6 if nchild>6&nchild<20
+replace nchild = . if nchild>=20
+gen sexchild = sex=="F"
+
+gen Q1 = dob_mm >= 1 & dob_mm <=3
+gen Q2 = dob_mm >= 4 & dob_mm <=6
+gen Q3 = dob_mm >= 7 & dob_mm <=9
+gen Q4 = dob_mm >=10 & dob_mm <=12
+gen ageBirth = mager
+gen highEduc = meduc>=4 if meduc!=9&meduc!=.
+gen hispanic = umhisp!=0
+
+collapse (sum) N (mean) nchild sexchild Q1 Q2 Q3 Q4 ageBirth      /*
+*/ highEduc hispanic (sd) sd_nchild=nchild sd_sexchild=sexchild   /*
+*/ sd_Q1=Q1 sd_Q2=Q2 sd_Q3=Q3 sd_Q4=Q4                            /*
+*/ sd_ageBirth=ageBirth sd_hispanic=hispanic sd_highEduc=highEduc
+expand 9
+gen meanNV  = .
+gen stdevNV = .
+gen var   = ""
+
+local i = 1
+foreach var of varlist nchild sexchild Q1 Q2 Q3 Q4 ageBirth /*
+*/ hispanic highEduc {
+    replace meanNV  = `var' in `i'
+    replace stdevNV = sd_`var' in `i'
+    replace var = "`var'" in `i'
+    local ++i
+}
+keep meanNV stdevNV var N_NV
+tempfile NVSSSum
+save `NVSSSum'
+
+merge 1:1 var using `MTurkSum'
+local i = 1
+#delimit ;
+local vnames `""Number of Children" "Age at First Birth" "Female Child"
+               "Hispanic"
+               "Some College +" "Born January-March" "Born April-June"
+               "Born July-September" "Born October-December" "';
+#delimit cr
+local variables nchild ageBirth sexchild hispanic highEduc /*
+*/ Q1 Q2 Q3 Q4
+tokenize `variables'
+file open bstats using "$OUT/NVSScomp.txt", write replace
+foreach var of local vnames {
+    foreach stat in N mean stdev N_NV meanNV stdevNV {
+        qui sum `stat' if var=="`1'"
+        local val`stat'=r(mean)
+    }
+    qui ttesti `valN' `valmean' `valstdev' `valN_NV' `valmeanNV' `valstdevNV'
+    foreach val in mu_1 sd_1 mu_2 sd_2 t {
+        local `val'=string(r(`val'), "%5.3f")
+        *local `val'=round(r(`val')*1000)/1000
+        *if ``val''<1&``val''>0 local `val' = "0``val''"
+    }
+    local dif = string((`mu_1'-`mu_2'),"%5.3f")
+    *if `dif'<1&`dif'>0 local dif = "0`dif'"
+    file write bstats "`var'&`mu_1'&(`sd_1')&`mu_2'&(`sd_2')&`dif'&`t'\\ " _n
+    macro shift
+}
+file close bstats
+restore
+
+exit
 gen statename=RespState
 count
 bys statename: gen stateProportion = _N/r(N)
