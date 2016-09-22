@@ -12,13 +12,164 @@ set more off
 cap log close
 
 *-------------------------------------------------------------------------------
-*--- (1) Globals
+*--- (0) Globals
 *-------------------------------------------------------------------------------
 global DAT "~/investigacion/2015/birthQuarter/data/survey/conjoint-main"
 global LOG "~/investigacion/2015/birthQuarter/log"
 global OUT "~/investigacion/2015/birthQuarter/results/MTurk/conjoint-main"
+global NVS "~/investigacion/2015/birthQuarter/data/nvss"
+global ACS "~/investigacion/2015/birthQuarter/data/raw"
+global GEO "~/investigacion/2015/birthQuarter/data/maps/states_simplified"
+
 
 log using "$LOG/conjointAnalysisMain.txt", text replace
+
+*-------------------------------------------------------------------------------
+*--- (1) Summary Statistics
+*-------------------------------------------------------------------------------
+use "$DAT/conjointBWgroup"
+append using "$DAT/conjointDOBgroup"
+keep if _mergeMTQT==3
+keep if RespEduc==RespEducCheck
+keep if notUSA==0
+keep if surveyTime>=2
+bys ID: gen N=_n
+keep if N==1
+drop N
+gen parent     = RespNumKids !="0" 
+gen planning   = RespPlansKids=="Yes"
+gen childBYear = RespKidBYear if parent==1
+destring childBYear, replace
+gen age        = 2016-RespYOB
+replace age    = childBYear-RespYOB if parent==1
+gen white      = RespRace=="White"
+gen married    = RespMarital=="Married"
+exit
+save "$DAT/combined", replace
+
+gen statename=RespState
+count
+bys statename: gen stateProportion = _N/r(N)
+
+preserve
+collapse stateProportion, by(statename)
+rename statename NAME
+
+merge 1:1 NAME using "$GEO/US_db"
+format stateProportion %5.2f
+#delimit ;
+spmap stateProportion if NAME!="Alaska"&NAME!="Hawaii"&NAME!="Puerto Rico"
+using "$GEO/US_coord_mercator",
+point(data($DAT/combined) xcoord(long3) ycoord(lat3)
+      select(drop if (latitude<24.39|latitude>49.38)|(longitude<-124.84|longitude>-66.9))
+      size(*0.5) fcolor(red))
+id(_ID) osize(thin) legtitle("Proportion of Respondents") legstyle(2) fcolor(Greens)
+legend(symy(*1.2) symx(*1.2) size(*1.4) rowgap(1));
+graph export "$OUT/surveyCoverage.eps", as(eps) replace;
+#delimit cr
+restore
+
+preserve
+encode RespNumKids, gen(nchild)
+replace nchild=nchild-1
+keep if nchild > 0
+gen N = 1
+collapse (sum) N, by(nchild)
+egen totbirth = sum(N)
+replace N = N/totbirth
+rename N birthProp
+tempfile nchild
+save `nchild'
+
+use "$NVS/natl2013", clear
+
+gen N = 1
+replace lbo_rec=6 if lbo_rec>=6
+collapse (sum) N, by(lbo_rec)
+egen totbirth = sum(N)
+replace N = N/totbirth
+rename N birthPropNVS
+rename lbo_rec nchild
+merge 1:1 nchild using `nchild'
+
+graph bar birthPropNVS birthProp, over(nchild)                          /*
+*/ legend(lab(1 "NVSS") lab(2 "MTurk Sample")) scheme(s1mono)           /*
+*/ bar(1, color(blue*0.6)) bar(2, color(red*0.4)) ytitle("Proportion")
+graph export "$OUT/nchild.eps", as(eps) replace
+restore
+
+preserve
+gen N = 1
+gen cbirthmonth = 1 if RespKidBMonth=="January"
+replace cbirthmonth = 2 if RespKidBMonth=="February"
+replace cbirthmonth = 3 if RespKidBMonth=="March"
+replace cbirthmonth = 4 if RespKidBMonth=="April"
+replace cbirthmonth = 5 if RespKidBMonth=="May"
+replace cbirthmonth = 6 if RespKidBMonth=="June"
+replace cbirthmonth = 7 if RespKidBMonth=="July"
+replace cbirthmonth = 8 if RespKidBMonth=="August"
+replace cbirthmonth = 9 if RespKidBMonth=="September"
+replace cbirthmonth = 10 if RespKidBMonth=="October"
+replace cbirthmonth = 11 if RespKidBMonth=="November"
+replace cbirthmonth = 12 if RespKidBMonth=="December"
+tab cbirthmonth, gen(_month)
+
+gen birthProp = .
+gen birthSE   = .
+gen Month     = _n
+foreach num of numlist 1(1)12 {
+    sum _month`num'
+    replace birthProp = r(mean) in `num'
+    local se = r(sd)/sqrt(r(N))
+    replace birthSE = `se'      in `num'
+}
+keep in 1/12
+keep birthProp birthSE Month
+gen lower = birthProp-1.96*birthSE
+gen upper = birthProp+1.96*birthSE
+
+
+tempfile bmonth
+save `bmonth'
+
+
+use "$NVS/birthCond", clear
+
+tab birthMonth, gen(_month)
+
+gen birthPropNVSS = .
+gen birthSENVSS   = .
+gen Month         = _n
+foreach num of numlist 1(1)12 {
+    sum _month`num'
+    replace birthPropNVSS = r(mean) in `num'
+    local se = r(sd)/sqrt(r(N))
+    replace birthSENVSS = `se'      in `num'
+}
+keep in 1/12
+keep birthPropNVSS birthSENVSS Month
+gen lowerN = birthPropNVSS-1.96*birthSENVSS
+gen upperN = birthPropNVSS+1.96*birthSENVSS
+
+
+merge 1:1 Month using `bmonth'
+local line1 lpattern(solid)    lcolor(black) lwidth(thick)
+local line2 lpattern(dash)     lcolor(black) lwidth(medium)
+
+#delimit ;
+twoway line birthProp     Month, `line1'       ||
+       rcap lower upper   Month,  lcolor(gs10) ||
+       rcap lowerN upperN Month, lcolor(gs10)  ||
+       line birthPropNVSS Month, `line2' scheme(s1mono)
+xlabel(1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug"
+       9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec", axis(1)) xtitle("Birth Month")
+legend(order(1 "MTurk Survey Sample" 2 "95% CI" 4 "NVSS Birth Data"))
+ytitle("Proportion of Births");
+graph export "$OUT/birthsMonth.eps", as(eps) replace;
+#delimit cr
+restore
+exit
+
 
 *-------------------------------------------------------------------------------
 *--- (B2) Generate [For Birth weight Group]
