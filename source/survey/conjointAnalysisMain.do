@@ -23,7 +23,7 @@ global GEO "~/investigacion/2015/birthQuarter/data/maps/states_simplified"
 
 
 log using "$LOG/conjointAnalysisMain.txt", text replace
-
+/*
 *-------------------------------------------------------------------------------
 *--- (1) Summary Statistics
 *-------------------------------------------------------------------------------
@@ -178,7 +178,7 @@ foreach var of local vnames {
 file close bstats
 restore
 
-exit
+
 gen statename=RespState
 count
 bys statename: gen stateProportion = _N/r(N)
@@ -391,21 +391,32 @@ local eFEs i.n1 i.n2 i.n3 i.n4
 local base age>=25&age<=45&married==1&white==1
 
 
-reg chosen `oFEs' _gend* _cost* _bwt* _sob* _dob* if `base', cluster(ID)
-
+reg chosen `oFEs' _gend* _cost* _bwt* _sob* _dob* if `base'&parent==0, cluster(ID)
 
 #delimit ;
 local conds `base'&(parent==1|planning==1)
             `base'&(parent==1|planning==1)&teacher==1
             `base'&(parent==1|planning==1)&RespSex=="Female"
             `base'&(parent==1|planning==1)&teacher==1&RespSex=="Female"
+            `base'&(parent==1|planning==1)&minTemp<=23
+            `base'&(parent==1|planning==1)&minTemp>23
             all==1
             `base'&parent==1
             `base'&parent==1&teacher==1
             `base'&parent==1&RespSex=="Female"
-            `base'&parent==1&teacher==1&RespSex=="Female";
-local names Main MainTeacher MainFemale MainTeacherFemale All
-       MainParent MainTeacherParent MainFemaleParent MainTeacherFemaleParent;
+            `base'&parent==1&teacher==1&RespSex=="Female"
+            `base'&parent==0
+            `base'&parent==0&teacher==1
+            `base'&parent==0&RespSex=="Female"
+            `base'&parent==0&teacher==1&RespSex=="Female"
+            `base'&planning==1
+            `base'&planning==1&teacher==1
+            `base'&planning==1&RespSex=="Female"
+            `base'&planning==1&teacher==1&RespSex=="Female";
+local names Main MainTeacher MainFemale MainTeacherFemale cold warm All
+        MainParent MainTeacherParent MainFemaleParent MainTeacherFemaleParent
+MainNoParent MainTeacherNoParent MainFemaleNoParent MainTeacherFemaleNoParent
+MainPlanning MainTeacherPlanning MainFemalePlanning MainTeacherFemalePlanning;
 #delimit cr
 tokenize `names'
 lab def names -1 "Gender" -2 "Male" -3 "Female" -4 " " -5 "Cost" -6 "250"   /*
@@ -460,7 +471,7 @@ foreach c of local conds {
     *---------------------------------------------------------------------------
     #delimit ;
     twoway rcap  LB UB Y in 1/39, horizontal scheme(s1mono) lcolor(black) ||
-    scatter Y Est in 1/35, mcolor(black) msymbol(oh) mlwidth(thin)
+    scatter Y Est in 1/39, mcolor(black) msymbol(oh) mlwidth(thin)
     xline(0, lpattern(dash) lcolor(gs7))
     ylabel(-1 -5 -17 -30 -36, valuelabel angle(0))
     ymlabel(-2 -3 -4 -6(-1)-15 -18(-1)-28 -31(-1)-34 -37 -38, valuelabel angle(0))
@@ -529,7 +540,7 @@ postfoot("\bottomrule           "
          "respondent."
          "\end{footnotesize}}\end{tabular}\end{table}");
 
-esttab m6 m7 m8 m9 using "$OUT/conjointWTP-all-parents.tex", replace
+esttab m8 m9 m10 m11 using "$OUT/conjointWTP-all-parents.tex", replace
 cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
 (wtp N, fmt(%5.1f %9.0g) label("Willingness to Pay" Observations))
 starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none)
@@ -547,7 +558,7 @@ postfoot("\bottomrule           "
          "respondent."
          "\end{footnotesize}}\end{tabular}\end{table}");
 
-esttab n6 n7 n8 n9 using "$OUT/conjointWTP-all_springsummer-parents.tex", replace
+esttab n8 n9 n10 n11 using "$OUT/conjointWTP-all_springsummer-parents.tex", replace
 cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
 (wtpSp wtpSu N, fmt(%5.1f %5.1f %9.0g)
  label("WTP (spring)" "WTP (summer)" Observations))
@@ -565,53 +576,83 @@ postfoot("\bottomrule           "
          "preferred option in each round.  Standard errors are clustered by  "
          "respondent."
          "\end{footnotesize}}\end{tabular}\end{table}");
-#delimit cr
 
-
-estimates clear
-
-
-local ctrl1 `oFEs' _gend* _bwt* _dob*
-local ctrl2 age age2 someCollege hispanic teacher parent
-local ctrl3 PG TG TP TPG 
-local cc if `base'&(parent==1|planning==1)
-
-eststo: logit chosen `ctrl1' goodSeason costNumerical `cc', cluster(ID)
-margins, dydx(goodSeason costNumerical) post
-est store m1
-estadd scalar wtp = -1000*_b[goodSeason]/_b[costNumerical]
-
-eststo: logit chosen `ctrl1' `ctrl2' goodSeason costNumerical `cc', cluster(ID)
-margins, dydx(goodSeason costNumerical `ctrl2') post
-est store m2
-estadd scalar wtp = -1000*_b[goodSeason]/_b[costNumerical]
-
-eststo: logit chosen `ctrl1' `ctrl2' `ctrl3' goodSeason costNumerical `cc', cluster(ID)
-margins, dydx(goodSeason costNumerical `ctrl2' `ctrl3') post
-est store m3
-estadd scalar wtp = -1000*_b[goodSeason]/_b[costNumerical]
-lab var chosen "Preferred"
-
-#delimit ;
-esttab m1 m2 m3 using "$OUT/conjointWTP-allMain.tex", replace
+esttab m12 m13 m14 m15 using "$OUT/conjointWTP-all-nonparents.tex", replace
 cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
-(wtp N, fmt(%5.1f %9.0g)
- label("Willingness to Pay" Observations))
+(wtp N, fmt(%5.1f %9.0g) label("Willingness to Pay" Observations))
 starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none)
-mlabels(,depvar) label title("Conjoint Analysis Regressions")
-keep(goodSeason costNumerical `ctrl2' `ctrl3') style(tex) booktabs
+mlabels("Main Sample" "Teachers Only" "Women Only" "Women Teachers")
+label title("Conjoint Analysis Regressions (Non-Parents Only)")
+keep(goodSeason costNumerical) style(tex) booktabs
 postfoot("\bottomrule           "
-         "\multicolumn{4}{p{11.4cm}}{\begin{footnotesize} Average marginal   "
+         "\multicolumn{5}{p{15.8cm}}{\begin{footnotesize} Average marginal   "
          "from a logit regression are displayed. All columns include         "
          "option order fixed effects, round fixed effects and controls for   "
-         "all alternative characteristics (birth weight and gender). The     "
-         "estimation sample consist of all married 25-45 year-olds (at survey"
-         " or time of birth) who are white or hispanic. Each    "
+         "all alternative characteristics (birth weight, day of birth and    "
+         "gender). Each "
          "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
          "preferred option in each round.  Standard errors are clustered by  "
-         "respondent"
+         "respondent."
+         "\end{footnotesize}}\end{tabular}\end{table}");
+
+esttab n12 n13 n14 n15 using "$OUT/conjointWTP-all_springsummer-nonparents.tex",
+replace cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
+(wtpSp wtpSu N, fmt(%5.1f %5.1f %9.0g)
+ label("WTP (spring)" "WTP (summer)" Observations))
+starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none)
+mlabels("Main Sample" "Teachers Only" "Women Only" "Women Teachers")
+label title("Conjoint Analysis Regressions (Non-Parents Only)")
+keep(spring summer costNumerical) style(tex) booktabs
+postfoot("\bottomrule           "
+         "\multicolumn{5}{p{15.8cm}}{\begin{footnotesize} Average marginal   "
+         "from a logit regression are displayed. All columns include         "
+         "option order fixed effects, round fixed effects and controls for   "
+         "all alternative characteristics (birth weight, day of birth and    "
+         "gender). Each    "
+         "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
+         "preferred option in each round.  Standard errors are clustered by  "
+         "respondent."
+         "\end{footnotesize}}\end{tabular}\end{table}");
+
+dis "PLANNERS";
+esttab m16 m17 m18 m19 using "$OUT/conjointWTP-all-planners.tex", replace
+cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
+(wtp N, fmt(%5.1f %9.0g) label("Willingness to Pay" Observations))
+starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none)
+mlabels("Main Sample" "Teachers Only" "Women Only" "Women Teachers")
+label title("Conjoint Analysis Regressions (Planning to be Parents Only)")
+keep(goodSeason costNumerical) style(tex) booktabs
+postfoot("\bottomrule           "
+         "\multicolumn{5}{p{15.8cm}}{\begin{footnotesize} Average marginal   "
+         "from a logit regression are displayed. All columns include         "
+         "option order fixed effects, round fixed effects and controls for   "
+         "all alternative characteristics (birth weight, day of birth and    "
+         "gender). Each "
+         "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
+         "preferred option in each round.  Standard errors are clustered by  "
+         "respondent."
+         "\end{footnotesize}}\end{tabular}\end{table}");
+
+esttab n16 n17 n18 n19 using "$OUT/conjointWTP-all_springsummer-planners.tex", replace
+cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
+(wtpSp wtpSu N, fmt(%5.1f %5.1f %9.0g)
+ label("WTP (spring)" "WTP (summer)" Observations))
+starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none)
+mlabels("Main Sample" "Teachers Only" "Women Only" "Women Teachers")
+label title("Conjoint Analysis Regressions (Planning to be Parents Only)")
+keep(spring summer costNumerical) style(tex) booktabs
+postfoot("\bottomrule           "
+         "\multicolumn{5}{p{15.8cm}}{\begin{footnotesize} Average marginal   "
+         "from a logit regression are displayed. All columns include         "
+         "option order fixed effects, round fixed effects and controls for   "
+         "all alternative characteristics (birth weight, day of birth and    "
+         "gender). Each    "
+         "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
+         "preferred option in each round.  Standard errors are clustered by  "
+         "respondent."
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
+
 estimates clear
 
 
@@ -714,9 +755,19 @@ local conds `base'&(parent==1|planning==1)
             `base'&parent==1
             `base'&parent==1&teacher==1
             `base'&parent==1&RespSex=="Female"
-            `base'&parent==1&teacher==1&RespSex=="Female";
+            `base'&parent==1&teacher==1&RespSex=="Female"
+            `base'&parent==0
+            `base'&parent==0&teacher==1
+            `base'&parent==0&RespSex=="Female"
+            `base'&parent==0&teacher==1&RespSex=="Female"
+            `base'&planning==1
+            `base'&planning==1&teacher==1
+            `base'&planning==1&RespSex=="Female"
+            `base'&planning==1&teacher==1&RespSex=="Female";
 local names Main MainTeacher MainFemale MainTeacherFemale cold warm All
-      MainParent MainTeacherParent MainFemaleParent MainTeacherFemaleParent;
+        MainParent MainTeacherParent MainFemaleParent MainTeacherFemaleParent
+MainNoParent MainTeacherNoParent MainFemaleNoParent MainTeacherFemaleNoParent
+MainPlanning MainTeacherPlanning MainFemalePlanning MainTeacherFemalePlanning;
 #delimit cr
 tokenize `names'
 lab def names -1 "Gender" -2 "Male" -3 "Female" -4 " " -5 "Cost" -6 "250"   /*
@@ -786,12 +837,13 @@ foreach c of local conds {
     margins, dydx(goodSeason costNumerical) post
     est store m`ll'
     estadd scalar wtp = -1000*_b[goodSeason]/_b[costNumerical]
-
-    eststo: logit chosen `ctrl' spring summer _sob4 costNumerical if `c', cluster(ID)
-    margins, dydx(spring summer costNumerical) post
-    est store n`ll'
-    estadd scalar wtpSp = -1000*_b[spring]/_b[costNumerical]
-    estadd scalar wtpSu = -1000*_b[summer]/_b[costNumerical]
+    cap {
+        eststo: logit chosen `ctrl' spring summer _sob4 costNumerical if `c', cluster(ID)
+        margins, dydx(spring summer costNumerical) post
+        est store n`ll'
+        estadd scalar wtpSp = -1000*_b[spring]/_b[costNumerical]
+        estadd scalar wtpSu = -1000*_b[summer]/_b[costNumerical]
+    }
     local ++ll
 }
 
@@ -870,53 +922,78 @@ postfoot("\bottomrule           "
          "preferred option in each round.  Standard errors are clustered by  "
          "respondent."
          "\end{footnotesize}}\end{tabular}\end{table}");
-#delimit cr
-estimates clear
 
-
-local ctrl1 `oFEs' _gend* _bwt*
-local ctrl2 age age2 someCollege hispanic teacher parent
-local ctrl3 PG TG TP TPG 
-local cc if `base'&(parent==1|planning==1)
-
-eststo: logit chosen `ctrl1' goodSeason costNumerical `cc', cluster(ID)
-margins, dydx(goodSeason costNumerical) post
-est store m1
-estadd scalar wtp = -1000*_b[goodSeason]/_b[costNumerical]
-
-eststo: logit chosen `ctrl1' `ctrl2' goodSeason costNumerical `cc', cluster(ID)
-margins, dydx(goodSeason costNumerical `ctrl2') post
-est store m2
-estadd scalar wtp = -1000*_b[goodSeason]/_b[costNumerical]
-
-eststo: logit chosen `ctrl1' `ctrl2' `ctrl3' goodSeason costNumerical `cc', cluster(ID)
-margins, dydx(goodSeason costNumerical `ctrl2' `ctrl3') post
-est store m3
-estadd scalar wtp = -1000*_b[goodSeason]/_b[costNumerical]
-lab var chosen "Preferred"
-
-#delimit ;
-esttab m1 m2 m3 using "$OUT/conjointWTP-bwtMain.tex", replace
+esttab m12 m13 m14 m15 using "$OUT/conjointWTP-bwt-nonparents.tex", replace
 cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
-(wtp N, fmt(%5.1f %9.0g)
- label("Willingness to Pay" Observations))
+(wtp N, fmt(%5.1f %9.0g) label("Willingness to Pay" Observations))
 starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none)
-mlabels(,depvar) label title("Conjoint Analysis Regressions")
-keep(goodSeason costNumerical `ctrl2' `ctrl3') style(tex) booktabs
+mlabels("Main Sample" "Teachers Only" "Women Only" "Women Teachers")
+label title("Conjoint Analysis Regressions (Non-Parents Only)")
+keep(goodSeason costNumerical) style(tex) booktabs
 postfoot("\bottomrule           "
-         "\multicolumn{4}{p{11.4cm}}{\begin{footnotesize} Average marginal   "
+         "\multicolumn{5}{p{16.2cm}}{\begin{footnotesize} Average marginal   "
          "from a logit regression are displayed. All columns include         "
          "option order fixed effects, round fixed effects and controls for   "
-         "all alternative characteristics (birth weight and gender). The     "
-         "estimation sample consist of all married 25-45 year-olds (at survey"
-         " or time of birth) who are white or hispanic. Each    "
+         "all alternative characteristics (birth weight and gender). Each    "
          "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
          "preferred option in each round.  Standard errors are clustered by  "
          "respondent."
          "\end{footnotesize}}\end{tabular}\end{table}");
+
+esttab n12 n13 n14 n15 using "$OUT/conjointWTP-bwt_springsummer-nonparents.tex",
+replace cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
+(wtpSp wtpSu N, fmt(%5.1f %5.1f %9.0g)
+ label("WTP (spring)" "WTP (summer)" Observations))
+starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none)
+mlabels("Main Sample" "Teachers Only" "Women Only" "Women Teachers")
+label title("Conjoint Analysis Regressions (Non-Parents Only)")
+keep(spring summer costNumerical) style(tex) booktabs
+postfoot("\bottomrule           "
+         "\multicolumn{5}{p{15.8cm}}{\begin{footnotesize} Average marginal   "
+         "from a logit regression are displayed. All columns include         "
+         "option order fixed effects, round fixed effects and controls for   "
+         "all alternative characteristics (birth weight and gender). Each    "
+         "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
+         "preferred option in each round.  Standard errors are clustered by  "
+         "respondent."
+         "\end{footnotesize}}\end{tabular}\end{table}");
+
+*esttab m16 m17 m18 m19 using "$OUT/conjointWTP-bwt-planners.tex", replace
+*cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
+*(wtp N, fmt(%5.1f %9.0g) label("Willingness to Pay" Observations))
+*starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none)
+*mlabels("Main Sample" "Teachers Only" "Women Only" "Women Teachers")
+*label title("Conjoint Analysis Regressions (Planning to be Parents Only)")
+*keep(goodSeason costNumerical) style(tex) booktabs
+*postfoot("\bottomrule           "
+*         "\multicolumn{5}{p{16.2cm}}{\begin{footnotesize} Average marginal   "
+*         "from a logit regression are displayed. All columns include         "
+*         "option order fixed effects, round fixed effects and controls for   "
+*         "all alternative characteristics (birth weight and gender). Each    "
+*         "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
+*         "preferred option in each round.  Standard errors are clustered by  "
+*         "respondent."
+*         "\end{footnotesize}}\end{tabular}\end{table}");
+*
+*esttab n16 n17 n18 n19 using "$OUT/conjointWTP-bwt_springsummer-planners.tex",
+*replace cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
+*(wtpSp wtpSu N, fmt(%5.1f %5.1f %9.0g)
+* label("WTP (spring)" "WTP (summer)" Observations))
+*starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none)
+*mlabels("Main Sample" "Teachers Only" "Women Only" "Women Teachers")
+*label title("Conjoint Analysis Regressions (Planning to be Parents Only)")
+*keep(spring summer costNumerical) style(tex) booktabs
+*postfoot("\bottomrule           "
+*         "\multicolumn{5}{p{15.8cm}}{\begin{footnotesize} Average marginal   "
+*         "from a logit regression are displayed. All columns include         "
+*         "option order fixed effects, round fixed effects and controls for   "
+*         "all alternative characteristics (birth weight and gender). Each    "
+*         "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
+*         "preferred option in each round.  Standard errors are clustered by  "
+*         "respondent."
+*         "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-
 
 
 *-------------------------------------------------------------------------------
@@ -1005,9 +1082,19 @@ local conds `base'&(parent==1|planning==1)
             `base'&parent==1
             `base'&parent==1&teacher==1
             `base'&parent==1&RespSex=="Female"
-            `base'&parent==1&teacher==1&RespSex=="Female";
+            `base'&parent==1&teacher==1&RespSex=="Female"
+            `base'&parent==0
+            `base'&parent==0&teacher==1
+            `base'&parent==0&RespSex=="Female"
+            `base'&parent==0&teacher==1&RespSex=="Female"
+            `base'&planning==1
+            `base'&planning==1&teacher==1
+            `base'&planning==1&RespSex=="Female"
+            `base'&planning==1&teacher==1&RespSex=="Female";
 local names Main MainTeacher MainFemale MainTeacherFemale cold warm All
-      MainParent MainTeacherParent MainFemaleParent MainTeacherFemaleParent;
+        MainParent MainTeacherParent MainFemaleParent MainTeacherFemaleParent
+MainNoParent MainTeacherNoParent MainFemaleNoParent MainTeacherFemaleNoParent
+MainPlanning MainTeacherPlanning MainFemalePlanning MainTeacherFemalePlanning;
 #delimit cr
 tokenize `names'
 lab def names -1 "Gender" -2 "Male" -3 "Female" -4 " " -5 "Cost" -6 "250"   /*
@@ -1161,53 +1248,76 @@ postfoot("\bottomrule           "
          "preferred option in each round.  Standard errors are clustered by  "
          "respondent."
          "\end{footnotesize}}\end{tabular}\end{table}");
-#delimit cr
 
-estimates clear
-
-*local c1 `oFEs' 
-*local c2 `oFEs' age age2 someCollege hispanic 
-*eststo: logit chosen _gend* _dob* goodSeason costNumerical, cluster(ID)
-
-local ctrl1 `oFEs' _gend* _dob*
-local ctrl2 age age2 someCollege hispanic teacher parent
-local ctrl3 PG TG TP TPG 
-local cc if `base'&(parent==1|planning==1)
-
-eststo: logit chosen `ctrl1' goodSeason costNumerical `cc', cluster(ID)
-margins, dydx(goodSeason costNumerical) post
-est store m1
-estadd scalar wtp = -1000*_b[goodSeason]/_b[costNumerical]
-
-eststo: logit chosen `ctrl1' `ctrl2' goodSeason costNumerical `cc', cluster(ID)
-margins, dydx(goodSeason costNumerical `ctrl2') post
-est store m2
-estadd scalar wtp = -1000*_b[goodSeason]/_b[costNumerical]
-
-eststo: logit chosen `ctrl1' `ctrl2' `ctrl3' goodSeason costNumerical `cc', cluster(ID)
-margins, dydx(goodSeason costNumerical `ctrl2' `ctrl3') post
-est store m3
-estadd scalar wtp = -1000*_b[goodSeason]/_b[costNumerical]
-lab var chosen "Preferred"
-
-#delimit ;
-esttab m1 m2 m3 using "$OUT/conjointWTP-dobMain.tex", replace
+esttab m12 m13 m14 m15 using "$OUT/conjointWTP-dob-nonparents.tex", replace
 cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
-(wtp N, fmt(%5.1f %9.0g)
- label("Willingness to Pay" Observations))
-starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none)
-mlabels(,depvar) label title("Conjoint Analysis Regressions")
-keep(goodSeason costNumerical `ctrl2' `ctrl3') style(tex) booktabs
+(wtp N, fmt(%5.1f %9.0g) label("Willingness to Pay" Observations))
+starlevel ("*" 0.10 "**" 0.05 "***" 0.01) label collabels(,none)
+mlabels("Main Sample" "Teachers Only" "Women Only" "Women Teachers")
+title("Conjoint Analysis Regressions (Non-Parents Only)")
+keep(goodSeason costNumerical) style(tex) booktabs
 postfoot("\bottomrule           "
-         "\multicolumn{4}{p{11.4cm}}{\begin{footnotesize} Average marginal   "
+         "\multicolumn{5}{p{16.2cm}}{\begin{footnotesize} Average marginal   "
          "from a logit regression are displayed. All columns include         "
          "option order fixed effects, round fixed effects and controls for   "
-         "all alternative characteristics (day of birth and gender). The     "
-         "estimation sample consist of all married 25-45 year-olds (at survey"
-         " or time of birth) who are white or hispanic. Each    "
+         "all alternative characteristics (day of birth and gender). Each    "
          "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
          "preferred option in each round.  Standard errors are clustered by  "
-         "respondent"
+         "respondent."
          "\end{footnotesize}}\end{tabular}\end{table}");
+
+esttab n12 n13 n14 n15 using "$OUT/conjointWTP-dob_springsummer-nonparents.tex",
+replace cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
+(wtpSp wtpSu N, fmt(%5.1f %5.1f %9.0g)
+ label("WTP (spring)" "WTP (summer)" Observations))
+starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none)
+mlabels("Main Sample" "Teachers Only" "Women Only" "Women Teachers")
+label title("Conjoint Analysis Regressions (Non-Parents Only)")
+keep(spring summer costNumerical) style(tex) booktabs
+postfoot("\bottomrule           "
+         "\multicolumn{5}{p{16.2cm}}{\begin{footnotesize} Average marginal   "
+         "from a logit regression are displayed. All columns include         "
+         "option order fixed effects, round fixed effects and controls for   "
+         "all alternative characteristics (day of birth and gender). Each    "
+         "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
+         "preferred option in each round.  Standard errors are clustered by  "
+         "respondent."
+         "\end{footnotesize}}\end{tabular}\end{table}");
+
+*esttab m16 m17 m18 m19 using "$OUT/conjointWTP-dob-planners.tex", replace
+*cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
+*(wtp N, fmt(%5.1f %9.0g) label("Willingness to Pay" Observations))
+*starlevel ("*" 0.10 "**" 0.05 "***" 0.01) label collabels(,none)
+*mlabels("Main Sample" "Teachers Only" "Women Only" "Women Teachers")
+*title("Conjoint Analysis Regressions (Planning to be Parents Only)")
+*keep(goodSeason costNumerical) style(tex) booktabs
+*postfoot("\bottomrule           "
+*         "\multicolumn{5}{p{16.2cm}}{\begin{footnotesize} Average marginal   "
+*         "from a logit regression are displayed. All columns include         "
+*         "option order fixed effects, round fixed effects and controls for   "
+*         "all alternative characteristics (day of birth and gender). Each    "
+*         "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
+*         "preferred option in each round.  Standard errors are clustered by  "
+*         "respondent."
+*         "\end{footnotesize}}\end{tabular}\end{table}");
+*
+*esttab n16 n17 n18 n19 using "$OUT/conjointWTP-dob_springsummer-planners.tex",
+*replace cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
+*(wtpSp wtpSu N, fmt(%5.1f %5.1f %9.0g)
+* label("WTP (spring)" "WTP (summer)" Observations))
+*starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none)
+*mlabels("Main Sample" "Teachers Only" "Women Only" "Women Teachers")
+*label title("Conjoint Analysis Regressions (Planning to be Parents Only)")
+*keep(spring summer costNumerical) style(tex) booktabs
+*postfoot("\bottomrule           "
+*         "\multicolumn{5}{p{16.2cm}}{\begin{footnotesize} Average marginal   "
+*         "from a logit regression are displayed. All columns include         "
+*         "option order fixed effects, round fixed effects and controls for   "
+*         "all alternative characteristics (day of birth and gender). Each    "
+*         "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
+*         "preferred option in each round.  Standard errors are clustered by  "
+*         "respondent."
+*         "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
+
