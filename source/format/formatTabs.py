@@ -553,7 +553,7 @@ sumT.write('\\begin{table}[htpb!] \n \\begin{center} \n'
 '& N & Mean & Std. Dev. & Min. & Max. \\\\ \\midrule \n')
 
 for i,line in enumerate(SI):
-    if i>8 and i<19:
+    if i>8 and i<20:
         line = line.replace('\\hline','\\midrule')
         line = line.replace('Quarter','season of birth')
         sumT.write(line)
@@ -597,7 +597,7 @@ for table in IndTabs:
         line = line.replace('\\end{footnotesize}}\\end{tabular}\\end{table}',
                             '\\end{footnotesize}}\\end{tabular}}\\end{table}')
         line = line.replace('\\begin{tabular}{l*{3}{c}}',
-                            '\\scalebox{0.76}{\\begin{tabular}{l*{3}{c}}')
+                            '\\scalebox{0.82}{\\begin{tabular}{l*{3}{c}}')
         ipoT.write(line)
 
     ipoT.close()
@@ -615,9 +615,132 @@ for i,line in enumerate(ipiT):
     line = line.replace('\\end{footnotesize}}\\end{tabular}\\end{table}',
                         '\\end{footnotesize}}\\end{tabular}}\\end{table}')
     line = line.replace('\\begin{tabular}{l*{3}{c}}',
-                        '\\scalebox{0.76}{\\begin{tabular}{l*{3}{c}}')
+                        '\\scalebox{0.82}{\\begin{tabular}{l*{3}{c}}')
     ipoT.write(line)
 ipoT.close()
+
+IPUMSind  = RES + 'hisp/ipums/regressions/IPUMSIndustry_cold.tex'
+ipoT = open(TAB + 'IPUMSIndustrycold_hisp.tex', 'w')
+ipiT = open(IPUMSind, 'r').readlines()
+for i,line in enumerate(ipiT):
+    line = line.replace('oneLevelOcc==','')
+    line = line.replace('twoLevelOcc==','')
+    line = line.replace('Occupations','')
+    line = line.replace('Occpations==','')
+    line = line.replace('\\end{footnotesize}}\\end{tabular}\\end{table}',
+                        '\\end{footnotesize}}\\end{tabular}}\\end{table}')
+    line = line.replace('\\begin{tabular}{l*{3}{c}}',
+                        '\\scalebox{0.82}{\\begin{tabular}{l*{3}{c}}')
+    ipoT.write(line)
+ipoT.close()
+
+IPUMSind  = RES + 'hisp/ipums/regressions/IPUMSIndustry_warm.tex'
+ipoT = open(TAB + 'IPUMSIndustrywarm_hisp.tex', 'w')
+ipiT = open(IPUMSind, 'r').readlines()
+for i,line in enumerate(ipiT):
+    line = line.replace('oneLevelOcc==','')
+    line = line.replace('twoLevelOcc==','')
+    line = line.replace('Occupations','')
+    line = line.replace('Occpations==','')
+    line = line.replace('\\end{footnotesize}}\\end{tabular}\\end{table}',
+                        '\\end{footnotesize}}\\end{tabular}}\\end{table}')
+    line = line.replace('\\begin{tabular}{l*{3}{c}}',
+                        '\\scalebox{0.82}{\\begin{tabular}{l*{3}{c}}')
+    ipoT.write(line)
+ipoT.close()
+
+
+IPUMSind  = RES + 'hisp/ipums/regressions/IPUMSIndustryQ2.tex'
+ipoT = open(TAB + 'IPUMSIndustryQ2_hisp.tex', 'w')
+ipiT = open(IPUMSind, 'r').readlines()
+for i,line in enumerate(ipiT):
+    line = line.replace('oneLevelOcc==','')
+    line = line.replace('twoLevelOcc==','')
+    line = line.replace('Occupations','')
+    line = line.replace('Occpations==','')
+    line = line.replace('\\end{footnotesize}}\\end{tabular}\\end{table}',
+                        '\\end{footnotesize}}\\end{tabular}}\\end{table}')
+    line = line.replace('\\begin{tabular}{l*{3}{c}}',
+                        '\\scalebox{0.82}{\\begin{tabular}{l*{3}{c}}')
+    ipoT.write(line)
+ipoT.close()
+
+IPUMSind  = RES + 'hisp/ipums/regressions/IPUMSIndustryQ3.tex'
+ipoT = open(TAB + 'IPUMSIndustryQ3_hisp.tex', 'w')
+ipiT = open(IPUMSind, 'r').readlines()
+for i,line in enumerate(ipiT):
+    line = line.replace('oneLevelOcc==','')
+    line = line.replace('twoLevelOcc==','')
+    line = line.replace('Occupations','')
+    line = line.replace('Occpations==','')
+    line = line.replace('\\end{footnotesize}}\\end{tabular}\\end{table}',
+                        '\\end{footnotesize}}\\end{tabular}}\\end{table}')
+    line = line.replace('\\begin{tabular}{l*{3}{c}}',
+                        '\\scalebox{0.82}{\\begin{tabular}{l*{3}{c}}')
+    ipoT.write(line)
+ipoT.close()
+
+IPUMSind  = RES + 'hisp/ipums/regressions/IPUMSIndustryQ2-cold.tex'
+ipoT = open(TAB + 'IPUMSIndustryQ2cold_hisp.tex', 'w')
+ipiT = open(IPUMSind, 'r').readlines()
+for i,line in enumerate(ipiT):
+    line = line.replace('oneLevelOcc==','')
+    line = line.replace('twoLevelOcc==','')
+    line = line.replace('Occupations','')
+    line = line.replace('Occpations==','')
+    line = line.replace('\\end{footnotesize}}\\end{tabular}\\end{table}',
+                        '\\end{footnotesize}}\\end{tabular}}\\end{table}')
+    line = line.replace('\\begin{tabular}{l*{3}{c}}',
+                        '\\scalebox{0.82}{\\begin{tabular}{l*{3}{c}}')
+    ipoT.write(line)
+ipoT.close()
+
+IPUMSind  = RES + 'hisp/ipums/regressions/IPUMSIndustryQ3-cold.tex'
+ipoT = open(TAB + 'IPUMSIndustryQ3cold_hisp.tex', 'w')
+ipiT = open(IPUMSind, 'r').readlines()
+for i,line in enumerate(ipiT):
+    line = line.replace('oneLevelOcc==','')
+    line = line.replace('twoLevelOcc==','')
+    line = line.replace('Occupations','')
+    line = line.replace('Occpations==','')
+    line = line.replace('\\end{footnotesize}}\\end{tabular}\\end{table}',
+                        '\\end{footnotesize}}\\end{tabular}}\\end{table}')
+    line = line.replace('\\begin{tabular}{l*{3}{c}}',
+                        '\\scalebox{0.82}{\\begin{tabular}{l*{3}{c}}')
+    ipoT.write(line)
+ipoT.close()
+
+IPUMSind  = RES + 'hisp/ipums/regressions/IPUMSIndustryQ2-warm.tex'
+ipoT = open(TAB + 'IPUMSIndustryQ2warm_hisp.tex', 'w')
+ipiT = open(IPUMSind, 'r').readlines()
+for i,line in enumerate(ipiT):
+    line = line.replace('oneLevelOcc==','')
+    line = line.replace('twoLevelOcc==','')
+    line = line.replace('Occupations','')
+    line = line.replace('Occpations==','')
+    line = line.replace('\\end{footnotesize}}\\end{tabular}\\end{table}',
+                        '\\end{footnotesize}}\\end{tabular}}\\end{table}')
+    line = line.replace('\\begin{tabular}{l*{3}{c}}',
+                        '\\scalebox{0.82}{\\begin{tabular}{l*{3}{c}}')
+    ipoT.write(line)
+ipoT.close()
+
+IPUMSind  = RES + 'hisp/ipums/regressions/IPUMSIndustryQ3-warm.tex'
+ipoT = open(TAB + 'IPUMSIndustryQ3warm_hisp.tex', 'w')
+ipiT = open(IPUMSind, 'r').readlines()
+for i,line in enumerate(ipiT):
+    line = line.replace('oneLevelOcc==','')
+    line = line.replace('twoLevelOcc==','')
+    line = line.replace('Occupations','')
+    line = line.replace('Occpations==','')
+    line = line.replace('\\end{footnotesize}}\\end{tabular}\\end{table}',
+                        '\\end{footnotesize}}\\end{tabular}}\\end{table}')
+    line = line.replace('\\begin{tabular}{l*{3}{c}}',
+                        '\\scalebox{0.82}{\\begin{tabular}{l*{3}{c}}')
+    ipoT.write(line)
+ipoT.close()
+
+
 IPUMSind  = RES + 'hisp/ipums/regressions/IPUMSIndustry_IncEduc.tex'
 ipoT = open(TAB + 'IPUMSIndustry_IncEduc_hisp.tex', 'w')
 ipiT = open(IPUMSind, 'r').readlines()
@@ -634,6 +757,20 @@ for i,line in enumerate(ipiT):
 ipoT.close()
 IPUMSind  = RES + 'hispall/ipums/regressions/IPUMSIndustry.tex'
 ipoT = open(TAB + 'IPUMSIndustryBoth_hisp.tex', 'w')
+ipiT = open(IPUMSind, 'r').readlines()
+for i,line in enumerate(ipiT):
+    line = line.replace('oneLevelOcc==','')
+    line = line.replace('twoLevelOcc==','')
+    line = line.replace('Occupations','')
+    line = line.replace('Occpations==','')
+    line = line.replace('\\end{footnotesize}}\\end{tabular}\\end{table}',
+                        '\\end{footnotesize}}\\end{tabular}}\\end{table}')
+    line = line.replace('\\begin{tabular}{l*{3}{c}}',
+                        '\\scalebox{0.76}{\\begin{tabular}{l*{3}{c}}')
+    ipoT.write(line)
+ipoT.close()
+IPUMSind  = RES + 'hisp/ipums/t-reg/regressions/IPUMSIndustry.tex'
+ipoT = open(TAB + 'IPUMSIndustry_hisp-t.tex', 'w')
 ipiT = open(IPUMSind, 'r').readlines()
 for i,line in enumerate(ipiT):
     line = line.replace('oneLevelOcc==','')
