@@ -426,11 +426,13 @@ local conds `base'&(parent==1|planning==1)
             `base'&planning==1
             `base'&planning==1&teacher==1
             `base'&planning==1&RespSex=="Female"
-            `base'&planning==1&teacher==1&RespSex=="Female" ;
+            `base'&planning==1&teacher==1&RespSex=="Female"
+            all==1&teacher==1&RespSex=="Female";
 local names Main MainTeacher MainFemale MainTeacherFemale cold warm All
         MainParent MainTeacherParent MainFemaleParent MainTeacherFemaleParent
 MainNoParent MainTeacherNoParent MainFemaleNoParent MainTeacherFemaleNoParent
-MainPlanning MainTeacherPlanning MainFemalePlanning MainTeacherFemalePlanning;
+MainPlanning MainTeacherPlanning MainFemalePlanning MainTeacherFemalePlanning
+AllTeacherFemale;
 #delimit cr
 tokenize `names'
 lab def names -1 "Gender" -2 "Male" -3 "Female" -4 " " -5 "Cost" -6 "250"   /*
@@ -506,14 +508,14 @@ foreach c of local conds {
     eststo: logit chosen `ctrl' goodSeason costNumerical if `c', cluster(ID)
     margins, dydx(goodSeason costNumerical _gend2 `nvar1' `nvar2') post
     est store m`ll'
-    estadd scalar wtp = -1000*_b[goodSeason]/_b[costNumerical]
+    estadd scalar wtp = 1000*_b[goodSeason]/_b[costNumerical]
     nlcom ratio:_b[goodSeason]/_b[costNumerical], post
     local lb = string(1000*(_b[ratio]-1.96*_se[ratio]), "%5.1f")
     local ub = string(1000*(_b[ratio]+1.96*_se[ratio]), "%5.1f")
     estadd local conf95 "[`lb';`ub']": m`ll'
     
     eststo: logit chosen `ctrl' spring summer _sob4 costNumerical if `c', cluster(ID)
-    margins, dydx(spring summer costNumerical  _gend2 `nvar1' `nvar2') post
+    margins, dydx(spring summer costNumerical  _gend2 `nvar1' `nvar2' _sob4) post
     est store n`ll'
     estadd scalar wtpSp = -1000*_b[spring]/_b[costNumerical]
     estadd scalar wtpSu = -1000*_b[summer]/_b[costNumerical]
@@ -704,7 +706,6 @@ postfoot("\bottomrule           "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 
-estimates clear
 
 *-------------------------------------------------------------------------------
 *--- (B2) Generate [For Birth weight Group]
@@ -826,11 +827,13 @@ local conds `base'&(parent==1|planning==1)
             `base'&planning==1
             `base'&planning==1&teacher==1
             `base'&planning==1&RespSex=="Female"
-            `base'&planning==1&teacher==1&RespSex=="Female";
+            `base'&planning==1&teacher==1&RespSex=="Female"
+            all==1;
 local names Main MainTeacher MainFemale MainTeacherFemale cold warm All
         MainParent MainTeacherParent MainFemaleParent MainTeacherFemaleParent
 MainNoParent MainTeacherNoParent MainFemaleNoParent MainTeacherFemaleNoParent
-MainPlanning MainTeacherPlanning MainFemalePlanning MainTeacherFemalePlanning;
+MainPlanning MainTeacherPlanning MainFemalePlanning MainTeacherFemalePlanning
+AllTeacherFemale;
 #delimit cr
 tokenize `names'
 lab def names -1 "Gender" -2 "Male" -3 "Female" -4 " " -5 "Cost" -6 "250"   /*
@@ -898,28 +901,28 @@ foreach c of local conds {
     local ctrl `oFEs' _gend* _bwt*
     eststo: logit chosen `ctrl' goodSeason costNumerical if `c', cluster(ID)
     margins, dydx(goodSeason costNumerical  _gend2 `nvar1') post
-    est store m`ll'
-    estadd scalar wtp = -1000*_b[goodSeason]/_b[costNumerical]
+    est store o`ll'
+    estadd scalar wtp = 1000*_b[goodSeason]/_b[costNumerical]
     nlcom ratio:_b[goodSeason]/_b[costNumerical], post
     local lb = string(1000*(_b[ratio]-1.96*_se[ratio]), "%5.1f")
     local ub = string(1000*(_b[ratio]+1.96*_se[ratio]), "%5.1f")
-    estadd local conf95 "[`lb';`ub']": m`ll'
+    estadd local conf95 "[`lb';`ub']": o`ll'
 
     cap {
         eststo: logit chosen `ctrl' spring summer _sob4 costNumerical if `c', cluster(ID)
         margins, dydx(spring summer costNumerical  _gend2 `nvar1') post
-        est store n`ll'
+        est store p`ll'
         estadd scalar wtpSp = -1000*_b[spring]/_b[costNumerical]
         estadd scalar wtpSu = -1000*_b[summer]/_b[costNumerical]
         nlcom ratio:_b[spring]/_b[costNumerical], post
         local lb = string(1000*(_b[ratio]-1.96*_se[ratio]), "%5.1f")
         local ub = string(1000*(_b[ratio]+1.96*_se[ratio]), "%5.1f")
-        estadd local conf95sp "[`lb';`ub']": n`ll'
-        est restore n`ll'
+        estadd local conf95sp "[`lb';`ub']": p`ll'
+        est restore p`ll'
         nlcom ratio:_b[summer]/_b[costNumerical], post
         local lb = string(1000*(_b[ratio]-1.96*_se[ratio]), "%5.1f")
         local ub = string(1000*(_b[ratio]+1.96*_se[ratio]), "%5.1f")
-        estadd local conf95su "[`lb';`ub']": n`ll'
+        estadd local conf95su "[`lb';`ub']": p`ll'
     }
     local ++ll
 }
@@ -927,7 +930,7 @@ foreach c of local conds {
 lab var costNumerical "Medical Costs (1000s)"
 lab var goodSeason    "Good Season"
 #delimit ;
-esttab m1 m2 m3 m4 using "$OUT/conjointWTP-bwt.tex", replace
+esttab o1 o2 o3 o4 using "$OUT/conjointWTP-bwt.tex", replace
 cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
 (wtp conf95 N, fmt(%5.1f %9.0g)
  label("Willingness to Pay" "95\% CI WTP" Observations))
@@ -951,7 +954,7 @@ postfoot("\bottomrule           "
 lab var spring "Spring";
 lab var summer "Summer";
 
-esttab n1 n2 n3 n4 using "$OUT/conjointWTP-bwt_springsummer.tex", replace
+esttab p1 p2 p3 p4 using "$OUT/conjointWTP-bwt_springsummer.tex", replace
 cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
 (wtpSp conf95sp wtpSu conf95su N, fmt(%5.1f %5.1f %9.0g)
  label("WTP (spring)" "95\% CI" "WTP (summer)" "95\% CI" Observations))
@@ -972,7 +975,7 @@ postfoot("\bottomrule           "
          "using thet delta method for the (non-linear) ratio."
          "\end{footnotesize}}\end{tabular}\end{table}");
 
-esttab m8 m9 m10 m11 using "$OUT/conjointWTP-bwt-parents.tex", replace
+esttab o8 o9 o10 o11 using "$OUT/conjointWTP-bwt-parents.tex", replace
 cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
 (wtp conf95 N, fmt(%5.1f %9.0g)
  label("Willingness to Pay" "95\% CI WTP" Observations))
@@ -993,7 +996,7 @@ postfoot("\bottomrule           "
          "using thet delta method for the (non-linear) ratio."
          "\end{footnotesize}}\end{tabular}\end{table}");
 
-esttab n8 n9 n10 n11 using "$OUT/conjointWTP-bwt_springsummer-parents.tex", replace
+esttab p8 p9 p10 p11 using "$OUT/conjointWTP-bwt_springsummer-parents.tex", replace
 cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
 (wtpSp conf95sp wtpSu conf95su N, fmt(%5.1f %5.1f %9.0g)
  label("WTP (spring)" "95\% CI" "WTP (summer)" "95\% CI" Observations))
@@ -1014,7 +1017,7 @@ postfoot("\bottomrule           "
          "using thet delta method for the (non-linear) ratio."
          "\end{footnotesize}}\end{tabular}\end{table}");
 
-esttab m12 m13 m14 m15 using "$OUT/conjointWTP-bwt-nonparents.tex", replace
+esttab o12 o13 o14 o15 using "$OUT/conjointWTP-bwt-nonparents.tex", replace
 cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
 (wtp conf95 N, fmt(%5.1f %9.0g)
  label("Willingness to Pay" "95\% CI WTP" Observations))
@@ -1035,7 +1038,7 @@ postfoot("\bottomrule           "
          "using thet delta method for the (non-linear) ratio."
          "\end{footnotesize}}\end{tabular}\end{table}");
 
-esttab n12 n13 n14 n15 using "$OUT/conjointWTP-bwt_springsummer-nonparents.tex",
+esttab p12 p13 p14 p15 using "$OUT/conjointWTP-bwt_springsummer-nonparents.tex",
 replace cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
 (wtpSp conf95sp wtpSu conf95su N, fmt(%5.1f %5.1f %9.0g)
  label("WTP (spring)" "95\% CI" "WTP (summer)" "95\% CI" Observations))
@@ -1055,43 +1058,7 @@ postfoot("\bottomrule           "
          "choosing good season.  The 95\% confidence interval is calculated  "
          "using thet delta method for the (non-linear) ratio."
          "\end{footnotesize}}\end{tabular}\end{table}");
-
-*esttab m16 m17 m18 m19 using "$OUT/conjointWTP-bwt-planners.tex", replace
-*cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
-*(wtp N, fmt(%5.1f %9.0g) label("Willingness to Pay" Observations))
-*starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none)
-*mlabels("Main Sample" "Teachers Only" "Women Only" "Women Teachers")
-*label title("Conjoint Analysis Regressions (Planning to be Parents Only)")
-*keep(goodSeason costNumerical) style(tex) booktabs
-*postfoot("\bottomrule           "
-*         "\multicolumn{5}{p{16.2cm}}{\begin{footnotesize} Average marginal   "
-*         "from a logit regression are displayed. All columns include         "
-*         "option order fixed effects, round fixed effects and controls for   "
-*         "all alternative characteristics (birth weight and gender). Each    "
-*         "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
-*         "preferred option in each round.  Standard errors are clustered by  "
-*         "respondent."
-*         "\end{footnotesize}}\end{tabular}\end{table}");
-*
-*esttab n16 n17 n18 n19 using "$OUT/conjointWTP-bwt_springsummer-planners.tex",
-*replace cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
-*(wtpSp wtpSu N, fmt(%5.1f %5.1f %9.0g)
-* label("WTP (spring)" "WTP (summer)" Observations))
-*starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none)
-*mlabels("Main Sample" "Teachers Only" "Women Only" "Women Teachers")
-*label title("Conjoint Analysis Regressions (Planning to be Parents Only)")
-*keep(spring summer costNumerical) style(tex) booktabs
-*postfoot("\bottomrule           "
-*         "\multicolumn{5}{p{15.8cm}}{\begin{footnotesize} Average marginal   "
-*         "from a logit regression are displayed. All columns include         "
-*         "option order fixed effects, round fixed effects and controls for   "
-*         "all alternative characteristics (birth weight and gender). Each    "
-*         "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
-*         "preferred option in each round.  Standard errors are clustered by  "
-*         "respondent."
-*         "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
-estimates clear
 
 
 *-------------------------------------------------------------------------------
@@ -1191,11 +1158,13 @@ local conds `base'&(parent==1|planning==1)
             `base'&planning==1
             `base'&planning==1&teacher==1
             `base'&planning==1&RespSex=="Female"
-            `base'&planning==1&teacher==1&RespSex=="Female";
+            `base'&planning==1&teacher==1&RespSex=="Female"
+            all==1&teacher==1&RespSex=="Female";
 local names Main MainTeacher MainFemale MainTeacherFemale cold warm All
         MainParent MainTeacherParent MainFemaleParent MainTeacherFemaleParent
 MainNoParent MainTeacherNoParent MainFemaleNoParent MainTeacherFemaleNoParent
-MainPlanning MainTeacherPlanning MainFemalePlanning MainTeacherFemalePlanning;
+MainPlanning MainTeacherPlanning MainFemalePlanning MainTeacherFemalePlanning
+AllTeacherFemale;
 #delimit cr
 tokenize `names'
 lab def names -1 "Gender" -2 "Male" -3 "Female" -4 " " -5 "Cost" -6 "250"   /*
@@ -1261,34 +1230,34 @@ foreach c of local conds {
     local ctrl `oFEs'  _gend* _dob*
     eststo: logit chosen `ctrl' goodSeason costNumerical if `c', cluster(ID)
     margins, dydx(goodSeason costNumerical _gend2 `nvar2') post
-    est store m`ll'
-    estadd scalar wtp = -1000*_b[goodSeason]/_b[costNumerical]
+    est store q`ll'
+    estadd scalar wtp = 1000*_b[goodSeason]/_b[costNumerical]
     nlcom ratio:_b[goodSeason]/_b[costNumerical], post
     local lb = string(1000*(_b[ratio]-1.96*_se[ratio]), "%5.1f")
     local ub = string(1000*(_b[ratio]+1.96*_se[ratio]), "%5.1f")
-    estadd local conf95 "[`lb';`ub']": m`ll'
+    estadd local conf95 "[`lb';`ub']": q`ll'
 
     eststo: logit chosen `ctrl' spring summer _sob4 costNumerical if `c', cluster(ID)
     margins, dydx(spring summer costNumerical _gend2 `nvar2') post
-    est store n`ll'
+    est store r`ll'
     estadd scalar wtpSp = -1000*_b[spring]/_b[costNumerical]
     estadd scalar wtpSu = -1000*_b[summer]/_b[costNumerical]
     nlcom ratio:_b[spring]/_b[costNumerical], post
     local lb = string(1000*(_b[ratio]-1.96*_se[ratio]), "%5.1f")
     local ub = string(1000*(_b[ratio]+1.96*_se[ratio]), "%5.1f")
-    estadd local conf95sp "[`lb';`ub']": n`ll'
-    est restore n`ll'
+    estadd local conf95sp "[`lb';`ub']": r`ll'
+    est restore r`ll'
     nlcom ratio:_b[summer]/_b[costNumerical], post
     local lb = string(1000*(_b[ratio]-1.96*_se[ratio]), "%5.1f")
     local ub = string(1000*(_b[ratio]+1.96*_se[ratio]), "%5.1f")
-    estadd local conf95su "[`lb';`ub']": n`ll'
+    estadd local conf95su "[`lb';`ub']": r`ll'
     local ++ll
 }
 
 lab var costNumerical "Medical Costs (1000s)"
 lab var goodSeason    "Good Season"
 #delimit ;
-esttab m1 m2 m3 m4 using "$OUT/conjointWTP-dob.tex", replace
+esttab q1 q2 q3 q4 using "$OUT/conjointWTP-dob.tex", replace
 cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
 (wtp conf95 N, fmt(%5.1f %9.0g)
  label("Willingness to Pay" "95\% CI WTP" Observations))
@@ -1314,7 +1283,7 @@ lab var summer "Summer"
 lab var spring "Spring"
 
 #delimit ;
-esttab n1 n2 n3 n4 using "$OUT/conjointWTP-dob_springsummer.tex", replace
+esttab r1 r2 r3 r4 using "$OUT/conjointWTP-dob_springsummer.tex", replace
 cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
 (wtpSp conf95sp wtpSu conf95su N, fmt(%5.1f %5.1f %9.0g)
  label("WTP (spring)" "95\% CI" "WTP (summer)" "95\% CI" Observations))
@@ -1335,7 +1304,7 @@ postfoot("\bottomrule           "
          "using thet delta method for the (non-linear) ratio."
          "\end{footnotesize}}\end{tabular}\end{table}");
 
-esttab m8 m9 m10 m11 using "$OUT/conjointWTP-dob-parents.tex", replace
+esttab q8 q9 q10 q11 using "$OUT/conjointWTP-dob-parents.tex", replace
 cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
 (wtp conf95 N, fmt(%5.1f %9.0g)
  label("Willingness to Pay" "95\% CI WTP" Observations))
@@ -1356,7 +1325,7 @@ postfoot("\bottomrule           "
          "using thet delta method for the (non-linear) ratio."
          "\end{footnotesize}}\end{tabular}\end{table}");
 
-esttab n8 n9 n10 n11 using "$OUT/conjointWTP-dob_springsummer-parents.tex", replace
+esttab r8 r9 r10 r11 using "$OUT/conjointWTP-dob_springsummer-parents.tex", replace
 cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
 (wtpSp conf95sp wtpSu conf95su N, fmt(%5.1f %5.1f %9.0g)
  label("WTP (spring)" "95\% CI" "WTP (summer)" "95\% CI" Observations))
@@ -1377,7 +1346,7 @@ postfoot("\bottomrule           "
          "using thet delta method for the (non-linear) ratio."
          "\end{footnotesize}}\end{tabular}\end{table}");
 
-esttab m12 m13 m14 m15 using "$OUT/conjointWTP-dob-nonparents.tex", replace
+esttab q12 q13 q14 q15 using "$OUT/conjointWTP-dob-nonparents.tex", replace
 cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
 (wtp conf95 N, fmt(%5.1f %9.0g)
  label("Willingness to Pay" "95\% CI WTP" Observations))
@@ -1398,7 +1367,7 @@ postfoot("\bottomrule           "
          "using thet delta method for the (non-linear) ratio."
          "\end{footnotesize}}\end{tabular}\end{table}");
 
-esttab n12 n13 n14 n15 using "$OUT/conjointWTP-dob_springsummer-nonparents.tex",
+esttab r12 r13 r14 r15 using "$OUT/conjointWTP-dob_springsummer-nonparents.tex",
 replace cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
 (wtpSp conf95sp wtpSu conf95su N, fmt(%5.1f %5.1f %9.0g)
  label("WTP (spring)" "95\% CI" "WTP (summer)" "95\% CI" Observations))
@@ -1419,40 +1388,102 @@ postfoot("\bottomrule           "
          "using thet delta method for the (non-linear) ratio."
          "\end{footnotesize}}\end{tabular}\end{table}");
 
-*esttab m16 m17 m18 m19 using "$OUT/conjointWTP-dob-planners.tex", replace
-*cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
-*(wtp N, fmt(%5.1f %9.0g) label("Willingness to Pay" Observations))
-*starlevel ("*" 0.10 "**" 0.05 "***" 0.01) label collabels(,none)
-*mlabels("Main Sample" "Teachers Only" "Women Only" "Women Teachers")
-*title("Conjoint Analysis Regressions (Planning to be Parents Only)")
-*keep(goodSeason costNumerical) style(tex) booktabs
-*postfoot("\bottomrule           "
-*         "\multicolumn{5}{p{16.2cm}}{\begin{footnotesize} Average marginal   "
-*         "from a logit regression are displayed. All columns include         "
-*         "option order fixed effects, round fixed effects and controls for   "
-*         "all alternative characteristics (day of birth and gender). Each    "
-*         "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
-*         "preferred option in each round.  Standard errors are clustered by  "
-*         "respondent."
-*         "\end{footnotesize}}\end{tabular}\end{table}");
-*
-*esttab n16 n17 n18 n19 using "$OUT/conjointWTP-dob_springsummer-planners.tex",
-*replace cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
-*(wtpSp wtpSu N, fmt(%5.1f %5.1f %9.0g)
-* label("WTP (spring)" "WTP (summer)" Observations))
-*starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none)
-*mlabels("Main Sample" "Teachers Only" "Women Only" "Women Teachers")
-*label title("Conjoint Analysis Regressions (Planning to be Parents Only)")
-*keep(spring summer costNumerical) style(tex) booktabs
-*postfoot("\bottomrule           "
-*         "\multicolumn{5}{p{16.2cm}}{\begin{footnotesize} Average marginal   "
-*         "from a logit regression are displayed. All columns include         "
-*         "option order fixed effects, round fixed effects and controls for   "
-*         "all alternative characteristics (day of birth and gender). Each    "
-*         "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
-*         "preferred option in each round.  Standard errors are clustered by  "
-*         "respondent."
-*         "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
-estimates clear
+
+
+*-------------------------------------------------------------------------------
+*--- (5) Export tables
+*-------------------------------------------------------------------------------
+lab var _sob4 "Fall"
+
+#delimit ;
+esttab n7 p7 r7 using "$OUT/conjointWTP-seasons.tex", replace
+cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
+(wtpSp conf95sp wtpSu conf95su N, fmt(%5.1f %5.1f %9.0g)
+ label("WTP (spring)" "95\% CI" "WTP (summer)" "95\% CI" Observations))
+starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none)
+mlabels("Full Sample" "Birth Weight Sample" "Day of Birth Sample")
+label title("Birth Characteristics and Willingness to Pay") booktabs
+keep(spring summer _sob4 costNumerical _gend2 `nvar1' `nvar2') style(tex) 
+postfoot("\bottomrule           "
+         "\multicolumn{4}{p{13.6cm}}{\begin{footnotesize} Average marginal   "
+         "from a logit regression are displayed. All columns include         "
+         "option order fixed effects, round fixed effects and controls for   "
+         "all alternative characteristics (day of birth and gender). Each    "
+         "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
+         "preferred option in each round.  Standard errors are clustered by  "
+         "respondent. Willingness to pay and its 95\% confidence interval is "
+         "estimated based on the ratio of costs to the probability of        "
+         "choosing good season.  The 95\% confidence interval is calculated  "
+         "using thet delta method for the (non-linear) ratio."
+         "\end{footnotesize}}\end{tabular}\end{table}");
+
+esttab n20 p20 r20 using "$OUT/conjointWTP-teachers-seasons.tex", replace
+cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
+(wtpSp conf95sp wtpSu conf95su N, fmt(%5.1f %5.1f %9.0g)
+ label("WTP (spring)" "95\% CI" "WTP (summer)" "95\% CI" Observations))
+starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none)
+mlabels("Full Sample" "Birth Weight Sample" "Day of Birth Sample")
+label title("Birth Characteristics and Willingness to Pay
+(Women in Education, Library and Training Occupations)") booktabs
+keep(spring summer _sob4 costNumerical _gend2 `nvar1' `nvar2') style(tex) 
+postfoot("\bottomrule           "
+         "\multicolumn{4}{p{13.6cm}}{\begin{footnotesize} Average marginal   "
+         "from a logit regression are displayed. All columns include         "
+         "option order fixed effects, round fixed effects and controls for   "
+         "all alternative characteristics (day of birth and gender). Each    "
+         "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
+         "preferred option in each round.  Standard errors are clustered by  "
+         "respondent. Willingness to pay and its 95\% confidence interval is "
+         "estimated based on the ratio of costs to the probability of        "
+         "choosing good season.  The 95\% confidence interval is calculated  "
+         "using thet delta method for the (non-linear) ratio."
+         "\end{footnotesize}}\end{tabular}\end{table}");
+
+esttab m7 o7 q7 using "$OUT/conjointWTP.tex", replace
+cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
+(wtp conf95 N, fmt(%5.1f %9.0g)
+ label("Willingness to Pay" "95\% CI WTP" Observations))
+starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none)
+mlabels("Full Sample" "Birth Weight Sample" "Day of Birth Sample")
+label title("Birth Characteristics and Willingness to Pay") booktabs
+keep(spring summer _sob4 costNumerical _gend2 `nvar1' `nvar2') style(tex) 
+postfoot("\bottomrule           "
+         "\multicolumn{4}{p{13.6cm}}{\begin{footnotesize} Average marginal   "
+         "from a logit regression are displayed. All columns include         "
+         "option order fixed effects, round fixed effects and controls for   "
+         "all alternative characteristics (day of birth and gender). Each    "
+         "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
+         "preferred option in each round.  Standard errors are clustered by  "
+         "respondent. Willingness to pay and its 95\% confidence interval is "
+         "estimated based on the ratio of costs to the probability of        "
+         "choosing good season.  The 95\% confidence interval is calculated  "
+         "using thet delta method for the (non-linear) ratio."
+         "\end{footnotesize}}\end{tabular}\end{table}");
+
+esttab m20 o20 q20 using "$OUT/conjointWTP-teachers.tex", replace
+cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
+(wtp conf95 N, fmt(%5.1f %9.0g)
+ label("Willingness to Pay" "95\% CI WTP" Observations))
+starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none)
+mlabels("Full Sample" "Birth Weight Sample" "Day of Birth Sample")
+label title("Birth Characteristics and Willingness to Pay
+(Women in Education, Library and Training Occupations)") booktabs
+keep(spring summer _sob4 costNumerical _gend2 `nvar1' `nvar2') style(tex) 
+postfoot("\bottomrule           "
+         "\multicolumn{4}{p{13.6cm}}{\begin{footnotesize} Average marginal   "
+         "from a logit regression are displayed. All columns include         "
+         "option order fixed effects, round fixed effects and controls for   "
+         "all alternative characteristics (day of birth and gender). Each    "
+         "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
+         "preferred option in each round.  Standard errors are clustered by  "
+         "respondent. Willingness to pay and its 95\% confidence interval is "
+         "estimated based on the ratio of costs to the probability of        "
+         "choosing good season.  The 95\% confidence interval is calculated  "
+         "using thet delta method for the (non-linear) ratio."
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+
+
+
 
