@@ -39,7 +39,7 @@ local data   ACS_20052014_cleaned.dta;
 if `hisp'==1 local data   ACS_20052014_cleaned_hisp.dta;
 local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats 
              (N, fmt(%9.0g) label(Observations))     
-             starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(none) label;
+             starlevel ("*" 0.1 "**" 0.05 "***" 0.01) collabels(none) label;
 local wt     [pw=perwt];
 local enote  "Heteroscedasticity robust standard errors are reported in 
             parentheses. ***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.";
@@ -62,7 +62,7 @@ tab statefip, gen(_state)
 
 lab var unemployment "Unemployment Rate"
 bys twoLevelOcc: gen counter = _N
-keep if counter>999
+keep if counter>499
 drop counter
 
 gen young = motherAge>=25&motherAge<=39
@@ -164,7 +164,7 @@ stats(N r2 hasState, fmt(%9.0g %5.3f)
 label("Observations" "R-Squared" "State FE"))     
 ;
 #delimit cr
-exit
+
 
 *using "$OUT/stateRegression.tex", replace booktabs style(tex)
 *prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span})
@@ -193,9 +193,9 @@ graph export "$GRA/BirthQuarter_Employment1.eps", as(eps) replace;
 restore
 gen notWorking2 = workedyr!=3
 
-*preserve
+preserve
 collapse Q1 Q2 Q3 Q4 (semean) Q1_sd=Q1 Q2_sd=Q2 Q3_sd=Q3 Q4_sd=Q4, by(notWorking2)
-exit
+
 
 reshape long Q, i(notWorking) j(quarter)
 #delimit ;
@@ -207,7 +207,7 @@ graph export "$GRA/BirthQuarter_Employment2.eps", as(eps) replace;
 #delimit cr
 restore
 
-exit
+
 ********************************************************************************
 *** (3a) regressions: Birth Quarter
 ********************************************************************************
@@ -329,7 +329,7 @@ local lv1 _1occ*
 local lv2 _2occ*
 local lv3 _occ*
 local sig significantOccs insignificantOccs
-drop _2occ1
+drop _2occ2
 
 eststo: areg goodQuarter `age' `edu' `une' _year* `lv3' `wt', `se' `abs'
 ds _occ*
@@ -341,7 +341,8 @@ test `age'
 local F1a = round(r(p)*1000)/1000
 local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 local tL1  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
-
+local sval = ttail(e(N),sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)))
+dis `sval'
 
 eststo:  areg goodQuarter `age' `edu' `une' _year* `lv2' `wt', `se' `abs'
 ds _2occ*
@@ -361,7 +362,7 @@ local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 #delimit ;
 esttab est3 est2 est1 using "$OUT/IPUMSIndustry.tex", replace `estopt' 
 title("Season of Birth Correlates: Occupation"\label{tab:Occupation})
-keep(`age' `edu' `une' `lv2') style(tex) booktabs mlabels(, depvar) 
+keep(`age' `edu' `une' `lv2') style(tex) booktabs mlabels(, depvar)
 postfoot("State and Year Fixed Effects&Y&Y&Y\\                                 "
          "Occupation Codes (level) &-&2&3\\                                    "
          "F-test of Occupation Dummies&-&`F2'&`F1'\\                           "
@@ -382,7 +383,7 @@ postfoot("State and Year Fixed Effects&Y&Y&Y\\                                 "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-
+exit
 
 ********************************************************************************
 *** (3z-i) regressions: industry (Q2)
@@ -955,7 +956,7 @@ test `tvar'
 local F1 = round(r(p)*1000)/1000
 if `F1' == 0 local F1 0.000
 
-cap drop _2occ1
+cap drop _2occ2
 eststo: intreg wkworklow wkworkhigh `age' `edu' _year* `lv2' `wt', `se'
 ds _2occ*
 local tvar `r(varlist)'
@@ -996,7 +997,7 @@ if `F1' == 0 local F1 0.000
 test `age'
 local F1a = round(r(p)*1000)/1000
 
-cap drop _2occ1
+cap drop _2occ2
 eststo:  areg weeksWork `age' `edu' _year* `lv2' `wt', `se' `abs'
 ds _2occ*
 local tvar `r(varlist)'
@@ -1453,7 +1454,7 @@ replace educLevel       = 2 if educd>=101
 gen teachers = occ2010>=2300&occ2010<=2330
 lab var teachers "School Teachers"
 bys twoLevelOcc: gen counter = _N
-keep if counter>999
+keep if counter>499
 drop counter
 
 
@@ -1569,7 +1570,7 @@ esttab using "$SUM/IPUMSstats.tex", title("Descriptive Statistics (NVSS)")
   replace label noobs;
 #delimit cr
 restore
-exit
+
 ********************************************************************************
 *** (6a) Figure 1
 ********************************************************************************
@@ -1764,13 +1765,13 @@ gen pop=1
 local c1 motherAge>=28&motherAge<=31
          motherAge>=28&motherAge<=31&teachers==1
          motherAge>=28&motherAge<=31&teachers==2
-         motherAge>=28&motherAge<=39
-         motherAge>=28&motherAge<=39&teachers==1
-         motherAge>=28&motherAge<=39&teachers==2
+         motherAge>=25&motherAge<=39
+         motherAge>=25&motherAge<=39&teachers==1
+         motherAge>=25&motherAge<=39&teachers==2
          motherAge>=40&motherAge<=45
          motherAge>=40&motherAge<=45&teachers==1
          motherAge>=40&motherAge<=45&teachers==2;
-local gname 2831 2831Teacher 2831NonTeacher 2839 2839Teacher 2839NonTeacher
+local gname 2831 2831Teacher 2831NonTeacher 2539 2539Teacher 2539NonTeacher
             4045 4045Teacher 4045NonTeacher;            
 #delimit cr
 
@@ -1833,7 +1834,7 @@ foreach cond of local c1 {
     macro shift
     restore
 }
-exit
+
 cap gen pop=1
 gen quarter2 = birthQuarter==2
 gen quarter3 = birthQuarter==3
@@ -1842,9 +1843,11 @@ gen quarter3 = birthQuarter==3
 #delimit ;
 local c1 motherAge>=28&motherAge<=31&teachers==1
          motherAge>=28&motherAge<=31&teachers==2
+         motherAge>=25&motherAge<=39&teachers==1
+         motherAge>=25&motherAge<=39&teachers==2
          motherAge>=40&motherAge<=45&teachers==1
          motherAge>=40&motherAge<=45&teachers==2;
-local gname 2831Teacher 2831NonTeacher 4045Teacher 4045NonTeacher;            
+local gname 2831Teacher 2831NonTeacher 2539Teacher 2539NonTeacher 4045Teacher 4045NonTeacher;            
 #delimit cr
 tokenize `gname'
 foreach cond of local c1 {
@@ -1895,102 +1898,6 @@ foreach cond of local c1 {
 
 exit
 
-preserve
-cap drop teachers
-generat teachers = 1 if twoLev == "Education, Training, and Library Occupations"
-replace teachers = 2 if teachers==.
-bys state: gen statecount = _N
-keep if motherAge>=28&motherAge<=31
-
-qui count if statecount>500&teacher==1
-local SN1 = r(N)
-qui count if statecount>500&teacher==2
-local SN2 = r(N)
-
-collapse goodQuarter (min) cold (max) hot (sum) pop, by(fips state* teachers)
-gen diff = hot-cold
-lab var goodQuarter "Proportion good season"
-lab var cold        "Coldest monthly average (degree F)"
-lab var diff        "Annual variation in Temperature (degree F)"
-drop if state=="Alaska"|state=="Nebraska"
-
-format goodQuarter %5.2f
-
-
-foreach tvar of varlist cold diff {
-    local c1 statecount>500&teachers==1
-    local c2 statecount>500&teachers==2
-    foreach num of numlist 1 2 {
-        corr goodQuarter `tvar' [aw=pop] if `c`num''
-        local ccoef`num' = string(r(rho),"%5.3f")
-        reg goodQuarter `tvar' [aw=pop]  if `c`num'', nohead
-        local pval`num'   = (ttail(e(df_r),abs(_b[`tvar']/_se[`tvar'])))
-        local pvalue`num' = string(`pval`num'',"%5.3f")
-        if `pvalue`num'' == 0 local pvalue`num' 0.000
-    }
-    #delimit ;
-    twoway scatter goodQuarter `tvar' if `c1', msymbol(i) mlabel(state) ||
-           scatter goodQuarter `tvar' if `c1' [aw=pop], msymbol(Oh)     ||      
-              lfit goodQuarter `tvar' if `c1' [aw=pop],                 ||
-           scatter goodQuarter `tvar' if `c2', msymbol(i) mlabel(state) ||
-           scatter goodQuarter `tvar' if `c2' [aw=pop], msymbol(Oh)     ||      
-              lfit goodQuarter `tvar' if `c2' [aw=pop], scheme(s1mono)
-    lcolor(gs0) legend(off) lpattern(dash)
-    note("Teachers: Correlation coefficient=`ccoef1', p-value=`pvalue1', N=`SN1'"
-         "Non-teachers: Correlation coefficient=`ccoef2', p-value=`pvalue2', N=`SN2'");
-    graph export "$GRA/Combined`tvar'_Young.eps", as(eps) replace;
-    #delimit cr
-}
-restore
-
-preserve
-cap drop teachers
-generat teachers = 1 if twoLev == "Education, Training, and Library Occupations"
-replace teachers = 2 if teachers==.
-bys state: gen statecount = _N
-keep if motherAge>=40&motherAge<=45
-
-qui count if statecount>500&teacher==1
-local SN1 = r(N)
-qui count if statecount>500&teacher==2
-local SN2 = r(N)
-
-collapse goodQuarter (min) cold (max) hot (sum) pop, by(fips state* teachers)
-gen diff = hot-cold
-lab var goodQuarter "Proportion good season"
-lab var cold        "Coldest monthly average (degree F)"
-lab var diff        "Annual variation in Temperature (degree F)"
-drop if state=="Alaska"|state=="Nebraska"
-
-format goodQuarter %5.2f
-
-
-foreach tvar of varlist cold diff {
-    local c1 statecount>500&teachers==1
-    local c2 statecount>500&teachers==2
-    foreach num of numlist 1 2 {
-        corr goodQuarter `tvar' [aw=pop] if `c`num''
-        local ccoef`num' = string(r(rho),"%5.3f")
-        reg goodQuarter `tvar' [aw=pop]  if `c`num'', nohead
-        local pval`num'   = (ttail(e(df_r),abs(_b[`tvar']/_se[`tvar'])))
-        local pvalue`num' = string(`pval`num'',"%5.3f")
-        if `pvalue`num'' == 0 local pvalue`num' 0.000
-    }
-
-    #delimit ;
-    twoway scatter goodQuarter `tvar' if `c1', msymbol(i) mlabel(state) ||
-           scatter goodQuarter `tvar' if `c1' [aw=pop], msymbol(Oh)     ||      
-              lfit goodQuarter `tvar' if `c1' [aw=pop],                 ||
-           scatter goodQuarter `tvar' if `c2', msymbol(i) mlabel(state) ||
-           scatter goodQuarter `tvar' if `c2' [aw=pop], msymbol(Oh)     ||      
-              lfit goodQuarter `tvar' if `c2' [aw=pop], scheme(s1mono)
-    lcolor(gs0) legend(off) lpattern(dash)
-    note("Teachers: Correlation coefficient=`ccoef1', p-value=`pvalue1', N=`SN1'"
-         "Non-teachers: Correlation coefficient=`ccoef2', p-value=`pvalue2', N=`SN2'");
-    graph export "$GRA/Combined`tvar'_Old.eps", as(eps) replace;
-    #delimit cr
-}
-restore
 
 preserve
 bys state: gen statecount = _N
@@ -2638,7 +2545,7 @@ test `age'
 local F1a = round(r(p)*1000)/1000
 local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
-cap drop _2occ1
+cap drop _2occ2
 eststo:  areg goodQuarter `age' `edu' `une' _year* `lv2' `wt', `se' `abs'
 ds _2occ*
 local tvar `r(varlist)'
@@ -2762,7 +2669,7 @@ test `age'
 local F1a = round(r(p)*1000)/1000
 local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
-drop _2occ1
+drop _2occ2
 eststo:  areg goodQuarter `age' `edu' `une' _year* `lv2' `wt', `se' `abs'
 ds _2occ*
 local tvar `r(varlist)'
