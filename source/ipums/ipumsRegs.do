@@ -12,13 +12,17 @@ set more off
 cap log close
 set matsize 2000
 
-local allobs 0
-local hisp   1
-if `allobs' == 0 local mnote " married "
-if `allobs' == 0 local f "ipums/"
-if `allobs' == 1 local f "ipums/both/"
-if `hisp'==1     local f "hisp/ipums/"
-if `hisp'==1&`allobs'==1 local f "hispall/ipums/" 
+local allobs  0
+local hisp    1
+local allrace 0
+if `allobs' == 0&`allrace'==0         local mnote " married "
+if `allobs' == 0&`allrace'==0         local f "ipums/"
+if `allobs' == 1&`allrace'==0         local f "ipums/both/"
+if `hisp'==1   &`allrace'==0          local f "hisp/ipums/"
+if `hisp'==1&`allobs'==1&`allrace'==0 local f "hispall/ipums/" 
+if `allrace'==1&`allobs'==1           local f "raceall/ipums/"
+if `allrace'==1&`allobs'==0           local f "race/ipums/"
+cap mkdir "~/investigacion/2015/birthQuarter/results/`f'"
 
 ********************************************************************************
 *** (1) globals and locals
@@ -36,7 +40,8 @@ cap mkdir "$SUM"
 
 #delimit ;
 local data   ACS_20052014_cleaned.dta;
-if `hisp'==1 local data   ACS_20052014_cleaned_hisp.dta;
+if `hisp'==1    local data   ACS_20052014_cleaned_hisp.dta;
+if `allrace'==1 local data   ACS_20052014_cleaned_all.dta;
 local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats 
              (N, fmt(%9.0g) label(Observations))     
              starlevel ("*" 0.1 "**" 0.05 "***" 0.01) collabels(none) label;
@@ -49,7 +54,7 @@ local Fnote  "F-test of age variables refers to the p-value on the test that
 local onote  "Optimal age calculates the turning point of the mother's age
               quadratic. ";
 #delimit cr
-/*
+
 ********************************************************************************
 *** (2) Open data subset to sample of interest (from Sonia's import file)
 ********************************************************************************
@@ -96,7 +101,7 @@ list, noobs separator(30) table
 
 restore
 
-
+/*
 ********************************************************************************
 *** (3-z) regressions: State and Year
 ********************************************************************************
@@ -302,7 +307,7 @@ postfoot("F-test of Age Variables&0`F4'&0`F3'&0`F2'&0`F1' \\                   "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-
+*/
 ********************************************************************************
 *** (3e) regressions: industry
 ********************************************************************************
@@ -320,9 +325,13 @@ lab var insignificantOccs "Insignificant 2 level occupations"
 local se  robust
 local abs abs(statefip)
 local age motherAge motherAge2
-local edu highEduc
+local age 
+local edu highEduc 
 if `hisp'==1             local edu highEduc hispanic
 if `hisp'==1&`allobs'==1 local edu highEduc hispanic married
+if `allrace'==1             local edu highEduc hispanic black white
+if `allrace'==1&`allobs'==1 local edu highEduc hispanic black white married
+
 local une unemployment
 local une 
 local lv1 _1occ*
@@ -383,8 +392,8 @@ postfoot("State and Year Fixed Effects&Y&Y&Y\\                                 "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-exit
 
+exit
 ********************************************************************************
 *** (3z-i) regressions: industry (Q2)
 ********************************************************************************
@@ -864,7 +873,6 @@ postfoot("State and Year Fixed Effects&Y&Y&Y\\                                 "
 #delimit cr
 estimates clear
 
-exit
 gen logInc = log(hhincome)
 lab var logInc "log(household income)"
 local inc logInc `edu'  
@@ -1339,7 +1347,7 @@ postfoot("F-test of Age Variables &  &    &     &     &0`F2'\\                  
 #delimit cr
 estimates clear
 
-exit
+
 
 
 local se robust
@@ -1440,7 +1448,7 @@ postfoot("State and Year FE&&Y&Y&Y&Y\\ Occupation FE&&&&&Y\\ \bottomrule       "
 #delimit cr
 estimates clear
 
-*/
+
 ********************************************************************************
 *** (4) Sumstats of good season by various levels
 ********************************************************************************
@@ -1462,7 +1470,7 @@ lab def ag 1 "Young (25-39) " 2 "Old (40-45) "
 lab def ed 0 "No College" 1 "Some College" 2 "Complete College"
 lab val ageGroup ag
 lab val educLevel ed
-/*
+
 preserve
 drop if ageGroup==.
 
@@ -1756,7 +1764,7 @@ graph export "$GRA/birthQuarterEducOld.eps", as(eps) replace;
 #delimit cr
 restore
 
-*/
+
 gen pop=1
 ********************************************************************************
 *** (6e) Figure 6-8
@@ -1896,7 +1904,7 @@ foreach cond of local c1 {
     restore
 }
 
-exit
+
 
 
 preserve
@@ -2183,7 +2191,7 @@ note("Total Observations (All Occupations) = `SN'");
 graph export "$GRA/birthsOccupation_NoWork.eps", as(eps) replace;
 #delimit cr
 restore
-exit
+
 
 preserve
 cap gen tsplit = cold<23    
@@ -2217,7 +2225,7 @@ graph export "$GRA/birthsOccupation_warm.eps", as(eps) replace;
 #delimit cr
 restore
 dis "hello"
-exit
+
 
 cap mkdir "$GRA/occ"
 
