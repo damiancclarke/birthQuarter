@@ -15,6 +15,8 @@ cap log close
 ********************************************************************************
 *** (1) globals and locals
 ********************************************************************************
+local nohisp  0
+local allrace 1
 global DAT "~/database/nvsscdc/deaths/dta"
 global OUT "~/investigacion/2015/birthQuarter/data/nvss"
 global LOG "~/investigacion/2015/birthQuarter/log"
@@ -53,7 +55,12 @@ gen monthPrenat = mpcb if mpcb != 99
 replace monthPrenat = precare if monthPrenat == . & precare != 99
 
 keep if birthOrder<=2
-keep if mracerec == 1 & umhisp == 0
+if `allrace'==0 keep if mracerec == 1
+if `nohisp'==1 keep if umhisp == 0
+gen hispanic = umhisp!=0
+gen black = mracerec==2
+gen white = mracerec==1
+
 keep if gestation >=25 & gestation<44
 
 gen birthQuarter = ceil(birthMonth/3)
@@ -82,7 +89,7 @@ gen bstate  = ostate
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw gestation   /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single /*
 */ female birthMonth oldEduc numPrenatal monthPrenat birthOrder liveBirth    /*
-*/ mcounty mstate bcounty bstate
+*/ mcounty mstate bcounty bstate hispanic black white
 tempfile B2005
 save `B2005'
 
@@ -118,7 +125,11 @@ gen monthPrenat = mpcb if mpcb != 99
 replace monthPrenat = precare if monthPrenat == . & precare != 99
 
 keep if birthOrder<=2
-keep if mracerec == 1 & umhisp == 0
+if `allrace'==0 keep if mracerec == 1
+if `nohisp'==1 keep if umhisp == 0
+gen hispanic = umhisp!=0
+gen black = mracerec==2
+gen white = mracerec==1
 keep if gestation >=25 & gestation<44
 
 gen birthQuarter = ceil(birthMonth/3)
@@ -147,7 +158,7 @@ gen bstate  = ostate
 keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw gestation   /*
 */ premature motherAge education fatherAge ageGroupMan married smoker single /*
 */ female birthMonth oldEduc numPrenatal monthPrenat liveBirth birthOrder    /*
-*/ mcounty mstate bcounty bstate
+*/ mcounty mstate bcounty bstate hispanic black white
 tempfile B2006
 save `B2006'
 
@@ -174,7 +185,11 @@ gen female      = sex=="F"
 replace female  = . if sex == "U"
 
 keep if birthOrder<=2
-keep if mracerec == 1 & umhisp == 0
+if `allrace'==0 keep if mracerec == 1
+if `nohisp'==1 keep if umhisp == 0
+gen hispanic = umhisp!=0
+gen black = mracerec==2
+gen white = mracerec==1
 keep if gestation >=25 & gestation<44
 
 gen birthQuarter = ceil(birthMonth/3)
@@ -193,7 +208,7 @@ gen bstate  = ostate
 
 keep birthQuarter ageGroup twin year birthweight vlbw lbw gestation premature /*
 */ motherAge fatherAge ageGroupMan married single female birthMonth liveBirth /*
-*/ birthOrder mcounty mstate bcounty bstate
+*/ birthOrder mcounty mstate bcounty bstate hispanic black white
 tempfile B2007
 save `B2007'
 
@@ -220,7 +235,11 @@ gen female      = sex=="F"
 replace female  = . if sex == "U"
 
 keep if birthOrder<=2
-keep if mracerec == 1 & umhisp == 0
+if `allrace'==0 keep if mracerec == 1
+if `nohisp'==1 keep if umhisp == 0
+gen hispanic = umhisp!=0
+gen black = mracerec==2
+gen white = mracerec==1
 keep if gestation >=25 & gestation<44
 
 gen birthQuarter = ceil(birthMonth/3)
@@ -239,7 +258,7 @@ gen bstate  = ostate
 
 keep birthQuarter ageGroup twin year birthwei vlbw lbw gestation liveBirth    /*
 */ premature motherAge fatherAge ageGroupMan married single female birthMonth /*
-*/ birthOrder mcounty mstate bcounty bstate
+*/ birthOrder mcounty mstate bcounty bstate hispanic black white
 tempfile B2008
 save `B2008'
 
@@ -266,7 +285,11 @@ gen female      = sex=="F"
 replace female  = . if sex == "U"
 
 keep if birthOrder<=2
-keep if mracerec == 1 & umhisp == 0
+if `allrace'==0 keep if mracerec == 1
+if `nohisp'==1 keep if umhisp == 0
+gen hispanic = umhisp!=0
+gen black = mracerec==2
+gen white = mracerec==1
 keep if gestation >=25 & gestation<44
 
 gen birthQuarter = ceil(birthMonth/3)
@@ -285,7 +308,7 @@ gen bstate  = ostate
 
 keep birthQuarter ageGroup twin year birthwei vlbw lbw gestation premature    /*
 */ motherAge fatherAge ageGroupMan married female birthMonth liveBirth single /*
-*/ birthOrder mcounty mstate bcounty bstate
+*/ birthOrder mcounty mstate bcounty bstate hispanic black white
 tempfile B2009
 save `B2009'
 
@@ -312,7 +335,11 @@ gen female      = sex=="F"
 replace female  = . if sex == "U"
 
 keep if birthOrder<=2
-keep if mracerec == 1 & umhisp == 0
+if `allrace'==0 keep if mracerec == 1
+if `nohisp'==1 keep if umhisp == 0
+gen hispanic = umhisp!=0
+gen black = mracerec==2
+gen white = mracerec==1
 keep if gestation >=25 & gestation<44
 
 gen birthQuarter = ceil(birthMonth/3)
@@ -331,7 +358,7 @@ gen bstate  = ostate
 
 keep birthQuarter ageGroup twin year birthwei vlbw lbw gestation premature    /*
 */ motherAge fatherAge ageGroupMan married single female birthMonth liveBirth /*
-*/ birthOrder mcounty mstate bcounty bstate
+*/ birthOrder mcounty mstate bcounty bstate hispanic black white
 tempfile B2010
 save `B2010'
 
@@ -358,7 +385,11 @@ gen female      = sex=="F"
 replace female  = . if sex == "U"
 
 keep if birthOrder<=2
-keep if mracerec == 1 & umhisp == 0
+if `allrace'==0 keep if mracerec == 1
+if `nohisp'==1 keep if umhisp == 0
+gen hispanic = umhisp!=0
+gen black = mracerec==2
+gen white = mracerec==1
 keep if gestation >= 25 & gestation < 44
 
 gen birthQuarter = ceil(birthMonth/3)
@@ -377,7 +408,7 @@ gen bstate  = ostate
 
 keep birthQuarter ageGroup twin year birthwei vlbw lbw gestation premature    /*
 */ motherAge fatherAge ageGroupMan married single female birthMonth liveBirth /*
-*/ birthOrder mcounty mstate bcounty bstate
+*/ birthOrder mcounty mstate bcounty bstate hispanic black white
 tempfile B2011
 save `B2011'
 
@@ -404,7 +435,11 @@ gen female      = sex=="F"
 replace female  = . if sex == "U"
 
 keep if birthOrder<=2
-keep if mracerec == 1 & umhisp == 0
+if `allrace'==0 keep if mracerec == 1
+if `nohisp'==1 keep if umhisp == 0
+gen hispanic = umhisp!=0
+gen black = mracerec==2
+gen white = mracerec==1
 keep if gestation >= 25 & gestation < 44
 
 gen birthQuarter = ceil(birthMonth/3)
@@ -423,7 +458,7 @@ gen bstate  = ostate
 
 keep birthQuarter ageGroup twin year birthwei vlbw lbw gestation motherAge   /*
 */ fatherAge ageGroupMan married single female birthMonth liveBirth birthOrd /*
-*/ mcounty mstate bcounty bstate
+*/ mcounty mstate bcounty bstate hispanic black white
 tempfile B2012
 save `B2012'
 
@@ -450,7 +485,11 @@ gen female      = sex=="F"
 replace female  = . if sex == "U"
 
 keep if birthOrder<=2
-keep if mracerec == 1 & umhisp == 0
+if `allrace'==0 keep if mracerec == 1
+if `nohisp'==1 keep if umhisp == 0
+gen hispanic = umhisp!=0
+gen black = mracerec==2
+gen white = mracerec==1
 keep if gestation >= 25 & gestation < 44
 
 gen birthQuarter = ceil(birthMonth/3)
@@ -469,7 +508,7 @@ gen bstate  = ostate
 
 keep birthQuarter ageGroup twin year birthwei vlbw lbw gestation motherAge   /*
 */ fatherAge ageGroupMan married single female birthMonth liveBirth birthOrd /*
-*/ mcounty mstate bcounty bstate
+*/ mcounty mstate bcounty bstate hispanic black white
 tempfile B2013
 save `B2013'
 
@@ -636,9 +675,23 @@ lab var age2024            "Aged 20-24"
 lab var ARTage2024         "Aged 20-24$\times$ ART"
 lab var motherAgeXeduc     "Mother's Age $\times$ Education"
 lab var educCat            "Years of Education"
+lab var hispanic           "Hispanic"
+lab var black              "Black"
+lab var white              "White"
+
 
 ********************************************************************************
 *** (5) Save, clean
 ********************************************************************************
-lab dat "NVSS fetal death data 2005-2013 (first births, white, 25-45 year olds)"
-save "$OUT/nvssFD2005_2013.dta", replace
+if `nohisp'==1 {
+    lab dat "NVSS fetal death data 2005-2013 (first births, white, 25-45 year olds)"
+    save "$OUT/nvssFD2005_2013.dta", replace
+}
+if `nohisp'==0 {
+    lab dat "NVSS fetal death data 2005-2013 (first births, white/hisp, 25-45)"
+    save "$OUT/nvssFD2005_2013_hisp.dta", replace
+}
+if `allrace'==1 {
+    lab dat "NVSS fetal death data 2005-2013 (first births, 25-45)"
+    save "$OUT/nvssFD2005_2013_all.dta", replace
+}
