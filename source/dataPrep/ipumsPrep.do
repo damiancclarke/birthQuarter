@@ -16,7 +16,9 @@ cap log close
 ********************************************************************************
 *** (1) Globals and locals
 ********************************************************************************
-local nohisp 0
+local nohisp  0
+local allrace 1
+
 global ACS "~/investigacion/2015/birthQuarter/data/raw"
 global UNE "~/investigacion/2015/birthQuarter/data/employ"
 global OCC "~/investigacion/2015/birthQuarter/data/occup"
@@ -31,10 +33,14 @@ local data noallocatedagesexrelate_children__withmother_bio_reshaped_2005_2014
 *** (2) Open data, subset, and create variables from IPUMS
 ********************************************************************************
 use "$ACS/`data'"
+
 keep if (bpl1<150 & firstborn_1==1) | (bpl2<150 & firstborn_1==0)
-keep if race==1
-if `nohisp'==1 keep if hispan==0
+if `allrace'==0 keep if race==1
+if `nohisp'==1  keep if hispan==0
 gen hispanic = hispan!=0
+gen black    = race==2
+gen white    = race==1
+
 keep if school==1
 keep if ((nchild==1)|(nchild==2 & twins==1)|(nchild==2&twins==0&firstborn_1==0))
 keep if age>19&age<46
@@ -343,11 +349,14 @@ lab var hispanic     "Hispanic"
 lab var meanTLag     "Time varying average monthly temperature in state (1 lag)"
 lab var coldLag      "Time varying coldest monthly temperature in state (1 lag)"
 lab var hotLag       "Time varying warmest monthly temperature in state (1 lag)"
+lab var black        "Black"
+lab var white        "White"
 
 lab dat "ACS data from 2005-2014 with temp, occupation and employment (DCC)"
 ********************************************************************************
 *** (7) Save, close
 ********************************************************************************
-if `nohisp'==1 save "$ACS/ACS_20052014_cleaned", replace
-if `nohisp'==0 save "$ACS/ACS_20052014_cleaned_hisp", replace
+if `nohisp'==1&`allrace'==0 save "$ACS/ACS_20052014_cleaned", replace
+if `nohisp'==0&`allrace'==0 save "$ACS/ACS_20052014_cleaned_hisp", replace 
+if `allrace'==1             save "$ACS/ACS_20052014_cleaned_all", replace
 log close
