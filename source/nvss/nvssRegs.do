@@ -16,16 +16,23 @@ clear all
 set more off
 cap log close
 
-local allobs 0
-local hisp   1
+local allobs  1
+local hisp    0
+local allrace 1
+
 if `allobs'==0 local f nvss
 if `allobs'==1 local f nvssall
 if `allobs'==0 local mnote " married "
 local fend
 if `hisp'==1 local fend _hisp
-if `hisp'==1 local f hisp
-if `hisp'==1&`allobs'==1 local f hispall
+if `hisp'==1 local fend _all
 
+if `hisp'==1   &`allobs'==0 local f hisp
+if `hisp'==1   &`allobs'==1 local f hispall
+if `allrace'==1&`allobs'==1 local f raceall
+if `allrace'==1&`allobs'==0 local f race
+
+cap mkdir "~/investigacion/2015/birthQuarter/results/`f'"
 ********************************************************************************
 *** (1) globals and locals
 ********************************************************************************
@@ -65,9 +72,11 @@ append using "$DAT/nvssFD2005_2013`fend'"
 if `allobs'==0 keep if married==1
 
 local mc 
-if `allobs'==1           local mc married
-if `hisp'==1             local mc hispanic
-if `allobs'==1&`hisp'==1 local mc married hispanic
+if `allobs'==1              local mc married
+if `hisp'==1                local mc hispanic
+if `allrace'==1             local mc hispanic black white
+if `allobs'==1&`hisp'==1    local mc married hispanic
+if `allobs'==1&`allrace'==1 local mc married hispanic black white
 
 replace motherAge2 = motherAge2/100
 lab var motherAge2 "Mother's Age$^2$ / 100"
@@ -96,7 +105,7 @@ replace ParentalPolicy = "F" if state=="Alabama"|state=="Delaware"|
     state=="Utah"|state=="WestVirginia"|state=="Wyoming";
 replace ParentalPolicy = "CDE" if ParentalPolicy == "";
 #delimit cr
-/*
+
 ********************************************************************************
 *** (3a) Good Quarter Regressions
 ********************************************************************************
@@ -140,7 +149,7 @@ foreach type of local add {
     if `"`1'"' == "PLeaveF"  local group `cnd'&`keepif'&ParentalPolicy=="F"
 
     keep `group'
-
+    count
     eststo: areg goodQuarter `age' `edu' `con' _year* `spcnd', `se' `yab'
     test `age'
     local F1a= string(r(F), "%5.3f")
