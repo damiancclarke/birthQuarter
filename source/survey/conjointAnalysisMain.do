@@ -23,7 +23,7 @@ global GEO "~/investigacion/2015/birthQuarter/data/maps/states_simplified"
 
 
 log using "$LOG/conjointAnalysisMain.txt", text replace
-/*
+
 *-------------------------------------------------------------------------------
 *--- (1) Summary Statistics
 *-------------------------------------------------------------------------------
@@ -42,14 +42,129 @@ gen planning   = RespPlansKids=="Yes"
 gen childBYear = RespKidBYear if parent==1
 destring childBYear, replace
 gen age        = 2016-RespYOB
-replace age    = childBYear-RespYOB if parent==1
+*replace age    = childBYear-RespYOB if parent==1
 gen age2       = age^2
 gen white      = RespRace=="White"
 gen married    = RespMarital=="Married"
 gen teacher    = RespOccupation=="Education, Training, Library"
+gen certainty     = "1"  if RespSure=="1 (not sure at all)"
+replace certainty = "10" if RespSure=="10 (definitely sure)"
+replace certainty = RespSure if certainty==""
+destring certainty, replace
+
 
 save "$DAT/combined", replace
+/*
+gen sex = RespSex=="Female"
+gen birthyr = RespYOB
+gen educY     = 8 if RespEduc=="Eighth Grade or Less"
+replace educY = 10 if RespEduc=="Eighth Grade or Less"
+replace educY = 12 if RespEduc=="High School Degree/GED"
+replace educY = 13 if RespEduc=="Some College"
+replace educY = 14 if RespEduc=="2-year College Degree"
+replace educY = 16 if RespEduc=="4-year College Degree"
+replace educY = 17 if RespEduc=="Master's Degree"
+replace educY = 20 if RespEduc=="Doctoral Degree"
+replace educY = 18 if RespEduc=="Professional Degree (JD,MD,MBA)"
+gen pregnant1 = RespPregnant=="Yes"
+gen black     = RespRace=="Black or African American"
+gen otherRace = white==0&black==0
+gen hispanic  = RespHisp=="Yes"
+gen employed  = RespEmploymen=="Employed"
+gen unemployed= RespEmploymen=="Unemployed"
+gen highEduc  = educY>=13
+gen nchild    = RespNumKids if RespNumKids!="6 or more"
+destring nchild, replace
+replace nchild=6 if nchild==.
 
+lab var sex       "Female"
+lab var birthyr   "Year of Birth"
+lab var age       "Age"
+lab var educY     "Years of Education"
+lab var nchild    "Number of Children"
+lab var pregnant1 "Currently Pregnant"
+lab var married   "Married"
+lab var hispanic  "Hispanic"
+lab var black     "Black"
+lab var white     "White"
+lab var otherRac  "Other Race"
+lab var employed  "Employed"
+lab var unemploy  "Unemployed"
+lab var highEduc  "Some College +"
+lab var parent    "Parent"
+
+#delimit ;
+local statform cells("count(label(N)) mean(fmt(2) label(Mean))
+sd(fmt(2) label(Std.\ Dev.)) min(fmt(2) label(Min)) max(fmt(2) label(Max))");
+estpost sum sex age birthyr educY highEduc parent nchild pregnant1 married 
+white black otherRace hispanic employed unemployed;
+#delimit cr
+estout using "$OUT/MTurkSum.tex", replace label style(tex) `statform'
+
+
+
+preserve
+gen N = 1
+collapse (sum) N, by(educY)
+rename educY educ
+egen tot = sum(N)
+gen propeducKid = N/tot
+tempfile educKid
+save `educKid'
+
+use "$ACS/ACS_20052014_cleaned_hisp", clear
+
+keep if motherAge>=25&motherAge<=45&twins==0
+keep if marst==1
+drop if occ2010 == 9920
+
+bys twoLevelOcc: gen counter = _N
+keep if counter>500
+drop counter
+drop educ
+generate educ = 8 if educd <= 26
+replace  educ = 10 if educd>26&educd<=61
+replace  educ = 12 if educd>61&educd<=64
+replace  educ = 13 if educd>64&educd<=71
+replace  educ = 14 if educd==81
+replace  educ = 16 if educd==101
+replace  educ = 17 if educd==114
+replace  educ = 18 if educd==116
+replace  educ = 20 if educd==115
+
+
+gen N = 1
+collapse (sum) N, by(educ)
+egen tot = sum(N)
+gen propeducACS = N/tot
+merge 1:1 educ using `educKid'
+
+replace educ=1 if educ==8
+replace educ=2 if educ==10
+replace educ=3 if educ==12
+replace educ=4 if educ==13
+replace educ=5 if educ==14
+replace educ=6 if educ==16
+replace educ=7 if educ==17
+replace educ=8 if educ==18
+replace educ=9 if educ==20
+#delimit ;
+lab def educ1   1 "<=8th grade" 2 "Some Highschool" 3 "Highschool Degree/GED"
+4 "Some College" 5 "2 year College Degree" 6 "4 year College Degree"
+7 "Masters Degree" 8 "Doctoral Degree" 9 "Professional Degree";
+lab val educ educ1;
+#delimit cr
+
+replace propeducKid=0 if propeducKid==.&educ==1
+graph bar propeducACS propeducKid, over(educ) horizontal /*
+*/ legend(lab(1 "ACS") lab(2 "MTurk Sample")) scheme(s1mono) /*
+*/ bar(1, color(blue*0.6)) bar(2, color(red*0.4))
+graph export "$OUT/education.eps", as(eps) replace
+restore
+
+*-------------------------------------------------------------------------------
+*--- (1b) Comparison with NVSS
+*-------------------------------------------------------------------------------
 preserve
 gen ageBirth=age
 gen race=11 if white==1
@@ -300,6 +415,152 @@ ytitle("Proportion of Births");
 graph export "$OUT/birthsMonth.eps", as(eps) replace;
 #delimit cr
 restore
+
+
+*-------------------------------------------------------------------------------
+*--- (1c) Comparison with ACS
+*-------------------------------------------------------------------------------
+preserve
+gen N = 1
+keep if RespSex=="Female" &age>=20&age<=45
+generat ftotinc = 5000   if RespSalary=="Less than $10,000"
+replace ftotinc = 15000  if RespSalary=="$10,000 - $19,999"
+replace ftotinc = 25000  if RespSalary=="$20,000 - $29,999"
+replace ftotinc = 35000  if RespSalary=="$30,000 - $39,999"
+replace ftotinc = 45000  if RespSalary=="$40,000 - $49,999"
+replace ftotinc = 55000  if RespSalary=="$50,000 - $59,999"
+replace ftotinc = 65000  if RespSalary=="$60,000 - $69,999"
+replace ftotinc = 75000  if RespSalary=="$70,000 - $79,999"
+replace ftotinc = 85000  if RespSalary=="$80,000 - $89,999"
+replace ftotinc = 95000  if RespSalary=="$90,000 - $99,999"
+replace ftotinc = 125000 if RespSalary=="$100,000 - $149,999"
+replace ftotinc = 175000 if RespSalary=="$150,000 or more"
+replace ftotinc = ftotinc/1000
+
+gen educY     = 8 if RespEduc=="Eighth Grade or Less"
+replace educY = 10 if RespEduc=="Eighth Grade or Less"
+replace educY = 12 if RespEduc=="High School Degree/GED"
+replace educY = 13 if RespEduc=="Some College"
+replace educY = 14 if RespEduc=="2-year College Degree"
+replace educY = 16 if RespEduc=="4-year College Degree"
+replace educY = 17 if RespEduc=="Master's Degree"
+replace educY = 20 if RespEduc=="Doctoral Degree"
+replace educY = 18 if RespEduc=="Professional Degree (JD,MD,MBA)"
+
+gen someCollege = educY>=13
+gen black     = RespRace=="Black or African American"
+gen otherRace = RespRace!="White"&RespRace=="Black or African American"
+gen employed  = RespEmployment=="Employed"
+gen highEduc  = educY>=13
+gen hispanic  = RespHisp=="Yes"
+
+collapse (sum) N (mean) ftotinc highEduc someCollege married employed hispanic  /*
+*/ black white otherRace age educY (sd) sd_ftotinc=ftotinc sd_highEduc=highEduc /*
+*/ sd_someCollege=someCollege sd_married=married sd_employed=employed           /*
+*/ sd_hispanic=hispanic sd_black=black sd_white=white sd_otherRace=otherRace    /*
+*/ sd_age=age sd_educY=educY
+
+expand 11
+gen mean  = .
+gen stdev = .
+gen var   = ""
+
+local i = 1
+foreach var of varlist ftotinc highEduc someCollege married employed hispanic /*
+*/ black white otherRace age educY {
+    replace mean  = `var' in `i'
+    replace stdev = sd_`var' in `i'
+    replace var = "`var'" in `i'
+    local ++i
+}
+gen data = "MTurk"
+keep mean stdev var data N
+tempfile MTurkSum2
+save `MTurkSum2'
+restore
+
+
+    
+preserve
+use "$ACS/ACS_20052014_cleaned_all", clear
+*keep if year==2014
+drop if occ2010 == 9920
+gen N_ACS = 1
+replace ftotinc = ftotinc/1000
+gen educY     = 0  if educ==0
+replace educY = 4  if educ==1
+replace educY = 8  if educ==2
+replace educY = 9  if educ==3
+replace educY = 10 if educ==4
+replace educY = 11 if educ==5
+replace educY = 12 if educ==6
+replace educY = 13 if educ==7
+replace educY = 14 if educ==8
+replace educY = 16 if educ==10
+replace educY = 17 if educ==11
+
+gen someCollege = educ>=7
+gen otherRace = race!=1&race!=2
+gen employed  = empstat==1
+*rename hispan hispanic
+gen age       = motherAge
+
+collapse (sum) N_ACS (mean) ftotinc highEduc someCollege married employed hispanic /*
+*/ black white otherRace age educY (sd) sd_ftotinc=ftotinc sd_highEduc=highEduc    /*
+*/ sd_someCollege=someCollege sd_married=married sd_employed=employed              /*
+*/ sd_hispanic=hispanic sd_black=black sd_white=white sd_otherRace=otherRace       /*
+*/ sd_age=age sd_educY=educY
+
+expand 11
+gen meanACS  = .
+gen stdevACS = .
+gen var      = ""
+
+
+local i = 1
+foreach var of varlist ftotinc highEduc married employed hispanic /*
+*/ black white otherRace age educY {
+    replace mean  = `var' in `i'
+    replace stdev = sd_`var' in `i'
+    replace var = "`var'" in `i'
+    local ++i
+}
+keep meanACS stdevACS var N_ACS
+tempfile ACSSum
+save `ACSSum'
+
+
+merge 1:1 var using `MTurkSum2'
+keep if _merge==3
+local i = 1
+#delimit ;
+local vnames `" "Family Income" "Age" "Years of Education" "Some College +"
+                "Currently Employed" "Hispanic" "Black or African American"
+                "White" "Married" "';
+#delimit cr
+local variables ftotinc age educY highEduc employed hispanic black white /*
+*/ otherRace married
+tokenize `variables'
+file open mstats using "$OUT/ACScomp.txt", write replace
+foreach var of local vnames {
+    dis "`var'"
+    foreach stat in N mean stdev N_ACS meanACS stdevACS {
+        qui sum `stat' if var=="`1'"
+        local val`stat'=r(mean)
+    }
+    qui ttesti `valN' `valmean' `valstdev' `valN_ACS' `valmeanACS' `valstdevACS'
+    foreach val in mu_1 sd_1 mu_2 sd_2 t {
+        local `val'=string(r(`val'), "%5.3f")
+        *local `val'=round(r(`val')*1000)/1000
+        *if ``val''<1&``val''>0 local `val' = "0``val''"
+    }
+    local dif = round((`mu_1'-`mu_2')*1000)/1000
+    if `dif'<1&`dif'>0 local dif = "0`dif'"
+    file write mstats "`var'&`mu_1'&(`sd_1')&`mu_2'&(`sd_2')&`dif'&`t'\\ " _n
+    macro shift
+}
+file close mstats
+restore
 */
 
 *-------------------------------------------------------------------------------
@@ -324,6 +585,10 @@ gen teacher    = RespOccupation=="Education, Training, Library"
 gen someCollege = RespEduc!="Eighth Grade or Less"&/*
 */ RespEduc!="High School Degree/GED"&RespEduc!="Some High School"
 gen hispanic = RespHisp=="Yes"
+gen certainty     = "1"  if RespSure=="1 (not sure at all)"
+replace certainty = "10" if RespSure=="10 (definitely sure)"
+replace certainty = RespSure if certainty==""
+destring certainty, replace
 
 *DOB and BWT replace missings as separate indicator
 
@@ -427,12 +692,14 @@ local conds `base'&(parent==1|planning==1)
             `base'&planning==1&teacher==1
             `base'&planning==1&RespSex=="Female"
             `base'&planning==1&teacher==1&RespSex=="Female"
-            all==1&teacher==1&RespSex=="Female";
+            all==1&teacher==1&RespSex=="Female"
+            certainty>8
+            certainty>7;
 local names Main MainTeacher MainFemale MainTeacherFemale cold warm All
         MainParent MainTeacherParent MainFemaleParent MainTeacherFemaleParent
 MainNoParent MainTeacherNoParent MainFemaleNoParent MainTeacherFemaleNoParent
 MainPlanning MainTeacherPlanning MainFemalePlanning MainTeacherFemalePlanning
-AllTeacherFemale;
+AllTeacherFemale Sure8 Sure9;
 #delimit cr
 tokenize `names'
 lab def names -1 "Gender" -2 "Male" -3 "Female" -4 " " -5 "Cost" -6 "250"   /*
@@ -729,6 +996,10 @@ gen age2       = age^2
 gen someCollege = RespEduc!="Eighth Grade or Less"&/*
 */ RespEduc!="High School Degree/GED"&RespEduc!="Some High School"
 gen hispanic = RespHisp=="Yes"
+gen certainty     = "1"  if RespSure=="1 (not sure at all)"
+replace certainty = "10" if RespSure=="10 (definitely sure)"
+replace certainty = RespSure if certainty==""
+destring certainty, replace
 
 tab gender, gen(_gend)
 tab cost  , gen(_cost)
@@ -805,12 +1076,14 @@ local conds `base'&(parent==1|planning==1)
             `base'&planning==1&teacher==1
             `base'&planning==1&RespSex=="Female"
             `base'&planning==1&teacher==1&RespSex=="Female"
-            all==1&teacher==1&RespSex=="Female";
+            all==1&teacher==1&RespSex=="Female"
+            certainty>8
+            certainty>7;
 local names Main MainTeacher MainFemale MainTeacherFemale cold warm All
         MainParent MainTeacherParent MainFemaleParent MainTeacherFemaleParent
 MainNoParent MainTeacherNoParent MainFemaleNoParent MainTeacherFemaleNoParent
 MainPlanning MainTeacherPlanning MainFemalePlanning MainTeacherFemalePlanning
-AllTeacherFemale;
+AllTeacherFemale Sure8 Sure9; 
 #delimit cr
 tokenize `names'
 lab def names -1 "Gender" -2 "Male" -3 "Female" -4 " " -5 "Cost" -6 "250"   /*
@@ -1059,6 +1332,10 @@ gen age2       = age^2
 gen someCollege = RespEduc!="Eighth Grade or Less"&/*
 */ RespEduc!="High School Degree/GED"&RespEduc!="Some High School"
 gen hispanic = RespHisp=="Yes"
+gen certainty     = "1"  if RespSure=="1 (not sure at all)"
+replace certainty = "10" if RespSure=="10 (definitely sure)"
+replace certainty = RespSure if certainty==""
+destring certainty, replace
 
 tab gender     , gen(_gend)
 tab cost       , gen(_cost)
@@ -1167,12 +1444,14 @@ local conds `base'&(parent==1|planning==1)
             `base'&planning==1&teacher==1
             `base'&planning==1&RespSex=="Female"
             `base'&planning==1&teacher==1&RespSex=="Female"
-            all==1&teacher==1&RespSex=="Female";
+            all==1&teacher==1&RespSex=="Female"
+            certainty>8
+            certainty>7;
 local names Main MainTeacher MainFemale MainTeacherFemale cold warm All
         MainParent MainTeacherParent MainFemaleParent MainTeacherFemaleParent
 MainNoParent MainTeacherNoParent MainFemaleNoParent MainTeacherFemaleNoParent
 MainPlanning MainTeacherPlanning MainFemalePlanning MainTeacherFemalePlanning
-AllTeacherFemale;
+AllTeacherFemale Sure8 Sure9;
 #delimit cr
 tokenize `names'
 lab def names -1 "Gender" -2 "Male" -3 "Female" -4 " " -5 "Cost" -6 "250"   /*
@@ -1493,6 +1772,91 @@ postfoot("\bottomrule           "
          "choosing good season.  The 95\% confidence interval is calculated  "
          "using thet delta method for the (non-linear) ratio."
          "\end{footnotesize}}\end{tabular}\end{table}");
+
+esttab n21 p21 r21 using "$OUT/conjointWTP-seasons-sure9.tex", replace
+cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
+(wtpSp conf95sp wtpSu conf95su N, fmt(%5.1f %5.1f %9.0g)
+ label("WTP (spring)" "95\% CI" "WTP (summer)" "95\% CI" Observations))
+starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none) label booktabs
+mlabels("Full Sample" "Birth Weight Sample" "Day of Birth Sample")
+title("Birth Characteristics and Willingness to Pay ($\geq 9$ certainty)") 
+keep(spring summer _sob4 costNumerical _gend2 `nvar1' `nvar2') style(tex) 
+postfoot("\bottomrule           "
+         "\multicolumn{4}{p{15.2cm}}{\begin{footnotesize} Average marginal   "
+         "from a logit regression are displayed. All columns include         "
+         "option order fixed effects, round fixed effects and controls for   "
+         "all alternative characteristics (day of birth and gender). Each    "
+         "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
+         "preferred option in each round.  Standard errors are clustered by  "
+         "respondent. Willingness to pay and its 95\% confidence interval is "
+         "estimated based on the ratio of costs to the probability of        "
+         "choosing good season.  The 95\% confidence interval is calculated  "
+         "using thet delta method for the (non-linear) ratio."
+         "\end{footnotesize}}\end{tabular}\end{table}");
+
+esttab m21 o21 q21 using "$OUT/conjointWTP-sure9.tex", replace
+cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
+(wtp conf95 N, fmt(%5.1f %9.0g)
+ label("Willingness to Pay" "95\% CI WTP" Observations)) booktabs
+starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none) label 
+mlabels("Full Sample" "Birth Weight Sample" "Day of Birth Sample")
+title("Birth Characteristics and Willingness to Pay  ($\geq 9$ certainty)") 
+keep(goodSeason costNumerical _gend2 `nvar1' `nvar2') style(tex) 
+postfoot("\bottomrule           "
+         "\multicolumn{4}{p{15.2cm}}{\begin{footnotesize} Average marginal   "
+         "from a logit regression are displayed. All columns include         "
+         "option order fixed effects, round fixed effects and controls for   "
+         "all alternative characteristics (day of birth and gender). Each    "
+         "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
+         "preferred option in each round.  Standard errors are clustered by  "
+         "respondent. Willingness to pay and its 95\% confidence interval is "
+         "estimated based on the ratio of costs to the probability of        "
+         "choosing good season.  The 95\% confidence interval is calculated  "
+         "using thet delta method for the (non-linear) ratio."
+         "\end{footnotesize}}\end{tabular}\end{table}");
+
+esttab n22 p22 r22 using "$OUT/conjointWTP-seasons-sure8.tex", replace
+cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
+(wtpSp conf95sp wtpSu conf95su N, fmt(%5.1f %5.1f %9.0g)
+ label("WTP (spring)" "95\% CI" "WTP (summer)" "95\% CI" Observations))
+starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none) label booktabs
+mlabels("Full Sample" "Birth Weight Sample" "Day of Birth Sample")
+title("Birth Characteristics and Willingness to Pay ($\geq 8$ certainty)") 
+keep(spring summer _sob4 costNumerical _gend2 `nvar1' `nvar2') style(tex) 
+postfoot("\bottomrule           "
+         "\multicolumn{4}{p{15.2cm}}{\begin{footnotesize} Average marginal   "
+         "from a logit regression are displayed. All columns include         "
+         "option order fixed effects, round fixed effects and controls for   "
+         "all alternative characteristics (day of birth and gender). Each    "
+         "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
+         "preferred option in each round.  Standard errors are clustered by  "
+         "respondent. Willingness to pay and its 95\% confidence interval is "
+         "estimated based on the ratio of costs to the probability of        "
+         "choosing good season.  The 95\% confidence interval is calculated  "
+         "using thet delta method for the (non-linear) ratio."
+         "\end{footnotesize}}\end{tabular}\end{table}");
+
+esttab m22 o22 q22 using "$OUT/conjointWTP-sure8.tex", replace
+cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
+(wtp conf95 N, fmt(%5.1f %9.0g)
+ label("Willingness to Pay" "95\% CI WTP" Observations)) booktabs
+starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none) label 
+mlabels("Full Sample" "Birth Weight Sample" "Day of Birth Sample")
+title("Birth Characteristics and Willingness to Pay  ($\geq 8$ certainty)") 
+keep(goodSeason costNumerical _gend2 `nvar1' `nvar2') style(tex) 
+postfoot("\bottomrule           "
+         "\multicolumn{4}{p{15.2cm}}{\begin{footnotesize} Average marginal   "
+         "from a logit regression are displayed. All columns include         "
+         "option order fixed effects, round fixed effects and controls for   "
+         "all alternative characteristics (day of birth and gender). Each    "
+         "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
+         "preferred option in each round.  Standard errors are clustered by  "
+         "respondent. Willingness to pay and its 95\% confidence interval is "
+         "estimated based on the ratio of costs to the probability of        "
+         "choosing good season.  The 95\% confidence interval is calculated  "
+         "using thet delta method for the (non-linear) ratio."
+         "\end{footnotesize}}\end{tabular}\end{table}");
+
 #delimit cr
 
 
