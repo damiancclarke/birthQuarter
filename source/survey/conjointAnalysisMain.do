@@ -702,14 +702,14 @@ MainPlanning MainTeacherPlanning MainFemalePlanning MainTeacherFemalePlanning
 AllTeacherFemale Sure8 Sure9;
 #delimit cr
 tokenize `names'
-lab def names -1 "Gender" -2 "Male" -3 "Female" -4 " " -5 "Cost" -6 "250"   /*
-*/ -7 "750" -8 "1000" -9 "2000" -10 "3000" -11 "4000" -12 "5000" -13 "6000" /*
-*/ -14 "7500" -15 "10000" -16 " " -17 "Birth Weight" -18 "5lbs, 8oz"        /*
-*/ -19 "5lbs, 13oz" -20 "6lbs, 3oz" -21 "6lbs, 8oz" -22 "6lbs, 13oz"        /*
-*/ -23 "7lbs, 3oz" -24 "7lbs, 8oz" -25 "7lbs, 13oz" -26 "8lbs, 3oz"         /*
-*/ -27 "8lbs, 8oz" -28 "8lbs, 13oz"  -29 " " -30 "Season of Birth"          /*
-*/ -31 "Winter" -32 "Spring" -33 "Summer" -34 "Fall" -35 " "                /*
-*/ -36 "Day of Birth" -37 "Weekday" -38 "Weekend" -39 ""
+lab def names -1 "Season of Birth" -2 "Winter" -3 "Spring" -4 "Summer"      /*
+*/ -5 "Fall" -6 " " -7 "Cost" -8 "250" -9 "750" -10 "1000" -11 "2000"       /*
+*/ -12 "3000" -13 "4000" -14 "5000" -15 "6000" -16 "7500" -17 "10000"       /*
+*/ -18 " " -19 "Gender" -20 "Boy" -21 "Girl" -22 " " -23 "Birth Weight"     /*
+*/ -24 "5lbs, 8oz" -25 "5lbs, 13oz" -26 "6lbs, 3oz" -27 "6lbs, 8oz"         /*
+*/ -28 "6lbs, 13oz" -29 "7lbs, 3oz" -30 "7lbs, 8oz" -31 "7lbs, 13oz"        /*
+*/ -32 "8lbs, 3oz" -33 "8lbs, 8oz" -34 "8lbs, 13oz"  -35 " "                /*
+*/ -36 "Day of Birth" -37 "Weekday" -38 "Weekend" -39 " "
 
 gen ratio = 1000*goodSeason/costNumerical
 local nvar1 _bwt2 _bwt3 _bwt4 _bwt5 _bwt6 _bwt7 _bwt8 _bwt9 _bwt10 _bwt11
@@ -718,7 +718,7 @@ local nvar2 _dob2
 local ll=1
 foreach c of local conds {
     count if `c'
-    reg chosen `oFEs' _gend* _cost* _bwt* _sob* _dob* if `c', cluster(ID)
+    reg chosen `oFEs' _sob* _cost* _gend* _bwt* _dob* if `c', cluster(ID)
     local Nobs = e(N)
 
     gen Est = .
@@ -726,19 +726,19 @@ foreach c of local conds {
     gen LB  = .
     gen Y   = .
     local i = 1
-    local vars GENDER _gend1 _gend2 s COST _cost1 _cost2 _cost3 _cost4 _cost5     /*
-    */ _cost6 _cost7 _cost8 _cost9 _cost10 s BIRTH-WEIGHT _bwt1 _bwt2 _bwt3 _bwt4 /*
-    */ _bwt5 _bwt6 _bwt7 _bwt8 _bwt9 _bwt10 _bwt11 s SEASON-OF_BIRTH _sob1 _sob2  /*
-    */ _sob3 _sob4 s DAY-OF-BIRTH _dob1 _dob2 s
+    local vars SEASON-OF_BIRTH _sob1 _sob2 _sob3 _sob4 s COST _cost1 _cost2      /*
+    */ _cost3 _cost4 _cost5 _cost6 _cost7 _cost8 _cost9 _cost10 s GENDER _gend1  /*
+    */ _gend2 s BIRTH-WEIGHT _bwt1 _bwt2 _bwt3 _bwt4 _bwt5 _bwt6 _bwt7 _bwt8     /*
+    */ _bwt9 _bwt10 _bwt11 s DAY-OF-BIRTH _dob1 _dob2 s
 
     foreach var of local vars {
         qui replace Y = `i' in `i'
-        if `i'==1|`i'==5|`i'==17|`i'==30|`i'==36 {
+        if `i'==1|`i'==7|`i'==19|`i'==23|`i'==36 {
             dis "`var'"
         }
-        else if `i'==4|`i'==16|`i'==29|`i'==35|`i'==39 {
+        else if `i'==6|`i'==18|`i'==22|`i'==35|`i'==39 {
         }
-        else if `i'==2|`i'==10|`i'==18|`i'==31|`i'==37 {
+        else if `i'==2|`i'==12|`i'==20|`i'==24|`i'==37 {
             qui replace Est = 0 in `i'
             qui replace UB  = 0 in `i'
             qui replace LB  = 0 in `i'
@@ -761,8 +761,8 @@ foreach c of local conds {
     twoway rcap  LB UB Y in 1/39, horizontal scheme(s1mono) lcolor(black) ||
     scatter Y Est in 1/39, mcolor(black) msymbol(oh) mlwidth(thin)
     xline(0, lpattern(dash) lcolor(gs7))
-    ylabel(-1 -5 -17 -30 -36, valuelabel angle(0))
-    ymlabel(-2 -3 -4 -6(-1)-15 -18(-1)-28 -31(-1)-34 -37 -38, valuelabel angle(0))
+    ylabel(-1 -7 -19 -23 -36, valuelabel angle(0))
+    ymlabel(-2(-1)-5 -8(-1)-17 -20 -21 -24(-1)-34 -37 -38, valuelabel angle(0))
     ytitle("") xtitle("Effect Size (Probability)") legend(off) ysize(8)
     note(Total respondents = `=`Nobs'/14'.  Total profiles = `Nobs'.);
     *legend(lab(1 "95% CI") lab(2 "Point Estimate"));
@@ -1086,15 +1086,15 @@ MainPlanning MainTeacherPlanning MainFemalePlanning MainTeacherFemalePlanning
 AllTeacherFemale Sure8 Sure9; 
 #delimit cr
 tokenize `names'
-lab def names -1 "Gender" -2 "Male" -3 "Female" -4 " " -5 "Cost" -6 "250"   /*
-*/ -7 "750" -8 "1000" -9 "2000" -10 "3000" -11 "4000" -12 "5000" -13 "6000" /*
-*/ -14 "7500" -15 "10000" -16 " " -17 "Season of Birth" -18 "Winter"        /*
-*/ -19 "Spring" -20 "Summer" -21 "Fall" -22 " " -23 "Day of Birth"          /*
+lab def names -1 "Season of Birth" -2 "Winter" -3 "Spring" -4 "Summer"     /*
+*/ -5 "Fall" -6 " " -7 "Cost" -8 "250" -9 "750" -10 "1000" -11 "2000"      /*
+*/ -12 "3000" -13 "4000" -14 "5000" -15 "6000" -16 "7500" -17 "10000"      /*
+*/ -18 " " -19 "Gender" -20 "Boy" -21 "Girl" -22 " " -23 "Day of Birth"    /*
 */ -24 "Weekday" -25 "Weekend" -26 ""
 
 local ll=1
 foreach c of local conds {
-    reg chosen `oFEs'  _gend* _cost* _dob* _sob* if `c', cluster(ID)
+    reg chosen `oFEs' _sob* _cost* _gend* _dob* if `c', cluster(ID)
     local Nobs = e(N)
 
     gen Est = .
@@ -1102,18 +1102,18 @@ foreach c of local conds {
     gen LB  = .
     gen Y   = .
     local i = 1
-    local vars GENDER _gend1 _gend2 s COST _cost1 _cost2 _cost3 _cost4 _cost5     /*
-    */ _cost6 _cost7 _cost8 _cost9 _cost10 s SEASON-OF-BIRTH _sob1 _sob2 _sob3    /*
-    */ _sob4 s DAY-OF-BIRTH _dob1 _dob2 s
+    local vars SEASON-OF-BIRTH _sob1 _sob2 _sob3 _sob4 s COST _cost1 _cost2 /*
+    */ _cost3 _cost4 _cost5 _cost6 _cost7 _cost8 _cost9 _cost10 s GENDER    /*
+    */ _gend1 _gend2 s DAY-OF-BIRTH _dob1 _dob2 s
 
     foreach var of local vars {
         qui replace Y = `i' in `i'
-        if `i'==1|`i'==5|`i'==17|`i'==23 {
+        if `i'==1|`i'==7|`i'==19|`i'==23 {
             dis "`var'"
         }
-        else if `i'==4|`i'==16|`i'==22|`i'==26 {
+        else if `i'==6|`i'==18|`i'==22|`i'==26 {
         }
-        else if `i'==2|`i'==10|`i'==18|`i'==24 {
+        else if `i'==2|`i'==12|`i'==20|`i'==24 {
             qui replace Est = 0 in `i'
             qui replace UB  = 0 in `i'
             qui replace LB  = 0 in `i'
@@ -1136,8 +1136,8 @@ foreach c of local conds {
     #delimit ;
     twoway rcap  LB UB Y in 1/26, horizontal scheme(s1mono) lcolor(black) ||
     scatter Y Est in 1/26, mcolor(black) msymbol(oh) mlwidth(thin)
-    xline(0, lpattern(dash) lcolor(gs7)) ylabel(-1 -5 -17 -23, valuelabel angle(0))
-    ymlabel(-2 -3 -4 -6(-1)-15 -18(-1)-21 -24 -25, valuelabel angle(0))
+    xline(0, lpattern(dash) lcolor(gs7)) ylabel(-1 -7 -19 -23, valuelabel angle(0))
+    ymlabel(-2(-1)-5 -8(-1)-17 -20 -21 -24 -25, valuelabel angle(0))
     ytitle("") xtitle("Effect Size (Probability)") legend(off) ysize(8)
     note(Total respondents = `=`Nobs'/14'.  Total profiles = `Nobs'.);
     *legend(lab(1 "95% CI") lab(2 "Point Estimate"));
@@ -1454,17 +1454,17 @@ MainPlanning MainTeacherPlanning MainFemalePlanning MainTeacherFemalePlanning
 AllTeacherFemale Sure8 Sure9;
 #delimit cr
 tokenize `names'
-lab def names -1 "Gender" -2 "Male" -3 "Female" -4 " " -5 "Cost" -6 "250"   /*
-*/ -7 "750" -8 "1000" -9 "2000" -10 "3000" -11 "4000" -12 "5000" -13 "6000" /*
-*/ -14 "7500" -15 "10000" -16 " " -17 "Birth Weight" -18 "5lbs, 8oz"        /*
-*/ -19 "5lbs, 13oz" -20 "6lbs, 3oz" -21 "6lbs, 8oz" -22 "6lbs, 13oz"        /*
-*/ -23 "7lbs, 3oz" -24 "7lbs, 8oz" -25 "7lbs, 13oz" -26 "8lbs, 3oz"         /*
-*/ -27 "8lbs, 8oz" -28 "8lbs, 13oz"  -29 " " -30 "Season of Birth"          /*
-*/ -31 "Winter" -32 "Spring" -33 "Summer" -34 "Fall" -35 " "
+lab def names -1 "Season of Birth" -2 "Winter" -3 "Spring" -4 "Summer"      /*
+*/ -5 "Fall" -6 " " -7 "Cost" -8 "250" -9 "750" -10 "1000" -11 "2000"       /*
+*/ -12 "3000" -13 "4000" -14 "5000" -15 "6000" -16 "7500" -17 "10000"       /*
+*/ -18 " " -19 "Gender" -20 "Boy" -21 "FGirl" -22 " " -23 "Birth Weight"    /*
+*/ -24 "5lbs, 8oz" -25 "5lbs, 13oz" -26 "6lbs, 3oz" -27 "6lbs, 8oz"         /*
+*/ -28 "6lbs, 13oz" -29 "7lbs, 3oz" -30 "7lbs, 8oz" -31 "7lbs, 13oz"        /*
+*/ -32 "8lbs, 3oz" -33 "8lbs, 8oz" -34 "8lbs, 13oz" -35 " "
 
 local ll=1
 foreach c of local conds {
-    reg chosen `oFEs' _gend* _cost* _bwt* _sob* if `c', cluster(ID)
+    reg chosen `oFEs' _sob* _cost* _gend* _bwt* if `c', cluster(ID)
     local Nobs = e(N)
 
     gen Est = .
@@ -1472,19 +1472,19 @@ foreach c of local conds {
     gen LB  = .
     gen Y   = .
     local i = 1
-    local vars GENDER _gend1 _gend2 s COST _cost1 _cost2 _cost3 _cost4 _cost5     /*
-    */ _cost6 _cost7 _cost8 _cost9 _cost10 s BIRTH-WEIGHT _bwt1 _bwt2 _bwt3 _bwt4 /*
-    */ _bwt5 _bwt6 _bwt7 _bwt8 _bwt9 _bwt10 _bwt11 s SEASON-OF_BIRTH _sob1 _sob2  /*
-    */ _sob3 _sob4 s
+    local vars SEASON-OF_BIRTH _sob1 _sob2 _sob3 _sob4 s COST _cost1 _cost2  /*
+    */ _cost3 _cost4 _cost5 _cost6 _cost7 _cost8 _cost9 _cost10 s GENDER     /*
+    */ _gend1 _gend2 s BIRTH-WEIGHT _bwt1 _bwt2 _bwt3 _bwt4 _bwt5 _bwt6      /*
+    */ _bwt7 _bwt8 _bwt9 _bwt10 _bwt11 s 
 
     foreach var of local vars {
         qui replace Y = `i' in `i'
-        if `i'==1|`i'==5|`i'==17|`i'==30 {
+        if `i'==1|`i'==7|`i'==19|`i'==23 {
             dis "`var'"
         }
-        else if `i'==4|`i'==16|`i'==29|`i'==35 {
+        else if `i'==6|`i'==18|`i'==22|`i'==35 {
         }
-        else if `i'==2|`i'==10|`i'==18|`i'==31 {
+        else if `i'==2|`i'==12|`i'==20|`i'==24 {
             qui replace Est = 0 in `i'
             qui replace UB  = 0 in `i'
             qui replace LB  = 0 in `i'
@@ -1506,8 +1506,8 @@ foreach c of local conds {
     #delimit ;
     twoway rcap  LB UB Y in 1/35, horizontal scheme(s1mono) lcolor(black) ||
     scatter Y Est in 1/35, mcolor(black) msymbol(oh) mlwidth(thin)
-    xline(0, lpattern(dash) lcolor(gs7)) ylabel(-1 -5 -17 -30, valuelabel angle(0))
-    ymlabel(-2 -3 -4 -6(-1)-15 -18(-1)-28 -31(-1)-34, valuelabel angle(0))
+    xline(0, lpattern(dash) lcolor(gs7)) ylabel(-1 -7 -19 -23, valuelabel angle(0))
+    ymlabel(-2(-1)-5 -8(-1)-17 -20(-1)-21 -24(-1)-34, valuelabel angle(0))
     ytitle("") xtitle("Effect Size (Probability)") legend(off) ysize(8)
     note(Total respondents = `=`Nobs'/14'.  Total profiles = `Nobs'.);
     *legend(lab(1 "95% CI") lab(2 "Point Estimate"));
