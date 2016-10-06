@@ -44,10 +44,12 @@ if `hisp'==1    local data   ACS_20052014_cleaned_hisp.dta;
 if `allrace'==1 local data   ACS_20052014_cleaned_all.dta;
 local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats 
              (N, fmt(%9.0g) label(Observations))     
-             starlevel ("*" 0.1 "**" 0.05 "***" 0.01) collabels(none) label;
+             collabels(none) label;
 local wt     [pw=perwt];
 local enote  "Heteroscedasticity robust standard errors are reported in 
             parentheses. ***p-value$<$0.01, **p-value$<$0.05, *p-value$<$0.01.";
+local lnote  "Heteroscedasticity robust standard errors are reported in 
+            parentheses. $ ^\ddagger $ Significant based on Leamer criterion.";
 local Fnote  "F-test of age variables refers to the p-value on the test that
               the coefficients on mother's age and age squared are jointly equal
               to zero. ";
@@ -104,7 +106,7 @@ list, noobs separator(30) table
 
 restore
 
-
+/*
 ********************************************************************************
 *** (3a) regressions: Birth Quarter
 ********************************************************************************
@@ -199,7 +201,7 @@ postfoot("F-test of Age Variables&0`F4'&0`F3'&0`F2'&0`F1' \\                   "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-
+*/
 ********************************************************************************
 *** (4a) regressions: industry
 ********************************************************************************
@@ -219,6 +221,7 @@ local une unemployment
 local une 
 local lv2 _2occ*
 drop _2occ2
+
 
 eststo:  areg goodQuarter `age' `edu' `une' _year* `lv2' `wt', `se' `abs'
 ds _2occ*
@@ -284,14 +287,36 @@ local une
 local lv2 _2occ*
 cap drop _2occ2
 
-foreach Q in 2 3 {
-    local conds all==1 cold<23 cold>=23
-    tokenize `conds'
-    local cnames `" "" "-cold" "-warm" "'
-    foreach cnd of local cnames {
+#delimit ;
+local add `" "20-45 All Observations" "20-45 White married"
+             "20-45 Black and White married and unmarried"
+             "15-24 All races married and unmarried" "20-45 Black unmarried"
+             "20-45 White unmarried" "';
+local nam All whiteMarried blackWhiteAll youngAll blackUnmarried whiteUnmarried;
+#delimit cr
+tokenize `nam'
+
+count
+local k=1
+foreach type of local add {
+    if `k'==1 local gg motherAge>=20&motherAge<=45
+    if `k'==2 local gg motherAge>=20&motherAge<=45&white==1&married==1
+    if `k'==3 local gg motherAge>=20&motherAge<=45&(white==1|black==1)
+    if `k'==4 local gg motherAge>=15&motherAge<=24
+    if `k'==5 local gg motherAge>=20&motherAge<=45&black==1&married==0
+    if `k'==6 local gg motherAge>=20&motherAge<=45&white==1&married==0
+    if `k'==1 local edu2 highEduc hispanic black white married
+    if `k'==2 local edu2 highEduc hispanic
+    if `k'==3 local edu2 highEduc hispanic black married
+    if `k'==4 local edu2 highEduc hispanic black white married
+    if `k'==5 local edu2 highEduc
+    if `k'==6 local edu2 highEduc hispanic
+
+
+    foreach Q in 2 3 {
         preserve
-        keep if `1'
-    
+        keep if `gg'
+        
         eststo:  areg quarter`Q' `age' `edu' `une' _year* `lv2' `wt', `se' `abs'
         ds _2occ*
         local tvar `r(varlist)'
@@ -302,16 +327,18 @@ foreach Q in 2 3 {
         local F2a = round(r(p)*1000)/1000
         local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
         local tL1  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
-    
+        local pvL = ttail(e(N),sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)))
+        
         eststo:  areg quarter`Q' `age' `edu' `une' _year*       `wt', `se' `abs'
         test `age'
         local F3a = round(r(p)*1000)/1000
         local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
     
         #delimit ;
-        esttab est2 est1 using "$OUT/IPUMSIndustryQ`Q'`cnd'.tex", replace `estopt' 
-        title("Season of Birth Correlates: Occupation (Quarter `Q')")
-        keep(`age' `edu' `une' `lv2') style(tex) booktabs mlabels(, depvar) 
+        esttab est2 est1 using "$OUT/IPUMSIndustryQ`Q'_``k''.tex", replace `estopt' 
+        title("Season of Birth Correlates: Occupation (Quarter `Q', `type')")
+        keep(`age' `edu' `une' `lv2') style(tex) booktabs mlabels(, depvar)
+        starlevel ("$ ^\ddagger $ " `pvL') 
         postfoot("State and Year Fixed Effects&Y&Y\\                           "
          "Occupation Codes (level) &-&2\\                                      "
          "F-test of Occupation Dummies&-&`F2'\\                                "
@@ -327,15 +354,15 @@ foreach Q in 2 3 {
          "Sports, and Media, as this occupation has good quarter=0.500(0.500). "
          "F-tests for occupation report p-values of joint significance of the  "
          "dummies, and `Fnote' The Leamer critical value for the t-statistic is"
-         "`tL1'. `enote'"
+         "`tL1'. `lnote'"
          "\end{footnotesize}}\end{tabular}\end{table}");
         #delimit cr
         estimates clear
         restore
-        macro shift
     }
+    local ++k
 }
-
+exit
 
 
 ********************************************************************************

@@ -17,22 +17,21 @@ set more off
 cap log close
 
 local allobs  1
-local hisp    0
+local hisp    1
 local allrace 1
 
 if `allobs'==0 local f nvss
 if `allobs'==1 local f nvssall
 if `allobs'==0 local mnote " married "
 local fend
-if `hisp'==1 local fend _hisp
-if `hisp'==1 local fend _all
+if `hisp'==1    local fend _hisp
+if `allrace'==1 local fend _all
 
 if `hisp'==1   &`allobs'==0 local f hisp
 if `hisp'==1   &`allobs'==1 local f hispall
 if `allrace'==1&`allobs'==1 local f raceall
 if `allrace'==1&`allobs'==0 local f race
 
-cap mkdir "~/investigacion/2015/birthQuarter/results/`f'"
 ********************************************************************************
 *** (1) globals and locals
 ********************************************************************************
@@ -48,11 +47,11 @@ cap mkdir "$OUT"
 local qual   birthweight lbw vlbw gestation premature apgar;
 local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats        
              (N, fmt(%9.0g) labels(Observations))
-             starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(none) label;
+             collabels(none) label;
 *             (N r2, fmt(%9.0g %5.3f) labels(Observations R-Squared))
 local yFE    i.year;
 local se     robust;
-local cnd    if twin==1 & motherAge>24 & motherAge <= 45 & liveBirth==1;
+local cnd    if twin==1 & motherAge>19 & motherAge <= 45 & liveBirth==1;
 local keepif birthOrder==1;
 local Fnote  "F-test of age variables refers to the test that
               the coefficients on mother's age and age squared are jointly
@@ -70,6 +69,7 @@ local enote  "Heteroscedasticity robust standard errors are reported in
 use          "$DAT/nvss2005_2013`fend'"
 append using "$DAT/nvssFD2005_2013`fend'"
 if `allobs'==0 keep if married==1
+
 
 local mc 
 if `allobs'==1              local mc married
@@ -105,7 +105,7 @@ replace ParentalPolicy = "F" if state=="Alabama"|state=="Delaware"|
     state=="Utah"|state=="WestVirginia"|state=="Wyoming";
 replace ParentalPolicy = "CDE" if ParentalPolicy == "";
 #delimit cr
-
+/*
 ********************************************************************************
 *** (3a) Good Quarter Regressions
 ********************************************************************************
@@ -115,6 +115,7 @@ local add `" "(maternal leave states)" "(non-maternal leave states)"
              "(Expecting Better F)" "';
 local add `" "" "(excluding babies conceived in September)"
            "(second births)" "(only twins)" "(including twins)" "';
+local add `" "(excluding babies conceived in August or September)" "';
 local add `" ""  "';
 local nam MLeave NoMLeave PLeaveAB PLeaveCE PLeaveF;
 local nam Main NoSep Bord2 Twin TwinS;
@@ -137,6 +138,7 @@ foreach type of local add {
     local samp2 "first born"
     
     if `"`1'"' == "NoSep"    local spcnd if birthMonth!=9
+    if `"`1'"' == "NoAugSep" local spcnd if birthMonth!=9&birthMonth!=8
     if `"`1'"' == "Bord2"    local group `cnd'&birthOrder==2&liveBirth==1
     if `"`1'"' == "Twin"     local group /*
            */ if twin==2&motherAge>24&motherAge<46&`keepif'&liveBirth==1
@@ -223,6 +225,117 @@ foreach type of local add {
     macro shift
     restore
 }
+*/
+********************************************************************************
+*** (3b) Run for quarter 2 and 3
+********************************************************************************
+#delimit ;
+local add `" "20-45 All Observations" "20-45 White married"
+             "20-45 Black and White married and unmarried"
+             "15-24 All races married and unmarried" "20-45 Black unmarried"
+             "20-45 White unmarried" "';
+local nam All whiteMarried blackWhiteAll youngAll blackUnmarried whiteUnmarried;
+#delimit cr
+tokenize `nam'
+
+gen quarter2 = birthQuarter==2
+gen quarter3 = birthQuarter==3
+lab var quarter2 "Quarter 2"
+lab var quarter3 "Quarter 3"
+local age motherAge motherAge2
+local edu highEd
+local con smoker i.gestation `mc' 
+local c2  WIC underweight overweight obese noART
+local yab abs(fips)
+
+local k=1
+foreach type of local add {
+    if `k'==1 local gg motherAge>=20&motherAge<=45
+    if `k'==2 local gg motherAge>=20&motherAge<=45&white==1&married==1
+    if `k'==3 local gg motherAge>=20&motherAge<=45&(white==1|black==1)
+    if `k'==4 local gg motherAge>=15&motherAge<=24
+    if `k'==5 local gg motherAge>=20&motherAge<=45&black==1&married==0
+    if `k'==6 local gg motherAge>=20&motherAge<=45&white==1&married==0
+    if `k'==1 local nc white black hispanic married
+    if `k'==2 local nc hispanic
+    if `k'==3 local nc black hispanic married
+    if `k'==4 local nc white black hispanic married
+    if `k'==5 local nc 
+    if `k'==6 local nc hispanic
+
+    local con smoker i.gestation `nc'
+    foreach Q in 2 3 {
+        preserve
+        keep if twin==1&liveBirth==1&birthOrder==1&`gg'
+        count
+        eststo: areg quarter`Q' `age' `edu' `con' _year* `spcnd', `se' `yab'
+        test `age'
+        local F1a= string(r(F), "%5.3f")
+        local F1 = round(r(p)*1000)/1000
+        if   `F1' == 0 local F1 0.000
+        local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+        local L1   = string((e(df_r)/2)*(e(N)^(2/e(N))-1), "%5.3f")
+        local tL1  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
+        local pvL  = ttail(e(N),sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)))*2
+
+        eststo: areg quarter`Q' `age'       _year* if e(sample) , `se' `yab'
+        test `age'
+        local F2a= string(r(F), "%5.3f")
+        local F2 = round(r(p)*1000)/1000
+        if   `F2' == 0 local F2 0.000
+        local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+
+        eststo:  reg quarter`Q' `age'              if e(sample) , `se'
+        test `age'
+        local F3a= string(r(F), "%5.3f")
+        local F3 = round(r(p)*1000)/1000
+        if   `F3' == 0 local F3 0.000
+        local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+
+        keep if year>=2009&ART!=.&WIC!=.&underweight!=.
+        eststo: areg quarter`Q' `age' `edu' `con' _year* `spcnd', `se' `yab'
+        test `age'
+        local F4a= string(r(F), "%5.3f")
+        local F4 = round(r(p)*1000)/1000
+        if   `F4' == 0 local F4 0.000
+        local opt4 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+        local L4   = string((e(df_r)/2)*(e(N)^(2/e(N))-1), "%5.3f")
+        local tL4  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
+
+        eststo: areg quarter`Q' `age' `edu' `con' `c2' _year* `spcnd', `se' `yab'
+        test `age'
+        local F5a= string(r(F), "%5.3f")
+        local F5 = round(r(p)*1000)/1000
+        if   `F5' == 0 local F5 0.000
+        local opt5 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+
+        #delimit ;
+        local not "All singleton, first born children from the indicated sample 
+        are included. `Fnote' Leamer critical values refer to Leamer/Schwartz/Deaton 
+        critical 5\% values adjusted for sample size. The Leamer critical value 
+        for a t-statistic is `tL1' in columns 1-3 and `tL4' in columns 4 and 5.
+        `onote' `enote' $^{\ddagger}$ Siginificant based on Leamer criterion.";
+
+        esttab est3 est2 est1 est4 est5 using "$OUT/NVSSBinaryQ`Q'_``k''.tex",
+        replace `estopt' keep(`age' `edu' smoker `c2' `nc') 
+        title("Season of Birth Correlates (Quarter `Q', `type')") booktabs 
+        style(tex) mlabels(, depvar)
+        starlevel ("$ ^{\ddagger} $" `pvL')
+        postfoot("F-test of Age Variables&`F3a'&`F2a'&`F1a'&`F4a'&`F5a' \\   "
+                 "p-value of F-test      &`F3'&`F2'&`F1'&`F4'&`F5' \\        "
+                 "Leamer Critical Value  &`L1'&`L1'&`L1'&`L4'&`L4' \\        "
+                 "Optimal Age &`opt3'&`opt2'&`opt1'&`opt4'&`opt5' \\         "
+                 "State and Year FE&&Y&Y&Y&Y\\ Gestation FE &&&Y&Y&Y\\       "
+                 "2009-2013 Only&&&&Y&Y\\ \bottomrule                        "
+                 "\multicolumn{6}{p{16.2cm}}{\begin{footnotesize} `not'"
+                 "\end{footnotesize}}\end{tabular}\end{table}");
+        #delimit cr
+        estimates clear
+        restore
+    }
+    local ++k
+}
+
 exit
 
 local age motherAge motherAge2
