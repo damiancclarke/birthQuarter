@@ -54,7 +54,7 @@ destring certainty, replace
 
 
 save "$DAT/combined", replace
-/*
+
 gen sex = RespSex=="Female"
 gen birthyr = RespYOB
 gen educY     = 8 if RespEduc=="Eighth Grade or Less"
@@ -64,8 +64,8 @@ replace educY = 13 if RespEduc=="Some College"
 replace educY = 14 if RespEduc=="2-year College Degree"
 replace educY = 16 if RespEduc=="4-year College Degree"
 replace educY = 17 if RespEduc=="Master's Degree"
-replace educY = 20 if RespEduc=="Doctoral Degree"
-replace educY = 18 if RespEduc=="Professional Degree (JD,MD,MBA)"
+replace educY = 17 if RespEduc=="Doctoral Degree"
+replace educY = 17 if RespEduc=="Professional Degree (JD,MD,MBA)"
 gen pregnant1 = RespPregnant=="Yes"
 gen black     = RespRace=="Black or African American"
 gen otherRace = white==0&black==0
@@ -76,6 +76,30 @@ gen highEduc  = educY>=13
 gen nchild    = RespNumKids if RespNumKids!="6 or more"
 destring nchild, replace
 replace nchild=6 if nchild==.
+generat ftotinc = 5000   if RespSalary=="Less than $10,000"
+replace ftotinc = 15000  if RespSalary=="$10,000 - $19,999"
+replace ftotinc = 25000  if RespSalary=="$20,000 - $29,999"
+replace ftotinc = 35000  if RespSalary=="$30,000 - $39,999"
+replace ftotinc = 45000  if RespSalary=="$40,000 - $49,999"
+replace ftotinc = 55000  if RespSalary=="$50,000 - $59,999"
+replace ftotinc = 65000  if RespSalary=="$60,000 - $69,999"
+replace ftotinc = 75000  if RespSalary=="$70,000 - $79,999"
+replace ftotinc = 85000  if RespSalary=="$80,000 - $89,999"
+replace ftotinc = 95000  if RespSalary=="$90,000 - $99,999"
+replace ftotinc = 125000 if RespSalary=="$100,000 - $149,999"
+replace ftotinc = 175000 if RespSalary=="$150,000 or more"
+replace ftotinc = ftotinc/1000
+gen mturkSal = 1.5 if RespMTurkSalary=="Less than $2"
+replace mturkSal = 2.5 if RespMTurkSalary=="$2-$2.99"
+replace mturkSal = 3.5 if RespMTurkSalary=="$3-$3.99"
+replace mturkSal = 4.5 if RespMTurkSalary=="$4-$4.99"
+replace mturkSal = 5.5 if RespMTurkSalary=="$5-$5.99"
+replace mturkSal = 6.5 if RespMTurkSalary=="$6-$6.99"
+replace mturkSal = 7.5 if RespMTurkSalary=="$7-$7.99"
+replace mturkSal = 8.5 if RespMTurkSalary=="$8-$8.99"
+replace mturkSal = 9.5 if RespMTurkSalary=="$9-$9.99"
+replace mturkSal = 10.5 if RespMTurkSalary=="$10-$10.99"
+replace mturkSal = 11.5 if RespMTurkSalary=="$11 or more"
 
 lab var sex       "Female"
 lab var birthyr   "Year of Birth"
@@ -92,15 +116,18 @@ lab var employed  "Employed"
 lab var unemploy  "Unemployed"
 lab var highEduc  "Some College +"
 lab var parent    "Parent"
+lab var teacher   "Education, Training, and Library occupation"
+lab var ftotinc   "Total Family Income (1000s)"
+lab var mturkSal  "Hourly earnings on MTurk"
+
 
 #delimit ;
 local statform cells("count(label(N)) mean(fmt(2) label(Mean))
 sd(fmt(2) label(Std.\ Dev.)) min(fmt(2) label(Min)) max(fmt(2) label(Max))");
-estpost sum sex age birthyr educY highEduc parent nchild pregnant1 married 
-white black otherRace hispanic employed unemployed;
+estpost sum sex age educY highEduc parent nchild married 
+white black otherRace hispanic employed ftotinc teacher mturkSal;
 #delimit cr
 estout using "$OUT/MTurkSum.tex", replace label style(tex) `statform'
-
 
 
 preserve
@@ -169,10 +196,6 @@ preserve
 gen ageBirth=age
 gen race=11 if white==1
 gen marst=married
-gen sex=RespSex=="Female"
-gen hispanic=RespHisp=="Yes"
-encode RespNumKids, gen(nchild)
-replace nchild=nchild-1
 gen cbirthmonth     = 1  if RespKidBMonth=="January"
 replace cbirthmonth = 2  if RespKidBMonth=="February"
 replace cbirthmonth = 3  if RespKidBMonth=="March"
@@ -186,31 +209,30 @@ replace cbirthmonth = 10 if RespKidBMonth=="October"
 replace cbirthmonth = 11 if RespKidBMonth=="November"
 replace cbirthmonth = 12 if RespKidBMonth=="December"
 
-keep  if ageBirth>=25&ageBirth<=45&race==11&marst==1&sex==1
+keep  if ageBirth>=25&ageBirth<=45&sex==1
 keep if nchild!=0
 gen N = 1
 gen Q1 = cbirthmonth >= 1 & cbirthmonth <=3
 gen Q2 = cbirthmonth >= 4 & cbirthmonth <=6
 gen Q3 = cbirthmonth >= 7 & cbirthmonth <=9
 gen Q4 = cbirthmonth >=10 & cbirthmonth <=12
-gen highEduc  = RespEduc!="Eighth Grade or Less"/*
-*/ &RespEduc!="High School Degree/GED"&RespEduc!="Some High School"
 gen     sexchild = 1 if RespKidGender=="Girl"
 replace sexchild = 0 if RespKidGender=="Boy"
 
 
-collapse (sum) N (mean) nchild sexchild Q1 Q2 Q3 Q4 ageBirth    /*
-*/ hispanic highEduc (sd) sd_nchild=nchild sd_sexchild=sexchild /*
-*/ sd_Q1=Q1 sd_Q2=Q2 sd_Q3=Q3 sd_Q4=Q4                          /*
-*/ sd_ageBirth=ageBirth sd_hispanic=hispanic sd_highEduc=highEduc
-expand 9
+collapse (sum) N (mean) nchild sexchild Q1 Q2 Q3 Q4 ageBirth hispanic      /*
+*/ black white highEduc married (sd) sd_nchild=nchild sd_sexchild=sexchild /*
+*/ sd_Q1=Q1 sd_Q2=Q2 sd_Q3=Q3 sd_Q4=Q4 sd_ageBirth=ageBirth                /*
+*/ sd_black=black sd_hispanic=hispanic sd_white=white sd_highEduc=highEduc /*
+*/ sd_married=married
+expand 12
 gen mean  = .
 gen stdev = .
 gen var   = ""
 
 local i = 1
 foreach var of varlist nchild sexchild Q1 Q2 Q3 Q4 ageBirth /*
-*/ hispanic highEduc {
+*/ hispanic black white highEduc married {
     replace mean  = `var' in `i'
     replace stdev = sd_`var' in `i'
     replace var = "`var'" in `i'
@@ -226,7 +248,7 @@ restore
 
 preserve
 use "$NVS/natl2013", clear
-keep if mbrace==1&mar==1
+*keep if mbrace==1&mar==1
 gen N_NV = 1
 gen nchild = lbo_rec
 replace nchild = 6 if nchild>6&nchild<20
@@ -240,19 +262,23 @@ gen Q4 = dob_mm >=10 & dob_mm <=12
 gen ageBirth = mager
 gen highEduc = meduc>=4 if meduc!=9&meduc!=.
 gen hispanic = umhisp!=0
+gen black    = mracerec==2
+gen white    = mracerec==1
+gen married  = mar==1
 
-collapse (sum) N (mean) nchild sexchild Q1 Q2 Q3 Q4 ageBirth      /*
-*/ highEduc hispanic (sd) sd_nchild=nchild sd_sexchild=sexchild   /*
-*/ sd_Q1=Q1 sd_Q2=Q2 sd_Q3=Q3 sd_Q4=Q4                            /*
-*/ sd_ageBirth=ageBirth sd_hispanic=hispanic sd_highEduc=highEduc
-expand 9
+collapse (sum) N (mean) nchild sexchild Q1 Q2 Q3 Q4 ageBirth highEduc      /*
+*/ hispanic black white married (sd) sd_nchild=nchild sd_sexchild=sexchild /*
+*/ sd_Q1=Q1 sd_Q2=Q2 sd_Q3=Q3 sd_Q4=Q4 sd_ageBirth=ageBirth                /*
+*/ sd_hispanic=hispanic sd_black=black sd_white=white sd_highEduc=highEduc /*
+*/ sd_married=married
+expand 12
 gen meanNV  = .
 gen stdevNV = .
 gen var   = ""
 
 local i = 1
 foreach var of varlist nchild sexchild Q1 Q2 Q3 Q4 ageBirth /*
-*/ hispanic highEduc {
+*/ hispanic black white highEduc married {
     replace meanNV  = `var' in `i'
     replace stdevNV = sd_`var' in `i'
     replace var = "`var'" in `i'
@@ -266,12 +292,12 @@ merge 1:1 var using `MTurkSum'
 local i = 1
 #delimit ;
 local vnames `""Number of Children" "Age at First Birth" "Female Child"
-               "Hispanic"
                "Some College +" "Born January-March" "Born April-June"
-               "Born July-September" "Born October-December" "';
+               "Born July-September" "Born October-December"
+               "Hispanic" "Black" "White" "Married" "';
 #delimit cr
-local variables nchild ageBirth sexchild hispanic highEduc /*
-*/ Q1 Q2 Q3 Q4
+local variables nchild ageBirth sexchild highEduc /*
+*/ Q1 Q2 Q3 Q4 hispanic black white married
 tokenize `variables'
 file open bstats using "$OUT/NVSScomp.txt", write replace
 foreach var of local vnames {
@@ -292,7 +318,6 @@ foreach var of local vnames {
 }
 file close bstats
 restore
-
 
 gen statename=RespState
 count
@@ -317,8 +342,21 @@ graph export "$OUT/surveyCoverage.eps", as(eps) replace;
 restore
 
 preserve
-encode RespNumKids, gen(nchild)
-replace nchild=nchild-1
+insheet using "$GEO/../population2015.csv", delim(";") names clear
+replace state=subinstr(state,".","",1)
+rename state NAME
+merge 1:1 NAME using "$GEO/US_db"
+format proportion %5.2f
+#delimit ;
+spmap proportion if NAME!="Alaska"&NAME!="Hawaii"&NAME!="Puerto Rico"
+using "$GEO/US_coord_mercator", id(_ID) osize(thin)
+legtitle("Proportion of Respondents (Census)") legstyle(2) fcolor(Greens)
+legend(symy(*1.2) symx(*1.2) size(*1.4) rowgap(1));
+graph export "$OUT/usaCoverage.eps", as(eps) replace;
+#delimit cr
+restore
+
+preserve
 keep if nchild > 0
 gen N = 1
 collapse (sum) N, by(nchild)
@@ -423,51 +461,23 @@ restore
 preserve
 gen N = 1
 keep if RespSex=="Female" &age>=20&age<=45
-generat ftotinc = 5000   if RespSalary=="Less than $10,000"
-replace ftotinc = 15000  if RespSalary=="$10,000 - $19,999"
-replace ftotinc = 25000  if RespSalary=="$20,000 - $29,999"
-replace ftotinc = 35000  if RespSalary=="$30,000 - $39,999"
-replace ftotinc = 45000  if RespSalary=="$40,000 - $49,999"
-replace ftotinc = 55000  if RespSalary=="$50,000 - $59,999"
-replace ftotinc = 65000  if RespSalary=="$60,000 - $69,999"
-replace ftotinc = 75000  if RespSalary=="$70,000 - $79,999"
-replace ftotinc = 85000  if RespSalary=="$80,000 - $89,999"
-replace ftotinc = 95000  if RespSalary=="$90,000 - $99,999"
-replace ftotinc = 125000 if RespSalary=="$100,000 - $149,999"
-replace ftotinc = 175000 if RespSalary=="$150,000 or more"
-replace ftotinc = ftotinc/1000
-
-gen educY     = 8 if RespEduc=="Eighth Grade or Less"
-replace educY = 10 if RespEduc=="Eighth Grade or Less"
-replace educY = 12 if RespEduc=="High School Degree/GED"
-replace educY = 13 if RespEduc=="Some College"
-replace educY = 14 if RespEduc=="2-year College Degree"
-replace educY = 16 if RespEduc=="4-year College Degree"
-replace educY = 17 if RespEduc=="Master's Degree"
-replace educY = 20 if RespEduc=="Doctoral Degree"
-replace educY = 18 if RespEduc=="Professional Degree (JD,MD,MBA)"
 
 gen someCollege = educY>=13
-gen black     = RespRace=="Black or African American"
-gen otherRace = RespRace!="White"&RespRace=="Black or African American"
-gen employed  = RespEmployment=="Employed"
-gen highEduc  = educY>=13
-gen hispanic  = RespHisp=="Yes"
 
 collapse (sum) N (mean) ftotinc highEduc someCollege married employed hispanic  /*
-*/ black white otherRace age educY (sd) sd_ftotinc=ftotinc sd_highEduc=highEduc /*
-*/ sd_someCollege=someCollege sd_married=married sd_employed=employed           /*
-*/ sd_hispanic=hispanic sd_black=black sd_white=white sd_otherRace=otherRace    /*
-*/ sd_age=age sd_educY=educY
+*/ black white otherRace age educY teacher (sd) sd_ftotinc=ftotinc              /*
+*/ sd_highEduc=highEduc sd_someCollege=someCollege sd_married=married           /*
+*/ sd_employed=employed sd_hispanic=hispanic sd_black=black sd_white=white      /*
+*/ sd_otherRace=otherRace sd_age=age sd_educY=educY sd_teacher=teacher
 
-expand 11
+expand 12
 gen mean  = .
 gen stdev = .
 gen var   = ""
 
 local i = 1
 foreach var of varlist ftotinc highEduc someCollege married employed hispanic /*
-*/ black white otherRace age educY {
+*/ black white otherRace age educY teacher {
     replace mean  = `var' in `i'
     replace stdev = sd_`var' in `i'
     replace var = "`var'" in `i'
@@ -482,7 +492,8 @@ restore
 
     
 preserve
-use "$ACS/ACS_20052014_cleaned_all", clear
+use "$ACS/ACS_20052014_All", clear
+keep if motherAge>=20&motherAge<=45
 *keep if year==2014
 drop if occ2010 == 9920
 gen N_ACS = 1
@@ -498,20 +509,24 @@ replace educY = 13 if educ==7
 replace educY = 14 if educ==8
 replace educY = 16 if educ==10
 replace educY = 17 if educ==11
+gen teacher = twoLevelOcc=="Education, Training, and Library Occupations"
+gen hispanic=hispan!=0
+gen age=motherAge
 
+gen white = race==1
+gen black = race==2
 gen someCollege = educ>=7
 gen otherRace = race!=1&race!=2
 gen employed  = empstat==1
 *rename hispan hispanic
-gen age       = motherAge
 
 collapse (sum) N_ACS (mean) ftotinc highEduc someCollege married employed hispanic /*
-*/ black white otherRace age educY (sd) sd_ftotinc=ftotinc sd_highEduc=highEduc    /*
-*/ sd_someCollege=someCollege sd_married=married sd_employed=employed              /*
-*/ sd_hispanic=hispanic sd_black=black sd_white=white sd_otherRace=otherRace       /*
-*/ sd_age=age sd_educY=educY
+*/ black white otherRace age educY teacher (sd) sd_ftotinc=ftotinc                 /*
+*/ sd_highEduc=highEduc  sd_someCollege=someCollege sd_married=married             /*
+*/ sd_employed=employed sd_hispanic=hispanic sd_black=black sd_white=white         /*
+*/ sd_otherRace=otherRace sd_age=age sd_educY=educY sd_teacher=teacher
 
-expand 11
+expand 12
 gen meanACS  = .
 gen stdevACS = .
 gen var      = ""
@@ -519,7 +534,7 @@ gen var      = ""
 
 local i = 1
 foreach var of varlist ftotinc highEduc married employed hispanic /*
-*/ black white otherRace age educY {
+*/ black white otherRace age educY teacher {
     replace mean  = `var' in `i'
     replace stdev = sd_`var' in `i'
     replace var = "`var'" in `i'
@@ -536,10 +551,10 @@ local i = 1
 #delimit ;
 local vnames `" "Family Income" "Age" "Years of Education" "Some College +"
                 "Currently Employed" "Hispanic" "Black or African American"
-                "White" "Married" "';
+                "White" "Married" "Education, Training, Library Occ.""';
 #delimit cr
 local variables ftotinc age educY highEduc employed hispanic black white /*
-*/ otherRace married
+*/ married teacher
 tokenize `variables'
 file open mstats using "$OUT/ACScomp.txt", write replace
 foreach var of local vnames {
@@ -561,7 +576,7 @@ foreach var of local vnames {
 }
 file close mstats
 restore
-*/
+exit
 
 *-------------------------------------------------------------------------------
 *--- (A2) Generate [For Full Group]
