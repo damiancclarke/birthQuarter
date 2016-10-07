@@ -52,7 +52,7 @@ replace certainty = "10" if RespSure=="10 (definitely sure)"
 replace certainty = RespSure if certainty==""
 destring certainty, replace
 
-
+/*
 save "$DAT/combined", replace
 
 gen sex = RespSex=="Female"
@@ -576,7 +576,7 @@ foreach var of local vnames {
 }
 file close mstats
 restore
-
+*/
 
 *-------------------------------------------------------------------------------
 *--- (A2) Generate [For Full Group]
@@ -1033,7 +1033,7 @@ foreach var of local vars {
 }
 
 replace Y = -Y
-lab val Y names
+lab val Y namesT
 
 #delimit ;
 twoway rcap  LB UB Y in 1/30, horizontal scheme(s1mono) lcolor(black) ||
@@ -1427,7 +1427,7 @@ foreach var of local vars {
 }
 
 replace Y = -Y
-lab val Y names
+lab val Y namesT
 
 #delimit ;
 twoway rcap  LB UB Y in 1/17, horizontal scheme(s1mono) lcolor(black) ||
@@ -1855,7 +1855,7 @@ foreach var of local vars {
 }
 
 replace Y = -Y
-lab val Y names
+lab val Y namesT
 
 #delimit ;
 twoway rcap  LB UB Y in 1/26, horizontal scheme(s1mono) lcolor(black) ||
@@ -1891,35 +1891,12 @@ postfoot("\bottomrule           "
          "\multicolumn{4}{p{15.2cm}}{\begin{footnotesize} Average marginal   "
          "from a logit regression are displayed. All columns include         "
          "option order fixed effects, round fixed effects and controls for   "
-         "all alternative characteristics (day of birth and gender). Each    "
-         "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
-         "preferred option in each round.  Standard errors are clustered by  "
-         "respondent. Willingness to pay and its 95\% confidence interval is "
-         "estimated based on the ratio of costs to the probability of        "
-         "choosing good season.  The 95\% confidence interval is calculated  "
-         "using thet delta method for the (non-linear) ratio."
-         "\end{footnotesize}}\end{tabular}\end{table}");
-
-esttab n20 p20 r20 using "$OUT/conjointWTP-teachers-seasons.tex", replace
-cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
-(wtpSp conf95sp wtpSu conf95su N, fmt(%5.1f %5.1f %9.0g)
- label("WTP (spring)" "95\% CI" "WTP (summer)" "95\% CI" Observations))
-starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none)
-mlabels("Full Sample" "Birth Weight Sample" "Day of Birth Sample")
-label title("Birth Characteristics and Willingness to Pay
-(Women in Education, Library and Training Occupations)") booktabs
-keep(spring summer _sob4 costNumerical _gend2 `nvar1' `nvar2') style(tex) 
-postfoot("\bottomrule           "
-         "\multicolumn{4}{p{15.2cm}}{\begin{footnotesize} Average marginal   "
-         "from a logit regression are displayed. All columns include         "
-         "option order fixed effects, round fixed effects and controls for   "
-         "all alternative characteristics (day of birth and gender). Each    "
-         "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
-         "preferred option in each round.  Standard errors are clustered by  "
-         "respondent. Willingness to pay and its 95\% confidence interval is "
-         "estimated based on the ratio of costs to the probability of        "
-         "choosing good season.  The 95\% confidence interval is calculated  "
-         "using thet delta method for the (non-linear) ratio."
+         "all alternative characteristics (day of birth and gender). Standard"
+         " errors are clustered by respondent. Willingness to pay and its    "
+         "95\% confidence interval is estimated based on the ratio of costs  "
+         "to the probability of choosing good season.  The 95\% confidence   "
+         "interval is calculated using the delta method for the (non-linear) "
+         "ratio."
          "\end{footnotesize}}\end{tabular}\end{table}");
 
 esttab m7 o7 q7 using "$OUT/conjointWTP.tex", replace
@@ -1934,118 +1911,12 @@ postfoot("\bottomrule           "
          "\multicolumn{4}{p{15.2cm}}{\begin{footnotesize} Average marginal   "
          "from a logit regression are displayed. All columns include         "
          "option order fixed effects, round fixed effects and controls for   "
-         "all alternative characteristics (day of birth and gender). Each    "
-         "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
-         "preferred option in each round.  Standard errors are clustered by  "
-         "respondent. Willingness to pay and its 95\% confidence interval is "
-         "estimated based on the ratio of costs to the probability of        "
-         "choosing good season.  The 95\% confidence interval is calculated  "
-         "using thet delta method for the (non-linear) ratio."
-         "\end{footnotesize}}\end{tabular}\end{table}");
-
-esttab m20 o20 q20 using "$OUT/conjointWTP-teachers.tex", replace
-cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
-(wtp conf95 N, fmt(%5.1f %9.0g)
- label("Willingness to Pay" "95\% CI WTP" Observations))
-starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none)
-mlabels("Full Sample" "Birth Weight Sample" "Day of Birth Sample")
-label title("Birth Characteristics and Willingness to Pay
-(Women in Education, Library and Training Occupations)") booktabs
-keep(goodSeason costNumerical _gend2 `nvar1' `nvar2') style(tex) 
-postfoot("\bottomrule           "
-         "\multicolumn{4}{p{15.2cm}}{\begin{footnotesize} Average marginal   "
-         "from a logit regression are displayed. All columns include         "
-         "option order fixed effects, round fixed effects and controls for   "
-         "all alternative characteristics (day of birth and gender). Each    "
-         "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
-         "preferred option in each round.  Standard errors are clustered by  "
-         "respondent. Willingness to pay and its 95\% confidence interval is "
-         "estimated based on the ratio of costs to the probability of        "
-         "choosing good season.  The 95\% confidence interval is calculated  "
-         "using thet delta method for the (non-linear) ratio."
-         "\end{footnotesize}}\end{tabular}\end{table}");
-
-esttab n21 p21 r21 using "$OUT/conjointWTP-seasons-sure9.tex", replace
-cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
-(wtpSp conf95sp wtpSu conf95su N, fmt(%5.1f %5.1f %9.0g)
- label("WTP (spring)" "95\% CI" "WTP (summer)" "95\% CI" Observations))
-starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none) label booktabs
-mlabels("Full Sample" "Birth Weight Sample" "Day of Birth Sample")
-title("Birth Characteristics and Willingness to Pay ($\geq 9$ certainty)") 
-keep(spring summer _sob4 costNumerical _gend2 `nvar1' `nvar2') style(tex) 
-postfoot("\bottomrule           "
-         "\multicolumn{4}{p{15.2cm}}{\begin{footnotesize} Average marginal   "
-         "from a logit regression are displayed. All columns include         "
-         "option order fixed effects, round fixed effects and controls for   "
-         "all alternative characteristics (day of birth and gender). Each    "
-         "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
-         "preferred option in each round.  Standard errors are clustered by  "
-         "respondent. Willingness to pay and its 95\% confidence interval is "
-         "estimated based on the ratio of costs to the probability of        "
-         "choosing good season.  The 95\% confidence interval is calculated  "
-         "using thet delta method for the (non-linear) ratio."
-         "\end{footnotesize}}\end{tabular}\end{table}");
-
-esttab m21 o21 q21 using "$OUT/conjointWTP-sure9.tex", replace
-cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
-(wtp conf95 N, fmt(%5.1f %9.0g)
- label("Willingness to Pay" "95\% CI WTP" Observations)) booktabs
-starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none) label 
-mlabels("Full Sample" "Birth Weight Sample" "Day of Birth Sample")
-title("Birth Characteristics and Willingness to Pay  ($\geq 9$ certainty)") 
-keep(goodSeason costNumerical _gend2 `nvar1' `nvar2') style(tex) 
-postfoot("\bottomrule           "
-         "\multicolumn{4}{p{15.2cm}}{\begin{footnotesize} Average marginal   "
-         "from a logit regression are displayed. All columns include         "
-         "option order fixed effects, round fixed effects and controls for   "
-         "all alternative characteristics (day of birth and gender). Each    "
-         "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
-         "preferred option in each round.  Standard errors are clustered by  "
-         "respondent. Willingness to pay and its 95\% confidence interval is "
-         "estimated based on the ratio of costs to the probability of        "
-         "choosing good season.  The 95\% confidence interval is calculated  "
-         "using thet delta method for the (non-linear) ratio."
-         "\end{footnotesize}}\end{tabular}\end{table}");
-
-esttab n22 p22 r22 using "$OUT/conjointWTP-seasons-sure8.tex", replace
-cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
-(wtpSp conf95sp wtpSu conf95su N, fmt(%5.1f %5.1f %9.0g)
- label("WTP (spring)" "95\% CI" "WTP (summer)" "95\% CI" Observations))
-starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none) label booktabs
-mlabels("Full Sample" "Birth Weight Sample" "Day of Birth Sample")
-title("Birth Characteristics and Willingness to Pay ($\geq 8$ certainty)") 
-keep(spring summer _sob4 costNumerical _gend2 `nvar1' `nvar2') style(tex) 
-postfoot("\bottomrule           "
-         "\multicolumn{4}{p{15.2cm}}{\begin{footnotesize} Average marginal   "
-         "from a logit regression are displayed. All columns include         "
-         "option order fixed effects, round fixed effects and controls for   "
-         "all alternative characteristics (day of birth and gender). Each    "
-         "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
-         "preferred option in each round.  Standard errors are clustered by  "
-         "respondent. Willingness to pay and its 95\% confidence interval is "
-         "estimated based on the ratio of costs to the probability of        "
-         "choosing good season.  The 95\% confidence interval is calculated  "
-         "using thet delta method for the (non-linear) ratio."
-         "\end{footnotesize}}\end{tabular}\end{table}");
-
-esttab m22 o22 q22 using "$OUT/conjointWTP-sure8.tex", replace
-cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
-(wtp conf95 N, fmt(%5.1f %9.0g)
- label("Willingness to Pay" "95\% CI WTP" Observations)) booktabs
-starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none) label 
-mlabels("Full Sample" "Birth Weight Sample" "Day of Birth Sample")
-title("Birth Characteristics and Willingness to Pay  ($\geq 8$ certainty)") 
-keep(goodSeason costNumerical _gend2 `nvar1' `nvar2') style(tex) 
-postfoot("\bottomrule           "
-         "\multicolumn{4}{p{15.2cm}}{\begin{footnotesize} Average marginal   "
-         "from a logit regression are displayed. All columns include         "
-         "option order fixed effects, round fixed effects and controls for   "
          "all alternative characteristics (day of birth and gender). Standard"
-         " errors are clustered by  "
-         "respondent. Willingness to pay and its 95\% confidence interval is "
-         "estimated based on the ratio of costs to the probability of        "
-         "choosing good season.  The 95\% confidence interval is calculated  "
-         "using the delta method for the (non-linear) ratio."
+         " errors are clustered by respondent. Willingness to pay and its    "
+         "95\% confidence interval is estimated based on the ratio of costs  "
+         "to the probability of choosing good season.  The 95\% confidence   "
+         "interval is calculated using the delta method for the (non-linear) "
+         "ratio."
          "\end{footnotesize}}\end{tabular}\end{table}");
 
 #delimit cr
