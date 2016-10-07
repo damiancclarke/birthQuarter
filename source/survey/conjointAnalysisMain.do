@@ -576,7 +576,7 @@ foreach var of local vnames {
 }
 file close mstats
 restore
-exit
+
 
 *-------------------------------------------------------------------------------
 *--- (A2) Generate [For Full Group]
@@ -770,7 +770,7 @@ foreach c of local conds {
     lab val Y names
 
     *---------------------------------------------------------------------------
-    *--- (B4) Graph
+    *--- (A4) Graph
     *---------------------------------------------------------------------------
     #delimit ;
     twoway rcap  LB UB Y in 1/39, horizontal scheme(s1mono) lcolor(black) ||
@@ -987,6 +987,68 @@ postfoot("\bottomrule           "
          "is calculated using thet delta method for the (non-linear) ratio.  "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
+
+*---------------------------------------------------------------------------
+*--- (A5) Continuous cost graph
+*---------------------------------------------------------------------------
+#delimit cr
+lab def namesT -1 "Season of Birth" -2 "Winter" -3 "Spring" -4 "Summer"      /*
+*/ -5 "Fall" -6 " " -7 "Cost" -8 "100s of USD" -9 " " -10 "Gender"           /*
+*/ -11 "Boy" -12 "Girl" -13 " " -14 "Birth Weight" -15 "5lbs, 8oz"           /*
+*/ -16 "5lbs, 13oz" -17 "6lbs, 3oz" -18 "6lbs, 8oz" -19 "6lbs, 13oz"         /*
+*/ -20 "7lbs, 3oz" -21 "7lbs, 8oz" -22 "7lbs, 13oz" -23 "8lbs, 3oz"          /*
+*/ -24 "8lbs, 8oz" -25 "8lbs, 13oz"  -26 " " -27 "Day of Birth" -28 "Weekday"/*
+*/ -29 "Weekend" -30 " "
+
+reg chosen `oFEs' _sob* costNumerical _gend* _bwt* _dob*, cluster(ID)
+local Nobs = e(N)
+
+gen Est = .
+gen UB  = .
+gen LB  = .
+gen Y   = .
+local i = 1
+local vars SEASON-OF_BIRTH _sob1 _sob2 _sob3 _sob4 s COST costNumerical s    /*
+*/ GENDER _gend1 _gend2 s BIRTH-WEIGHT _bwt1 _bwt2 _bwt3 _bwt4 _bwt5 _bwt6   /*
+*/ _bwt7 _bwt8 _bwt9 _bwt10 _bwt11 s DAY-OF-BIRTH _dob1 _dob2 s
+
+foreach var of local vars {
+    qui replace Y = `i' in `i'
+    if `i'==1|`i'==7|`i'==10|`i'==14|`i'==27 {
+        dis "`var'"
+    }
+    else if `i'==6|`i'==9|`i'==13|`i'==26|`i'==30 {
+    }
+    else if `i'==2|`i'==11|`i'==15|`i'==28 {
+        qui replace Est = 0 in `i'
+        qui replace UB  = 0 in `i'
+        qui replace LB  = 0 in `i'
+    }
+    else {
+        qui replace Est = _b[`var'] in `i'
+        qui replace UB  = _b[`var']+1.96*_se[`var'] in `i'
+        qui replace LB  = _b[`var']-1.96*_se[`var'] in `i'
+    }
+    local ++i
+}
+
+replace Y = -Y
+lab val Y names
+
+#delimit ;
+twoway rcap  LB UB Y in 1/30, horizontal scheme(s1mono) lcolor(black) ||
+scatter Y Est in 1/30, mcolor(black) msymbol(oh) mlwidth(thin)
+xline(0, lpattern(dash) lcolor(gs7))
+ylabel(-1 -7 -10 -14 -27, valuelabel angle(0))
+ymlabel(-2(-1)-5 -8 -11 -12 -15(-1)-25 -28 -29, valuelabel angle(0))
+ytitle("") xtitle("Effect Size (Probability)") legend(off) ysize(8)
+note(Total respondents = `=`Nobs'/14'.  Total profiles = `Nobs'.);
+*legend(lab(1 "95% CI") lab(2 "Point Estimate"));
+#delimit cr
+graph export "$OUT/Conjoint-FullGroup_continuous.eps", replace
+drop Est UB LB Y
+
+
 
 
 *-------------------------------------------------------------------------------
@@ -1323,6 +1385,62 @@ postfoot("\bottomrule           "
          "\end{footnotesize}}\end{tabular}\end{table}");
 
 #delimit cr
+
+*---------------------------------------------------------------------------
+*--- (D5) Continuous cost graph
+*---------------------------------------------------------------------------
+#delimit cr
+lab def namesT -1 "Season of Birth" -2 "Winter" -3 "Spring" -4 "Summer"   /*
+*/ -5 "Fall" -6 " " -7 "Cost" -8 "100s of USD" -9 " " -10 "Gender"        /*
+*/ -11 "Boy" -12 "Girl" -13 " "  -14 "Day of Birth" -15 "Weekday"         /*
+*/ -16 "Weekend" -17 " "
+
+reg chosen `oFEs' _sob* costNumerical _gend* _dob*, cluster(ID)
+local Nobs = e(N)
+
+gen Est = .
+gen UB  = .
+gen LB  = .
+gen Y   = .
+local i = 1
+local vars SEASON-OF_BIRTH _sob1 _sob2 _sob3 _sob4 s COST costNumerical s /*
+*/ GENDER _gend1 _gend2 s DAY-OF-BIRTH _dob1 _dob2 s
+
+foreach var of local vars {
+    qui replace Y = `i' in `i'
+    if `i'==1|`i'==7|`i'==10|`i'==14 {
+        dis "`var'"
+    }
+    else if `i'==6|`i'==9|`i'==13|`i'==17 {
+    }
+    else if `i'==2|`i'==11|`i'==15 {
+        qui replace Est = 0 in `i'
+        qui replace UB  = 0 in `i'
+        qui replace LB  = 0 in `i'
+    }
+    else {
+        qui replace Est = _b[`var'] in `i'
+        qui replace UB  = _b[`var']+1.96*_se[`var'] in `i'
+        qui replace LB  = _b[`var']-1.96*_se[`var'] in `i'
+    }
+    local ++i
+}
+
+replace Y = -Y
+lab val Y names
+
+#delimit ;
+twoway rcap  LB UB Y in 1/17, horizontal scheme(s1mono) lcolor(black) ||
+scatter Y Est in 1/17, mcolor(black) msymbol(oh) mlwidth(thin)
+xline(0, lpattern(dash) lcolor(gs7))
+ylabel(-1 -7 -10 -14, valuelabel angle(0))
+ymlabel(-2(-1)-5 -8 -11 -12 -15 -16, valuelabel angle(0))
+ytitle("") xtitle("Effect Size (Probability)") legend(off) ysize(8)
+note(Total respondents = `=`Nobs'/14'.  Total profiles = `Nobs'.);
+*legend(lab(1 "95% CI") lab(2 "Point Estimate"));
+#delimit cr
+graph export "$OUT/Conjoint-DobGroup_continuous.eps", replace
+drop Est UB LB Y
 
 
 *-------------------------------------------------------------------------------
@@ -1693,6 +1811,65 @@ postfoot("\bottomrule           "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 
+*---------------------------------------------------------------------------
+*--- (B5) Continuous cost graph
+*---------------------------------------------------------------------------
+#delimit cr
+lab def namesT -1 "Season of Birth" -2 "Winter" -3 "Spring" -4 "Summer"      /*
+*/ -5 "Fall" -6 " " -7 "Cost" -8 "100s of USD" -9 " " -10 "Gender"           /*
+*/ -11 "Boy" -12 "Girl" -13 " " -14 "Birth Weight" -15 "5lbs, 8oz"           /*
+*/ -16 "5lbs, 13oz" -17 "6lbs, 3oz" -18 "6lbs, 8oz" -19 "6lbs, 13oz"         /*
+*/ -20 "7lbs, 3oz" -21 "7lbs, 8oz" -22 "7lbs, 13oz" -23 "8lbs, 3oz"          /*
+*/ -24 "8lbs, 8oz" -25 "8lbs, 13oz"  -26 " " 
+
+reg chosen `oFEs' _sob* costNumerical _gend* _bwt*, cluster(ID)
+local Nobs = e(N)
+
+gen Est = .
+gen UB  = .
+gen LB  = .
+gen Y   = .
+local i = 1
+local vars SEASON-OF_BIRTH _sob1 _sob2 _sob3 _sob4 s COST costNumerical s    /*
+*/ GENDER _gend1 _gend2 s BIRTH-WEIGHT _bwt1 _bwt2 _bwt3 _bwt4 _bwt5 _bwt6   /*
+*/ _bwt7 _bwt8 _bwt9 _bwt10 _bwt11 s
+
+foreach var of local vars {
+    qui replace Y = `i' in `i'
+    if `i'==1|`i'==7|`i'==10|`i'==14 {
+        dis "`var'"
+    }
+    else if `i'==6|`i'==9|`i'==13|`i'==26 {
+    }
+    else if `i'==2|`i'==11|`i'==15 {
+        qui replace Est = 0 in `i'
+        qui replace UB  = 0 in `i'
+        qui replace LB  = 0 in `i'
+    }
+    else {
+        qui replace Est = _b[`var'] in `i'
+        qui replace UB  = _b[`var']+1.96*_se[`var'] in `i'
+        qui replace LB  = _b[`var']-1.96*_se[`var'] in `i'
+    }
+    local ++i
+}
+
+replace Y = -Y
+lab val Y names
+
+#delimit ;
+twoway rcap  LB UB Y in 1/26, horizontal scheme(s1mono) lcolor(black) ||
+scatter Y Est in 1/26, mcolor(black) msymbol(oh) mlwidth(thin)
+xline(0, lpattern(dash) lcolor(gs7))
+ylabel(-1 -7 -10 -14, valuelabel angle(0))
+ymlabel(-2(-1)-5 -8 -11 -12 -15(-1)-25, valuelabel angle(0))
+ytitle("") xtitle("Effect Size (Probability)") legend(off) ysize(8)
+note(Total respondents = `=`Nobs'/14'.  Total profiles = `Nobs'.);
+*legend(lab(1 "95% CI") lab(2 "Point Estimate"));
+#delimit cr
+graph export "$OUT/Conjoint-BwtGroup_continuous.eps", replace
+drop Est UB LB Y
+
 
 *-------------------------------------------------------------------------------
 *--- (5) Export tables
@@ -1863,13 +2040,12 @@ postfoot("\bottomrule           "
          "\multicolumn{4}{p{15.2cm}}{\begin{footnotesize} Average marginal   "
          "from a logit regression are displayed. All columns include         "
          "option order fixed effects, round fixed effects and controls for   "
-         "all alternative characteristics (day of birth and gender). Each    "
-         "respondent sees 14 profiles (7 rounds of 2) and must choose their  "
-         "preferred option in each round.  Standard errors are clustered by  "
+         "all alternative characteristics (day of birth and gender). Standard"
+         " errors are clustered by  "
          "respondent. Willingness to pay and its 95\% confidence interval is "
          "estimated based on the ratio of costs to the probability of        "
          "choosing good season.  The 95\% confidence interval is calculated  "
-         "using thet delta method for the (non-linear) ratio."
+         "using the delta method for the (non-linear) ratio."
          "\end{footnotesize}}\end{tabular}\end{table}");
 
 #delimit cr
