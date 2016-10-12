@@ -23,7 +23,7 @@ global GEO "~/investigacion/2015/birthQuarter/data/maps/states_simplified"
 
 
 log using "$LOG/conjointAnalysisMain.txt", text replace
-
+/*
 *-------------------------------------------------------------------------------
 *--- (1) Summary Statistics
 *-------------------------------------------------------------------------------

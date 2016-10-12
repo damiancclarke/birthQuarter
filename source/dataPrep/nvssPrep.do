@@ -704,7 +704,7 @@ clear
 ********************************************************************************
 *** (4) Append to 2005-2013 file, generate variables
 ********************************************************************************
-append using `B2005' `B2006' `B2007' `B2008' `B2009' `B2010' `B2011' `B2013'
+append using `B2005' `B2006' `B2007' `B2008' `B2009' `B2010' `B2011' `B2012' `B2013'
 
 gen goodQuarter = birthQuarter == 2 | birthQuarter == 3
 gen badQuarter  = birthQuarter == 4 | birthQuarter == 1
@@ -716,17 +716,15 @@ replace educCat = 12 if education == 3
 replace educCat = 14 if education == 4
 replace educCat = 16 if education == 5
 replace educCat = 17 if education == 6
+generat educYrs = educCat
+gen educYrsSq   = educYrs*educYrs
+gen quarter2    = birthQuarter==2
+gen quarter3    = birthQuarter==3
+
+
 
 gen highEd              = (educLevel == 1 | educLevel == 2) if educLevel!=.
 gen young               = motherAge>=25 & motherAge<40 
-gen youngXhighEd        = young*highEd
-gen youngXbadQ          = young*(1-goodQuarter)
-gen highEdXbadQ         = highEd*(1-goodQuarter)
-gen youngXhighEdXbadQ   = young*highEd*(1-goodQuarter)
-gen youngMan            = ageGroupMan == 1
-gen youngManXbadQ       = youngMan*(1-goodQuarter)
-gen vhighEd             = educLevel == 2 if educLevel!=.
-gen youngXvhighEd       = young*vhighEd
 gen age2024             = motherAge>=20&motherAge<=24
 gen age2534             = motherAge>=25 & motherAge <35
 gen age2527             = motherAge>=25 & motherAge <28
@@ -734,11 +732,6 @@ gen age2831             = motherAge>=28 & motherAge <32
 gen age3239             = motherAge>=32 & motherAge <40
 gen age3539             = motherAge>=35 & motherAge <40
 gen age4045             = motherAge>=40 & motherAge <46
-gen age2534XhighEd      = age2534*highEd
-gen age2527XhighEd      = age2527*highEd
-gen age2831XhighEd      = age2831*highEd
-gen age3239XhighEd      = age3239*highEd
-gen age3539XhighEd      = age3539*highEd
 gen teenage             = motherAge>=15 & motherAge <20
 gen noPreVisit          = numPrenatal == 0 if numPrenatal<99
 gen prenate3months      = monthPrenat>0 & monthPrenat <= 3 if monthPrenat<99
@@ -754,6 +747,7 @@ gene    badExpectGood   = badQuarter==1&(expectQuar==2|expectQuar==3) if gest!=.
 gene    badExpectBad    = badQuarter==1&(expectQuar==1|expectQuar==4) if gest!=.
 gen     expectGoodQ     = expectQuarter == 2 | expectQuarter == 3 if gest!=.
 gen     expectBadQ      = expectQuarter == 4 | expectQuarter == 1 if gest!=.
+gen     normalBMI       = BMI>=18.5&BMI<25 if BMI!=.
 
 gen     Qgoodgood       = expectGoodQ==1 & goodQuarter==1 if gest!=.
 gen     Qgoodbad        = expectGoodQ==1 & badQuarter ==1 if gest!=.
@@ -773,6 +767,9 @@ drop goodQuarter badQuarter
 gen goodQuarter = expectGoodQ
 gen badQuarter  = expectBadQ
 tab year, gen(_year)
+replace motherAge2 = motherAge2/100
+replace PrePregWt = PrePregWt/10
+
 
 #delimit ;
 local stat AK AL AR AZ CA CO CT DC DE FL GA HI IA ID IL IN KS KY LA MA MD ME 
@@ -846,25 +843,13 @@ lab var expectGoodQ        "Good Expect"
 lab var badQuarter         "Bad Season"
 lab var highEd             "Some College +"
 lab var young              "Aged 25-39"
-lab var youngXhighEd       "College$\times$ Aged 25-39"
 lab var ageGroup           "Categorical age group"
-lab var youngXbadQ         "Young$\times$ Bad S"
-lab var highEdXbadQ        "College$\times$ Bad S"
-lab var youngXhighEdXbadQ  "Young$\times$ College$\times$ Bad S"
-lab var youngManXbadQ      "Young Man$\times$ Bad S"
-lab var vhighEd            "Complete Degree"
-lab var youngXvhighEd      "Degree$\times$ Aged 25-39"
 lab var age2534            "Aged 25-34"
 lab var age2527            "Aged 25-27"
 lab var age2831            "Aged 28-31"
 lab var age3239            "Aged 32-39"
 lab var age3539            "Aged 35-39"
 lab var age4045            "Aged 40-45"
-lab var age2534XhighEd     "Aged 25-34 $\times$ Some College"
-lab var age3539XhighEd     "Aged 35-39 $\times$ Some College"
-lab var age2527XhighEd     "Aged 25-27 $\times$ Some College"
-lab var age2831XhighEd     "Aged 28-31 $\times$ Some College"
-lab var age3239XhighEd     "Aged 32-39 $\times$ Some College"
 lab var teenage            "Aged 15-19"
 lab var married            "Married"
 lab var smoker             "Smoked in Pregnancy"
@@ -907,308 +892,21 @@ lab var cold               "Coldest monthly average (degree F)"
 lab var hot                "Warmest monthly average (degree F)"
 lab var Tvariation         "Annual Variation in Temperature (degree F)"
 lab var meanT              "Mean monthly temperature (degree F)"
+lab var motherAge2         "Mother's Age$^2$ / 100"
+lab var PrePregWt          "Pre-Pregnancy Weight / 10"
+lab var height             "Height (Inches)"
+lab var overweight         "Pre-pregnancy Overweight $(25\leq$ BMI$ <30)$ "
+lab var underweight        "Pre-pregnancy Underweight (BMI$ <18.5)$ "
+lab var obese              "Pre-pregnancy Obese (BMI$ \geq 30)$ "
+lab var educYrs            "Years of Education"
+lab var educYrsSq          "Education Squared"
+lab var quarter2           "Quarter 2"
+lab var quarter3           "Quarter 3"
+lab var normalBMI          "Normal Weight (BMI 18.5-25)"
+
 
 ********************************************************************************
 *** (6) Save, clean
 ********************************************************************************
-if `nohisp'==1&`noblack'==1 {
-    lab dat "NVSS birth data 2005-2013 (first births, white, 25-45 year olds)"
-    save "$OUT/nvss2005_2013.dta", replace
-}
-if `nohisp'==0&`noblack'==1 {
-    lab dat "NVSS birth data 2005-2013 (first births, white/hisp, 25-45 years)"
-    save "$OUT/nvss2005_2013_hisp.dta", replace
-}
-if `nohisp'==0&`noblack'==0 {
-    lab dat "NVSS birth data 2005-2013 (first births, 25-45 years)"
-    save "$OUT/nvss2005_2013_all.dta", replace
-}
-
-
-exit
-********************************************************************************
-*** (6a) 1998 File
-********************************************************************************
-global DAT "~/database/NVSS/Births/dta"
-use "$DAT/natl1998"
-
-gen married     = dmar==1
-gen single      = married==0&fage11==11
-gen birthOrder  = dlivord
-gen motherAge   = dmage
-gen fatherAge   = fage11
-gen birthMonth  = birmon
-gen year        = biryr
-gen twin        = dplural
-gen birthweight = dbirwt if dbirwt>=500 & dbirwt <= 5000
-gen vlbw        = birthweight < 1500 if birthweight != .
-gen lbw         = birthweight < 2500 if birthweight != .
-gen apgar       = fmaps if fmaps>=0 & fmaps <=10
-gen gestation   = dgestat if dgestat!=99
-gen premature   = gestation < 37 if gestation != .
-gen smoker      = cigar>0 if cigar < 99
-gen female      = csex==2
-gen numPrenatal = nprevis if nprevis != 99
-gen monthPrenat = monpre
-
-keep if birthOrder<=2 & (motherAge>=15 & motherAge<=45)
-keep if mrace == 1 & ormoth == 0
-
-gen birthQuarter = ceil(birthMonth/3)
-
-gen ageGroup = motherAge>=25 & motherAge <=34
-replace ageGroup = 2 if motherAge >= 35 & motherAge <= 39
-replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
-
-gen ageGroupMan = fage11>6 & fage11 != 11
-replace ageGroupMan = ageGroupMan + 1
-
-gen educLevel = dmeduc >= 13
-replace educLevel = 2 if dmeduc >= 16
-replace educLevel = . if dmeduc == 99
-
-gen education = dmeduc if dmeduc != 99
-
-keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar        /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth gestation numPrenatal monthPrenat birthOrder statenat    /*
-*/ stoccfip stresfip stateres
-tempfile B1998
-save `B1998'
-
-********************************************************************************
-*** (6b) 1999 File
-********************************************************************************
-use "$DAT/natl1999"
-
-gen married     = dmar==1
-gen single      = married==0&fage11==11
-gen birthOrder  = dlivord
-gen motherAge   = dmage
-gen fatherAge   = fage11
-gen birthMonth  = birmon
-gen year        = biryr
-gen twin        = dplural
-gen birthweight = dbirwt if dbirwt>=500 & dbirwt <= 5000
-gen vlbw        = birthweight < 1500 if birthweight != .
-gen lbw         = birthweight < 2500 if birthweight != .
-gen apgar       = fmaps if fmaps>=0 & fmaps <=10
-gen gestation   = dgestat if dgestat!=99
-gen premature   = gestation < 37 if gestation != .
-gen smoker      = cigar>0 if cigar < 99
-gen female      = csex==2
-gen numPrenatal = nprevis if nprevis != 99
-gen monthPrenat = monpre
-
-keep if birthOrder<=2 & (motherAge>=15 & motherAge<=45)
-keep if mrace == 1 & ormoth == 0
-
-gen birthQuarter = ceil(birthMonth/3)
-
-gen ageGroup = motherAge>=25 & motherAge <=34
-replace ageGroup = 2 if motherAge >= 35 & motherAge <= 39
-replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
-
-gen ageGroupMan = fage11>6 & fage11 != 11
-replace ageGroupMan = ageGroupMan + 1
-
-gen educLevel = dmeduc >= 13
-replace educLevel = 2 if dmeduc >= 16
-replace educLevel = . if dmeduc == 99
-
-gen education = dmeduc if dmeduc != 99
-
-keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar        /*
-*/ premature motherAge education fatherAge ageGroupMan married smoker single  /*
-*/ female birthMonth gestation numPrenatal monthPrenat birthOrder statenat    /*
-*/ stoccfip stresfip stateres
-tempfile B1999
-save `B1999'
-
-
-********************************************************************************
-*** (7) Append to 1998, 1999 file, save
-********************************************************************************
-clear
-append using `B1998' `B1999'
-
-lab dat "NVSS birth data 1998-1999 (1st and 2nd births, white, 15-45 year olds)"
-save "$OUT/nvss1998_1999.dta", replace
-
-exit
-********************************************************************************
-*** (8) 1990s File
-********************************************************************************
-foreach year of numlist 1990(1)1999 {
-    use "$DAT/natl`year'"
-
-    gen married     = dmar==1
-    gen single      = married==0&fage11==11
-    gen birthOrder  = dlivord
-    gen motherAge   = dmage
-    gen fatherAge   = fage11
-    gen birthMonth  = birmon
-    gen year        = biryr
-    gen twin        = dplural
-    gen birthweight = dbirwt if dbirwt>=500 & dbirwt <= 5000
-    gen vlbw        = birthweight < 1500 if birthweight != .
-    gen lbw         = birthweight < 2500 if birthweight != .
-    gen apgar       = fmaps if fmaps>=0 & fmaps <=10
-    gen gestation   = dgestat if dgestat!=99
-    gen premature   = gestation < 37 if gestation != .
-    gen smoker      = cigar>0 if cigar < 99
-    gen female      = csex==2
-    gen numPrenatal = nprevis if nprevis != 99
-    gen monthPrenat = monpre
-
-    keep if birthOrder<=2 & (motherAge>=20 & motherAge<=45)
-    keep if mrace == 1 & ormoth == 0
-    
-    gen birthQuarter = ceil(birthMonth/3)
-
-    gen ageGroup = motherAge>=25 & motherAge <=34
-    replace ageGroup = 2 if motherAge >= 35 & motherAge <= 39
-    replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
-
-    gen ageGroupMan = fage11>6 & fage11 != 11
-    replace ageGroupMan = ageGroupMan + 1
-
-    gen educLevel = dmeduc >= 13
-    replace educLevel = 2 if dmeduc >= 16
-    replace educLevel = . if dmeduc == 99
-
-    gen education = dmeduc if dmeduc != 99
-
-    foreach var of varlist statenat stoccfip stresfip stateres {
-        tostring `var', replace
-        foreach num of numlist 1(1)9 {
-            replace `var' = "0`num'" if `var'=="`num'"
-        }
-    }
-        
-    
-    
-    keep birthQuarter ageGroup educLevel twin year birthwei vlbw lbw apgar      /*
-    */ premature motherAge education fatherAge ageGroupMan married smoker single/*
-    */ female birthMonth gestation numPrenatal monthPrenat birthOrder statenat  /*
-    */ stoccfip stresfip stateres
-    tempfile B`year'
-    save `B`year''
-}
-clear
-append using `B1990' `B1991' `B1992' `B1993' `B1994', force
-append using `B1995' `B1996' `B1997' `B1998' `B1999', force
-
-lab dat "NVSS birth data 1990s (first births, white, 25-45 year olds)"
-save "$OUT/nvss1990s.dta", replace
-
-********************************************************************************
-*** (9) 1970s File
-********************************************************************************
-foreach year of numlist 1971(1)1979 {
-    use "$DAT/natl`year'"
-
-    if `year'<1978  gen married     = dlegit==1 if dlegit < 8
-    if `year'>1977  gen married     = mar2 == 1
-    gen birthOrder  = dlivord
-    gen motherAge   = dmage
-    gen fatherAge   = fage11
-    gen birthMonth  = birmon
-    gen year        = `year'
-    gen twin        = dplural
-    gen birthweight = dbirwt if dbirwt>=500 & dbirwt <= 5000
-    gen vlbw        = birthweight < 1500 if birthweight != .
-    gen lbw         = birthweight < 2500 if birthweight != .
-    gen gestation   = dgestat if dgestat!=99&dgestat!=0
-    gen premature   = gestation < 37 if gestation != .
-    *gen smoker      = cigar>0 if cigar < 99
-    gen female      = csex==2
-    gen sampWeight  = 1
-    cap replace sampWeight = recwt
-    
-    keep if birthOrder<=2 & (motherAge>=20 & motherAge<=45)
-    keep if mrace == 1
-    
-    gen birthQuarter = ceil(birthMonth/3)
-
-    gen ageGroup = motherAge>=25 & motherAge <=34
-    replace ageGroup = 2 if motherAge >= 35 & motherAge <= 39
-    replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
-
-    gen ageGroupMan = fage11>6 & fage11 != 11
-    replace ageGroupMan = ageGroupMan + 1
-
-    gen educLevel = dmeduc >= 13
-    replace educLevel = 2 if dmeduc >= 16
-    replace educLevel = . if dmeduc == 99
-
-    gen education = dmeduc if dmeduc != 99
-
-    keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw     /*
-    */ premature motherAge education fatherAge ageGroupMan married female   /*
-    */ birthMonth gestation birthOrder statenat stateres sampWeight
-    tempfile B`year'
-    save `B`year''
-}
-clear
-append using         `B1971' `B1972' `B1973' `B1974', force
-append using `B1975' `B1976' `B1977' `B1978' `B1979', force
-
-lab dat "NVSS birth data 1970s (first births, white, 25-45 year olds)"
-save "$OUT/nvss1970s.dta", replace
-
-    
-********************************************************************************
-*** (10) 1980s File
-********************************************************************************
-foreach year of numlist 1980(1)1989 {
-    use "$DAT/natl`year'"
-
-    if `year'>1988  gen married     = dmar == 1
-    if `year'<1989  gen married     = mar2 == 1
-    gen birthOrder  = dlivord
-    gen motherAge   = dmage
-    gen fatherAge   = fage11
-    gen birthMonth  = birmon
-    gen year        = `year'
-    gen twin        = dplural
-    gen birthweight = dbirwt if dbirwt>=500 & dbirwt <= 5000
-    gen vlbw        = birthweight < 1500 if birthweight != .
-    gen lbw         = birthweight < 2500 if birthweight != .
-    gen gestation   = dgestat if dgestat!=99&dgestat!=0
-    gen premature   = gestation < 37 if gestation != .
-    *gen smoker      = cigar>0 if cigar < 99
-    gen female      = csex==2
-    gen sampWeight  = 1
-    cap replace sampWeight = recwt
-    
-    keep if birthOrder<=2 & (motherAge>=20 & motherAge<=45)
-    keep if mrace == 1
-    
-    gen birthQuarter = ceil(birthMonth/3)
-
-    gen ageGroup = motherAge>=25 & motherAge <=34
-    replace ageGroup = 2 if motherAge >= 35 & motherAge <= 39
-    replace ageGroup = 3 if motherAge >= 40 & motherAge <= 45
-
-    gen ageGroupMan = fage11>6 & fage11 != 11
-    replace ageGroupMan = ageGroupMan + 1
-
-    gen educLevel = dmeduc >= 13
-    replace educLevel = 2 if dmeduc >= 16
-    replace educLevel = . if dmeduc == 99
-
-    gen education = dmeduc if dmeduc != 99
-
-    keep birthQuarter ageGroup educLevel twin year birthweight vlbw lbw     /*
-    */ premature motherAge education fatherAge ageGroupMan married female   /*
-    */ birthMonth gestation birthOrder statenat stateres sampWeight
-    tempfile B`year'
-    save `B`year''
-}
-clear
-append using `B1980' `B1981' `B1982' `B1983' `B1984', force
-append using `B1985' `B1986' `B1987' `B1988' `B1989', force
-
-lab dat "NVSS birth data 1980s (first births, white, 25-45 year olds)"
-save "$OUT/nvss1980s.dta", replace
+lab dat "NVSS birth data 2005-2013 (first and second births)"
+save "$OUT/nvss2005_2013_all.dta", replace
