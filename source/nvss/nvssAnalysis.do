@@ -35,8 +35,8 @@ local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
              collabels(none) label;
 local Fnote  "F-test of age variables refers to the test that
               the coefficients on mother's age and age squared are jointly
-              equal to zero. Reported p-values are those corresponding to
-              this classical F-test.";
+              equal to zero. The critical value for rejection of joint
+              insignificance is displayed below the F-statistic.";
 local onote  "Optimal age calculates the turning point of the mother's age
               quadratic.";
 local enote  "Heteroscedasticity robust standard errors are reported in
@@ -54,7 +54,7 @@ keep if twin==1
 replace twin=twin-1
 keep if birthOrder==1
 gen birth = 1
-/*
+
 ********************************************************************************
 *** (3a) Descriptive age graph
 ********************************************************************************
@@ -71,7 +71,7 @@ twoway hist motherAge if motherAge>=20&motherAge<=45&married==1, `fw' color(gs0)
     ylabel(, angle(0) format(%15.0fc)) xtitle("Mother's Age")
     legend(label(1 "Estimation Sample") label(2 "<20 or >45")) scheme(s1mono);
 graph export "$GRA/ageDescriptive-married.eps", as(eps) replace;
-#delimit cr
+a#delimit cr
 
 preserve
 drop if ART==.|conceptionMonth==.
@@ -89,7 +89,28 @@ graph export "$GRA/proportionMonthART.eps", as(eps) replace;
 #delimit cr
 restore
 
-*/
+
+preserve
+gen teenBirth = motherAge>=15&motherAge<=19
+keep if motherAge>=15&motherAge<=45
+collapse (sum) birth, by(teenBirth birthMonth)
+bys teenBirth: egen totbirth = sum(birth)
+gen propBirth = birth/totbirth
+sort teenBirth birthMonth
+lab val birthMonth mon
+#delimit ;
+twoway line propBirth birthMonth if teenBirth==1, lcolor(ebblue) lwidth(thick)
+ || line propBirth birthMonth if teenBirth==0, lcolor(cranberry) lwidth(thick)
+lpattern(dash) xlabel(1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul"
+                      8 "Aug" 9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec")
+ytitle("Proportion of Births") xtitle("Month of Birth") scheme(s1mono)
+legend(lab(1 "Ages 15-19") lab(2 "Ages 20-45"));
+graph export "$GRA/birthMonths-age.eps", as(eps) replace;
+#delimit cr
+restore
+
+
+
 ********************************************************************************
 *** (3b) Summary stats 
 ********************************************************************************
@@ -468,8 +489,8 @@ foreach type of local add {
 *** (5b) Alternative Regressions
 ********************************************************************************
 #delimit ;
-local add `" "(excluding babies conceived in Nomvember or December)"
-             "(second births)" "';
+local add `" "excluding babies conceived in November or December"
+             "second births" "';
 local nam NoNovDec Birth2;
 #delimit cr
 tokenize `nam'
@@ -542,7 +563,7 @@ foreach type of local add {
     restore
     local ++k
 }
-
+*/
 ********************************************************************************
 *** (5c) Including fetal deaths
 ********************************************************************************
@@ -595,7 +616,7 @@ foreach type of local add {
         local opt4 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
         #delimit ;
-        esttab est4 est3 est2 est1 using "$OUT/NVSSBinaryFDeaths.tex", replace
+        esttab est4 est3 est2 est1 using "$OUT/NVSSFDeathsQ`Q'_``k''.tex", replace
         title("Birth Correlates Including Fetal Deaths (Quarter `Q', `type')")
         `estopt' keep(`age' `con') style(tex) mlabels(, depvar)
         starlevel("$ ^{\ddagger} $" `pvL')
@@ -603,7 +624,7 @@ foreach type of local add {
          "Leamer Critical Value (F)  &`L1'&`L1'&`L1'&`L1'     \\             "
          "Optimal Age &`opt4'&`opt3'&`opt2'&`opt1' \\                        "
          "State and Year FE&&Y&Y&Y\\  Gestation FE &&&&Y \\ \bottomrule      "
-         "\multicolumn{5}{p{15.2cm}}{\begin{footnotesize}  Main sample is    "
+         "\multicolumn{5}{p{12.4cm}}{\begin{footnotesize}  Main sample is    "
          "augmented to include fetal deaths occurring between 25 and 44      "
          "weeks of gestation. Fetal death files include only a subset of the "
          "full set of variables included in the birth files, so education and"

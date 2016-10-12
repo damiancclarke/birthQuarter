@@ -762,7 +762,7 @@ foreach c of local conds {
     drop Est UB LB Y
     
     local ctrl `oFEs' _gend* _bwt* _dob*
-    eststo: logit chosen `ctrl' goodSeason costNumerical if `c', cluster(ID)
+    eststo: logit chosen goodSeason costNumerical `ctrl' if `c', cluster(ID)
     margins, dydx(goodSeason costNumerical _gend2 `nvar1' `nvar2') post
     est store m`ll'
     estadd scalar wtp = 1000*_b[goodSeason]/_b[costNumerical]
@@ -771,7 +771,7 @@ foreach c of local conds {
     local ub = string(1000*(_b[ratio]+1.96*_se[ratio]), "%5.1f")
     estadd local conf95 "[`lb';`ub']": m`ll'
     
-    eststo: logit chosen `ctrl' spring summer _sob4 costNumerical if `c', cluster(ID)
+    eststo: logit chosen spring summer _sob4 costNumerical `ctrl' if `c', cluster(ID)
     margins, dydx(spring summer costNumerical  _gend2 `nvar1' `nvar2' _sob4) post
     est store n`ll'
     estadd scalar wtpSp = 1000*_b[spring]/_b[costNumerical]
@@ -1000,7 +1000,7 @@ foreach c of local conds {
     drop Est UB LB Y
 
     local ctrl `oFEs'  _gend* _dob*
-    eststo: logit chosen `ctrl' goodSeason costNumerical if `c', cluster(ID)
+    eststo: logit chosen goodSeason costNumerical `ctrl' if `c', cluster(ID)
     margins, dydx(goodSeason costNumerical _gend2 `nvar2') post
     est store q`ll'
     estadd scalar wtp = 1000*_b[goodSeason]/_b[costNumerical]
@@ -1009,7 +1009,7 @@ foreach c of local conds {
     local ub = string(1000*(_b[ratio]+1.96*_se[ratio]), "%5.1f")
     estadd local conf95 "[`lb';`ub']": q`ll'
 
-    eststo: logit chosen `ctrl' spring summer _sob4 costNumerical if `c', cluster(ID)
+    eststo: logit chosen spring summer _sob4 costNumerical `ctrl' if `c', cluster(ID)
     margins, dydx(spring summer costNumerical _gend2 `nvar2' _sob4) post
     est store r`ll'
     estadd scalar wtpSp = 1000*_b[spring]/_b[costNumerical]
@@ -1076,7 +1076,7 @@ scatter Y Est in 1/17, mcolor(black) msymbol(oh) mlwidth(thin)
 xline(0, lpattern(dash) lcolor(gs7))
 ylabel(-1 -7 -10 -14, valuelabel angle(0))
 ymlabel(-2(-1)-5 -8 -11 -12 -15 -16, valuelabel angle(0))
-ytitle("") xtitle("Effect Size (Probability)") legend(off) ysize(8)
+ytitle("") xtitle("Effect Size (Probability)") legend(off) ysize(6)
 note(Total respondents = `=`Nobs'/14'.  Total profiles = `Nobs'.);
 *legend(lab(1 "95% CI") lab(2 "Point Estimate"));
 #delimit cr
@@ -1266,7 +1266,7 @@ foreach c of local conds {
     drop Est UB LB Y
     
     local ctrl `oFEs' _gend* _bwt*
-    eststo: logit chosen `ctrl' goodSeason costNumerical if `c', cluster(ID)
+    eststo: logit chosen goodSeason costNumerical `ctrl' if `c', cluster(ID)
     margins, dydx(goodSeason costNumerical  _gend2 `nvar1') post
     est store o`ll'
     estadd scalar wtp = 1000*_b[goodSeason]/_b[costNumerical]
@@ -1276,7 +1276,7 @@ foreach c of local conds {
     estadd local conf95 "[`lb';`ub']": o`ll'
 
     cap {
-        eststo: logit chosen `ctrl' spring summer _sob4 costNumerical if `c', cluster(ID)
+        eststo: logit chosen spring summer _sob4 costNumerical `ctrl' if `c', cluster(ID)
         margins, dydx(spring summer costNumerical  _gend2 `nvar1' _sob4) post
         est store p`ll'
         estadd scalar wtpSp = 1000*_b[spring]/_b[costNumerical]
@@ -1361,6 +1361,10 @@ drop Est UB LB Y
 gen _dob2=1
 lab var _dob2 "Weekend Day"
 lab var _sob4 "Fall"
+lab var spring "Spring"
+lab var summer "Summer"
+lab var costNumerical "Cost (in 1000s)"
+lab var goodSeason "Quarter 2 or Quarter 3"
 
 #delimit ;
 esttab n1 p1 r1 using "$OUT/conjointWTP-seasons.tex", replace
@@ -1368,11 +1372,11 @@ cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
 (wtpSp conf95sp wtpSu conf95su N, fmt(%5.1f %5.1f %9.0g)
  label("WTP (spring)" "95\% CI" "WTP (summer)" "95\% CI" Observations))
 starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none)
-mlabels("Full Sample" "Birth Weight Sample" "Day of Birth Sample")
+mlabels("Full Sample" "BW Sample" "DoB Sample")
 label title("Birth Characteristics and Willingness to Pay") booktabs
 keep(spring summer _sob4 costNumerical _gend2 `nvar1' `nvar2') style(tex) 
 postfoot("\bottomrule           "
-         "\multicolumn{4}{p{12.2cm}}{\begin{footnotesize} Average marginal   "
+         "\multicolumn{4}{p{10.4cm}}{\begin{footnotesize} Average marginal   "
          "from a logit regression are displayed. All columns include         "
          "option order fixed effects, round fixed effects and controls for   "
          "all alternative characteristics (day of birth and gender). Standard"
@@ -1388,11 +1392,11 @@ cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
 (wtp conf95 N, fmt(%5.1f %9.0g)
  label("Willingness to Pay" "95\% CI WTP" Observations))
 starlevel ("*" 0.10 "**" 0.05 "***" 0.01) collabels(,none)
-mlabels("Full Sample" "Birth Weight Sample" "Day of Birth Sample")
+mlabels("Full Sample" "BW Sample" "DoB Sample")
 label title("Birth Characteristics and Willingness to Pay") booktabs
 keep(goodSeason costNumerical _gend2 `nvar1' `nvar2') style(tex) 
 postfoot("\bottomrule           "
-         "\multicolumn{4}{p{12.2cm}}{\begin{footnotesize} Average marginal   "
+         "\multicolumn{4}{p{10.4cm}}{\begin{footnotesize} Average marginal   "
          "from a logit regression are displayed. All columns include         "
          "option order fixed effects, round fixed effects and controls for   "
          "all alternative characteristics (day of birth and gender). Standard"
