@@ -54,6 +54,7 @@ keep if twin==1
 replace twin=twin-1
 keep if birthOrder==1
 gen birth = 1
+
 /*
 ********************************************************************************
 *** (3a) Descriptive age graph
@@ -108,7 +109,6 @@ legend(lab(1 "Ages 15-19") lab(2 "Ages 20-45"));
 graph export "$GRA/birthMonths-age.eps", as(eps) replace;
 #delimit cr
 restore
-
 */
 
 ********************************************************************************
@@ -120,7 +120,7 @@ local add `" "20-45 All Observations" "20-45 White married"
 local nam All whiteMarried whiteUnmarried blackUnmarried;
 #delimit cr
 tokenize `nam'
-
+/*
 generat goodBirthQ = birthQuarter == 2 | birthQuarter == 3 
 gen tvar = abs(goodQuarter-1)
 lab var goodBirthQ  "Good season of birth (birth date)"
@@ -160,7 +160,6 @@ foreach type of local add {
     local ++k
 }
 
-exit
 ********************************************************************************
 *** (3c) Numerical tabulations by age and education
 ********************************************************************************
@@ -240,8 +239,8 @@ foreach type of local add {
     restore
     local ++k
 }
-
 */
+
 ********************************************************************************
 *** (3d) Age plots by month (ART, no ART)
 ********************************************************************************
@@ -287,6 +286,35 @@ foreach type of local add {
     #delimit cr
     restore
 
+
+    preserve
+    keep if `gg'
+    generat youngOld = 1 if motherAge>=28&motherAge<=31
+    replace youngOld = 2 if motherAge>=40&motherAge<=45
+    drop if youngOld==.|conceptionMonth==.
+    count
+    local NN = string(r(N),"%15.0fc")
+    collapse (sum) birth, by(birthQuarter youngOld)
+    bys youngOld: egen totalBirths = sum(birth)
+    gen birthProportion = birth/totalBirths
+    sort birthQuarter youngOld
+
+    local line1 lpattern(solid)    lcolor(black) lwidth(thick)
+    local line2 lpattern(dash)     lcolor(black) lwidth(medium)
+
+    #delimit ;
+    twoway line birthProportion birthQuarter if youngOld==1, `line1' ||
+           line birthProportion birthQuarter if youngOld==2, `line2'
+    scheme(s1mono) xtitle("Quarter of Birth")
+    xlabel(1 "Quarter 1" 2 "Quarter 2" 3 "Quarter 3" 4 "Quarter 4")
+    legend(label(1 "28-31 Year-olds") label(2 "40-45 Year-olds"))
+    ytitle("Proportion of All Births")
+    note("Number of observations = `NN'");
+    graph export "$GRA/birthQuarter_``k''.eps", as(eps) replace;
+    #delimit cr
+    restore
+
+    
     preserve
     keep if `gg'
     generat youngOld = 1 if motherAge>=28&motherAge<=39
@@ -318,11 +346,41 @@ foreach type of local add {
     graph export "$GRA/conceptionMonthART_``k''.eps", as(eps) replace;
     #delimit cr
     restore
+
+    preserve
+    keep if `gg'
+    generat youngOld = 1 if motherAge>=28&motherAge<=39
+    replace youngOld = 2 if motherAge>=40&motherAge<=45
+
+    drop if youngOld==.|conceptionMonth==.
+    keep if ART==1
+    count
+    local NN = string(r(N),"%15.0fc")
+    collapse (sum) birth, by(birthQuarter youngOld)
+
+    bys youngOld: egen totalBirths = sum(birth)
+    gen birthProportion = birth/totalBirths
+    sort birthQuarter youngOld
+
+    local line1 lpattern(solid)    lcolor(black) lwidth(thick)
+    local line2 lpattern(dash)     lcolor(black) lwidth(medium)
+
+    #delimit ;
+    twoway line birthProportion birthQuarter if youngOld==1, `line1' ||
+           line birthProportion birthQuarter if youngOld==2, `line2'
+    scheme(s1mono) xtitle("Birth Quarter")
+    xlabel(1 "Quarter 1" 2 "Quarter 2" 3 "Quarter 3" 4 "Quarter 4")
+    legend(label(1 "28-39 Year-olds") label(2 "40-45 Year-olds"))
+    ytitle("Proportion of All Births") note("Number of observations = `NN'");
+    graph export "$GRA/birthQuarterART_``k''.eps", as(eps) replace;
+    #delimit cr
+    restore
+
     
     local ++k
 }
 exit
-
+*/
 ********************************************************************************
 *** (3e) Age plots by quarter
 ********************************************************************************
@@ -386,10 +444,39 @@ foreach type of local add {
     xtitle("Mother's Age") ytitle("Proportion in Quarter" " ");
     graph export "$GRA/quarter2-3Age_2045_``k''.eps", as(eps) replace;
     #delimit cr
+
+    local con1 highEd WIC underweight overweight obese noART smoker
+    local con2 black white hispanic married i.fips
+    local c `con1' `con2'
+    reg quarter2 _age1-_age26 `c' if motherAge>=20&motherAge<=45, nocons
+        
+    gen ageESc = .
+    gen ageLBc = .
+    gen ageUBc = .
+    gen ageNMc = .
+    foreach num of numlist 1(1)26 {
+        replace ageESc = _b[_age`num']                     in `num'
+        replace ageLBc = _b[_age`num']-1.96*_se[_age`num'] in `num'
+        replace ageUBc = _b[_age`num']+1.96*_se[_age`num'] in `num'
+        replace ageNMc = `num'+19                          in `num'
+    }
+    #delimit ;
+    twoway connected ageES2 ageNM2 in 1/26, `s1' lcolor(red) mcolor(red) m(S)
+    || line ageLB2 ageNM2 in 1/26,     `s2' lcolor(red)
+    || line ageUB2 ageNM2 in 1/26,     `s2' lcolor(red)
+    || connected ageESc ageNMc in 1/26,`s1' lcolor(blue) mcolor(blue) m(Oh)
+    || line ageLBc ageNMc in 1/26,     `s2' lcolor(blue) xlabel(20(1)45) 
+    || line ageUBc ageNMc in 1/26,     `s2' lcolor(blue) scheme(s1mono) 
+    legend(order(1 "Point Estimate (Q2, No Controls)" 2 "95 % CI"
+                 4 "Point Estimate (Q2, Controls)" 6 "95 % CI"))
+    xtitle("Mother's Age") ytitle("Proportion in Quarter 2" " ");
+    graph export "$GRA/quarter2_cont-Age_2045_``k''.eps", as(eps) replace;
+    #delimit cr
+
     local ++k
     restore
 }
-
+exit
 
 ********************************************************************************
 *** (4) Open data for regressions
