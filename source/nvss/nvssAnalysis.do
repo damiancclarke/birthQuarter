@@ -54,7 +54,7 @@ keep if twin==1
 replace twin=twin-1
 keep if birthOrder==1
 gen birth = 1
-
+/*
 ********************************************************************************
 *** (3a) Descriptive age graph
 ********************************************************************************
@@ -109,7 +109,7 @@ graph export "$GRA/birthMonths-age.eps", as(eps) replace;
 #delimit cr
 restore
 
-
+*/
 
 ********************************************************************************
 *** (3b) Summary stats 
@@ -124,6 +124,10 @@ tokenize `nam'
 generat goodBirthQ = birthQuarter == 2 | birthQuarter == 3 
 gen tvar = abs(goodQuarter-1)
 lab var goodBirthQ  "Good season of birth (birth date)"
+gen Quarter2 = birthQuarter == 2 if gestation!=.
+gen Quarter3 = birthQuarter == 3 if gestation!=.
+lab var Quarter2    "Quarter 2 Birth (Expected)"
+lab var Quarter3    "Quarter 3 Birth (Expected)"
 
 local k=1
 foreach type of local add {
@@ -133,11 +137,10 @@ foreach type of local add {
     if `k'==4 local gg motherAge>=20&motherAge<=45&black==1&married==0
     local mc hispanic
     if `k'==1 local mc black white hispanic married
-    if `k'==4 local mc
     
     local Mum  motherAge `mc' young age2024 age2527 age2831 age3239 age4045
     local MumP college educCat smoker ART WIC BMI underwe normalBM overwe obese
-    local Kid goodBirthQ expectGoodQ fem birthweight lbw gestat premature apgar
+    local Kid  Quarter2 Quarter3 fem birthweight lbw gestat premature apgar
     
     foreach st in Mum Kid MumP {
         preserve
@@ -157,7 +160,7 @@ foreach type of local add {
     local ++k
 }
 
-
+exit
 ********************************************************************************
 *** (3c) Numerical tabulations by age and education
 ********************************************************************************
@@ -173,7 +176,6 @@ foreach type of local add {
     if `k'==4 local gg motherAge>=20&motherAge<=45&black==1&married==0
     local mc hispanic
     if `k'==1 local mc black white hispanic married
-    if `k'==4 local mc
     
     preserve
     keep if `gg'
@@ -239,7 +241,7 @@ foreach type of local add {
     local ++k
 }
 
-
+*/
 ********************************************************************************
 *** (3d) Age plots by month (ART, no ART)
 ********************************************************************************
@@ -257,10 +259,10 @@ foreach type of local add {
 
     generat youngOld = 1 if motherAge>=28&motherAge<=31
     replace youngOld = 2 if motherAge>=40&motherAge<=45
-    count if youngOld!=.
-    local NN = string(r(N),"%15.0fc")
 
     drop if youngOld==.|conceptionMonth==.
+    count
+    local NN = string(r(N),"%15.0fc")
 
     collapse (sum) birth, by(conceptionMonth youngOld)
     lab val conceptionMon mon
@@ -292,6 +294,8 @@ foreach type of local add {
 
     drop if youngOld==.|conceptionMonth==.
     keep if ART==1
+    count
+    local NN = string(r(N),"%15.0fc")
     collapse (sum) birth, by(conceptionMonth youngOld)
     lab val conceptionMon mon
 
@@ -310,14 +314,14 @@ foreach type of local add {
     xlabel(1 "Oct" 2 "Nov" 3 "Dec" 4 "Jan" 5 "Feb" 6 "Mar" 7 "Apr" 8 "May" 9 "Jun"
            10 "Jul" 11 "Aug" 12 "Sep", axis(1)) xtitle("Expected Month")
     legend(label(1 "28-39 Year-olds") label(2 "40-45 Year-olds"))
-    ytitle("Proportion of All Births");
-    graph export "$OUT/conceptionMonthART_``k''.eps", as(eps) replace;
+    ytitle("Proportion of All Births") note("Number of observations = `NN'");
+    graph export "$GRA/conceptionMonthART_``k''.eps", as(eps) replace;
     #delimit cr
     restore
     
     local ++k
 }
-
+exit
 
 ********************************************************************************
 *** (3e) Age plots by quarter
@@ -332,7 +336,6 @@ foreach type of local add {
     if `k'==4 local gg motherAge>=20&motherAge<=45&black==1&married==0
     local mc hispanic
     if `k'==1 local mc black white hispanic married
-    if `k'==4 local mc
     
     preserve
     keep if `gg'
@@ -419,7 +422,6 @@ foreach type of local add {
     if `k'==4 local gg motherAge>=20&motherAge<=45&black==1&married==0
     local nc hispanic
     if `k'==1 local nc black white hispanic married
-    if `k'==4 local nc
 
     local con smoker i.gestation `nc'
     preserve
@@ -467,7 +469,7 @@ foreach type of local add {
 
         esttab est3 est2 est1 est4 est5 using "$OUT/NVSSBinaryQ`Q'_``k''.tex",
         replace `estopt' keep(`age' `edu' smoker `c2' `nc') 
-        title("Season of Birth Correlates (Quarter `Q', `type')") booktabs 
+        title("Season of Birth Correlates: Quarter `Q' (`type')") booktabs 
         style(tex) mlabels(, depvar)
         starlevel ("$ ^{\ddagger} $" `pvL')
         postfoot("F-test of Age Variables  &`F3a'&`F2a'&`F1a'&`F4a'&`F5a' \\ "
@@ -547,7 +549,7 @@ foreach type of local add {
 
         esttab est3 est2 est1 est4 est5 using "$OUT/NVSSBinaryQ`Q'_``k''.tex",
         replace `estopt' keep(`age' `edu' smoker `c2' hispanic) 
-        title("Season of Birth Correlates (Quarter `Q', `type')") booktabs 
+        title("Season of Birth Correlates: Quarter `Q' (`type')") booktabs 
         style(tex) mlabels(, depvar)
         starlevel ("$ ^{\ddagger} $" `pvL')
         postfoot("F-test of Age Variables  &`F3a'&`F2a'&`F1a'&`F4a'&`F5a' \\ "
@@ -584,7 +586,6 @@ foreach type of local add {
     if `k'==4 local gg motherAge>=20&motherAge<=45&black==1&married==0
     local mc hispanic
     if `k'==1 local mc black white hispanic married
-    if `k'==4 local mc
 
     local con smoker `nc'
     preserve
@@ -617,7 +618,7 @@ foreach type of local add {
 
         #delimit ;
         esttab est4 est3 est2 est1 using "$OUT/NVSSFDeathsQ`Q'_``k''.tex", replace
-        title("Birth Correlates Including Fetal Deaths (Quarter `Q', `type')")
+        title("Birth Correlates Including Fetal Deaths: Quarter `Q' (`type')")
         `estopt' keep(`age' `con') style(tex) mlabels(, depvar)
         starlevel("$ ^{\ddagger} $" `pvL')
         postfoot("F-test of Age Variables&`F4a'&`F3a'&`F2a'&`F1a' \\         "

@@ -57,13 +57,13 @@ for g in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
         tnote = '(All Women)'
     elif g=='whiteMarried':
         mnote = 'white, married '
-        tnote = '(White married Women, 20--45)'
+        tnote = '(White Married Women, 20--45)'
     elif g=='whiteUnmarried':
         mnote = 'white, unmarried '
-        tnote = '(White unmarried Women, 20--45)'
+        tnote = '(White Unmarried Women, 20--45)'
     elif g=='blackUnmarried':
         mnote = 'black, unmarried '
-        tnote = '(Black unmarried Women, 20--45)'
+        tnote = '(Black Unmarried Women, 20--45)'
     sumT = open(TAB + 'birthTimeSum_'+g+'.tex', 'w')
     NV   = open(RES + 'births/sumstats/FullSample_'+g+'.txt', 'r').readlines()
     NVj  = open(RES + 'births/sumstats/JustEduc_'+g+'.txt'  , 'r').readlines()
@@ -109,15 +109,15 @@ for group in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
     elif group=='whiteMarried':
         mnote = 'white, married '
         mnum  = 17
-        tnote = '(White married Women, 20--45)'
+        tnote = '(White Married Mothers, 20--45)'
     elif group=='whiteUnmarried':
         mnote = 'white, unmarried '
         mnum  = 17
-        tnote = '(White unmarried Women, 20--45)'
+        tnote = '(White Unmarried Mothers, 20--45)'
     elif group=='blackUnmarried':
         mnote = 'black, unmarried '
         mnum  = 16
-        tnote = '(Black unmarried Women, 20--45)'
+        tnote = '(Black Unmarried Mothers, 20--45)'
     
     sumT = open(TAB + 'sumStats_'+ group +'.tex', 'w')
     sumT.write('\\begin{table}[htpb!] \n \\begin{center} \n' 
@@ -135,8 +135,9 @@ for group in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
 
     for i,line in enumerate(Mu2):
         if i>8 and i< mnum:
-            line = line.replace('\\hline','\\midrule')
-            sumT.write(line)
+            if "Aged 25-39" not in line:
+                line = line.replace('\\hline','\\midrule')
+                sumT.write(line)
     for i,line in enumerate(MP2):
         if i>8 and i<19:
             line = line.replace('\\hline','\\midrule')
@@ -155,17 +156,15 @@ for group in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
         if i>8 and i<17:
             line = line.replace('\\hline','\\midrule')
             line = line.replace('At least some college','Some College +')
-            line = line.replace('Quarter','season of birth')
             line = line.replace('female','Female')
-            line = line.replace('Good Expect','Good season of birth (due date)')
             sumT.write(line)
 
     sumT.write('\n'+mr+mc1+twid[1]+tcm[1]+mc3+
                "Sample consists of all first-born, singleton children born to    "
-               " " + mnote + "mothers aged 25-45 for whom      "
-               "education and smoking during pregnancy are available. Good season"
-               " refers to birth quarters 2 and 3 (Apr-Jun and Jul-Sept). Bad     "
-               "season refers to quarters 1 and 4 (Jan-Mar and Oct-Dec). ART     "
+               " " + mnote + "mothers aged 20-45 for whom      "
+               "education and smoking during pregnancy are available. Quarter 2  "
+               "and quarter 3 births are determined by month (Apr-Jun and        "
+               "Jul-Sept respectively). ART     "
                "refers to the proportion of women who undertook assisted         "
                "reproductive technologies that resulted in these births.         "
                "$^{a}$ Only available from 2009."
@@ -181,18 +180,18 @@ for g in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
     if g == 'All':
         mnote = 'all '
         tnote = '(All Women)'
-        mnum  = 25
+        mnum  = 24
     elif g=='whiteMarried':
         mnote = 'white, married '
-        tnote = '(White married Women, 20--45)'
-        mnum  = 22
+        tnote = '(White Married Women, 20--45)'
+        mnum  = 21
     elif g=='whiteUnmarried':
         mnote = 'white, unmarried '
-        tnote = '(White unmarried Women, 20--45)'
-        mnum  = 22
+        tnote = '(White Unmarried Women, 20--45)'
+        mnum  = 21
     elif g=='blackUnmarried':
         mnote = 'black, unmarried '
-        tnote = '(Black unmarried Women, 20--45)'
+        tnote = '(Black Unmarried Women, 20--45)'
         mnum  = 21
         
     sumIPUMSh = RES + '/census/sumStats/IPUMSstats_'+g+'.tex'
@@ -208,9 +207,10 @@ for g in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
 
     for i,line in enumerate(SI):
         if i>8 and i<mnum:
-            line = line.replace('\\hline','\\midrule')
-            line = line.replace('Quarter','season of birth')
-            sumT.write(line)
+            if "Young" not in line:
+                line = line.replace('\\hline','\\midrule')
+                line = line.replace('Good Season of Birth','Born in Quarter 2 or Quarter 3')
+                sumT.write(line)
 
     sumT.write('\n'+mr+mc1+twid[7]+tcm[7]+mc3+
                "Summary statistics are for "+mnote+"  aged 20-45 who are          "
@@ -220,8 +220,8 @@ for g in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
                "household, or currently in school. We retain only women who had   "
                "worked within the previous five years where each occupation must  "
                "have at least 500 women over the entire range of survey years.    "
-               "Good season refers to children born in birth quarters 2 and 3     "
-               "(Apr-Jun and Jul-Sept)."
+               "Quarters 2 and 3 births are those occurring from Apr-Jun and      "
+               "Jul-Sept respectively."
                "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}\\end{center}"
                "\\end{table}")
     sumT.close()

@@ -32,7 +32,7 @@ local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
 local wt     [pw=perwt];
 local lnote  "Heteroscedasticity robust standard errors are reported in 
             parentheses. $ ^\ddagger $ Significant based on Leamer criterion.";
-local Fnote  "F-test of age variables refers to the p-value on the test that
+local Fnote  "F-test of age variables refers to the F-statistic on the test that
               the coefficients on mother's age and age squared are jointly equal
               to zero. ";
 local onote  "Optimal age calculates the turning point of the mother's age
@@ -79,8 +79,8 @@ local lv2 _2occ*
 cap drop _2occ2
 
 #delimit ;
-local add `" "20-45 All Observations" "20-45 White married"
-             "20-45 Black unmarried"  "20-45 White unmarried" "';
+local add `" "(20-45 All Observations)" " "
+             "(20-45 Black Unmarried Mothers)"  "(20-45 White Unmarried Mothers)" "';
 local nam All whiteMarried blackUnmarried whiteUnmarried;
 #delimit cr
 tokenize `nam'
@@ -93,7 +93,7 @@ foreach type of local add {
     if `k'==4 local gg  motherAge>=20&motherAge<=45&white==1&married==0
     if `k'==1 local edu highEduc hispanic black white married
     if `k'==2 local edu highEduc hispanic
-    if `k'==3 local edu highEduc
+    if `k'==3 local edu highEduc hispanic
     if `k'==4 local edu highEduc hispanic
 
     preserve
@@ -104,36 +104,35 @@ foreach type of local add {
         ds _2occ*
         local tvar `r(varlist)'
         test `tvar'
-        local F2 = round(r(p)*1000)/1000
-        if `F2' == 0 local F2 0.000
+        local F2 = string(r(F),"%5.3f")
         test `age'
-        local F2a = round(r(p)*1000)/1000
+        local F2a = string(r(F),"%5.3f")
         local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
         local tL1  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
         local pvL = ttail(e(N),sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)))
         
         eststo:  areg quarter`Q' `age' `edu' `une' _year*       `wt', `se' `abs'
         test `age'
-        local F3a = round(r(p)*1000)/1000
+        local F3a = string(r(F),"%5.3f")
         local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
     
         #delimit ;
         esttab est2 est1 using "$OUT/IPUMSIndustryQ`Q'_``k''.tex", replace `estopt' 
-        title("Season of Birth Correlates: Occupation (Quarter `Q', `type')")
+        title("Season of Birth Correlates in ACS: Quarter `Q' `type'")
         keep(`age' `edu' `une' `lv2') style(tex) booktabs mlabels(, depvar)
         starlevel ("$ ^\ddagger $ " `pvL') 
         postfoot("State and Year Fixed Effects&Y&Y\\                           "
          "F-test of Occupation Dummies&-&`F2'\\                                "
-         "F-test of Age Variables&0`F3a'&0`F2a'\\ \bottomrule                  "
+         "F-test of Age Variables&`F3a'&`F2a'\\ \bottomrule                  "
          "\multicolumn{3}{p{14.6cm}}{\begin{footnotesize}Sample consists of all"
-         " singleton first-born children in the US to mothers aged 25-45       "
+         " singleton first-born children in the US to mothers aged 20-45       "
          "included in 2005-2014 ACS data where the mother is in the respective "
          "race/marital sample and either the head of the household or the      "
          "partner of the head of"
          "the household and works in an occupation with at least 500 workers   "
          "in the full sample. Occupation classification is provided by the 2   "
          "digit occupation codes from the census. The omitted occupational     "
-         "category in column 2 and column 4 is Arts, Design, Entertainment,    "
+         "category in column 2 is Arts, Design, Entertainment,    "
          "Sports, and Media, as this occupation has good quarter=0.500(0.500). "
          "F-tests for occupation report p-values of joint significance of the  "
          "dummies, and `Fnote' The Leamer critical value for the t-statistic is"
@@ -145,7 +144,7 @@ foreach type of local add {
 
     if `k'==1 local edu highEduc logInc hispanic black white married
     if `k'==2 local edu highEduc logInc hispanic
-    if `k'==3 local edu highEduc logInc
+    if `k'==3 local edu highEduc logInc hispanic
     if `k'==4 local edu highEduc logInc hispanic
 
     foreach Q in 2 3 {
@@ -153,29 +152,28 @@ foreach type of local add {
         ds _2occ*
         local tvar `r(varlist)'
         test `tvar'
-        local F2 = round(r(p)*1000)/1000
-        if `F2' == 0 local F2 0.000
+        local F2 = string(r(F),"%5.3f")
         test `age'
-        local F2a = round(r(p)*1000)/1000
+        local F2a = string(r(F),"%5.3f")
         local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
         local tL1  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
         local pvL = ttail(e(N),sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)))
         
         eststo:  areg quarter`Q' `age' `edu' `une' _year*       `wt', `se' `abs'
         test `age'
-        local F3a = round(r(p)*1000)/1000
+        local F3a = string(r(F),"%5.3f")
         local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
     
         #delimit ;
         esttab est2 est1 using "$OUT/IPUMSIndustryIncQ`Q'_``k''.tex", replace 
-        title("Season of Birth Correlates: Occupation with Income Controls (Quarter `Q', `type')")
+        title("Season of Birth Correlates in ACS with Income Controls: Quarter `Q' `type'")
         keep(`age' `edu' `une' `lv2') style(tex) booktabs mlabels(, depvar)
         starlevel ("$ ^\ddagger $ " `pvL') `estopt' 
         postfoot("State and Year Fixed Effects&Y&Y\\                           "
          "F-test of Occupation Dummies&-&`F2'\\                                "
-         "F-test of Age Variables&0`F3a'&0`F2a'\\ \bottomrule                  "
+         "F-test of Age Variables&`F3a'&`F2a'\\ \bottomrule                  "
          "\multicolumn{3}{p{14.6cm}}{\begin{footnotesize}Sample consists of all"
-         " singleton first-born children in the US to mothers aged 25-45       "
+         " singleton first-born children in the US to mothers aged 20-45       "
          "included in 2005-2014 ACS data where the mother is in the respective "
          "race/marital sample and either the head of the household or the      "
          "partner of the head of"
@@ -221,16 +219,16 @@ foreach type of local add {
     if `k'==2 local gg  motherAge>=20&motherAge<=45&white==1&married==1
     if `k'==3 local gg  motherAge>=20&motherAge<=45&black==1&married==0
     if `k'==4 local gg  motherAge>=20&motherAge<=45&white==1&married==0
-    if `k'==1 local edu hispanic black white married
+    if `k'==1 local edu black white hispanic married
     if `k'==2 local edu hispanic
-    if `k'==3 local edu  
+    if `k'==3 local edu hispanic
     if `k'==4 local edu hispanic
 
     preserve
     keep if `gg'
     #delimit ;
-    estpost tabstat motherAge married young age2024 age2527 age2831 age3239 
-                    age4045 highEduc educYrs goodQuarter `edu' teacher,
+    estpost tabstat motherAge `edu' young age2024 age2527 age2831 age3239 
+                    age4045 highEduc educYrs goodQuarter teacher,
     statistics(count mean sd min max) columns(statistics);
 
     esttab using "$SUM/IPUMSstats_``k''.tex", replace label noobs
