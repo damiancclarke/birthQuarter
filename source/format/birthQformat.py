@@ -35,10 +35,10 @@ tr   = '\\toprule'
 br   = '\\bottomrule'
 mc1  = '\\multicolumn{'
 mc2  = '}}'
-twid = ['10','6','7','7','7','6','5','6','6']
+twid = ['10','6','7','7','7','6','5','6','6','6']
 tcm  = ['}{p{16.6cm}}','}{p{15.6cm}}','}{p{15.6cm}}','}{p{17.6cm}}',
         '}{p{11.8cm}}','}{p{11.4cm}}','}{p{9.0cm}}','}{p{14.2cm}}' ,
-        '}{p{16.2cm}}']
+        '}{p{16.2cm}}','}{p{11.6cm}}']
 mc3  = '{\\begin{footnotesize}\\textsc{Notes:} '
 lname = "Fertility$\\times$desire"
 tname = "Twin$\\times$desire"
@@ -172,6 +172,76 @@ for group in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
                "\\end{center}\\end{table}")
     sumT.close()
 
+    sumT = open(TAB + 'sumStats_'+ group +'Mothers.tex', 'w')
+    sumT.write('\\begin{table}[htpb!] \n \\begin{center} \n' 
+               '\\caption{Descriptive Statistics for Mothers ' + tnote +'}\n '
+               '\\label{bqTab:SumStatsM}'
+               '\\scalebox{0.85}{'
+               '\\begin{tabular}{lccccc} '
+               '\n \\toprule\\toprule \\vspace{5mm} \n'
+               '& N & Mean & Std. Dev. & Min. & Max. \\\\ \\midrule \n')
+
+    Mu2  = open(RES + 'births/sumstats/sampMum_'+group+'.tex' , 'r').readlines()
+    MP2  = open(RES + 'births/sumstats/sampMumP_'+group+'.tex', 'r').readlines()
+    Ki2  = open(RES + 'births/sumstats/sampKid_'+group+'.tex' , 'r').readlines()
+
+    for i,line in enumerate(Mu2):
+        if i>8 and i< mnum:
+            if "Aged 25-39" not in line:
+                line = line.replace('\\hline','\\midrule')
+                sumT.write(line)
+    for i,line in enumerate(MP2):
+        if i>8 and i<19:
+            line = line.replace('\\hline','\\midrule')
+            line = line.replace('college','Some College +')
+            line = line.replace('Used ART (2009-2013 only)','Used ART$^{a}$')
+            line = line.replace('Received WIC food in Pregnancy','Received WIC food in Pregnancy$^{a}$')
+            line = line.replace('Underweight (BMI $<$ 18.5)','Pre-pregnancy Underweight (BMI $<$ 18.5)$^{a}$')
+            line = line.replace('Normal Weight (BMI 18.5-25)','Pre-pregnancy Normal Weight (18.5 $\leq$ BMI $<$ 25)$^{a}$')
+            line = line.replace('Overweight (BMI 25-30)','Pre-pregnancy Overweight (25 $\leq$ BMI $<$ 30)$^{a}$')
+            line = line.replace('Obese (BMI $\geq$ 30)','Pre-pregnancy Obese (BMI $\geq$ 30)$^{a}$')
+            line = line.replace('BMI  ','Pre-pregnancy BMI$^{a}$')
+            sumT.write(line)
+
+    sumT.write('\n'+mr+mc1+twid[1]+tcm[1]+mc3+
+               "Sample consists of all" + mnote + " first-time mothers aged 20-45"
+               " for whom education and smoking during pregnancy are available.  "
+               "ART refers to the proportion of women who undertook assisted     "
+               "reproductive technologies that resulted in these births.         "
+               "$^{a}$ Only available from 2009."
+               "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}}        "
+               "\\end{center}\\end{table}")
+    sumT.close()
+
+    sumT = open(TAB + 'sumStats_'+ group +'Children.tex', 'w')
+    sumT.write('\\begin{table}[htpb!] \n \\begin{center} \n' 
+               '\\caption{Descriptive Statistics for Children ' + tnote +'}\n '
+               '\\label{bqTab:SumStatsC}'
+               '\\scalebox{0.85}{'
+               '\\begin{tabular}{lccccc} '
+               '\n \\toprule\\toprule \\vspace{5mm} \n'
+               '& N & Mean & Std. Dev. & Min. & Max. \\\\ \\midrule \n')
+
+    Mu2  = open(RES + 'births/sumstats/sampMum_'+group+'.tex' , 'r').readlines()
+    MP2  = open(RES + 'births/sumstats/sampMumP_'+group+'.tex', 'r').readlines()
+    Ki2  = open(RES + 'births/sumstats/sampKid_'+group+'.tex' , 'r').readlines()
+
+    for i,line in enumerate(Ki2):
+        if i>8 and i<17:
+            line = line.replace('\\hline','\\midrule')
+            line = line.replace('At least some college','Some College +')
+            line = line.replace('female','Female')
+            sumT.write(line)
+
+    sumT.write('\n'+mr+mc1+twid[9]+tcm[9]+mc3+
+               "Sample consists of all first-born, singleton children born to "
+               " " + mnote + "mothers aged 20-45 for whom education           "
+               "and smoking during pregnancy are available. Quarter 2         "
+               "and quarter 3 births are determined by month (Apr-Jun and     "
+               "Jul-Sept respectively).                                       "
+               "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}}     "
+               "\\end{center}\\end{table}")
+    sumT.close()
 
 #==============================================================================
 #== (3c) Basic Sum stats (IPUMS)
