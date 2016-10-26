@@ -715,6 +715,83 @@ foreach type of local add {
     local ++k
 }
 
+
+#delimit ;
+local add `" "20-45 White married" "Excluding December conceptions" "';
+local nam whiteMarried NoDec;
+#delimit cr
+tokenize `nam'
+
+local k=1
+foreach type of local add {
+    if `k'==1 local gg twin==1&liveBirth==1&birthOrder==1
+    if `k'==2 local gg twin==1&liveBirth==1&birthOrder==1&birthMonth!=9
+
+    local c3
+    local con smoker i.gestation hispanic
+    preserve
+    keep if motherAge>=20&motherAge<=45&white==1&married==1&`gg'
+    count
+    
+    foreach Q in 3 {    
+        eststo: areg quarter`Q' `age' `edu' `con' _year* `c3', `se' `yab'
+        test `age'
+        local F1a= string(r(F), "%5.3f")
+        local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+        local L1   = string((e(df_r)/2)*(e(N)^(2/e(N))-1), "%5.3f")
+        local tL1  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
+        local pvL  = ttail(e(N),sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)))*2
+
+        eststo: areg quarter`Q' `age' _year*  `c3' if e(sample) , `se' `yab'
+        test `age'
+        local F2a= string(r(F), "%5.3f")
+        local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+
+        eststo:  reg quarter`Q' `age'              if e(sample) , `se'
+        test `age'
+        local F3a= string(r(F), "%5.3f")
+        local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+
+        local ysm if year>=2009&ART!=.&WIC!=.&underweight!=.
+        eststo: areg quarter`Q' `age' `edu' `con' _year* `c3' `ysm', `se' `yab'
+        test `age'
+        local F4a= string(r(F), "%5.3f")
+        local opt4 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+        local L4   = string((e(df_r)/2)*(e(N)^(2/e(N))-1), "%5.3f")
+        local tL4  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
+
+        eststo: areg quarter`Q' motherAge `edu' `con' `c2' `c3' _year* `ysm', `se' `yab'
+        test motherAge
+        local F5a= string(sqrt(r(F)), "%5.3f")
+
+        #delimit ;
+        local not "All singleton, first births occurring to white, married
+        women aged 20-45 from the indicated sample are included. `Fnote'
+        Leamer critical values refer to Leamer/Schwartz/Deaton critical 5\%
+        values adjusted for sample size. The Leamer critical value for a
+        t-statistic is `tL1' in columns 1-3 and `tL4' in columns 4 and 5.
+        `onote' `enote' $^{\ddagger}$ Siginificant based on Leamer criterion.";
+
+        esttab est3 est2 est1 est4 est5 using "$OUT/NVSSLinAgeQ`Q'_``k''.tex",
+        replace `estopt' keep(`age' `edu' smoker `c2' hispanic) 
+        title("Season of Birth Correlates: Quarter `Q' (`type')") booktabs 
+        style(tex) mlabels(, depvar)
+        starlevel ("$ ^{\ddagger} $" `pvL')
+        postfoot("F-test of Age Variables  &`F3a'&`F2a'&`F1a'&`F4a'&`F5a' \\ "
+                 "Leamer Critical Value (F)&`L1'&`L1'&`L1'&`L4'&`tL4' \\     "
+                 "Optimal Age &`opt3'&`opt2'&`opt1'&`opt4'&--     \\         "
+                 "State and Year FE&&Y&Y&Y&Y\\ Gestation FE &&&Y&Y&Y\\       "
+                 "2009-2013 Only&&&&Y&Y\\ \bottomrule                        "
+                 "\multicolumn{6}{p{16.2cm}}{\begin{footnotesize} `not'"
+                 "\end{footnotesize}}\end{tabular}\end{table}");
+        #delimit cr
+        estimates clear
+    }
+    restore
+    local ++k
+}
+
+
 ********************************************************************************
 *** (5c) Including fetal deaths
 ********************************************************************************
@@ -789,7 +866,7 @@ foreach type of local add {
     restore
     local ++k
 }
-*/
+
 
 ********************************************************************************
 *** (5d) Logit regressions
@@ -798,8 +875,6 @@ foreach type of local add {
 local add `" "20-45 All Observations" "20-45 White married"
              "20-45 White unmarried"  "20-45 Black unmarried" "';
 local nam All whiteMarried whiteUnmarried blackUnmarried;
-local add `" "20-45 White married" "';
-local nam whiteMarried;
 #delimit cr
 tokenize `nam'
 
@@ -983,6 +1058,166 @@ foreach type of local add {
     restore
     local ++k
 }
+*/
+********************************************************************************
+*** (6) Quality
+********************************************************************************
+local c1      liveBirth==1&birthOrder==1&white==1&married==1&twin==1
+local varsY   motherAge motherAge2
+local control highEd smoker WIC underweight overweight obese ART hispanic
+local qual    birthweight lbw vlbw gestation premature apgar
+
+cap gen quarter4 = birthQuarter==4
+lab var quarter4 "Quarter 4"
+
+keep if motherAge>=20&motherAge<=45&`c1'
+
+local jj=1
+foreach y of varlist `qual' {
+   local qts quarter2 
+   eststo: areg `y' `qts' `varsY' `control' `yFE'     , `se' abs(fips)
+   local tL`jj'  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
+
+   local smp if e(sample)==1
+   eststo: areg `y' `qts'                  `yFE' `smp', `se' abs(fips)
+   
+    
+   local qts quarter2 quarter3
+   eststo: areg `y' `qts' `varsY' `control' `yFE'      , `se' abs(fips)
+   local smp if e(sample)==1
+   eststo: areg `y' `qts'                   `yFE' `smp', `se' abs(fips)
+   
+   
+   local qts quarter2 quarter3
+   eststo: areg `y' `qts' `varsY' `control' `yFE'      , `se' abs(fips)
+   local smp if e(sample)==1
+   eststo: areg `y' `qts'                   `yFE' `smp', `se' abs(fips)
+   
+   local qts quarter2 quarter3 quarter4
+   eststo: areg `y' `qts' `varsY' `control' `yFE'      , `se' abs(fips)
+   local smp if e(sample)==1
+   eststo: areg `y' `qts'                   `yFE' `smp', `se' abs(fips)
+   
+    
+   local ++jj
+}
+
+#delimit ;
+esttab est1 est9 est17 est25 est33 est41 using "$OUT/NVSSQualityQ2-c.tex",
+title("Birth Quality and Season of Birth (Quarter 2, Controls)")
+keep(quarter2 `varsY' `control') style(tex) mlabels(, depvar) `estopt'
+starlevel ("$ ^{\ddagger} $" `pvL')
+postfoot("\bottomrule                                                    
+         \multicolumn{7}{p{18.2cm}}{\begin{footnotesize} Sample consists
+        of white married mothers aged 20-45 years old having their first-born
+        child. Leamer critical values refer to Leamer/Schwartz/Deaton critical
+        5\% values adjusted for sample size. The Leamer critical value for a
+        t-statistic is `tL4'.
+        `enote' $^{\ddagger}$ Siginificant based on Leamer criterion."
+        "\end{footnotesize}}\end{tabular}\end{table}") booktabs replace;
+
+esttab est2 est10 est18 est26 est34 est42 using "$OUT/NVSSQualityQ2_NC.tex",
+replace `estopt' title("Birth Quality and Season of Birth (Quarter 2, No Controls)")
+keep(_cons quarter2) style(tex) mlabels(, depvar)
+starlevel ("$ ^{\ddagger} $" `pvL')
+postfoot("\bottomrule                                                    
+         \multicolumn{7}{p{14cm}}{\begin{footnotesize} Sample consists
+         of white married mothers aged 20-45 years old having their first-born
+         child. Leamer critical values refer to Leamer/Schwartz/Deaton critical
+         5\% values adjusted for sample size. The Leamer critical value for a
+         t-statistic is `tL4'.
+         `enote' $^{\ddagger}$ Siginificant based on Leamer criterion."
+         "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
+#delimit cr
+
+
+#delimit ;
+esttab est3 est11 est19 est27 est35 est43 using "$OUT/NVSSQualityQ3-c.tex",
+title("Birth Quality and Season of Birth (Quarter 3, Controls)")
+keep(quarter3 `varsY' `control') style(tex) mlabels(, depvar) `estopt'
+starlevel ("$ ^{\ddagger} $" `pvL')
+postfoot("\bottomrule                                                    
+         \multicolumn{7}{p{18.2cm}}{\begin{footnotesize} Sample consists
+        of white married mothers aged 20-45 years old having their first-born
+        child. Leamer critical values refer to Leamer/Schwartz/Deaton critical
+        5\% values adjusted for sample size. The Leamer critical value for a
+        t-statistic is `tL4'.
+        `enote' $^{\ddagger}$ Siginificant based on Leamer criterion."
+        "\end{footnotesize}}\end{tabular}\end{table}") booktabs replace;
+
+esttab est4 est12 est20 est28 est36 est44 using "$OUT/NVSSQualityQ3_NC.tex",
+replace `estopt' title("Birth Quality and Season of Birth (Quarter 3, No Controls)")
+keep(_cons quarter3) style(tex) mlabels(, depvar)
+starlevel ("$ ^{\ddagger} $" `pvL')
+postfoot("\bottomrule                                                    
+         \multicolumn{7}{p{14cm}}{\begin{footnotesize} Sample consists
+         of white married mothers aged 20-45 years old having their first-born
+         child. Leamer critical values refer to Leamer/Schwartz/Deaton critical
+         5\% values adjusted for sample size. The Leamer critical value for a
+         t-statistic is `tL4'.
+         `enote' $^{\ddagger}$ Siginificant based on Leamer criterion."
+         "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
+#delimit cr
+
+
+#delimit ;
+esttab est5 est13 est21 est29 est37 est45 using "$OUT/NVSSQualityQ23-c.tex",
+title("Birth Quality and Season of Birth (Quarters 2 and 3, Controls)")
+keep(quarter2 quarter3 `varsY' `control') style(tex) mlabels(, depvar) `estopt'
+starlevel ("$ ^{\ddagger} $" `pvL')
+postfoot("\bottomrule                                                    
+         \multicolumn{7}{p{18.2cm}}{\begin{footnotesize} Sample consists
+        of white married mothers aged 20-45 years old having their first-born
+        child. Leamer critical values refer to Leamer/Schwartz/Deaton critical
+        5\% values adjusted for sample size. The Leamer critical value for a
+        t-statistic is `tL4'.
+        `enote' $^{\ddagger}$ Siginificant based on Leamer criterion."
+        "\end{footnotesize}}\end{tabular}\end{table}") booktabs replace;
+
+esttab est6 est14 est22 est30 est38 est46 using "$OUT/NVSSQualityQ23_NC.tex",
+replace `estopt' title("Birth Quality and Season of Birth (Quarter 2 and 3, No Controls)")
+keep(_cons quarter2 quarter3) style(tex) mlabels(, depvar)
+starlevel ("$ ^{\ddagger} $" `pvL')
+postfoot("\bottomrule                                                    
+         \multicolumn{7}{p{14cm}}{\begin{footnotesize} Sample consists
+         of white married mothers aged 20-45 years old having their first-born
+         child. Leamer critical values refer to Leamer/Schwartz/Deaton critical
+         5\% values adjusted for sample size. The Leamer critical value for a
+         t-statistic is `tL4'.
+         `enote' $^{\ddagger}$ Siginificant based on Leamer criterion."
+         "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
+#delimit cr
+
+
+#delimit ;
+esttab est7 est15 est23 est31 est39 est47 using "$OUT/NVSSQualityQAll-c.tex",
+title("Birth Quality and Season of Birth (Controls)")
+keep(quarter2 quarter3 quarter4 `varsY' `control') style(tex) mlabels(, depvar) `estopt'
+starlevel ("$ ^{\ddagger} $" `pvL')
+postfoot("\bottomrule                                                    
+         \multicolumn{7}{p{18.2cm}}{\begin{footnotesize} Sample consists
+        of white married mothers aged 20-45 years old having their first-born
+        child. Leamer critical values refer to Leamer/Schwartz/Deaton critical
+        5\% values adjusted for sample size. The Leamer critical value for a
+        t-statistic is `tL4'.
+        `enote' $^{\ddagger}$ Siginificant based on Leamer criterion."
+        "\end{footnotesize}}\end{tabular}\end{table}") booktabs replace;
+
+esttab est8 est16 est24 est32 est40 est48 using "$OUT/NVSSQualityQAll_NC.tex",
+replace `estopt' title("Birth Quality and Season of Birth (No Controls)")
+keep(_cons quarter2 quarter3 quarter4) style(tex) mlabels(, depvar)
+starlevel ("$ ^{\ddagger} $" `pvL')
+postfoot("\bottomrule                                                    
+         \multicolumn{7}{p{14cm}}{\begin{footnotesize} Sample consists
+         of white married mothers aged 20-45 years old having their first-born
+         child. Leamer critical values refer to Leamer/Schwartz/Deaton critical
+         5\% values adjusted for sample size. The Leamer critical value for a
+         t-statistic is `tL4'.
+         `enote' $^{\ddagger}$ Siginificant based on Leamer criterion."
+         "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
+#delimit cr
+estimates clear
+
 
 
 ********************************************************************************
