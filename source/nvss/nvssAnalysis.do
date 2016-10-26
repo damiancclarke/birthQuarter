@@ -37,6 +37,10 @@ local Fnote  "F-test of age variables refers to the test that
               the coefficients on mother's age and age squared are jointly
               equal to zero. The critical value for rejection of joint
               insignificance is displayed below the F-statistic.";
+local Xnote  "$ \chi^2 $ test of age variables refers to the test that
+              the coefficients on mother's age and age squared are jointly
+              equal to zero. The critical value for rejection of joint
+              insignificance is displayed below the test statistic.";
 local onote  "Optimal age calculates the turning point of the mother's age
               quadratic.";
 local enote  "Heteroscedasticity robust standard errors are reported in
@@ -49,13 +53,11 @@ lab def mon 1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug"
 ********************************************************************************
 *** (2) Open data for descriptives
 ********************************************************************************
-use          "$DAT/nvss2005_2013_all-2percent"
+use          "$DAT/nvss2005_2013_all"
 keep if twin==1
 replace twin=twin-1
 keep if birthOrder==1
 gen birth = 1
-
-
 
 
 ********************************************************************************
@@ -244,7 +246,7 @@ foreach type of local add {
 ********************************************************************************
 *** (3d) Age plots by month (ART, no ART)
 ********************************************************************************
-use          "$DAT/nvss2005_2013_all-2percent", clear
+use          "$DAT/nvss2005_2013_all", clear
 replace twin=twin-1
 gen birth = 1
 local bb &birthOrder==1
@@ -395,7 +397,6 @@ foreach type of local add {
     local ++k
 }
 
-
 ********************************************************************************
 *** (3e) Age plots by quarter
 ********************************************************************************
@@ -527,13 +528,13 @@ foreach type of local add {
     local ++k
     restore
 }
-*/
 
+*/
 ********************************************************************************
 *** (4) Open data for regressions
 ********************************************************************************
-use          "$DAT/nvss2005_2013_all-2percent", clear
-append using "$DAT/nvssFD2005_2013_all-2percent"
+use          "$DAT/nvss2005_2013_all", clear
+append using "$DAT/nvssFD2005_2013_all"
 replace motherAge2 = motherAge2/100 if liveBirth==0
 keep if twin<3
 
@@ -797,6 +798,8 @@ foreach type of local add {
 local add `" "20-45 All Observations" "20-45 White married"
              "20-45 White unmarried"  "20-45 Black unmarried" "';
 local nam All whiteMarried whiteUnmarried blackUnmarried;
+local add `" "20-45 White married" "';
+local nam whiteMarried;
 #delimit cr
 tokenize `nam'
 
@@ -807,12 +810,12 @@ local se
 
 local k=1
 foreach type of local add {
-    if `k'==1 local gg motherAge>=20&motherAge<=45
-    if `k'==2 local gg motherAge>=20&motherAge<=45&white==1&married==1
-    if `k'==3 local gg motherAge>=20&motherAge<=45&white==1&married==0
-    if `k'==4 local gg motherAge>=20&motherAge<=45&black==1&married==0
+    *if `k'==1 local gg motherAge>=20&motherAge<=45
+    if `k'==1 local gg motherAge>=20&motherAge<=45&white==1&married==1
+    *if `k'==3 local gg motherAge>=20&motherAge<=45&white==1&married==0
+    *if `k'==4 local gg motherAge>=20&motherAge<=45&black==1&married==0
     local nc hispanic
-    if `k'==1 local nc black white hispanic married
+    *if `k'==1 local nc black white hispanic married
 
     local con smoker i.gestation `nc'
     preserve
@@ -820,53 +823,58 @@ foreach type of local add {
     count
     
     foreach Q in 2 3 {
-        eststo: logit quarter`Q' `age' `edu' `con' _year* i.fips, `se' 
-        estpost margins, dydx(`age' `edu' smoker `nc')
+        logit quarter`Q' `age' `edu' `con' _year* i.fips, `se' 
         test `age'
         local F1a= string(r(chi2), "%5.3f")
         local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
         local rdf  = e(N)-e(rank)
-        local L1   = string((`rdf'/2)*(e(N)^(2/e(N))-1), "%5.3f")
+        local L1   = string(2*((`rdf'/2)*(e(N)^(2/e(N))-1)), "%5.3f")
         local tL1  = string(sqrt((`rdf'/1)*(e(N)^(1/e(N))-1)), "%5.3f")
         local pvL  = ttail(e(N),sqrt((`rdf'/1)*(e(N)^(1/e(N))-1)))*2
+        margins, dydx(`age' `edu' smoker `nc') post
+        estimates store m1
 
-        eststo: logit quarter`Q' `age'       _year* i.fips if e(sample) , `se' 
-        estpost margins, dydx(`age')
+        logit quarter`Q' `age'       _year* i.fips if e(sample) , `se' 
         test `age'
         local F2a= string(r(chi2), "%5.3f")
         local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+        margins, dydx(`age') post
+        estimates store m2
 
-        eststo: logit quarter`Q' `age'              if e(sample) , `se'
-        estpost margins, dydx(`age')
+        logit quarter`Q' `age'              if e(sample) , `se'
         test `age'
         local F3a= string(r(chi2), "%5.3f")
         local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+        margins, dydx(`age') post
+        estimates store m3
 
         local ysm if year>=2009&ART!=.&WIC!=.&underweight!=.
-        eststo: logit quarter`Q' `age' `edu' `con' _year* i.fips `ysm', `se' 
-        estpost margins, dydx(`age' `edu' smoker `nc')
+        logit quarter`Q' `age' `edu' `con' _year* i.fips `ysm', `se' 
         test `age'
         local F4a= string(r(chi2), "%5.3f")
         local opt4 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
         local rdf  = e(N)-e(rank)
-        local L4   = string((`rdf'/2)*(e(N)^(2/e(N))-1), "%5.3f")
+        local L4   = string(2*((`rdf'/2)*(e(N)^(2/e(N))-1)), "%5.3f")
         local tL4  = string(sqrt((`rdf'/1)*(e(N)^(1/e(N))-1)), "%5.3f")
+        margins, dydx(`age' `edu' smoker `nc') post
+        estimates store m4
 
-        eststo: logit quarter`Q' `age' `edu' `con' `c2' _year* i.fips `ysm', `se'
-        estpost margins, dydx(`age' `edu' smoker `nc' `c2')
+        logit quarter`Q' `age' `edu' `con' `c2' _year* i.fips `ysm', `se'
         test `age'
         local F5a= string(r(chi2), "%5.3f")
         local opt5 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+        margins, dydx(`age' `edu' smoker `nc' `c2') post
+        estimates store m5
 
         #delimit ;
         local not "Average marginal effects of logit parameters are reported.
         All singleton, first born children from the indicated sample are
-        included. `Fnote' Leamer critical values refer to Leamer/Schwartz/Deaton 
+        included. `Xnote' Leamer critical values refer to Leamer/Schwartz/Deaton 
         critical 5\% values adjusted for sample size. The Leamer critical value 
         for a t-statistic is `tL1' in columns 1-3 and `tL4' in columns 4 and 5.
         `onote' `enote' $^{\ddagger}$ Siginificant based on Leamer criterion.";
 
-        esttab est3 est2 est1 est4 est5 using "$OUT/NVSSLogitQ`Q'_``k''.tex",
+        esttab m3 m2 m1 m4 m5 using "$OUT/NVSSLogitQ`Q'_``k''.tex", margin
         replace `estopt' keep(`age' `edu' smoker `c2' `nc') 
         title("Season of Birth Correlates Logit: Quarter `Q' (`type')") booktabs 
         style(tex) mlabels(, depvar)
@@ -905,54 +913,59 @@ foreach type of local add {
     count
     
     foreach Q in 2 3 {    
-        eststo: logit quarter`Q' `age' `edu' `con' _year* i.fips, `se'
-        estpost margins, dydx(`age' `edu' smoker hispanic)
+        logit quarter`Q' `age' `edu' `con' _year* i.fips, `se'
         test `age'
         local F1a= string(r(chi2), "%5.3f")
         local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
         local rdf  = e(N)-e(rank)
-        local L1   = string((`rdf'/2)*(e(N)^(2/e(N))-1), "%5.3f")
+        local L1   = string(2*((`rdf'/2)*(e(N)^(2/e(N))-1)), "%5.3f")
         local tL1  = string(sqrt((`rdf'/1)*(e(N)^(1/e(N))-1)), "%5.3f")
         local pvL  = ttail(e(N),sqrt((`rdf'/1)*(e(N)^(1/e(N))-1)))*2
+        margins, dydx(`age' `edu' smoker hispanic) post
+        estimates store m1
 
-        eststo: logit quarter`Q' `age' _year*  i.fips if e(sample) , `se'
-        estpost margins, dydx(`age')
+        logit quarter`Q' `age' _year*  i.fips if e(sample) , `se'
         test `age'
         local F2a= string(r(chi2), "%5.3f")
         local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+        margins, dydx(`age') post
+        estimates store m2
 
-        eststo:  logit quarter`Q' `age'              if e(sample) , `se'
-        estpost margins, dydx(`age')
+        logit quarter`Q' `age'              if e(sample) , `se'
         test `age'
         local F3a= string(r(chi2), "%5.3f")
         local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+        margins, dydx(`age') post
+        estimates store m3
 
         local ysm if year>=2009&ART!=.&WIC!=.&underweight!=.
-        eststo: logit quarter`Q' `age' `edu' `con' _year* i.fips `ysm', `se'
-        estpost margins, dydx(`age' `edu' smoker hispanic)
+        logit quarter`Q' `age' `edu' `con' _year* i.fips `ysm', `se'
         test `age'
         local F4a= string(r(chi2), "%5.3f")
         local rdf  = e(N)-e(rank)
         local opt4 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-        local L4   = string((`rdf'/2)*(e(N)^(2/e(N))-1), "%5.3f")
+        local L4   = string(2*((`rdf'/2)*(e(N)^(2/e(N))-1)), "%5.3f")
         local tL4  = string(sqrt((`rdf'/1)*(e(N)^(1/e(N))-1)), "%5.3f")
+        margins, dydx(`age' `edu' smoker hispanic) post
+        estimates store m4
 
-        eststo: logit quarter`Q' `age' `edu' `con' `c2' i.fips _year* `ysm', `se'
-        estpost margins, dydx(`age' `edu' smoker hispanic `c2')
+        logit quarter`Q' `age' `edu' `con' `c2' i.fips _year* `ysm', `se'
         test `age'
         local F5a= string(r(chi2), "%5.3f")
         local opt5 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+        margins, dydx(`age' `edu' smoker hispanic `c2') post
+        estimates store m5
         
         #delimit ;
         local not "Average marginal effects of logit parameters are reported.
         All singleton, first births occurring to white, married
-        women aged 20-45 from the indicated sample are included. `Fnote'
+        women aged 20-45 from the indicated sample are included. `Xnote'
         Leamer critical values refer to Leamer/Schwartz/Deaton critical 5\%
         values adjusted for sample size. The Leamer critical value for a
         t-statistic is `tL1' in columns 1-3 and `tL4' in columns 4 and 5.
         `onote' `enote' $^{\ddagger}$ Siginificant based on Leamer criterion.";
 
-        esttab est3 est2 est1 est4 est5 using "$OUT/NVSSLogitQ`Q'_``k''.tex",
+        esttab m3 m2 m1 m4 m5 using "$OUT/NVSSLogitQ`Q'_``k''.tex",
         replace `estopt' keep(`age' `edu' smoker `c2' hispanic) 
         title("Season of Birth Correlates Logit: Quarter `Q' (`type')") booktabs 
         style(tex) mlabels(, depvar)
