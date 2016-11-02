@@ -54,16 +54,16 @@ R2   = 'R$^2$'
 for g in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
     if g == 'All':
         mnote = 'all '
-        tnote = '(All Women)'
+        tnote = '(All Mothers)'
     elif g=='whiteMarried':
         mnote = 'white, married '
-        tnote = '(White Married Women, 20--45)'
+        tnote = '(White Married Mothers, 20--45)'
     elif g=='whiteUnmarried':
         mnote = 'white, unmarried '
-        tnote = '(White Unmarried Women, 20--45)'
+        tnote = '(White Unmarried Mothers, 20--45)'
     elif g=='blackUnmarried':
         mnote = 'black, unmarried '
-        tnote = '(Black Unmarried Women, 20--45)'
+        tnote = '(Black Unmarried Mothers, 20--45)'
     sumT = open(TAB + 'birthTimeSum_'+g+'.tex', 'w')
     NV   = open(RES + 'births/sumstats/FullSample_'+g+'.txt', 'r').readlines()
     NVj  = open(RES + 'births/sumstats/JustEduc_'+g+'.txt'  , 'r').readlines()
@@ -153,7 +153,7 @@ for group in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
 
     sumT.write(' \n \\multicolumn{6}{l}{\\textbf{Panel B: Child}}\\\\ \n ')
     for i,line in enumerate(Ki2):
-        if i>8 and i<17:
+        if i>8 and i<19 :
             line = line.replace('\\hline','\\midrule')
             line = line.replace('At least some college','Some College +')
             line = line.replace('female','Female')
@@ -204,12 +204,13 @@ for group in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
             sumT.write(line)
 
     sumT.write('\n'+mr+mc1+twid[1]+tcm[1]+mc3+
-               "Sample consists of all" + mnote + " first-time mothers aged 20-45"
-               " for whom education and smoking during pregnancy are available.  "
-               "ART refers to the proportion of women who undertook assisted     "
-               "reproductive technologies that resulted in these births.         "
+               "Sample consists of all " + mnote + " first-time mothers aged  "
+               "20-45 who give birth to a singleton child and for whom        "
+               "education and smoking status during pregnancy are available.  "
+               "ART refers to the proportion of women who undertook assisted  "
+               "reproductive technologies that resulted in these births.      "
                "$^{a}$ Only available from 2009."
-               "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}}        "
+               "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}}     "
                "\\end{center}\\end{table}")
     sumT.close()
 
@@ -227,7 +228,7 @@ for group in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
     Ki2  = open(RES + 'births/sumstats/sampKid_'+group+'.tex' , 'r').readlines()
 
     for i,line in enumerate(Ki2):
-        if i>8 and i<17:
+        if i>8 and i<19:
             line = line.replace('\\hline','\\midrule')
             line = line.replace('At least some college','Some College +')
             line = line.replace('female','Female')
@@ -235,10 +236,13 @@ for group in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
 
     sumT.write('\n'+mr+mc1+twid[9]+tcm[9]+mc3+
                "Sample consists of all first-born, singleton children born to "
-               " " + mnote + "mothers aged 20-45 for whom education           "
-               "and smoking during pregnancy are available. Quarter 2         "
-               "and quarter 3 births are determined by month (Apr-Jun and     "
-               "Jul-Sept respectively).                                       "
+               " " + mnote + "mothers aged 20-45 for whom education and       "
+               "smoking status during pregnancy are available. Quarters of    "
+               "birth are determined by the month in which the baby is        "
+               "expected based on conception date.  Quarter 1 refers to       "
+               "January to March, Quarter 2 refers to April to June, Quarter 3"
+               " refers to July to September, and Quarter 4 refers to October "
+               "to December due dates.                                        "
                "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}}     "
                "\\end{center}\\end{table}")
     sumT.close()
@@ -249,20 +253,20 @@ for group in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
 for g in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
     if g == 'All':
         mnote = 'all '
-        tnote = '(All Women)'
-        mnum  = 24
+        tnote = '(All Mothers)'
+        mnum  = 27
     elif g=='whiteMarried':
         mnote = 'white, married '
-        tnote = '(White Married Women, 20--45)'
-        mnum  = 21
+        tnote = '(White Married Mothers, 20--45)'
+        mnum  = 24
     elif g=='whiteUnmarried':
         mnote = 'white, unmarried '
-        tnote = '(White Unmarried Women, 20--45)'
-        mnum  = 21
+        tnote = '(White Unmarried Mothers, 20--45)'
+        mnum  = 24
     elif g=='blackUnmarried':
         mnote = 'black, unmarried '
-        tnote = '(Black Unmarried Women, 20--45)'
-        mnum  = 21
+        tnote = '(Black Unmarried Mothers, 20--45)'
+        mnum  = 24
         
     sumIPUMSh = RES + '/census/sumStats/IPUMSstats_'+g+'.tex'
     sumT = open(TAB + 'sumStatsIPUMS_'+g+'.tex', 'w')
@@ -283,15 +287,13 @@ for g in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
                 sumT.write(line)
 
     sumT.write('\n'+mr+mc1+twid[7]+tcm[7]+mc3+
-               "Summary statistics are for "+mnote+"  aged 20-45 who are          "
+               "Summary statistics are for "+mnote+"  mothers aged 20-45 who are  "
                "either head of the household or spouse of the head of the         "
                "household, and have a first singleton child who is \emph{at most} "
                "one year old. We exclude women who are in the military, in a farm "
                "household, or currently in school. We retain only women who had   "
                "worked within the previous five years where each occupation must  "
                "have at least 500 women over the entire range of survey years.    "
-               "Quarters 2 and 3 births are those occurring from Apr-Jun and      "
-               "Jul-Sept respectively."
                "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}\\end{center}"
                "\\end{table}")
     sumT.close()
@@ -302,6 +304,11 @@ for g in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
 #==============================================================================
 #VARIOUS TABS
 AllTabs = ['IPUMSIndustryQ2_All'            ,'IPUMSIndustryQ3_All'            ,
+           'IPUMSIndustry_All'              ,'IPUMSIndustry_whiteMarried'     ,
+           'IPUMSIndustry_blackUnmarried'   ,'IPUMSIndustry_whiteUnmarried'   ,
+           'IPUMSIndustryLogit_All'         ,'IPUMSIndustryLogit_whiteMarried',
+           'IPUMSIndustryNoWork_whiteMarried','IPUMSIndustryInc_whiteMarried' ,
+           'IPUMSIndustryLogitNoWork_whiteMarried'                            ,
            'IPUMSIndustryQ2_whiteMarried'   ,'IPUMSIndustryQ3_whiteMarried'   ,
            'IPUMSIndustryQ2_blackUnmarried' ,'IPUMSIndustryQ3_blackUnmarried' ,
            'IPUMSIndustryQ2_whiteUnmarried' ,'IPUMSIndustryQ3_whiteUnmarried' ,
@@ -320,6 +327,6 @@ for table in AllTabs:
         line = line.replace('\\end{footnotesize}}\\end{tabular}\\end{table}',
                             '\\end{footnotesize}}\\end{tabular}}\\end{table}')
         line = line.replace('\\begin{tabular}',
-                            '\\scalebox{0.82}{\\begin{tabular}')
+                            '\\scalebox{0.95}{\\begin{tabular}')
         ipoT.write(line)
     ipoT.close()
