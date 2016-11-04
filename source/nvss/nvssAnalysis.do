@@ -54,12 +54,52 @@ lab def mon 1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug"
 *** (2) Open data for descriptives
 ********************************************************************************
 use          "$DAT/nvss2005_2013_all"
+keep if highEd!=.&smoker!=.&gestation!=.
+
+preserve
+keep if motherAge>=20&motherAge<=45
+gen     group=1 if white==1&married==1&birthOrder==1
+replace group=2 if white==1&married==0&birthOrder==1
+replace group=3 if black==1&married==0&birthOrder==1
+replace group=4 if white==1&married==1&birthOrder==2
+gen twins = 0 if twin==1
+replace twins = 1 if twin==2
+collapse twins, by(group)
+
+lab def g 1 "White Married" 2 "White Unmarried" 3 "Black Unmarried" 4 "Birth Order 2"
+lab val group g
+
+#delimit ;
+graph bar twins, over(group) scheme(s1mono) ytitle("Proportion of Twins");
+graph export "$GRA/twinGroups.eps", as(eps) replace;
+#delimit cr
+restore
+
+preserve
+keep if motherAge>=20&motherAge<=45&ART==0
+gen     group=1 if white==1&married==1&birthOrder==1
+replace group=2 if white==1&married==0&birthOrder==1
+replace group=3 if black==1&married==0&birthOrder==1
+replace group=4 if white==1&married==1&birthOrder==2
+gen twins = 0 if twin==1
+replace twins = 1 if twin==2
+collapse twins, by(group)
+lab def g 1 "White Married" 2 "White Unmarried" 3 "Black Unmarried" 4 "Birth Order 2"
+lab val group g
+
+#delimit ;
+graph bar twins, over(group) scheme(s1mono) ytitle("Proportion of Twins");
+#delimit cr
+graph export "$GRA/twinGroups-noART.eps", as(eps) replace
+restore
+
+
 keep if twin==1
 replace twin=twin-1
 keep if birthOrder==1
 gen birth = 1
 
-/*
+
 ********************************************************************************
 *** (3a) Descriptive age graph
 ********************************************************************************
@@ -76,7 +116,7 @@ twoway hist motherAge if motherAge>=20&motherAge<=45&married==1, `fw' color(gs0)
     ylabel(, angle(0) format(%15.0fc)) xtitle("Mother's Age")
     legend(label(1 "Estimation Sample") label(2 "<20 or >45")) scheme(s1mono);
 graph export "$GRA/ageDescriptive-married.eps", as(eps) replace;
-a#delimit cr
+#delimit cr
 
 preserve
 drop if ART==.|conceptionMonth==.
@@ -95,26 +135,6 @@ graph export "$GRA/proportionMonthART.eps", as(eps) replace;
 restore
 
 
-preserve
-gen teenBirth = motherAge>=15&motherAge<=19
-keep if motherAge>=15&motherAge<=45
-collapse (sum) birth, by(teenBirth birthMonth)
-bys teenBirth: egen totbirth = sum(birth)
-gen propBirth = birth/totbirth
-sort teenBirth birthMonth
-lab val birthMonth mon
-#delimit ;
-twoway line propBirth birthMonth if teenBirth==1, lcolor(ebblue) lwidth(thick)
- || line propBirth birthMonth if teenBirth==0, lcolor(cranberry) lwidth(thick)
-lpattern(dash) xlabel(1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul"
-                      8 "Aug" 9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec")
-ytitle("Proportion of Births") xtitle("Month of Birth") scheme(s1mono)
-legend(lab(1 "Ages 15-19") lab(2 "Ages 20-45"));
-graph export "$GRA/birthMonths-age.eps", as(eps) replace;
-#delimit cr
-restore
-*/
-
 ********************************************************************************
 *** (3b) Summary stats 
 ********************************************************************************
@@ -125,13 +145,10 @@ local nam All whiteMarried whiteAll whiteUnmarried blackUnmarried;
 #delimit cr
 tokenize `nam'
 
-generat goodBirthQ = birthQuarter == 2 | birthQuarter == 3 
-gen tvar = abs(goodQuarter-1)
-lab var goodBirthQ  "Good season of birth (birth date)"
-gen Quarter1 = birthQuarter == 1 if gestation!=.
-gen Quarter2 = birthQuarter == 2 if gestation!=.
-gen Quarter3 = birthQuarter == 3 if gestation!=.
-gen Quarter4 = birthQuarter == 4 if gestation!=.
+gen Quarter1 = expectQuarter == 1 if gestation!=.
+gen Quarter2 = expectQuarter == 2 if gestation!=.
+gen Quarter3 = expectQuarter == 3 if gestation!=.
+gen Quarter4 = expectQuarter == 4 if gestation!=.
 lab var Quarter1    "Quarter 1 Birth (Expected)"
 lab var Quarter2    "Quarter 2 Birth (Expected)"
 lab var Quarter3    "Quarter 3 Birth (Expected)"
@@ -173,91 +190,12 @@ foreach type of local add {
     local ++k
 }
 
-exit
-********************************************************************************
-*** (3c) Numerical tabulations by age and education
-********************************************************************************
-tokenize `nam'
-lab def educ 0 "No College" 1 "Some College +"
-lab val highEd educ
 
-local k=1
-foreach type of local add {
-    if `k'==1 local gg motherAge>=20&motherAge<=45
-    if `k'==2 local gg motherAge>=20&motherAge<=45&white==1&married==1
-    if `k'==3 local gg motherAge>=20&motherAge<=45&white==1&married==0
-    if `k'==4 local gg motherAge>=20&motherAge<=45&black==1&married==0
-    local mc hispanic
-    if `k'==1 local mc black white hispanic married
-    
-    preserve
-    keep if `gg'
-    drop if highEd==.|goodQuarter==.
-    collapse premature ART (sum) birth, by(goodQuarter highEd)
-    bys highEd: egen aveprem = mean(premature)
-    bys highEd: egen aveART = mean(ART)
-    drop premature ART
-    reshape wide birth, i(highEd) j(goodQuarter)
-    gen totalbirths = birth0 + birth1
-    replace birth0=round(10000*birth0/totalbirths)/100
-    replace birth1=round(10000*birth1/totalbirths)/100
-    
-    gen diff            = birth1 - birth0
-    gen rati            = birth1 / birth0
-    gen str5 b0         = string(birth0, "%05.2f")
-    gen str5 b1         = string(birth1, "%05.2f")
-    gen str4 difference = string(diff, "%04.2f")
-    gen str4 ratio      = string(rati, "%04.2f")
-    gen str4 prem       = string(aveprem, "%04.2f")
-    gen str4 ART        = string(aveART, "%04.2f")
-    drop totalbirths diff rati birth* ave*
-    
-    decode highEd, gen(el)
-    order el
-    drop highEd
-    outsheet using "$SUM/JustEduc_``k''.txt", delimiter("&") replace noquote
-    restore
-    
-    preserve
-    keep if `gg'
-    drop if highEd==.|goodQuarter==.|motherAge<20|motherAge>45
-    gen ageG2 = motherAge>=20 & motherAge<25
-    replace ageG2 = 2 if motherAge>=25 & motherAge<28
-    replace ageG2 = 3 if motherAge>=28 & motherAge<32
-    replace ageG2 = 4 if motherAge>=32 & motherAge<40
-    replace ageG2 = 5 if motherAge>=40 & motherAge<46
-    
-    collapse premature ART (sum) birth, by(goodQuarter ageG2)
-    #delimit ;
-    lab def ag_2 1 "20-24 Years Old" 2 "25-27 Years Old" 3 "28-31 Years Old"
-    4 "32-39 Years Old" 5 "40-45 Years Old";
-    #delimit cr
-    lab val ageG2 ag_2
-    
-    bys ageG2: egen aveprem = mean(premature)
-    bys ageG2: egen aveART = mean(ART)
-    drop premature ART
-    reshape wide birth, i(ageG2) j(goodQuarter)
-    gen totalbirths = birth0 + birth1
-    replace birth0=round(10000*birth0/totalbirths)/100
-    replace birth1=round(10000*birth1/totalbirths)/100
-    gen diff            = birth1 - birth0
-    gen rati            = birth1 / birth0
-    gen str4 difference = string(diff, "%04.2f")
-    gen str4 ratio      = string(rati, "%04.2f")
-    gen str4 prem       = string(aveprem, "%04.2f")
-    gen str4 ART        = string(aveART, "%04.2f")
-    drop totalbirths diff rati ave*
-    
-    outsheet using "$SUM/FullSample_``k''.txt", delimiter("&") replace noquote
-    restore
-    local ++k
-}
-*/
 ********************************************************************************
 *** (3d) Age plots by month (ART, no ART)
 ********************************************************************************
 use          "$DAT/nvss2005_2013_all", clear
+keep if highEd!=.&smoker!=.&gestation!=.
 replace twin=twin-1
 gen birth = 1
 local bb &birthOrder==1
@@ -271,7 +209,7 @@ local nam All whiteMarried whiteAll whiteUnmarried blackUnmarried secondBirths
           wTwins;
 #delimit cr
 tokenize `nam'
-/*
+
 local k=1
 foreach type of local add {
     if `k'==1 local gg motherAge>=20&motherAge<=45`bb'`tw'
@@ -318,33 +256,6 @@ foreach type of local add {
 
     preserve
     keep if `gg'
-    generat youngOld = 1 if motherAge>=28&motherAge<=31
-    replace youngOld = 2 if motherAge>=40&motherAge<=45
-    drop if youngOld==.|conceptionMonth==.
-    count
-    local NN = string(r(N),"%15.0fc")
-    collapse (sum) birth, by(birthQuarter youngOld)
-    bys youngOld: egen totalBirths = sum(birth)
-    gen birthProportion = birth/totalBirths
-    sort birthQuarter youngOld
-
-    local line1 lpattern(solid)    lcolor(black) lwidth(thick)
-    local line2 lpattern(dash)     lcolor(black) lwidth(medium)
-
-    #delimit ;
-    twoway line birthProportion birthQuarter if youngOld==1, `line1' ||
-           line birthProportion birthQuarter if youngOld==2, `line2'
-    scheme(s1mono) xtitle("Quarter of Birth")
-    xlabel(1 "Quarter 1" 2 "Quarter 2" 3 "Quarter 3" 4 "Quarter 4")
-    legend(label(1 "28-31 Year-olds") label(2 "40-45 Year-olds"))
-    ytitle("Proportion of All Births")
-    note("Number of observations = `NN'");
-    graph export "$GRA/birthQuarter_``k''.eps", as(eps) replace;
-    #delimit cr
-    restore
-    
-    preserve
-    keep if `gg'
     generat youngOld = 1 if motherAge>=28&motherAge<=39
     replace youngOld = 2 if motherAge>=40&motherAge<=45
 
@@ -375,41 +286,9 @@ foreach type of local add {
     #delimit cr
     restore
     
-
-    preserve
-    keep if `gg'
-    generat youngOld = 1 if motherAge>=28&motherAge<=39
-    replace youngOld = 2 if motherAge>=40&motherAge<=45
-
-    drop if youngOld==.|conceptionMonth==.
-    *drop if conceptionMonth==12
-    keep if ART==1
-    count
-    local NN = string(r(N),"%15.0fc")
-    collapse (sum) birth, by(birthQuarter youngOld)
-
-    bys youngOld: egen totalBirths = sum(birth)
-    gen birthProportion = birth/totalBirths
-    sort birthQuarter youngOld
-
-    local line1 lpattern(solid)    lcolor(black) lwidth(thick)
-    local line2 lpattern(dash)     lcolor(black) lwidth(medium)
-
-    #delimit ;
-    twoway line birthProportion birthQuarter if youngOld==1, `line1' ||
-           line birthProportion birthQuarter if youngOld==2, `line2'
-    scheme(s1mono) xtitle("Birth Quarter")
-    xlabel(1 "Quarter 1" 2 "Quarter 2" 3 "Quarter 3" 4 "Quarter 4")
-    legend(label(1 "28-39 Year-olds") label(2 "40-45 Year-olds"))
-    ytitle("Proportion of All Births") note("Number of observations = `NN'");
-    graph export "$GRA/birthQuarterART_``k''.eps", as(eps) replace;
-    #delimit cr
-    restore
-
-    
     local ++k
 }
-*/
+
 ********************************************************************************
 *** (3e) Age plots by quarter
 ********************************************************************************
@@ -478,37 +357,13 @@ foreach type of local add {
     xtitle("Mother's Age") ytitle("Proportion in Quarter" " ")
     note("Number of observations = `NN'");
     graph export "$GRA/quarter2-3Age_2045_``k''.eps", as(eps) replace;
-
-    twoway connected ageES2 ageNM2 in 1/26, `s1' lcolor(red) mcolor(red) m(S)
-    || line ageLB2 ageNM2 in 1/26,     `s2' lcolor(red)
-    || line ageUB2 ageNM2 in 1/26,     `s2' lcolor(red)
-    || connected ageES3 ageNM3 in 1/26,`s1' lcolor(blue) mcolor(blue) m(Oh)
-    || line ageLB3 ageNM3 in 1/26,     `s2' lcolor(blue) xlabel(20(1)45) 
-    || line ageUB3 ageNM3 in 1/26,     `s2' lcolor(blue) scheme(s1mono)
-    legend(order(1 "Point Estimate (Quarter 2)" 2 "95 % CI (Quarter 2)"
-                 4 "Point Estimate (Quarter 3)" 6 "95 % CI (Quarter 3)"))
-    xtitle("Mother's Age") ytitle("Proportion in Quarter" " ")
-    note("Number of observations = `NN'") ylabel(0.2(0.05)0.35);
-    graph export "$GRA/quarter2-3-ylab1_``k''.eps", as(eps) replace;
-
-    twoway connected ageES2 ageNM2 in 1/26, `s1' lcolor(red) mcolor(red) m(S)
-    || line ageLB2 ageNM2 in 1/26,     `s2' lcolor(red)
-    || line ageUB2 ageNM2 in 1/26,     `s2' lcolor(red)
-    || connected ageES3 ageNM3 in 1/26,`s1' lcolor(blue) mcolor(blue) m(Oh)
-    || line ageLB3 ageNM3 in 1/26,     `s2' lcolor(blue) xlabel(20(1)45) 
-    || line ageUB3 ageNM3 in 1/26,     `s2' lcolor(blue) scheme(s1mono) 
-    legend(order(1 "Point Estimate (Quarter 2)" 2 "95 % CI (Quarter 2)"
-                 4 "Point Estimate (Quarter 3)" 6 "95 % CI (Quarter 3)"))
-    xtitle("Mother's Age") ytitle("Proportion in Quarter" " ")
-    note("Number of observations = `NN'") ylabel(0.1(0.05)0.35);
-    graph export "$GRA/quarter2-3-ylab2_``k''.eps", as(eps) replace;
     #delimit cr
-
+    
     local ++k
     restore
 }
 
-exit
+
 ********************************************************************************
 *** (3f) Births per month
 ********************************************************************************
@@ -526,15 +381,17 @@ foreach type of local add {
     
     preserve
     keep if `gg'
+    count
+    local NN = string(r(N),"%15.0fc")
     collapse (sum) birth, by(birthMonth)
     egen totalBirth = total(birth)
     replace birth = birth/totalBirth
 
     #delimit ;
     twoway line birth birthMonth, lcolor(black) lwidth(thick) scheme(s1mono)
-    ytitle("Proportion Births") xtitle("Month of Births")
+    ytitle("Proportion Births") note("Number of observations = `NN'")
     xlabel(1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug"
-           9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec");
+           9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec") xtitle("Month of Births");
     #delimit cr
     graph export "$GRA/births-``k''.eps", as(eps) replace
 
@@ -542,13 +399,13 @@ foreach type of local add {
     restore
 }
 
-*/
+
+
 ********************************************************************************
 *** (4) Open data for regressions
 ********************************************************************************
 use          "$DAT/nvss2005_2013_all", clear
-append using "$DAT/nvssFD2005_2013_all"
-replace motherAge2 = motherAge2/100 if liveBirth==0
+keep if highEd!=.&smoker!=.&gestation!=.
 keep if twin<3
 
 ********************************************************************************
@@ -565,7 +422,7 @@ local age motherAge motherAge2
 local edu highEd
 local c2  WIC underweight overweight obese noART
 local yab abs(fips)
-/*
+
 local k=1
 foreach type of local add {
     if `k'==1 local gg motherAge>=20&motherAge<=45
@@ -808,6 +665,8 @@ foreach type of local add {
 ********************************************************************************
 *** (5c) Including fetal deaths
 ********************************************************************************
+append using "$DAT/nvssFD2005_2013_all"
+replace motherAge2 = motherAge2/100 if liveBirth==0
 keep if twin==1 & motherAge>=20 & motherAge <= 45 & birthOrder==1
 
 #delimit ;
@@ -982,96 +841,7 @@ foreach type of local add {
 }
 
 
-********************************************************************************
-*** (5e) Alternative Regressions Logit
-********************************************************************************
-#delimit ;
-local add `" "Excluding December conceptions" "';
-local nam NoDec;
-#delimit cr
-tokenize `nam'
-
-local k=1
-foreach type of local add {
-    if `k'==1 local gg twin==1&liveBirth==1&birthOrder==1&birthMonth!=9
-
-    local con smoker i.gestation hispanic
-    preserve
-    keep if motherAge>=20&motherAge<=45&white==1&married==1&`gg'
-    count
-    
-    foreach Q in 2 3 {    
-        logit quarter`Q' `age' `edu' `con' _year* i.fips, `se'
-        test `age'
-        local F1a= string(r(chi2), "%5.3f")
-        local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-        local rdf  = e(N)-e(rank)
-        local L1   = string(2*((`rdf'/2)*(e(N)^(2/e(N))-1)), "%5.3f")
-        local tL1  = string(sqrt((`rdf'/1)*(e(N)^(1/e(N))-1)), "%5.3f")
-        local pvL  = ttail(e(N),sqrt((`rdf'/1)*(e(N)^(1/e(N))-1)))*2
-        margins, dydx(`age' `edu' smoker hispanic) post
-        estimates store m1
-
-        logit quarter`Q' `age' _year*  i.fips if e(sample) , `se'
-        test `age'
-        local F2a= string(r(chi2), "%5.3f")
-        local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-        margins, dydx(`age') post
-        estimates store m2
-
-        logit quarter`Q' `age'              if e(sample) , `se'
-        test `age'
-        local F3a= string(r(chi2), "%5.3f")
-        local opt3 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-        margins, dydx(`age') post
-        estimates store m3
-
-        local ysm if year>=2009&ART!=.&WIC!=.&underweight!=.
-        logit quarter`Q' `age' `edu' `con' _year* i.fips `ysm', `se'
-        test `age'
-        local F4a= string(r(chi2), "%5.3f")
-        local rdf  = e(N)-e(rank)
-        local opt4 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-        local L4   = string(2*((`rdf'/2)*(e(N)^(2/e(N))-1)), "%5.3f")
-        local tL4  = string(sqrt((`rdf'/1)*(e(N)^(1/e(N))-1)), "%5.3f")
-        margins, dydx(`age' `edu' smoker hispanic) post
-        estimates store m4
-
-        logit quarter`Q' `age' `edu' `con' `c2' i.fips _year* `ysm', `se'
-        test `age'
-        local F5a= string(r(chi2), "%5.3f")
-        local opt5 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
-        margins, dydx(`age' `edu' smoker hispanic `c2') post
-        estimates store m5
-        
-        #delimit ;
-        local not "Average marginal effects of logit parameters are reported.
-        All singleton, first births occurring to white, married
-        women aged 20-45 from the indicated sample are included. `Xnote'
-        Leamer critical values refer to Leamer/Schwartz/Deaton critical 5\%
-        values adjusted for sample size. The Leamer critical value for a
-        t-statistic is `tL1' in columns 1-3 and `tL4' in columns 4 and 5.
-        `onote' `enote' $^{\ddagger}$ Siginificant based on Leamer criterion at 5\%.";
-
-        esttab m3 m2 m1 m4 m5 using "$OUT/NVSSLogitQ`Q'_``k''.tex",
-        replace `estopt' keep(`age' `edu' smoker `c2' hispanic) 
-        title("Season of Birth Correlates Logit: Quarter `Q' (`type')") booktabs 
-        style(tex) mlabels(, depvar)
-        starlevel ("$ ^{\ddagger} $" `pvL')
-        postfoot("$ \chi^2$ test of Age Variables  &`F3a'&`F2a'&`F1a'&`F4a'&`F5a' \\ "
-                 "Leamer Critical Value (Age)&`L1'&`L1'&`L1'&`L4'&`L4' \\      "
-                 "Optimal Age &`opt3'&`opt2'&`opt1'&`opt4'&`opt5' \\         "
-                 "State and Year FE&&Y&Y&Y&Y\\ Gestation FE &&&Y&Y&Y\\       "
-                 "2009-2013 Only&&&&Y&Y\\ \bottomrule                        "
-                 "\multicolumn{6}{p{16.2cm}}{\begin{footnotesize} `not'"
-                 "\end{footnotesize}}\end{tabular}\end{table}");
-        #delimit cr
-        estimates clear
-    }
-    restore
-    local ++k
-}
-*/
+exit
 ********************************************************************************
 *** (6) Quality
 ********************************************************************************
