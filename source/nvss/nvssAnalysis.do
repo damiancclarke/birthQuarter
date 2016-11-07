@@ -48,7 +48,7 @@ local enote  "Heteroscedasticity robust standard errors are reported in
 lab def mon 1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug"
             9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec";
 #delimit cr
-/*
+
 ********************************************************************************
 *** (2) Open data for descriptives
 ********************************************************************************
@@ -201,7 +201,7 @@ foreach type of local add {
 ********************************************************************************
 *** (3d) Age plots by month (ART, no ART)
 ********************************************************************************
-use          "$DAT/nvss2005_2013_all", clear
+use  "$DAT/nvss2005_2013_all", clear
 keep if highEd!=.&smoker!=.&gestation!=.
 replace twin=twin-1
 gen birth = 1
@@ -414,7 +414,7 @@ foreach type of local add {
     local ++k
     restore
 }
-*/
+
 
 ********************************************************************************
 *** (4) Open data for regressions
@@ -429,7 +429,7 @@ gen quarter2 = expectMonth==4|expectMonth==5|expectMonth==6
 gen quarter3 = expectMonth==7|expectMonth==8|expectMonth==9
 lab var quarter2 "Quarter 2"
 lab var quarter3 "Quarter 3"
-/*
+
 ********************************************************************************
 *** (5a) Run for quarter 2 and 3
 ********************************************************************************
@@ -607,13 +607,15 @@ foreach type of local add {
 #delimit ;
 local add `" "" " Excluding December Conceptions" "';
 local nam whiteMarried NoDec;
+local add `" " Excluding December Conceptions" "';
+local nam NoDec;
 #delimit cr
 tokenize `nam'
 
 local k=1
 foreach type of local add {
     if `k'==1 local gg twin==1&liveBirth==1&birthOrder==1
-    if `k'==2 local gg twin==1&liveBirth==1&birthOrder==1&birthMonth!=9
+    if `k'==1 local gg twin==1&liveBirth==1&birthOrder==1&expectMonth!=9
 
     local c3
     local con smoker i.gestation hispanic
@@ -776,7 +778,6 @@ foreach type of local add {
 }
 
 
-exit
 ********************************************************************************
 *** (6) Quality
 ********************************************************************************
@@ -785,7 +786,7 @@ local varsY   motherAge motherAge2
 local control highEd smoker WIC underweight overweight obese ART hispanic
 local qual    birthweight lbw vlbw gestation premature apgar
 
-cap gen quarter4 = birthQuarter==4
+cap gen quarter4 = expectQuarter==4
 lab var quarter4 "Quarter 4"
 
 keep if motherAge>=20&motherAge<=45&`c1'
@@ -833,15 +834,21 @@ postfoot("\bottomrule
 #delimit cr
 estimates clear
 
-*/
+
 ********************************************************************************
 *** (7) Including fetal deaths
 ********************************************************************************
 append using "$DAT/nvssFD2005_2013_all"
 replace motherAge2 = motherAge2/100 if liveBirth==0
 keep if twin==1 & motherAge>=20 & motherAge <= 45 & birthOrder==1
-replace expectMonth = conceptionMonth+9 if liveBirth==0
+
+drop quarter2 quarter3 expectMonth
+gen expectMonth = conceptionMonth+9
 replace expectMonth = expectMonth-12 if expectMonth>12
+gen quarter2 = expectMonth==4|expectMonth==5|expectMonth==6
+gen quarter3 = expectMonth==7|expectMonth==8|expectMonth==9
+lab var quarter2 "Quarter 2"
+lab var quarter3 "Quarter 3"
 gen births = liveBirth==1
 gen fetalDeath = liveBirth==0
 
@@ -913,7 +920,7 @@ foreach type of local add {
 
     local ++k
 }
-exit
+
 tokenize `nam'
 local k=1
 foreach type of local add {

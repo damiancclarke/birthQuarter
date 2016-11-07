@@ -47,59 +47,8 @@ ebr  = '}'
 R2   = 'R$^2$'
 
 
-
 #==============================================================================
-#== (2a) Write birth quarter summary tables NVSS
-#==============================================================================
-for g in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
-    if g == 'All':
-        mnote = 'all '
-        tnote = '(All Mothers)'
-    elif g=='whiteMarried':
-        mnote = 'white, married '
-        tnote = '(White Married Mothers, 20--45)'
-    elif g=='whiteUnmarried':
-        mnote = 'white, unmarried '
-        tnote = '(White Unmarried Mothers, 20--45)'
-    elif g=='blackUnmarried':
-        mnote = 'black, unmarried '
-        tnote = '(Black Unmarried Mothers, 20--45)'
-    sumT = open(TAB + 'birthTimeSum_'+g+'.tex', 'w')
-    NV   = open(RES + 'births/sumstats/FullSample_'+g+'.txt', 'r').readlines()
-    NVj  = open(RES + 'births/sumstats/JustEduc_'+g+'.txt'  , 'r').readlines()
-
-    sumT.write("\\begin{table}[htpb!]"
-               "\\caption{Percent of Births "+tnote+"} \n"
-               "\\label{bqTab:"+g+"Sum}\\begin{center}"
-               "\\begin{tabular}{lcccccc}\n\\toprule \\toprule \n"
-               "& \\multicolumn{4}{c}{Seasons} & "
-               "\\multicolumn{2}{c}{Characteristics} \\\\ "
-               "\cmidrule(r){2-5} \cmidrule(r){6-7} \n"
-               "& Bad    & Good   & Diff. & Ratio & $< $37 & ART \\\\\n"
-               "& Season & Season &       &       &Gestation&     \\\\\n"
-               "&        &        &       &       & Weeks   &     \\\\\\midrule"
-               "\multicolumn{5}{l}{\\textsc{Panel A: By Age}}\\\\"
-               "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
-               "\\begin{footnotesize}\\end{footnotesize}\\\\ \n")
-    
-    sumT.write(NV[1]+'\\\\ \n'+NV[2]+'\\\\ \n'+NV[3]+'\\\\ \n'
-               +NV[4]+'\\\\ \n'+NV[5]+'\\\\ \n &&&&&& \\\\'
-               "\multicolumn{7}{l}{\\textsc{Panel B: By Education}}\\\\"
-               "\n"+"\\begin{footnotesize}\\end{footnotesize}& \n"*4+
-               "\\begin{footnotesize}\\end{footnotesize}\\\\ \n"+
-               NVj[1]+'\\\\ \n'+
-               NVj[2]+'\\\\ \n &&&&&& \\\\')    
-    
-    sumT.write('\n'+mr+mc1+twid[4]+tcm[4]+mc3+
-               "Sample consists of "+mnote+" first-time mothers aged 20--45. \n"
-               "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}"
-               "\\end{center}\\end{table}")
-    
-    sumT.close()
-
-
-#==============================================================================
-#== (3a) Basic Sum stats (NVSS)
+#== (2) Basic Sum stats (NVSS)
 #==============================================================================
 for group in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
     if group == 'All':
@@ -116,7 +65,7 @@ for group in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
         tnote = '(White Unmarried Mothers, 20--45)'
     elif group=='blackUnmarried':
         mnote = 'black, unmarried '
-        mnum  = 16
+        mnum  = 17
         tnote = '(Black Unmarried Mothers, 20--45)'
     
     sumT = open(TAB + 'sumStats_'+ group +'.tex', 'w')
@@ -142,7 +91,7 @@ for group in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
         if i>8 and i<19:
             line = line.replace('\\hline','\\midrule')
             line = line.replace('college','Some College +')
-            line = line.replace('Used ART (2009-2013 only)','Used ART$^{a}$')
+            line = line.replace('ART','Used ART$^{a}$')
             line = line.replace('Received WIC food in Pregnancy','Received WIC food in Pregnancy$^{a}$')
             line = line.replace('Underweight (BMI $<$ 18.5)','Pre-pregnancy Underweight (BMI $<$ 18.5)$^{a}$')
             line = line.replace('Normal Weight (BMI 18.5-25)','Pre-pregnancy Normal Weight (18.5 $\leq$ BMI $<$ 25)$^{a}$')
@@ -194,7 +143,7 @@ for group in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
         if i>8 and i<19:
             line = line.replace('\\hline','\\midrule')
             line = line.replace('college','Some College +')
-            line = line.replace('Used ART (2009-2013 only)','Used ART$^{a}$')
+            line = line.replace('ART','Used ART$^{a}$')
             line = line.replace('Received WIC food in Pregnancy','Received WIC food in Pregnancy$^{a}$')
             line = line.replace('Underweight (BMI $<$ 18.5)','Pre-pregnancy Underweight (BMI $<$ 18.5)$^{a}$')
             line = line.replace('Normal Weight (BMI 18.5-25)','Pre-pregnancy Normal Weight (18.5 $\leq$ BMI $<$ 25)$^{a}$')
@@ -206,9 +155,10 @@ for group in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
     sumT.write('\n'+mr+mc1+twid[1]+tcm[1]+mc3+
                "Sample consists of all " + mnote + " first-time mothers aged  "
                "20-45 who give birth to a singleton child and for whom        "
-               "education and smoking status during pregnancy are available.  "
-               "ART refers to the proportion of women who undertook assisted  "
-               "reproductive technologies that resulted in these births.      "
+               "education, smoking status during pregnancy and gestational    "
+               "length of (child's) birth are available. ART refers to the    "
+               "proportion of women who undertook assisted reproductive       "
+               "technologies that resulted in these births.                   "
                "$^{a}$ Only available from 2009."
                "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}}     "
                "\\end{center}\\end{table}")
@@ -236,19 +186,19 @@ for group in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
 
     sumT.write('\n'+mr+mc1+twid[9]+tcm[9]+mc3+
                "Sample consists of all first-born, singleton children born to "
-               " " + mnote + "mothers aged 20-45 for whom education and       "
-               "smoking status during pregnancy are available. Quarters of    "
-               "birth are determined by the month in which the baby is        "
-               "expected based on conception date.  Quarter 1 refers to       "
-               "January to March, Quarter 2 refers to April to June, Quarter 3"
-               " refers to July to September, and Quarter 4 refers to October "
-               "to December due dates.                                        "
+               " " + mnote + "mothers aged 20-45 for whom education, smoking  "
+               "status during pregnancy and gestational length of (child's)   "
+               "birth are available.  Quarters of birth are determined by the "
+               "month in which the baby is expected based on conception date. "
+               "Quarter 1 refers to January to March, Quarter 2 refers to     "
+               "April to June, Quarter 3 refers to July to September, and     "
+               "Quarter 4 refers to October to December due dates.            "
                "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}}     "
                "\\end{center}\\end{table}")
     sumT.close()
 
 #==============================================================================
-#== (3c) Basic Sum stats (IPUMS)
+#== (3) Basic Sum stats (IPUMS)
 #==============================================================================
 for g in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
     if g == 'All':
