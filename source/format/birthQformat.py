@@ -38,7 +38,7 @@ mc2  = '}}'
 twid = ['10','6','7','7','7','6','5','6','6','6']
 tcm  = ['}{p{16.6cm}}','}{p{15.6cm}}','}{p{15.6cm}}','}{p{17.6cm}}',
         '}{p{11.8cm}}','}{p{11.4cm}}','}{p{9.0cm}}','}{p{14.2cm}}' ,
-        '}{p{16.2cm}}','}{p{11.6cm}}']
+        '}{p{16.2cm}}','}{p{9.9cm}}']
 mc3  = '{\\begin{footnotesize}\\textsc{Notes:} '
 lname = "Fertility$\\times$desire"
 tname = "Twin$\\times$desire"
@@ -92,11 +92,16 @@ for group in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
             line = line.replace('\\hline','\\midrule')
             line = line.replace('college','Some College +')
             line = line.replace('ART','Used ART$^{a}$')
-            line = line.replace('Received WIC food in Pregnancy','Received WIC food in Pregnancy$^{a}$')
-            line = line.replace('Underweight (BMI $<$ 18.5)','Pre-pregnancy Underweight (BMI $<$ 18.5)$^{a}$')
-            line = line.replace('Normal Weight (BMI 18.5-25)','Pre-pregnancy Normal Weight (18.5 $\leq$ BMI $<$ 25)$^{a}$')
-            line = line.replace('Overweight (BMI 25-30)','Pre-pregnancy Overweight (25 $\leq$ BMI $<$ 30)$^{a}$')
-            line = line.replace('Obese (BMI $\geq$ 30)','Pre-pregnancy Obese (BMI $\geq$ 30)$^{a}$')
+            line = line.replace('Received WIC food in Pregnancy',
+                                'Received WIC food in Pregnancy$^{a}$')
+            line = line.replace('Pre-pregnancy Underweight (BMI$ <18.5)$',
+                                'Pre-pregnancy Underweight (BMI $<$ 18.5)$^{a}$')
+            line = line.replace('Normal Weight (BMI 18.5-25)',
+                                'Pre-pregnancy Normal Weight (18.5 $\leq$ BMI $<$ 25)$^{a}$')
+            line = line.replace('Pre-pregnancy Overweight $(25\leq$ BMI$ <30)$',
+                                'Pre-pregnancy Overweight (25 $\leq$ BMI $<$ 30)$^{a}$')
+            line = line.replace('Pre-pregnancy Obese (BMI$ \geq 30)$',
+                                'Pre-pregnancy Obese (BMI $\geq$ 30)$^{a}$')
             line = line.replace('BMI  ','Pre-pregnancy BMI$^{a}$')
             sumT.write(line)
 
@@ -144,11 +149,16 @@ for group in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
             line = line.replace('\\hline','\\midrule')
             line = line.replace('college','Some College +')
             line = line.replace('ART','Used ART$^{a}$')
-            line = line.replace('Received WIC food in Pregnancy','Received WIC food in Pregnancy$^{a}$')
-            line = line.replace('Underweight (BMI $<$ 18.5)','Pre-pregnancy Underweight (BMI $<$ 18.5)$^{a}$')
-            line = line.replace('Normal Weight (BMI 18.5-25)','Pre-pregnancy Normal Weight (18.5 $\leq$ BMI $<$ 25)$^{a}$')
-            line = line.replace('Overweight (BMI 25-30)','Pre-pregnancy Overweight (25 $\leq$ BMI $<$ 30)$^{a}$')
-            line = line.replace('Obese (BMI $\geq$ 30)','Pre-pregnancy Obese (BMI $\geq$ 30)$^{a}$')
+            line = line.replace('Received WIC food in Pregnancy',
+                                'Received WIC food in Pregnancy$^{a}$')
+            line = line.replace('Pre-pregnancy Underweight (BMI$ <18.5)$',
+                                'Pre-pregnancy Underweight (BMI $<$ 18.5)$^{a}$')
+            line = line.replace('Normal Weight (BMI 18.5-25)',
+                                'Pre-pregnancy Normal Weight (18.5 $\leq$ BMI $<$ 25)$^{a}$')
+            line = line.replace('Pre-pregnancy Overweight $(25\leq$ BMI$ <30)$',
+                                'Pre-pregnancy Overweight (25 $\leq$ BMI $<$ 30)$^{a}$')
+            line = line.replace('Pre-pregnancy Obese (BMI$ \geq 30)$',
+                                'Pre-pregnancy Obese (BMI $\geq$ 30)$^{a}$')
             line = line.replace('BMI  ','Pre-pregnancy BMI$^{a}$')
             sumT.write(line)
 
@@ -244,6 +254,7 @@ for g in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
                "household, or currently in school. We retain only women who had   "
                "worked within the previous five years where each occupation must  "
                "have at least 500 women over the entire range of survey years.    "
+               "Birth quarter is based on \emph{actual} birth date.               "
                "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}\\end{center}"
                "\\end{table}")
     sumT.close()

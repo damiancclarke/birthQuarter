@@ -41,11 +41,11 @@ local Xnote  "$ \chi^2 $ test statistics refer to the test that the coefficients
               jointly equal to zero. ";
 local onote  "Optimal age calculates the turning point of the mother's age
               quadratic. ";
+local qnote  "Birth quarter is based on \emph{actual} birth date.";
 #delimit cr
 
 local agecond motherAge>=20&motherAge<=45
 
-/*
 ********************************************************************************
 *** (2) Open data subset to sample of interest (from Sonia's import file)
 ********************************************************************************
@@ -72,7 +72,6 @@ lab var motherAge2   "Mother's Age$^2$ / 100"
 lab var unemployment "Unemployment Rate"
 lab var logInc       "log(household income)"
 
-/*
 ********************************************************************************
 *** (3) regressions: industry (by quarter)
 ********************************************************************************
@@ -144,12 +143,12 @@ foreach type of local add {
              "\multicolumn{3}{p{13.6cm}}{\begin{footnotesize}Sample consists of"
              " all singleton first-born children in the US born to `race' `mar'"
              " mothers aged 20-45 included in 2005-2014 ACS data where the     "
-             "mother is either the head of the                                 "
-             "household or the partner of the head of the household and works  "
-             "in an occupation with at least 500 workers in the full sample.   "
+             "mother is either the head of the household or the partner of the "
+             "head of the household and works in an occupation with at least   "
+             "500 workers in the full sample. `qnote'  "
              "Occupation classification is provided by the 2 digit occupation  "
-             "codes from the census. The omitted occupational category in      "
-             "column 2 is Arts, Design, Entertainment, Sports, and Media, as   "
+             "codes from the census. The omitted occupational category is Arts,"
+             " Design, Entertainment, Sports, and Media, as                    "
              "this occupation has Q2+Q3=0.500(0.500).  F-tests for occupation  "
              "report p-values of joint significance of the dummies, and `Fnote'"
              " The Leamer critical value for the t-statistic is `tL1'. `lnote' "
@@ -193,10 +192,10 @@ foreach type of local add {
              "$\chi^2 $ test of Age Variables&`F1a'&`F2a'\\ \bottomrule         "
              "\multicolumn{3}{p{13.6cm}}{\begin{footnotesize}  Refer to notes   "
              "in table \ref{ACS``k''}.  Results are replicated here using a     "
-             "Logit regression and reporting average marginal effects. $\chi^2$ "
-             "tests for occupation report p-values of joint significance of the "
-             "dummies, and `Xnote' The Leamer critical value for the            "
-             "t-statistic is `tL1'. `lnote' "
+             "Logit regression and reporting average marginal effects. `qnote'  "
+             "$\chi^2$ tests for occupation report p-values of joint            "
+             "significance of the dummies, and `Xnote' The Leamer critical value"
+             " for the t-statistic is `tL1'. `lnote' "
              "\end{footnotesize}}\end{tabular}\end{table}");
     #delimit cr
     estimates clear
@@ -318,9 +317,9 @@ foreach type of local add {
              "\multicolumn{3}{p{13.6cm}}{\begin{footnotesize}Sample consists of "
              "all singleton first-born children born in the US to `race' `mar'  "
              "mothers aged 20-45 included in 2005-2014 ACS data where the mother"
-             " is either the head of the                                        "
-             "household or the partner of the head of the household and works   "
-             "in an occupation with at least 500 workers in the full sample.    "
+             " is either the head of the household or the partner of the head of"
+             " the household and works in an occupation with at least 500       "
+             "workers in the full sample. `qnote'   "
              "Occupation classification is provided by the 2 digit occupation   "
              "codes from the census. The omitted occupational category is Arts, "
              "Design, Entertainment, Sports, and Media, as this occupation has  "
@@ -333,7 +332,7 @@ foreach type of local add {
     restore
     local ++k
 }
-
+exit
 */
 ********************************************************************************
 *** (5) Sumstats (all)
@@ -457,13 +456,93 @@ sum working1 working2 if nchlt==1&nchild==1&eldch==1
 sum working1 working2 if nchlt==1&nchild==1&eldch==2
 sum working1 working2 if nchlt==1&nchild==1&eldch==3
 sum working1 working2 if nchlt==1&nchild==1&eldch==4
+gen teacher=twoLevelOcc =="Education, Training, and Library Occupations"
 
+drop if twoLevelOcc=="Unemployed"
 
 local kid0 nchlt==1&nchild==1&eldch==0
 local kid1 nchlt==1&nchild==1&eldch==1
 local kid2 nchlt==1&nchild==1&eldch==2
 local kid3 nchlt==1&nchild==1&eldch==3
 local kid4 nchlt==1&nchild==1&eldch==4
+
+
+
+file open f1 using "$SUM/jobDynamicsMothers-Teach.tex", write replace
+#delimit ;
+file write f1 "\begin{table}[htpb]\begin{center}"_n
+"\caption{Proportion Working and Birth Dynamics: (Ages 20-45)}"
+"\begin{tabular}{lcccccc} \toprule" _n
+"&\multicolumn{5}{c}{Child's Age}& No Children  \\" _n
+"Occupation&0&1&2&3&4&\\ \midrule" _n;
+#delimit cr
+
+
+file write f1 "\multicolumn{7}{l}{\textbf{White Married}} \\" _n
+foreach n of numlist 0(1)4 {
+    sum working1 if race==1&marst==1&teacher==1&`kid`n''
+    local m`n'=string(r(mean),"%5.3f")
+}
+sum working1 if race==1&marst==1&teacher==1
+local ma = string(r(mean),"%5.3f")
+file write f1 "Education, Training, and Library&`m0'&`m1'&`m2'&`m3'&`m4'&`ma' \\" _n
+foreach n of numlist 0(1)4 {
+    sum working1 if race==1&marst==1&teacher==0&`kid`n''
+    local m`n'=string(r(mean),"%5.3f")
+}
+sum working1 if race==1&marst==1&teacher==0
+local ma = string(r(mean),"%5.3f")
+file write f1 "Not Education, Training, and Library&`m0'&`m1'&`m2'&`m3'&`m4'&`ma' \\" _n
+
+
+
+
+file write f1 "\multicolumn{7}{l}{\textbf{White Unmarried}} \\" _n
+foreach n of numlist 0(1)4 {
+    sum working1 if race==1&marst!=1&teacher==1&`kid`n''
+    local m`n'=string(r(mean),"%5.3f")
+}
+sum working1 if race==1&marst!=1&teacher==1
+local ma = string(r(mean),"%5.3f")
+file write f1 "Education, Training, and Library&`m0'&`m1'&`m2'&`m3'&`m4'&`ma' \\" _n
+foreach n of numlist 0(1)4 {
+    sum working1 if race==1&marst!=1&teacher==0&`kid`n''
+    local m`n'=string(r(mean),"%5.3f")
+}
+sum working1 if race==1&marst!=1&teacher==0
+local ma = string(r(mean),"%5.3f")
+file write f1 "Not Education, Training, and Library&`m0'&`m1'&`m2'&`m3'&`m4'&`ma' \\" _n
+
+
+file write f1 "\multicolumn{7}{l}{\textbf{Black Unmarried}} \\" _n
+foreach n of numlist 0(1)4 {
+    sum working1 if race==2&marst!=1&teacher==1&`kid`n''
+    local m`n'=string(r(mean),"%5.3f")
+}
+sum working1 if race==2&marst!=1&teacher==1
+local ma = string(r(mean),"%5.3f")
+file write f1 "Education, Training, and Library&`m0'&`m1'&`m2'&`m3'&`m4'&`ma' \\" _n
+foreach n of numlist 0(1)4 {
+    sum working1 if race==2&marst!=1&teacher==0&`kid`n''
+    local m`n'=string(r(mean),"%5.3f")
+}
+sum working1 if race==2&marst!=1&teacher==0
+local ma = string(r(mean),"%5.3f")
+file write f1 "Not Education, Training, and Library&`m0'&`m1'&`m2'&`m3'&`m4'&`ma' \\" _n
+
+file write f1 "\midrule "
+file write f1 "\multicolumn{7}{l}{{\footnotesize Unemployed women are also removed from the sample.}}"
+file write f1 "\end{tabular}\end{center}\end{table}"
+file close f1
+exit
+
+
+
+
+
+
+
+
 
 file open f1 using "$SUM/jobDynamicsMothers.tex", write replace
 #delimit ;
@@ -536,74 +615,3 @@ file write f1 "\midrule \end{tabular}\end{center}\end{table}"
 file close f1
 
 
-
-file open f1 using "$SUM/jobDynamicsMothers-2.tex", write replace
-#delimit ;
-file write f1 "\begin{table}[htpb]\begin{center}"_n
-"\caption{Proportion Working and Birth Dynamics: Definition 2 (White, Married, 20-45)}"
-"\begin{tabular}{lcccccc} \toprule" _n
-"&\multicolumn{5}{c}{Child's Age}& No Children  \\" _n
-"Occupation&0&1&2&3&4&\\ \midrule" _n;
-#delimit cr
-
-
-levelsof twoLevelOcc, local(jobs)
-foreach occ of local jobs {
-    foreach n of numlist 0(1)4 {
-        sum working2 if race==1&marst==1&twoLevelOcc=="`occ'"&`kid`n''
-        local m`n'=string(r(mean),"%5.3f")
-    }
-    sum working2 if race==1&marst==1&twoLevelOcc=="`occ'"
-    local ma = string(r(mean),"%5.3f")
-    file write f1 "`occ'&`m0'&`m1'&`m2'&`m3'&`m4'&`ma' \\" _n
-}
-file write f1 "\midrule \end{tabular}\end{center}\end{table}"
-file close f1
-
-
-file open f1 using "$SUM/jobDynamicsMothers_whiteUn-2.tex", write replace
-#delimit ;
-file write f1 "\begin{table}[htpb]\begin{center}"_n
-"\caption{Proportion Working and Birth Dynamics: Definition 2 (White, Unmarried, 20-45)}"
-"\begin{tabular}{lcccccc} \toprule" _n
-"&\multicolumn{5}{c}{Child's Age}& No Children  \\" _n
-"Occupation&0&1&2&3&4&\\ \midrule" _n;
-#delimit cr
-
-
-levelsof twoLevelOcc, local(jobs)
-foreach occ of local jobs {
-    foreach n of numlist 0(1)4 {
-        sum working2 if race==1&marst!=1&twoLevelOcc=="`occ'"&`kid`n''
-        local m`n'=string(r(mean),"%5.3f")
-    }
-    sum working2 if race==1&marst!=1&twoLevelOcc=="`occ'"
-    local ma = string(r(mean),"%5.3f")
-    file write f1 "`occ'&`m0'&`m1'&`m2'&`m3'&`m4'&`ma' \\" _n
-}
-file write f1 "\midrule \end{tabular}\end{center}\end{table}"
-file close f1
-
-
-file open f1 using "$SUM/jobDynamicsMothers_blackUn-2.tex", write replace
-#delimit ;
-file write f1 "\begin{table}[htpb]\begin{center}"_n
-"\caption{Proportion Working and Birth Dynamics: Definition 2 (Black, Unmarried, 20-45)}"
-"\begin{tabular}{lcccccc} \toprule" _n
-"&\multicolumn{5}{c}{Child's Age}& No Children  \\" _n
-"Occupation&0&1&2&3&4&\\ \midrule" _n;
-#delimit cr
-
-
-levelsof twoLevelOcc, local(jobs)
-foreach occ of local jobs {
-    foreach n of numlist 0(1)4 {
-        sum working2 if race==2&marst!=1&twoLevelOcc=="`occ'"&`kid`n''
-        local m`n'=string(r(mean),"%5.3f")
-    }
-    sum working2 if race==2&marst!=1&twoLevelOcc=="`occ'"
-    local ma = string(r(mean),"%5.3f")
-    file write f1 "`occ'&`m0'&`m1'&`m2'&`m3'&`m4'&`ma' \\" _n
-}
-file write f1 "\midrule \end{tabular}\end{center}\end{table}"
-file close f1
