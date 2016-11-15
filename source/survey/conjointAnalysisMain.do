@@ -686,26 +686,41 @@ tab RespTargetWhich if `base'&(parent==1|planning==1)&N==1
 tab RespTargetMonth if `base'&(parent==1|planning==1)&teacher==1&N==1
 tab RespTargetWhich if `base'&(parent==1|planning==1)&teacher==1&N==1
 
-gen estB  = .
-gen estS  = .
-gen estN  = .
-gen group = .
+gen estB    = .
+gen estS    = .
+gen estN    = .
+gen group   = .
+gen wtpB    = .
+gen wtpS    = .
+gen ubound  = .
+gen lbound  = .
+gen uboundw = .
+gen lboundw = .
 
 
 local gn = 1
 foreach gg in teacher==1 teacher==0 married==1 married==0 white==1 /*
 */ white==0 RespEmployment=="Employed" RespEmployment!="Employed"  /*
-*/ someCollege==1 someCollege==0 RespYOB>=1976 RespYOB<1976 {
-    reg chosen `oFEs' _sob* _cost* _gend* _bwt* _dob* if `gg', cluster(ID)
+*/ someCollege==1 someCollege==0 RespYOB>=1976 RespYOB<1976        /*
+*/ white==1&married==1 white==1&married==0 {
+    reg chosen `oFEs' _sob* costNumerical _gend* _bwt* _dob* if `gg', cluster(ID)
     replace estB=_b[_sob2]  in `gn'
     replace estS=_se[_sob2] in `gn'
     replace estN=e(N)       in `gn'
+    replace ubound  = _b[_sob2]+invttail(e(N),0.025)*_se[_sob2] in `gn'
+    replace lbound  = _b[_sob2]-invttail(e(N),0.025)*_se[_sob2] in `gn'
+
+    replace wtpB = -1000*_b[_sob2]/_b[costNumerical] in `gn'
+    nlcom ratio:_b[_sob2]/_b[costNumerical], post
+    replace wtpS = -1000*_se[ratio] in `gn'
+    replace uboundw = wtpB+invttail(estN,0.025)*wtpS in `gn'
+    replace lboundw = wtpB-invttail(estN,0.025)*wtpS in `gn'
+
+    
     local e`gn' = e(N)      
     replace group=`gn'      in `gn'
     local gn=`gn'+3
 }
-gen ubound = estB+invttail(estN,0.025)*estS
-gen lbound = estB-invttail(estN,0.025)*estS
 
 format estB %5.2f
 
@@ -716,20 +731,38 @@ yline(0, lcolor(red) lpattern(dash)) bcolor(dknavy) scheme(lean1)
 xlabel(1 "Teachers" 4 "Non-Teachers" 7 "Married" 10 "Non-Married"
        13 "White" 16 "Other Race" 19 "Employed" 22 "Not Employed"
        25 "Some College +" 28 "No College" 31 "18-40 Years"
-       34 "40+ Years", angle(60))
+       34 "40+ Years" 37 "White, Married" 40 "White, Unmarried", angle(60))
 text(-0.01 1 "N=`e1'", size(vsmall)) text(-0.005 4 "N=`e4'", size(vsmall))
 text(-0.01 7 "N=`e7'", size(vsmall)) text(-0.005 10 "N=`e10'", size(vsmall))
 text(-0.01 13 "N=`e13'", size(vsmall)) text(-0.005 16 "N=`e16'", size(vsmall))
 text(-0.01 19 "N=`e19'", size(vsmall)) text(-0.005 22 "N=`e22'", size(vsmall))
 text(-0.01 25 "N=`e25'", size(vsmall)) text(-0.005 28 "N=`e28'", size(vsmall))
 text(-0.01 31 "N=`e31'", size(vsmall)) text(-0.005 34 "N=`e34'", size(vsmall))
+text(-0.01 37 "N=`e37'", size(vsmall)) text(-0.005 39.5 "N=`e40'", size(vsmall))
 legend(label(1 "Preference") label(2 "95% CI")) ytitle("Spring Preference");
 graph export "$OUT/preferencesGroups.eps", as(eps) replace;
+
+
+twoway bar wtpB group, barwidth(1.6) ylabel(-200(200)1800)
+yline(0, lcolor(red) lpattern(dash)) bcolor(dknavy) scheme(lean1) 
+|| rcap uboundw lboundw group, xtitle("") lcolor(black)
+xlabel(1 "Teachers" 4 "Non-Teachers" 7 "Married" 10 "Non-Married"
+       13 "White" 16 "Other Race" 19 "Employed" 22 "Not Employed"
+       25 "Some College +" 28 "No College" 31 "18-40 Years"
+       34 "40+ Years" 37 "White, Married" 40 "White, Unmarried", angle(60))
+text(-150 1 "N=`e1'", size(vsmall))   text(-75 4 "N=`e4'", size(vsmall))
+text(-150 7 "N=`e7'", size(vsmall))   text(-75 10 "N=`e10'", size(vsmall))
+text(-150 13 "N=`e13'", size(vsmall)) text(-75 16 "N=`e16'", size(vsmall))
+text(-150 19 "N=`e19'", size(vsmall)) text(-75 22 "N=`e22'", size(vsmall))
+text(-150 25 "N=`e25'", size(vsmall)) text(-75 28 "N=`e28'", size(vsmall))
+text(-150 31 "N=`e31'", size(vsmall)) text(-75 34 "N=`e34'", size(vsmall))
+text(-150 37 "N=`e37'", size(vsmall)) text(-75 39.5 "N=`e40'", size(vsmall))
+legend(label(1 "WTP") label(2 "95% CI")) ytitle("Spring Willingness to Pay");
+graph export "$OUT/wtpsGroups.eps", as(eps) replace;
 #delimit cr
 
+reg chosen `oFEs' _sob* _cost* _gend* _bwt* _dob*, cluster(ID)
 exit
-
-
 
 
 
