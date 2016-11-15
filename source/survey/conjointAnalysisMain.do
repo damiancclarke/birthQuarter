@@ -124,8 +124,8 @@ lab var mturkSal  "Hourly earnings on MTurk"
 #delimit ;
 local statform cells("count(label(N)) mean(fmt(2) label(Mean))
 sd(fmt(2) label(Std.\ Dev.)) min(fmt(2) label(Min)) max(fmt(2) label(Max))");
-estpost sum sex age educY highEduc parent nchild
-black white hispanic married employed ftotinc teacher mturkSal;
+estpost sum sex age hispanic black white hispanic married highEduc educY
+employed ftotinc teacher parent nchild mturkSal;
 #delimit cr
 estout using "$OUT/MTurkSum.tex", replace label style(tex) `statform'
 
@@ -686,6 +686,53 @@ tab RespTargetWhich if `base'&(parent==1|planning==1)&N==1
 tab RespTargetMonth if `base'&(parent==1|planning==1)&teacher==1&N==1
 tab RespTargetWhich if `base'&(parent==1|planning==1)&teacher==1&N==1
 
+gen estB  = .
+gen estS  = .
+gen estN  = .
+gen group = .
+
+
+local gn = 1
+foreach gg in teacher==1 teacher==0 married==1 married==0 white==1 /*
+*/ white==0 RespEmployment=="Employed" RespEmployment!="Employed"  /*
+*/ someCollege==1 someCollege==0 RespYOB>=1976 RespYOB<1976 {
+    reg chosen `oFEs' _sob* _cost* _gend* _bwt* _dob* if `gg', cluster(ID)
+    replace estB=_b[_sob2]  in `gn'
+    replace estS=_se[_sob2] in `gn'
+    replace estN=e(N)       in `gn'
+    local e`gn' = e(N)      
+    replace group=`gn'      in `gn'
+    local gn=`gn'+3
+}
+gen ubound = estB+invttail(estN,0.025)*estS
+gen lbound = estB-invttail(estN,0.025)*estS
+
+format estB %5.2f
+
+#delimit ;
+twoway bar estB group, barwidth(1.6) ylabel(-0.02(0.02)0.10)
+yline(0, lcolor(red) lpattern(dash)) bcolor(dknavy) scheme(lean1) 
+|| rcap ubound lbound group, xtitle("") lcolor(black)
+xlabel(1 "Teachers" 4 "Non-Teachers" 7 "Married" 10 "Non-Married"
+       13 "White" 16 "Other Race" 19 "Employed" 22 "Not Employed"
+       25 "Some College +" 28 "No College" 31 "18-40 Years"
+       34 "40+ Years", angle(60))
+text(-0.01 1 "N=`e1'", size(vsmall)) text(-0.005 4 "N=`e4'", size(vsmall))
+text(-0.01 7 "N=`e7'", size(vsmall)) text(-0.005 10 "N=`e10'", size(vsmall))
+text(-0.01 13 "N=`e13'", size(vsmall)) text(-0.005 16 "N=`e16'", size(vsmall))
+text(-0.01 19 "N=`e19'", size(vsmall)) text(-0.005 22 "N=`e22'", size(vsmall))
+text(-0.01 25 "N=`e25'", size(vsmall)) text(-0.005 28 "N=`e28'", size(vsmall))
+text(-0.01 31 "N=`e31'", size(vsmall)) text(-0.005 34 "N=`e34'", size(vsmall))
+legend(label(1 "Preference") label(2 "95% CI")) ytitle("Spring Preference");
+graph export "$OUT/preferencesGroups.eps", as(eps) replace;
+#delimit cr
+
+exit
+
+
+
+
+
 #delimit ;
 local conds all==1;
 local names All;
@@ -705,9 +752,9 @@ local nvar1 _bwt2 _bwt3 _bwt4 _bwt5 _bwt6 _bwt7 _bwt8 _bwt9 _bwt10 _bwt11
 local nvar2 _dob2
 
 qui reg chosen `oFEs' _sob* _cost* _gend* _bwt* _dob*
+local tvL  = sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1))
 local pvL  = ttail(e(N),sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)))*2
-dis `pvL'
-exit
+dis `pvL'    
 
 local ll=1
 foreach c of local conds {
@@ -771,9 +818,9 @@ foreach c of local conds {
     est store m`ll'
     estadd scalar wtp = -1000*_b[goodSeason]/_b[costNumerical]
     nlcom ratio:_b[goodSeason]/_b[costNumerical], post
-    local lb = string(-1000*(_b[ratio]-1.96*_se[ratio]), "%5.1f")
-    local ub = string(-1000*(_b[ratio]+1.96*_se[ratio]), "%5.1f")
-    estadd local conf95 "[`lb';`ub']": m`ll'
+    local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
+    estadd local conf95 "[`ub';`lb']": m`ll'
     
     eststo: logit chosen spring summer _sob4 costNumerical `ctrl' if `c', cluster(ID)
     margins, dydx(spring summer costNumerical  _gend2 `nvar1' `nvar2' _sob4) post
@@ -781,14 +828,14 @@ foreach c of local conds {
     estadd scalar wtpSp = -1000*_b[spring]/_b[costNumerical]
     estadd scalar wtpSu = -1000*_b[summer]/_b[costNumerical]
     nlcom ratio:_b[spring]/_b[costNumerical], post
-    local lb = string(-1000*(_b[ratio]-1.96*_se[ratio]), "%5.1f")
-    local ub = string(-1000*(_b[ratio]+1.96*_se[ratio]), "%5.1f")
-    estadd local conf95sp "[`lb';`ub']": n`ll'
+    local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
+    estadd local conf95sp "[`ub';`lb']": n`ll'
     est restore n`ll'
     nlcom ratio:_b[summer]/_b[costNumerical], post
-    local lb = string(-1000*(_b[ratio]-1.96*_se[ratio]), "%5.1f")
-    local ub = string(-1000*(_b[ratio]+1.96*_se[ratio]), "%5.1f")
-    estadd local conf95su "[`lb';`ub']": n`ll'
+    local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
+    estadd local conf95su "[`ub';`lb']": n`ll'
     local ++ll
 }
 
@@ -852,6 +899,34 @@ note(Total respondents = `=`Nobs'/14'.  Total profiles = `Nobs'.);
 #delimit cr
 graph export "$OUT/Conjoint-FullGroup_continuous.eps", replace
 drop Est UB LB Y
+
+
+
+reg chosen `oFEs' _sob* costNumerical _gend* _bwt* _dob*, cluster(ID)
+#delimit ;
+local vars _sob2 _sob3 _sob4 _gend2 _bwt2 _bwt3 _bwt4 _bwt5 _bwt6 _bwt7 _bwt8
+           _bwt9 _bwt10 _bwt11  _dob2;
+local wts `" "5lbs, 13oz" "6lbs, 3oz" "6lbs, 8oz" "6lbs, 13oz" "7lbs, 3oz"
+          "7lbs, 8oz" "7lbs, 13oz" "8lbs, 3oz" "8lbs, 8oz" "8lbs, 13oz" "';
+#delimit cr
+foreach var of varlist `vars' {
+    local v`var'= -1000*_b[`var']/_b[costNumerical]
+}
+
+local bws _bwt2 _bwt3 _bwt4 _bwt5 _bwt6 _bwt7 _bwt8 _bwt9 _bwt10 _bwt11
+tokenize `bws'
+foreach bw of local wts {
+    local k=1
+    foreach sb of varlist _sob2 _sob3 _sob4 {
+        if `k'==1 local sbn "Spring"
+        if `k'==2 local sbn "Winter"
+        if `k'==3 local sbn "Fall"
+        local vC = string(`v`1''+`v`sb''+`v_dob2'+`v_gend2',"%5.3f")
+        dis "Comparative WTP of a girl, born weekend with `bw' and `sbn' is: $`vC'"
+    }
+    macro shift
+}
+
 
 
 
@@ -1009,9 +1084,9 @@ foreach c of local conds {
     est store q`ll'
     estadd scalar wtp = -1000*_b[goodSeason]/_b[costNumerical]
     nlcom ratio:_b[goodSeason]/_b[costNumerical], post
-    local lb = string(-1000*(_b[ratio]-1.96*_se[ratio]), "%5.1f")
-    local ub = string(-1000*(_b[ratio]+1.96*_se[ratio]), "%5.1f")
-    estadd local conf95 "[`lb';`ub']": q`ll'
+    local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
+    estadd local conf95 "[`ub';`lb']": q`ll'
 
     eststo: logit chosen spring summer _sob4 costNumerical `ctrl' if `c', cluster(ID)
     margins, dydx(spring summer costNumerical _gend2 `nvar2' _sob4) post
@@ -1019,14 +1094,14 @@ foreach c of local conds {
     estadd scalar wtpSp = -1000*_b[spring]/_b[costNumerical]
     estadd scalar wtpSu = -1000*_b[summer]/_b[costNumerical]
     nlcom ratio:_b[spring]/_b[costNumerical], post
-    local lb = string(-1000*(_b[ratio]-1.96*_se[ratio]), "%5.1f")
-    local ub = string(-1000*(_b[ratio]+1.96*_se[ratio]), "%5.1f")
-    estadd local conf95sp "[`lb';`ub']": r`ll'
+    local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
+    estadd local conf95sp "[`ub';`lb']": r`ll'
     est restore r`ll'
     nlcom ratio:_b[summer]/_b[costNumerical], post
-    local lb = string(-1000*(_b[ratio]-1.96*_se[ratio]), "%5.1f")
-    local ub = string(-1000*(_b[ratio]+1.96*_se[ratio]), "%5.1f")
-    estadd local conf95su "[`lb';`ub']": r`ll'
+    local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
+    estadd local conf95su "[`ub';`lb']": r`ll'
     local ++ll
 }
 
@@ -1275,9 +1350,9 @@ foreach c of local conds {
     est store o`ll'
     estadd scalar wtp = -1000*_b[goodSeason]/_b[costNumerical]
     nlcom ratio:_b[goodSeason]/_b[costNumerical], post
-    local lb = string(-1000*(_b[ratio]-1.96*_se[ratio]), "%5.1f")
-    local ub = string(-1000*(_b[ratio]+1.96*_se[ratio]), "%5.1f")
-    estadd local conf95 "[`lb';`ub']": o`ll'
+    local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
+    estadd local conf95 "[`ub';`lb']": o`ll'
 
     cap {
         eststo: logit chosen spring summer _sob4 costNumerical `ctrl' if `c', cluster(ID)
@@ -1286,14 +1361,14 @@ foreach c of local conds {
         estadd scalar wtpSp = -1000*_b[spring]/_b[costNumerical]
         estadd scalar wtpSu = -1000*_b[summer]/_b[costNumerical]
         nlcom ratio:_b[spring]/_b[costNumerical], post
-        local lb = string(-1000*(_b[ratio]-1.96*_se[ratio]), "%5.1f")
-        local ub = string(-1000*(_b[ratio]+1.96*_se[ratio]), "%5.1f")
-        estadd local conf95sp "[`lb';`ub']": p`ll'
+        local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
+        local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
+        estadd local conf95sp "[`ub';`lb']": p`ll'
         est restore p`ll'
         nlcom ratio:_b[summer]/_b[costNumerical], post
-        local lb = string(-1000*(_b[ratio]-1.96*_se[ratio]), "%5.1f")
-        local ub = string(-1000*(_b[ratio]+1.96*_se[ratio]), "%5.1f")
-        estadd local conf95su "[`lb';`ub']": p`ll'
+        local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
+        local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
+        estadd local conf95su "[`ub';`lb']": p`ll'
     }
     local ++ll
 }
@@ -1373,22 +1448,23 @@ lab var goodSeason "Quarter 2 or Quarter 3"
 #delimit ;
 esttab n1 p1 r1 using "$OUT/conjointWTP-seasons.tex", replace
 cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
-(wtpSp conf95sp wtpSu conf95su N, fmt(%5.1f %5.1f %9.0g)
- label("WTP (spring)" "95\% CI" "WTP (summer)" "95\% CI" Observations))
+(wtpSp conf95sp N, fmt(%5.1f %5.1f %9.0g) label("WTP for Spring" "95\% CI"
+                                                Observations))
 starlevel ("$ ^{\ddagger} $" `pvL') collabels(,none)
 mlabels("Full Sample" "BW Sample" "DoB Sample") booktabs
 label title("Birth Characteristics and Willingness to Pay for Season of Birth") 
 keep(spring summer _sob4 costNumerical _gend2 `nvar1' `nvar2') style(tex) 
 postfoot("\bottomrule           "
-         "\multicolumn{4}{p{9.8cm}}{\begin{footnotesize} Average marginal   "
-         "from a logit regression are displayed. All columns include         "
+         "\multicolumn{4}{p{9.8cm}}{\begin{footnotesize} Average marginal    "
+         "effects from a logit regression are displayed. All columns include "
          "option order fixed effects, round fixed effects and controls for   "
          "all alternative characteristics (day of birth and gender). Standard"
          " errors are clustered by respondent. Willingness to pay and its    "
          "95\% confidence interval is estimated based on the ratio of costs  "
-         "to the probability of choosing good season.  The 95\% confidence   "
+         "to the probability of choosing a spring birth. The 95\% confidence "
          "interval is calculated using the delta method for the (non-linear) "
-         "ratio. $^{\ddagger}$ Siginificant based on Leamer criterion. "
+         "ratio, with confidence levels based on Leamer values. $^{\ddagger}$ "
+         "Siginificant based on Leamer criterion at 5\%."
          "\end{footnotesize}}\end{tabular}\end{table}");
 
 esttab m1 o1 q1 using "$OUT/conjointWTP.tex", replace
@@ -1400,15 +1476,16 @@ mlabels("Full Sample" "BW Sample" "DoB Sample") booktabs
 label title("Birth Characteristics and Willingness to Pay for Season of Birth") 
 keep(goodSeason costNumerical _gend2 `nvar1' `nvar2') style(tex) 
 postfoot("\bottomrule           "
-         "\multicolumn{4}{p{9.8cm}}{\begin{footnotesize} Average marginal   "
-         "from a logit regression are displayed. All columns include         "
+         "\multicolumn{4}{p{9.8cm}}{\begin{footnotesize} Average marginal    "
+         "effects from a logit regression are displayed. All columns include "
          "option order fixed effects, round fixed effects and controls for   "
          "all alternative characteristics (day of birth and gender). Standard"
          " errors are clustered by respondent. Willingness to pay and its    "
          "95\% confidence interval is estimated based on the ratio of costs  "
          "to the probability of choosing good season.  The 95\% confidence   "
          "interval is calculated using the delta method for the (non-linear) "
-         "ratio. $^{\ddagger}$ Siginificant based on Leamer criterion."
+         "ratio, with confidence levels based on Leamer values. $^{\ddagger}$ "
+         "Siginificant based on Leamer criterion at 5\%."
          "\end{footnotesize}}\end{tabular}\end{table}");
 
 #delimit cr
