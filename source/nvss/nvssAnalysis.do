@@ -196,7 +196,7 @@ foreach type of local add {
     }
     local ++k
 }
-
+*/
 ********************************************************************************
 *** (3d) Age plots by month (ART, no ART)
 ********************************************************************************
@@ -218,9 +218,11 @@ local tw &twin==0
 #delimit ;
 local add `" "20-45 All Observations" "20-45 White married" "20-45 White women"
              "20-45 White unmarried" "20-45 Black unmarried"
-             "Second births" "Including twins" "';
+             "Second births" "Second births White unmarried" "Including twins" "';
 local nam All whiteMarried whiteAll whiteUnmarried blackUnmarried secondBirths
-          wTwins;
+          secondBirthsWU wTwins;
+local add `" "Second births White unmarried" "';
+local nam secondBirthsWU;
 #delimit cr
 
 tokenize `nam'
@@ -233,7 +235,8 @@ foreach type of local add {
     if `k'==4 local gg motherAge>=20&motherAge<=45&white==1&married==0`bb'`tw'
     if `k'==5 local gg motherAge>=20&motherAge<=45&black==1&married==0`bb'`tw'
     if `k'==6 local gg motherAge>=20&motherAge<=45&white==1&married==1&birthOrder==2`tw'
-    if `k'==7 local gg motherAge>=20&motherAge<=45&white==1&married==1`bb'
+    if `k'==1 local gg motherAge>=20&motherAge<=45&white==1&married==0&birthOrder==2`tw'
+    if `k'==8 local gg motherAge>=20&motherAge<=45&white==1&married==1`bb'
     
     preserve
     keep if `gg'
@@ -317,7 +320,8 @@ foreach type of local add {
     if `k'==4 local gg motherAge>=20&motherAge<=45&white==1&married==0`bb'`tw'
     if `k'==5 local gg motherAge>=20&motherAge<=45&black==1&married==0`bb'`tw'
     if `k'==6 local gg motherAge>=20&motherAge<=45&white==1&married==1&birthOrder==2`tw'
-    if `k'==7 local gg motherAge>=20&motherAge<=45&white==1&married==1`bb'
+    if `k'==1 local gg motherAge>=20&motherAge<=45&white==1&married==0&birthOrder==2`tw'
+    if `k'==8 local gg motherAge>=20&motherAge<=45&white==1&married==1`bb'
     
     preserve
     keep if `gg'
@@ -392,7 +396,8 @@ foreach type of local add {
     if `k'==4 local gg motherAge>=20&motherAge<=45&white==1&married==0`bb'`tw'
     if `k'==5 local gg motherAge>=20&motherAge<=45&black==1&married==0`bb'`tw'
     if `k'==6 local gg motherAge>=20&motherAge<=45&white==1&married==1&birthOrder==2`tw'
-    if `k'==7 local gg motherAge>=20&motherAge<=45&white==1&married==1`bb'
+    if `k'==1 local gg motherAge>=20&motherAge<=45&white==1&married==0&birthOrder==2`tw'
+    if `k'==8 local gg motherAge>=20&motherAge<=45&white==1&married==1`bb'
     
     preserve
     keep if `gg'
@@ -414,7 +419,7 @@ foreach type of local add {
     restore
 }
 
-*/
+
 
 ********************************************************************************
 *** (4) Open data for regressions
@@ -516,7 +521,7 @@ foreach type of local add {
     restore
     local ++k
 }
-
+*/
 
 ********************************************************************************
 *** (5b) Alternative Regressions
@@ -525,25 +530,33 @@ foreach type of local add {
 local add `" "Excluding November and December conceptions"
              "Excluding December conceptions"
              "for Second births"
+             "for Second births, White unmarried"
 "with state-specific linear trends and unemployment rate at conception" "';
-local nam NoNovDec NoDec Birth2 StateT;
+local nam NoNovDec NoDec Birth2 Birth2WU StateT;
+local add `" "for Second births" "';
+local nam Birth2WU;
 #delimit cr
 tokenize `nam'
 
 local k=1
 foreach type of local add {
-    if `k'==1 local gg twin==1&liveBirth==1&birthOrder==1&expectMonth!=9&expectMonth!=8
-    if `k'==2 local gg twin==1&liveBirth==1&birthOrder==1&expectMonth!=9
-    if `k'==3 local gg twin==1&liveBirth==1&birthOrder==2
-    if `k'==4 local gg twin==1&liveBirth==1&birthOrder==1
+    if `k'==1 local gg twin==1&liveBirth==1&birthOrder==1&expectMonth!=9&expectMonth!=8&married==1
+    if `k'==2 local gg twin==1&liveBirth==1&birthOrder==1&expectMonth!=9&married==1
+    if `k'==3 local gg twin==1&liveBirth==1&birthOrder==2&married==1
+    if `k'==4 local gg twin==1&liveBirth==1&birthOrder==2&married==0
+    if `k'==5 local gg twin==1&liveBirth==1&birthOrder==1&married==1
 
     local ff first
-    if `k'==3 local ff second
+    local mm married
+    local MM Married
+    if `k'==3|`k'==4 local ff second
+    if `k'==4 local mm unmarried
+    if `k'==4 local MM Unmarried
     local c3
-    if `k'==4 local c3  i.fips#c.year value
+    if `k'==5 local c3  i.fips#c.year value
     local con smoker i.gestation hispanic
     preserve
-    keep if motherAge>=20&motherAge<=45&white==1&married==1&`gg'
+    keep if motherAge>=20&motherAge<=45&white==1&`gg'
     count
     
     foreach Q in 2 3 {    
@@ -579,7 +592,7 @@ foreach type of local add {
         local opt5 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
 
         #delimit ;
-        local not "All singleton, `ff' births occurring to white, married
+        local not "All singleton, `ff' births occurring to white, `mm'
         women aged 20-45 are included. `Fnote' Leamer critical values refer
         to Leamer/Schwartz/Deaton critical 5\% values adjusted for sample
         size. The Leamer critical value for a t-statistic is `tL1' in
@@ -588,7 +601,7 @@ foreach type of local add {
 
         esttab est3 est2 est1 est4 est5 using "$OUT/NVSSBinaryQ`Q'_``k''.tex",
         replace `estopt' keep(`age' `edu' smoker `c2' hispanic) 
-        title("Season of Birth Correlates `type': Quarter `Q' (White Married Mothers, 20--45)") 
+        title("Season of Birth Correlates `type': Quarter `Q' (White `MM' Mothers, 20--45)") 
         style(tex) mlabels(, depvar) booktabs 
         starlevel ("$ ^{\ddagger} $" `pvL')
         postfoot("F-test of Age Variables  &`F3a'&`F2a'&`F1a'&`F4a'&`F5a' \\ "
@@ -932,6 +945,15 @@ foreach type of local add {
     xlabel(1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug"
            9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec") note("Number of observations=`NN'"); 
     graph export "$GRA/birthsFdeathsExp-``k''.eps", as(eps) replace;
+
+    local max2 = 1-`min';
+    local min2 = 1-`max';
+    twoway line birthsTotal expectedMo, lcolor(black) lwidth(thick) scheme(s1mono)
+    ylabel(`min2'(`del')`max2')
+    ytitle("Births/(Fetal Deaths+Births)") xtitle("Month of Expected Birth")
+    xlabel(1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug"
+           9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec") note("Number of observations=`NN'"); 
+    graph export "$GRA/birthsFdeathsExp-``k''-2.eps", as(eps) replace;
     #delimit cr
     restore
 
