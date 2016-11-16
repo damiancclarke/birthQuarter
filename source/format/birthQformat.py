@@ -50,7 +50,9 @@ R2   = 'R$^2$'
 #==============================================================================
 #== (2) Basic Sum stats (NVSS)
 #==============================================================================
-for group in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
+for group in ['All','whiteMarried','whiteUnmarried','blackUnmarried',
+              'whiteMarried-b2','whiteUnmarried-b2']:
+    order = 'first'
     if group == 'All':
         mnote = 'all '
         mnum  = 20
@@ -59,10 +61,20 @@ for group in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
         mnote = 'white, married '
         mnum  = 17
         tnote = '(White Married Mothers, 20--45)'
+    elif group=='whiteMarried-b2':
+        mnote = 'white, married '
+        mnum  = 17
+        tnote = '(White Married Mothers, 20--45, Second births)'
+        order = 'second'
     elif group=='whiteUnmarried':
         mnote = 'white, unmarried '
         mnum  = 17
         tnote = '(White Unmarried Mothers, 20--45)'
+    elif group=='whiteUnmarried-b2':
+        mnote = 'white, unmarried '
+        mnum  = 17
+        tnote = '(White Unmarried Mothers, 20--45, Second births)'
+        order = 'second'
     elif group=='blackUnmarried':
         mnote = 'black, unmarried '
         mnum  = 17
@@ -114,7 +126,7 @@ for group in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
             sumT.write(line)
 
     sumT.write('\n'+mr+mc1+twid[1]+tcm[1]+mc3+
-               "Sample consists of all first-born, singleton children born to    "
+               "Sample consists of all "+order+"-born, singleton children born to"
                " " + mnote + "mothers aged 20-45 for whom      "
                "education and smoking during pregnancy are available. Quarter 2  "
                "and quarter 3 births are determined by month (Apr-Jun and        "
@@ -163,7 +175,7 @@ for group in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
             sumT.write(line)
 
     sumT.write('\n'+mr+mc1+twid[1]+tcm[1]+mc3+
-               "Sample consists of all " + mnote + " first-time mothers aged  "
+               "Sample consists of all " + mnote + order+"-time mothers aged  "
                "20-45 who give birth to a singleton child and for whom        "
                "education, smoking status during pregnancy and gestational    "
                "length of (child's) birth are available. ART refers to the    "
@@ -195,9 +207,9 @@ for group in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
             sumT.write(line)
 
     sumT.write('\n'+mr+mc1+twid[9]+tcm[9]+mc3+
-               "Sample consists of all first-born, singleton children born to "
-               " " + mnote + "mothers aged 20-45 for whom education, smoking  "
-               "status during pregnancy and gestational length of (child's)   "
+               "Sample consists of all "+order+"-born, singleton children born"
+               " to " + mnote + "mothers aged 20-45 for whom education, smoking"
+               " status during pregnancy and gestational length of (child's)  "
                "birth are available.  Quarters of birth are determined by the "
                "month in which the baby is expected based on conception date. "
                "Quarter 1 refers to January to March, Quarter 2 refers to     "
@@ -211,6 +223,7 @@ for group in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
 #== (3) Basic Sum stats (IPUMS)
 #==============================================================================
 for g in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
+    order = 'first'
     if g == 'All':
         mnote = 'all '
         tnote = '(All Mothers)'
@@ -247,14 +260,15 @@ for g in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
                 sumT.write(line)
 
     sumT.write('\n'+mr+mc1+twid[7]+tcm[7]+mc3+
-               "Summary statistics are for "+mnote+"  mothers aged 20-45 who are  "
-               "either head of the household or spouse of the head of the         "
-               "household, and have a first singleton child who is \emph{at most} "
-               "one year old. We exclude women who are in the military, in a farm "
-               "household, or currently in school. We retain only women who had   "
-               "worked within the previous five years where each occupation must  "
-               "have at least 500 women over the entire range of survey years.    "
-               "Birth quarter is based on \emph{actual} birth date.               "
+               "Summary statistics are for "+mnote+"  mothers aged 20-45 who are "
+               "either head of the household or spouse of the head of the        "
+               "household, and have a " + order + " singleton child who is       "
+               "\emph{at most} one year old. We exclude women who are in the     "
+               "military, in a farm household, or currently in school. We retain "
+               "only women who had worked within the previous five years where   "
+               "each occupation must have at least 500 women over the entire     "
+               "range of survey years. Birth quarter is based on \emph{actual}   "
+               "birth quarter.            "
                "\\end{footnotesize}} \\\\ \\bottomrule \n \\end{tabular}\\end{center}"
                "\\end{table}")
     sumT.close()
@@ -267,6 +281,11 @@ for g in ['All','whiteMarried','whiteUnmarried','blackUnmarried']:
 AllTabs = ['IPUMSIndustryQ2_All'            ,'IPUMSIndustryQ3_All'            ,
            'IPUMSIndustry_All'              ,'IPUMSIndustry_whiteMarried'     ,
            'IPUMSIndustry_blackUnmarried'   ,'IPUMSIndustry_whiteUnmarried'   ,
+           'IPUMSIndustry_whiteMarried-emp','IPUMSIndustry_whiteMarried-unemp',
+           'IPUMSIndustry_whiteMarried-work10p','IPUMSIndustry_whiteMarried-work10l',
+           'IPUMSIndustry_whiteMarried-work20p','IPUMSIndustry_whiteMarried-work20l',
+           'IPUMSIndustry_whiteMarried-work30p','IPUMSIndustry_whiteMarried-work30l',
+           'IPUMSIndustry_whiteMarried-work40p','IPUMSIndustry_whiteMarried-work40l',
            'IPUMSIndustryLogit_All'         ,'IPUMSIndustryLogit_whiteMarried',
            'IPUMSIndustryNoWork_whiteMarried','IPUMSIndustryInc_whiteMarried' ,
            'IPUMSIndustryLogitNoWork_whiteMarried'                            ,
