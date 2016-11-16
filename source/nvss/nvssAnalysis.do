@@ -48,7 +48,7 @@ local enote  "Heteroscedasticity robust standard errors are reported in
 lab def mon 1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug"
             9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec";
 #delimit cr
-/*
+
 ********************************************************************************
 *** (2) Open data for descriptives
 ********************************************************************************
@@ -63,6 +63,7 @@ gen expectQuarter = ceil(expectMonth/3)
 lab var quarter2 "Quarter 2"
 lab var quarter3 "Quarter 3"
 
+/*
 preserve
 keep if motherAge>=20&motherAge<=45
 gen     group=1 if white==1&married==1&birthOrder==1
@@ -99,16 +100,80 @@ graph bar twins, over(group) scheme(s1mono) ytitle("Proportion of Twins");
 #delimit cr
 graph export "$GRA/twinGroups-noART.eps", as(eps) replace
 restore
-
+*/
 
 keep if twin==1
 replace twin=twin-1
-keep if birthOrder==1
 gen birth = 1
 
+********************************************************************************
+*** (3b) Summary stats 
+********************************************************************************
+#delimit ;
+local add `" "20-45 All Observations" "20-45 White married" "20-45 White women"
+             "20-45 White unmarried" "20-45 Black unmarried"
+             "20-45 White married" "20-45 White unmarried" "';
+local nam All whiteMarried whiteAll whiteUnmarried blackUnmarried
+whiteMarried-b2 whiteUnmarried-b2;
+#delimit cr
+tokenize `nam'
+
+gen Quarter1 = expectQuarter == 1 
+gen Quarter2 = expectQuarter == 2 
+gen Quarter3 = expectQuarter == 3 
+gen Quarter4 = expectQuarter == 4 
+lab var Quarter1    "Quarter 1 Birth"
+lab var Quarter2    "Quarter 2 Birth"
+lab var Quarter3    "Quarter 3 Birth"
+lab var Quarter4    "Quarter 4 Birth"
+
+local k=1
+foreach type of local add {
+    if `k'<6 {
+        local ++k
+        exit
+    }
+    if `k'==1 local gg motherAge>=20&motherAge<=45&birthOrder==1
+    if `k'==2 local gg motherAge>=20&motherAge<=45&white==1&married==1&birthOrder==1
+    if `k'==3 local gg motherAge>=20&motherAge<=45&white==1&birthOrder==1
+    if `k'==4 local gg motherAge>=20&motherAge<=45&white==1&married==0&birthOrder==1
+    if `k'==5 local gg motherAge>=20&motherAge<=45&black==1&married==0&birthOrder==1
+    if `k'==6 local gg motherAge>=20&motherAge<=45&white==1&married==1&birthOrder==2
+    if `k'==7 local gg motherAge>=20&motherAge<=45&white==1&married==0&birthOrder==2
+    local mc hispanic
+    if `k'==1 local mc black white hispanic married
+    if `k'==3 local mc hispanic married
+
+    #delimit ;
+    local Mum  motherAge `mc' young age2024 age2527 age2831 age3239 age4045;
+    local MumP college educCat smoker ART WIC BMI underwe normalBM overwe obese;
+    local Kid  Quarter1 Quarter2 Quarter3 Quarter4 gestat premature female
+    birthweight lbw apgar;
+    #delimit cr
+    
+    foreach st in Mum Kid MumP {
+        preserve
+        keep if smoker!=.&college!=.&twin==0&`gg'
+        sum ``st''
+
+        #delimit ;
+        estpost tabstat ``st'', statistics(count mean sd min max)
+        columns(statistics);
+        esttab using "$SUM/samp`st'_``k''.tex", replace label noobs
+        title("Descriptive Statistics (`type')") 
+        cells("count(fmt(0)) mean(fmt(2)) sd(fmt(2)) min(fmt(0)) max(fmt(0))");
+        #delimit cr
+        restore
+        
+    }
+    local ++k
+}
+exit
+
+keep if birthOrder==1
 
 ********************************************************************************
-*** (3a) Descriptive age graph
+*** (3b) Descriptive age graph
 ********************************************************************************
 #delimit ;
 twoway hist motherAge if motherAge>=20&motherAge<=45, freq color(gs0)  width(1)
@@ -142,61 +207,7 @@ graph export "$GRA/proportionMonthART.eps", as(eps) replace;
 restore
 
 
-********************************************************************************
-*** (3b) Summary stats 
-********************************************************************************
-#delimit ;
-local add `" "20-45 All Observations" "20-45 White married" "20-45 White women"
-             "20-45 White unmarried" "20-45 Black unmarried" "';
-local nam All whiteMarried whiteAll whiteUnmarried blackUnmarried;
-#delimit cr
-tokenize `nam'
 
-gen Quarter1 = expectQuarter == 1 
-gen Quarter2 = expectQuarter == 2 
-gen Quarter3 = expectQuarter == 3 
-gen Quarter4 = expectQuarter == 4 
-lab var Quarter1    "Quarter 1 Birth"
-lab var Quarter2    "Quarter 2 Birth"
-lab var Quarter3    "Quarter 3 Birth"
-lab var Quarter4    "Quarter 4 Birth"
-
-local k=1
-foreach type of local add {
-    if `k'==1 local gg motherAge>=20&motherAge<=45
-    if `k'==2 local gg motherAge>=20&motherAge<=45&white==1&married==1
-    if `k'==3 local gg motherAge>=20&motherAge<=45&white==1
-    if `k'==4 local gg motherAge>=20&motherAge<=45&white==1&married==0
-    if `k'==5 local gg motherAge>=20&motherAge<=45&black==1&married==0
-    local mc hispanic
-    if `k'==1 local mc black white hispanic married
-    if `k'==3 local mc hispanic married
-
-    #delimit ;
-    local Mum  motherAge `mc' young age2024 age2527 age2831 age3239 age4045;
-    local MumP college educCat smoker ART WIC BMI underwe normalBM overwe obese;
-    local Kid  Quarter1 Quarter2 Quarter3 Quarter4 gestat premature female
-    birthweight lbw apgar;
-    #delimit cr
-    
-    foreach st in Mum Kid MumP {
-        preserve
-        keep if smoker!=.&college!=.&twin==0&`gg'
-        sum ``st''
-
-        #delimit ;
-        estpost tabstat ``st'', statistics(count mean sd min max)
-        columns(statistics);
-        esttab using "$SUM/samp`st'_``k''.tex", replace label noobs
-        title("Descriptive Statistics (`type')") 
-        cells("count(fmt(0)) mean(fmt(2)) sd(fmt(2)) min(fmt(0)) max(fmt(0))");
-        #delimit cr
-        restore
-        
-    }
-    local ++k
-}
-*/
 ********************************************************************************
 *** (3d) Age plots by month (ART, no ART)
 ********************************************************************************
@@ -218,26 +229,32 @@ local tw &twin==0
 #delimit ;
 local add `" "20-45 All Observations" "20-45 White married" "20-45 White women"
              "20-45 White unmarried" "20-45 Black unmarried"
-             "Second births" "Second births White unmarried" "Including twins" "';
+             "Second births" "Second births White unmarried" "Including twins"
+"Second births White unmarried, no ART" "20-45 White unmarried, no ART" "';
 local nam All whiteMarried whiteAll whiteUnmarried blackUnmarried secondBirths
-          secondBirthsWU wTwins;
-local add `" "Second births White unmarried" "';
-local nam secondBirthsWU;
+          secondBirthsWU wTwins secondBirthsWU-noART whiteUnmarried-noART;
 #delimit cr
 
 tokenize `nam'
 
 local k=1
 foreach type of local add {
+    if `k'<=8 {
+        local ++k
+        exit
+    }
     if `k'==1 local gg motherAge>=20&motherAge<=45`bb'`tw'
     if `k'==2 local gg motherAge>=20&motherAge<=45&white==1&married==1`bb'`tw'
     if `k'==3 local gg motherAge>=20&motherAge<=45&white==1`bb'`tw'
     if `k'==4 local gg motherAge>=20&motherAge<=45&white==1&married==0`bb'`tw'
     if `k'==5 local gg motherAge>=20&motherAge<=45&black==1&married==0`bb'`tw'
     if `k'==6 local gg motherAge>=20&motherAge<=45&white==1&married==1&birthOrder==2`tw'
-    if `k'==1 local gg motherAge>=20&motherAge<=45&white==1&married==0&birthOrder==2`tw'
+    if `k'==7 local gg motherAge>=20&motherAge<=45&white==1&married==0&birthOrder==2`tw'
     if `k'==8 local gg motherAge>=20&motherAge<=45&white==1&married==1`bb'
-    
+    if `k'>8 {
+        local ++k
+        exit
+    }
     preserve
     keep if `gg'
 
@@ -314,14 +331,20 @@ tokenize `nam'
 
 local k=1
 foreach type of local add {
+    if `k'<=8 {
+        local ++k
+        exit
+    }
     if `k'==1 local gg motherAge>=20&motherAge<=45`bb'`tw'
     if `k'==2 local gg motherAge>=20&motherAge<=45&white==1&married==1`bb'`tw'
     if `k'==3 local gg motherAge>=20&motherAge<=45&white==1`bb'`tw'
     if `k'==4 local gg motherAge>=20&motherAge<=45&white==1&married==0`bb'`tw'
     if `k'==5 local gg motherAge>=20&motherAge<=45&black==1&married==0`bb'`tw'
     if `k'==6 local gg motherAge>=20&motherAge<=45&white==1&married==1&birthOrder==2`tw'
-    if `k'==1 local gg motherAge>=20&motherAge<=45&white==1&married==0&birthOrder==2`tw'
+    if `k'==7 local gg motherAge>=20&motherAge<=45&white==1&married==0&birthOrder==2`tw'
     if `k'==8 local gg motherAge>=20&motherAge<=45&white==1&married==1`bb'
+    if `k'==9 local gg motherAge>=20&motherAge<=45&white==1&married==0&birthOrder==2`tw'&ART!=1
+    if `k'==10 local gg motherAge>=20&motherAge<=45&white==1&married==0`bb'`tw'&ART!=1
     
     preserve
     keep if `gg'
@@ -390,6 +413,10 @@ tokenize `nam'
 count
 local k=1
 foreach type of local add {
+    if `k'<=8 {
+        local ++k
+        exit
+    }
     if `k'==1 local gg motherAge>=20&motherAge<=45`bb'`tw'
     if `k'==2 local gg motherAge>=20&motherAge<=45&white==1&married==1`bb'`tw'
     if `k'==3 local gg motherAge>=20&motherAge<=45&white==1`bb'`tw'
@@ -398,6 +425,8 @@ foreach type of local add {
     if `k'==6 local gg motherAge>=20&motherAge<=45&white==1&married==1&birthOrder==2`tw'
     if `k'==1 local gg motherAge>=20&motherAge<=45&white==1&married==0&birthOrder==2`tw'
     if `k'==8 local gg motherAge>=20&motherAge<=45&white==1&married==1`bb'
+    if `k'==9 local gg motherAge>=20&motherAge<=45&white==1&married==0&birthOrder==2`tw'&ART!=1
+    if `k'==10 local gg motherAge>=20&motherAge<=45&white==1&married==0`bb'`tw'&ART!=1
     
     preserve
     keep if `gg'
@@ -419,8 +448,8 @@ foreach type of local add {
     restore
 }
 
-
-
+exit
+*/
 ********************************************************************************
 *** (4) Open data for regressions
 ********************************************************************************
@@ -530,30 +559,36 @@ foreach type of local add {
 local add `" "Excluding November and December conceptions"
              "Excluding December conceptions"
              "for Second births"
-             "for Second births, White unmarried"
+             "for Second births"
+             "for Second births with no ART"
+             "for First births with no ART"
 "with state-specific linear trends and unemployment rate at conception" "';
-local nam NoNovDec NoDec Birth2 Birth2WU StateT;
-local add `" "for Second births" "';
-local nam Birth2WU;
+local nam NoNovDec NoDec Birth2 Birth2WU Birth2WU-noART whiteUnmarried-noART StateT;
 #delimit cr
 tokenize `nam'
 
 local k=1
 foreach type of local add {
+    if `k'<5|`k'>6 {
+        local ++k
+        exit
+    }
     if `k'==1 local gg twin==1&liveBirth==1&birthOrder==1&expectMonth!=9&expectMonth!=8&married==1
     if `k'==2 local gg twin==1&liveBirth==1&birthOrder==1&expectMonth!=9&married==1
     if `k'==3 local gg twin==1&liveBirth==1&birthOrder==2&married==1
     if `k'==4 local gg twin==1&liveBirth==1&birthOrder==2&married==0
-    if `k'==5 local gg twin==1&liveBirth==1&birthOrder==1&married==1
+    if `k'==5 local gg twin==1&liveBirth==1&birthOrder==2&married==0&ART!=1
+    if `k'==6 local gg twin==1&liveBirth==1&birthOrder==1&married==0&ART!=1
+    if `k'==7 local gg twin==1&liveBirth==1&birthOrder==1&married==1
 
     local ff first
     local mm married
     local MM Married
-    if `k'==3|`k'==4 local ff second
-    if `k'==4 local mm unmarried
-    if `k'==4 local MM Unmarried
+    if `k'==3|`k'==4|`k'==5 local ff second
+    if `k'==4|`k'==5|`k'==6 local mm unmarried
+    if `k'==4|`k'==5|`k'==6 local MM Unmarried
     local c3
-    if `k'==5 local c3  i.fips#c.year value
+    if `k'==6 local c3  i.fips#c.year value
     local con smoker i.gestation hispanic
     preserve
     keep if motherAge>=20&motherAge<=45&white==1&`gg'
