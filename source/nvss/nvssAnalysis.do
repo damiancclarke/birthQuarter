@@ -48,7 +48,7 @@ local enote  "Heteroscedasticity robust standard errors are reported in
 lab def mon 1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug"
             9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec";
 #delimit cr
-
+/*
 ********************************************************************************
 *** (2) Open data for descriptives
 ********************************************************************************
@@ -63,7 +63,7 @@ gen expectQuarter = ceil(expectMonth/3)
 lab var quarter2 "Quarter 2"
 lab var quarter3 "Quarter 3"
 
-/*
+
 preserve
 keep if motherAge>=20&motherAge<=45
 gen     group=1 if white==1&married==1&birthOrder==1
@@ -100,7 +100,7 @@ graph bar twins, over(group) scheme(s1mono) ytitle("Proportion of Twins");
 #delimit cr
 graph export "$GRA/twinGroups-noART.eps", as(eps) replace
 restore
-*/
+
 
 keep if twin==1
 replace twin=twin-1
@@ -129,10 +129,6 @@ lab var Quarter4    "Quarter 4 Birth"
 
 local k=1
 foreach type of local add {
-    if `k'<6 {
-        local ++k
-        exit
-    }
     if `k'==1 local gg motherAge>=20&motherAge<=45&birthOrder==1
     if `k'==2 local gg motherAge>=20&motherAge<=45&white==1&married==1&birthOrder==1
     if `k'==3 local gg motherAge>=20&motherAge<=45&white==1&birthOrder==1
@@ -161,13 +157,14 @@ foreach type of local add {
         columns(statistics);
         esttab using "$SUM/samp`st'_``k''.tex", replace label noobs
         title("Descriptive Statistics (`type')") 
-        cells("count(fmt(0)) mean(fmt(2)) sd(fmt(2)) min(fmt(0)) max(fmt(0))");
+        cells("count(fmt(0)) mean(fmt(3)) sd(fmt(2)) min(fmt(0)) max(fmt(0))");
         #delimit cr
         restore
         
     }
     local ++k
 }
+
 exit
 
 keep if birthOrder==1
@@ -207,7 +204,7 @@ graph export "$GRA/proportionMonthART.eps", as(eps) replace;
 restore
 
 
-
+*/
 ********************************************************************************
 *** (3d) Age plots by month (ART, no ART)
 ********************************************************************************
@@ -236,13 +233,9 @@ local nam All whiteMarried whiteAll whiteUnmarried blackUnmarried secondBirths
 #delimit cr
 
 tokenize `nam'
-
+/*
 local k=1
 foreach type of local add {
-    if `k'<=8 {
-        local ++k
-        exit
-    }
     if `k'==1 local gg motherAge>=20&motherAge<=45`bb'`tw'
     if `k'==2 local gg motherAge>=20&motherAge<=45&white==1&married==1`bb'`tw'
     if `k'==3 local gg motherAge>=20&motherAge<=45&white==1`bb'`tw'
@@ -405,7 +398,7 @@ foreach type of local add {
     restore
 }
 
-
+*/
 ********************************************************************************
 *** (3f) Births per month
 ********************************************************************************
@@ -413,10 +406,6 @@ tokenize `nam'
 count
 local k=1
 foreach type of local add {
-    if `k'<=8 {
-        local ++k
-        exit
-    }
     if `k'==1 local gg motherAge>=20&motherAge<=45`bb'`tw'
     if `k'==2 local gg motherAge>=20&motherAge<=45&white==1&married==1`bb'`tw'
     if `k'==3 local gg motherAge>=20&motherAge<=45&white==1`bb'`tw'
@@ -435,10 +424,17 @@ foreach type of local add {
     collapse (sum) birth, by(birthMonth)
     egen totalBirth = total(birth)
     replace birth = birth/totalBirth
-
+    foreach mm of numlist 1(1)12 {
+        sum birth if birthMonth==`mm'
+        local mm`mm'=string(100*r(mean),"%5.2f")
+    }
+    local months1 "Jan: `mm1', Feb: `mm2', Mar: `mm3', Apr: `mm4', May: `mm5', Jun: `mm6', Jul: `mm7',"
+    local months2 "Aug: `mm8', Sep: `mm9', Oct: `mm10', Nov: `mm11', Dec: `mm12'"
+    
     #delimit ;
     twoway line birth birthMonth, lcolor(black) lwidth(thick) scheme(s1mono)
-    ytitle("Proportion Births") note("Number of observations = `NN'")
+    ytitle("Proportion Births")
+    note("Percent by month `months1'" "`months2'." " " "Number of observations = `NN'.")
     xlabel(1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug"
            9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec") xtitle("Month of Births");
     #delimit cr
@@ -446,6 +442,31 @@ foreach type of local add {
 
     local ++k
     restore
+}
+exit
+keep if twin==0&motherAge>=20&motherAge<=45
+    
+gen whitemarried   = white==1&married==1
+gen whiteunmarried = white==1&married==0
+
+foreach m in married unmarried {
+    sum white`m' if birthOrder==1
+    local base=r(mean)
+    foreach num of numlist 1(1)4 {
+        qui sum white`m' if birthQuarter==`num'&birthOrder==1
+        local rv = string(r(mean)/`base',"%6.4f")
+        dis "Relative proportion of white `m' women among all Q`num' births is: `rv'"
+    }
+}
+drop if ART==1&whiteunmarried==1
+foreach m in married unmarried {
+    sum white`m' if birthOrder==1
+    local base=r(mean)
+    foreach num of numlist 1(1)4 {
+        qui sum white`m' if birthQuarter==`num'&birthOrder==1
+        local rv = string(r(mean)/`base',"%6.4f")
+        dis "Relative proportion of white `m' women among all Q`num' births is: `rv'"
+    }
 }
 
 exit
@@ -534,8 +555,8 @@ foreach type of local add {
 
         esttab est3 est2 est1 est4 est5 using "$OUT/NVSSBinaryQ`Q'_``k''.tex",
         replace `estopt' keep(`age' `edu' smoker `c2' `nc') 
-        title("Season of Birth Correlates: Quarter `Q' (`type')") booktabs 
-        style(tex) mlabels(, depvar)
+        title("Season of Birth Correlates: Quarter `Q' (`type')"\label{Q`Q'-`k'})
+        style(tex) mlabels(, depvar) booktabs 
         starlevel ("$ ^{\ddagger} $" `pvL')
         postfoot("F-test of Age Variables  &`F3a'&`F2a'&`F1a'&`F4a'&`F5a' \\ "
                  "Leamer Critical Value (F)&`L1'&`L1'&`L1'&`L4'&`L4' \\      "
@@ -550,7 +571,7 @@ foreach type of local add {
     restore
     local ++k
 }
-*/
+
 
 ********************************************************************************
 *** (5b) Alternative Regressions
@@ -636,8 +657,8 @@ foreach type of local add {
 
         esttab est3 est2 est1 est4 est5 using "$OUT/NVSSBinaryQ`Q'_``k''.tex",
         replace `estopt' keep(`age' `edu' smoker `c2' hispanic) 
-        title("Season of Birth Correlates `type': Quarter `Q' (White `MM' Mothers, 20--45)") 
-        style(tex) mlabels(, depvar) booktabs 
+        title("Season of Birth Correlates `type': Quarter `Q' (White `MM' Mothers, 20--45)"
+              \label{Q`Q'-`k'}) style(tex) mlabels(, depvar) booktabs 
         starlevel ("$ ^{\ddagger} $" `pvL')
         postfoot("F-test of Age Variables  &`F3a'&`F2a'&`F1a'&`F4a'&`F5a' \\ "
                  "Leamer Critical Value (F)&`L1'&`L1'&`L1'&`L4'&`L4' \\      "
@@ -715,7 +736,7 @@ foreach type of local add {
         esttab est3 est2 est1 est4 est5 using "$OUT/NVSSLinAgeQ`Q'_``k''.tex",
         replace `estopt' keep(`age' `edu' smoker `c2' hispanic) 
         title("Season of Birth Correlates`type' with Linear Age: Quarter `Q'
-               (White Married Mothers, 20--45)") 
+               (White Married Mothers, 20--45)" \label{LinQ`Q'-`k'}) 
         style(tex) mlabels(, depvar) booktabs 
         starlevel ("$ ^{\ddagger} $" `pvL')
         postfoot("F-test of Age Variables  &`F3a'&`F2a'&`F1a'&`F4a'&`F5a' \\ "
@@ -810,9 +831,9 @@ foreach type of local add {
 
         esttab m3 m2 m1 m4 m5 using "$OUT/NVSSLogitQ`Q'_``k''.tex", margin
         replace `estopt' keep(`age' `edu' smoker `c2' `nc') style(tex) 
-        title("Season of Birth Correlates Logit: Quarter `Q' (`type')") booktabs 
+        title("Season of Birth Correlates Logit: Quarter `Q' (`type')" \label{LogQ`Q'-`k'}) 
         mlabels("Quarter `Q'" "Quarter `Q'" "Quarter `Q'" "Quarter `Q'" "Quarter `Q'")
-        starlevel ("$ ^{\ddagger} $" `pvL')
+        starlevel ("$ ^{\ddagger} $" `pvL') booktabs 
         postfoot("$ \chi^2$ test of Age Variables  &`F3a'&`F2a'&`F1a'&`F4a'&`F5a' \\ "
                  "Leamer Critical Value (Age)&`L1'&`L1'&`L1'&`L4'&`L4' \\      "
                  "Optimal Age &`opt3'&`opt2'&`opt1'&`opt4'&`opt5' \\         "
@@ -954,6 +975,26 @@ foreach type of local add {
            9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec") note("Number of observations=`NN'"); 
     graph export "$GRA/birthsFdeaths-``k''.eps", as(eps) replace;
     #delimit cr
+
+    append using "$USW/influenza"
+    lab var influenza "Influenza Activity"
+    lab var week "Week (Influenza)"
+    #delimit ;
+    twoway line fetalDeathTotal birthMonth, lcolor(black) lwidth(thick) ||
+        connected influenza week, yaxis(2) xaxis(2) lcolor(red) mcolor(red)
+    lpattern(solid) msymbol(o) msize(small) xlabel(1 4(4)52, axis(2))
+    scheme(s1mono) ylabel(`min'(`del')`max', angle(0))
+    ytitle("Fetal Deaths/(Fetal Deaths+Births)") xtitle("Month of Occurrence")
+    xlabel(1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug"
+           9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec") note("Number of observations=`NN'"); 
+    graph export "$GRA/birthsFdeathsInfluenza-``k''.eps", as(eps) replace;
+
+    twoway connected influenza week, lcolor(red) mcolor(red) lpattern(solid)
+    msymbol(o) msize(small) xlabel(1 4(4)52) scheme(s1mono)
+    xtitle("Week of Influenza Activity");
+    graph export "$GRA/Influenza.eps", as(eps) replace;
+    #delimit cr
+    
     restore
     
     preserve
