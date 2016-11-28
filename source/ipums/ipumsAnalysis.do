@@ -41,7 +41,7 @@ local Xnote  "$ \chi^2 $ test statistics refer to the test that the coefficients
               jointly equal to zero. ";
 local onote  "Optimal age calculates the turning point of the mother's age
               quadratic. ";
-local qnote  "Birth quarter is based on \emph{actual} birth date.";
+local qnote  "Birth quarter is based on \emph{actual} birth quarter.";
 #delimit cr
 
 local agecond motherAge>=20&motherAge<=45
@@ -51,7 +51,6 @@ local agecond motherAge>=20&motherAge<=45
 ********************************************************************************
 use "$DAT/`data'"
 keep if `agecond'&twins==0
-drop if occ2010 == 9920
 tab year       , gen(_year)
 tab statefip   , gen(_state)
 
@@ -72,6 +71,8 @@ lab var motherAge2   "Mother's Age$^2$ / 100"
 lab var unemployment "Unemployment Rate"
 lab var logInc       "log(household income)"
 
+replace twoLevelOcc = "No Occupation" if twoLevelOcc=="Unemployed"
+
 ********************************************************************************
 *** (3) regressions: industry (by quarter)
 ********************************************************************************
@@ -81,7 +82,10 @@ local age motherAge motherAge2
 local une 
 local lv2 _2occ*
 local lv2 _2occ1 _2occ3 _2occ4 _2occ5 _2occ6 _2occ7 _2occ8 _2occ9 _2occ10 /*
-*/ _2occ11 _2occ12 _2occ13 _2occ14 _2occ15 _2occ16 _2occ17 _2occ18 _2occ19 _2occ20      
+*/ _2occ11 _2occ12 _2occ13 _2occ14 _2occ15 _2occ16 _2occ17 _2occ18 _2occ19 _2occ20
+local lv2b _2occ1 _2occ3 _2occ4 _2occ5 _2occ6 _2occ7 _2occ8 _2occ9 _2occ10 _2occ11 /*
+*/ _2occ12 _2occ13 _2occ14 _2occ15 _2occ16 _2occ17 _2occ18 _2occ19 _2occ20 _2occ21
+
 cap drop _2occ2
 gen nowork = workedyr==2
 lab var nowork "Did Not Work Last Year"
@@ -106,12 +110,59 @@ foreach type of local add {
     local race white
     local mar  unmarried
     if `k'==3 local race black
-    if `k'==2 local mar maried
+    if `k'==2 local mar married
 
     preserve
     keep if `gg'
  
+    eststo: areg quarter2 `age' `edu' `une' _year* `lv2b' `wt', `se' `abs'
+    ds _2occ*
+    local tvar `r(varlist)'
+    test `tvar'
+    local F1 = string(r(F),"%5.3f")
+    test `age'
+    local F1a = string(r(F),"%5.3f")
+    local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+    local tL1  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
+    local pvL = ttail(e(N),sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)))
 
+    eststo: areg quarter3 `age' `edu' `une' _year* `lv2b' `wt', `se' `abs'
+    ds _2occ*
+    local tvar `r(varlist)'
+    test `tvar'
+    local F2 = string(r(F),"%5.3f")
+    test `age'
+    local F2a = string(r(F),"%5.3f")
+    local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+    
+    #delimit ;
+    esttab est1 est2 using "$OUT/IPUMSIndustry_``k''-noocc.tex", replace `estopt' 
+    title("Season of Birth Correlates in ACS `type'" \label{ACS``k''})
+    keep(`age' `edu' `une' `lv2b') style(tex) booktabs mlabels(, depvar)
+    starlevel ("$ ^\ddagger $ " `pvL') 
+    postfoot("F-test of Occupation Dummies&`F1'&`F2'\\                         "
+             "F-test of Age Variables&`F1a'&`F2a'\\ \bottomrule                "
+             "\multicolumn{3}{p{13.6cm}}{\begin{footnotesize}Sample consists of"
+             " all singleton first-born children in the US born to `race' `mar'"
+             " mothers aged 20-45 included in 2005-2014 ACS data where the     "
+             "mother is either the head of the household or the partner of the "
+             "head of the household and works in an occupation with at least   "
+             "500 workers in the full sample, or has not worked in the previous"
+             " five years (No Occupation). `qnote'  "
+             "Occupation classification is provided by the 2 digit occupation  "
+             "codes from the census. The omitted occupational category is Arts,"
+             " Design, Entertainment, Sports, and Media, as                    "
+             "this occupation has Q2+Q3=0.500(0.500).  F-tests for occupation  "
+             "report p-values of joint significance of the dummies, and `Fnote'"
+             " The Leamer critical value for the t-statistic is `tL1'. `lnote' "
+             "\end{footnotesize}}\end{tabular}\end{table}");
+    #delimit cr
+    estimates clear
+
+
+
+    drop if occ2010 == 9920
+    drop _2occ21
     eststo: areg quarter2 `age' `edu' `une' _year* `lv2' `wt', `se' `abs'
     ds _2occ*
     local tvar `r(varlist)'
@@ -137,8 +188,7 @@ foreach type of local add {
     title("Season of Birth Correlates in ACS `type'" \label{ACS``k''})
     keep(`age' `edu' `une' `lv2') style(tex) booktabs mlabels(, depvar)
     starlevel ("$ ^\ddagger $ " `pvL') 
-    postfoot("State and Year Fixed Effects&Y&Y\\                               "
-             "F-test of Occupation Dummies&`F1'&`F2'\\                         "
+    postfoot("F-test of Occupation Dummies&`F1'&`F2'\\                         "
              "F-test of Age Variables&`F1a'&`F2a'\\ \bottomrule                "
              "\multicolumn{3}{p{13.6cm}}{\begin{footnotesize}Sample consists of"
              " all singleton first-born children in the US born to `race' `mar'"
@@ -156,6 +206,67 @@ foreach type of local add {
     #delimit cr
     estimates clear
 
+    #delimit ;
+    local wconds empstat==1 empstat!=1 uhrswork>=10 uhrswork<10 uhrswork>=20
+    uhrswork<20 uhrswork>=30 uhrswork<30 uhrswork>=40 uhrswork<40;
+    #delimit cr
+    local wwn = 1
+    foreach wc of local wconds {
+        if `wwn'==1 local wtype "are currently employed" 
+        if `wwn'==2 local wtype "are currently not employed" 
+        if `wwn'==3 local wtype "usually work at least 10 hours a week" 
+        if `wwn'==4 local wtype "usually work fewer than 10 hours a week"
+        if `wwn'==5 local wtype "usually work at least 20 hours a week" 
+        if `wwn'==6 local wtype "usually work fewer than 20 hours a week"
+        if `wwn'==7 local wtype "usually work at least 30 hours a week" 
+        if `wwn'==8 local wtype "usually work fewer than 30 hours a week"
+        if `wwn'==9 local wtype "usually work at least 40 hours a week" 
+        if `wwn'==10 local wtype "usually work fewer than 40 hours a week"
+        if `wwn'==1 local ww    emp
+        if `wwn'==2 local ww    unemp
+        if `wwn'==3 local ww    work10p
+        if `wwn'==4 local ww    work10l
+        if `wwn'==5 local ww    work20p
+        if `wwn'==6 local ww    work20l
+        if `wwn'==7 local ww    work30p
+        if `wwn'==8 local ww    work30l
+        if `wwn'==9 local ww    work40p
+        if `wwn'==10 local ww    work40l
+        
+        eststo: areg quarter2 `age' `edu' `une' _year* `lv2' `wt' if `wc', `se' `abs'
+        ds _2occ*
+        local tvar `r(varlist)'
+        test `tvar'
+        local F1 = string(r(F),"%5.3f")
+        test `age'
+        local F1a = string(r(F),"%5.3f")
+        local opt1 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+        local tL1  = string(sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)), "%5.3f")
+        local pvL = ttail(e(N),sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)))
+    
+        eststo: areg quarter3 `age' `edu' `une' _year* `lv2' `wt' if `wc', `se' `abs'
+        ds _2occ*
+        local tvar `r(varlist)'
+        test `tvar'
+        local F2 = string(r(F),"%5.3f")
+        test `age'
+        local F2a = string(r(F),"%5.3f")
+        local opt2 = round((-_b[motherAge]/(0.02*_b[motherAge2]))*100)/100
+        
+        #delimit ;
+        esttab est1 est2 using "$OUT/IPUMSIndustry_``k''-`ww'.tex", replace `estopt' 
+        title("Season of Birth Correlates in ACS `type'")
+        keep(`age' `edu' `une' `lv2') style(tex) booktabs mlabels(, depvar)
+        starlevel ("$ ^\ddagger $ " `pvL') 
+        postfoot("F-test of Occupation Dummies&`F1'&`F2'\\                         "
+                 "F-test of Age Variables&`F1a'&`F2a'\\ \bottomrule                "
+                 "\multicolumn{3}{p{13.6cm}}{\begin{footnotesize} Only women who   "
+                 "`wtype' are included. Refer to table \ref{ACS``k''} for full     "
+                 "notes. \end{footnotesize}}\end{tabular}\end{table}");
+        #delimit cr
+        estimates clear
+        local ++wwn
+    }
 
     logit quarter2 `age' `edu' `une' _year* `lv2' i.statefip `wt', `se'
     ds _2occ*
@@ -184,11 +295,10 @@ foreach type of local add {
     
     #delimit ;
     esttab m1 m2 using "$OUT/IPUMSIndustryLogit_``k''.tex", replace `estopt' 
-    title("Logit Estimates of Season of Birth Correlates in ACS `type'")
+    title("Logit Estimates of Season of Birth Correlates in ACS `type'"\label{ACSLog``k''})
     keep(`age' `edu' `une' `lv2') style(tex) booktabs mlabels("Quarter 2" "Quarter 3")
     starlevel ("$ ^\ddagger $ " `pvL') 
-    postfoot("State and Year Fixed Effects&Y&Y\\                                "
-             "$ \chi^2 $ test of Occupation Dummies&`F1'&`F2'\\                 "
+    postfoot("$ \chi^2 $ test of Occupation Dummies&`F1'&`F2'\\                 "
              "$\chi^2 $ test of Age Variables&`F1a'&`F2a'\\ \bottomrule         "
              "\multicolumn{3}{p{13.6cm}}{\begin{footnotesize}  Refer to notes   "
              "in table \ref{ACS``k''}.  Results are replicated here using a     "
@@ -232,8 +342,7 @@ foreach type of local add {
     title("Season of Birth Correlates in ACS with No Work Control `type'")
     keep(`age' `edu' `une' `lv2') style(tex) booktabs mlabels(, depvar)
     starlevel ("$ ^\ddagger $ " `pvL') 
-    postfoot("State and Year Fixed Effects&Y&Y\\                               "
-             "F-test of Occupation Dummies&`F1'&`F2'\\                         "
+    postfoot("F-test of Occupation Dummies&`F1'&`F2'\\                         "
              "F-test of Age Variables&`F1a'&`F2a'\\ \bottomrule                "
              "\multicolumn{3}{p{13.6cm}}{\begin{footnotesize} Refer to notes  "
              "in table \ref{ACS``k''}."
@@ -272,8 +381,7 @@ foreach type of local add {
     title("Logit Estimates of Season of Birth Correlates in ACS with No Work Control `type'")
     keep(`age' `edu' `une' `lv2') style(tex) booktabs mlabels("Quarter 2" "Quarter 3")
     starlevel ("$ ^\ddagger $ " `pvL') 
-    postfoot("State and Year Fixed Effects&Y&Y\\                               "
-             "$ \chi^2 $ test of Occupation Dummies&`F1'&`F2'\\                "
+    postfoot("$ \chi^2 $ test of Occupation Dummies&`F1'&`F2'\\                "
              "$\chi^2 $ test of Age Variables&`F1a'&`F2a'\\ \bottomrule        "
              "\multicolumn{3}{p{13.6cm}}{\begin{footnotesize} Refer to notes  "
              "in table \ref{ACS``k''}."
@@ -311,8 +419,7 @@ foreach type of local add {
     title("Season of Birth Correlates in ACS with Income Controls `type'")
     keep(`age' `edu' `une' `lv2') style(tex) booktabs mlabels(, depvar)
     starlevel ("$ ^\ddagger $ " `pvL') `estopt' 
-    postfoot("State and Year Fixed Effects&Y&Y\\                                "
-             "F-test of Occupation Dummies&`F1'&`F2'\\                          "
+    postfoot("F-test of Occupation Dummies&`F1'&`F2'\\                          "
              "F-test of Age Variables&`F1a'&`F2a'\\ \bottomrule                 "
              "\multicolumn{3}{p{13.6cm}}{\begin{footnotesize}Sample consists of "
              "all singleton first-born children born in the US to `race' `mar'  "
@@ -329,6 +436,7 @@ foreach type of local add {
              "\end{footnotesize}}\end{tabular}\end{table}");
     #delimit cr
     estimates clear
+
     restore
     local ++k
 }
