@@ -21,6 +21,20 @@ global NVS "~/investigacion/2015/birthQuarter/data/nvss"
 global ACS "~/investigacion/2015/birthQuarter/data/raw"
 global GEO "~/investigacion/2015/birthQuarter/data/maps/states_simplified"
 
+#delimit ;
+local snames `" "Alabama" "Alaska" "Arizona" "Arkansas" "California"
+"Colorado" "Connecticut" "Delaware" "District of Columbia" "Florida" "Georgia"
+"Idaho" "Illinois" "Indiana" "Iowa" "Kansas" "Kentucky" "Louisiana" "Maine"
+"Maryland" "Massachusetts" "Michigan" "Minnesota" "Mississippi" "Missouri"
+"Montana" "Nebraska" "Nevada" "New Hampshire" "New Jersey" "New Mexico"
+"New York" "North Carolina" "North Dakota" "Ohio" "Oklahoma" "Oregon"
+"Pennsylvania" "Rhode Island" "South Carolina" "South Dakota" "Tennessee"
+"Texas" "Utah" "Virginia" "Washington" "West Virginia" "Wisconsin" "Hawaii"
+"Vermont" "Wyoming" "';
+local sprop 151 23 212 93 1218 170 112 29 21 631 318 51 400 206 97 91 138 145
+41 187 211 309 171 93 189 32 59 90 41 279 65 616 312 24 361 122 125 398 33 152
+27 205 855 93 261 223 57 180 45 19 18;
+#delimit cr
 
 log using "$LOG/conjointAnalysisMain.txt", text replace
 /*
@@ -686,6 +700,30 @@ tab RespTargetWhich if `base'&(parent==1|planning==1)&N==1
 tab RespTargetMonth if `base'&(parent==1|planning==1)&teacher==1&N==1
 tab RespTargetWhich if `base'&(parent==1|planning==1)&teacher==1&N==1
 
+bys RespState: gen statePop = _N 
+count
+gen surveyProportion = statePop/r(N)
+gen censusProportion = .
+tokenize `sprop'
+local total = 0
+foreach state of local snames {
+    dis "State: `state', pop: `1'"
+    qui replace censusProportion = `1' if RespState=="`state'"
+    local total = `total'+`1'
+    macro shift
+}
+dis `total'
+replace censusProportion = censusProportion/10000
+gen weight = surveyProportion/censusProportion
+replace weight=1/weight
+
+gen osample = white==1&RespSex=="Female"&married==1&parent==1&age>=20&age<=45
+
+
+********************************************************************************
+*** (A) All    
+********************************************************************************
+preserve
 gen estB    = .
 gen estS    = .
 gen estN    = .
@@ -697,6 +735,95 @@ gen lbound  = .
 gen uboundw = .
 gen lboundw = .
 
+#delimit ;
+gen Quarter1 = RespKidBMonth=="January"|RespKidBMonth=="February"|
+ RespKidBMonth=="March" if RespKidBMonth!="I don't have biological children";
+gen Quarter2 = RespKidBMonth=="April"|RespKidBMonth=="May"|
+ RespKidBMonth=="June" if RespKidBMonth!="I don't have biological children";
+gen Quarter3 = RespKidBMonth=="July"|RespKidBMonth=="August"|
+ RespKidBMonth=="September" if RespKidBMonth!="I don't have biological children";
+gen Quarter4 = RespKidBMonth=="October"|RespKidBMonth=="November"|
+ RespKidBMonth=="December" if RespKidBMonth!="I don't have biological children";
+#delimit cr
+gen childBirthQ = 1 if Quarter1==1
+replace childBirthQ = 2 if Quarter2==1
+replace childBirthQ = 3 if Quarter3==1
+replace childBirthQ = 4 if Quarter4==1
+replace childBirthQ = . if Quarter1==.
+gen QOBpref = 2 if sob=="Spring"
+replace QOBpref = 3 if sob=="Summer"
+replace QOBpref = 4 if sob=="Fall"
+replace QOBpref = 1 if sob=="Winter"
+
+reg chosen `oFEs'  i.QOBpref#i.parent costNumerical _gend* _bwt* _dob*, cluster(ID)
+reg chosen `oFEs'  i.QOBpref#i.childBirthQ costNumerical _gend* _bwt* _dob*, cluster(ID)
+reg chosen `oFEs' _sob* costNumerical _gend* _bwt* _dob* if Quarter1==1, cluster(ID)
+reg chosen `oFEs' _sob* costNumerical _gend* _bwt* _dob* if Quarter2==1, cluster(ID)
+reg chosen `oFEs' _sob* costNumerical _gend* _bwt* _dob* if Quarter3==1, cluster(ID)
+reg chosen `oFEs' _sob* costNumerical _gend* _bwt* _dob* if Quarter4==1, cluster(ID)
+reg chosen `oFEs' _sob* costNumerical _gend* _bwt* _dob* if Quarter1!=., cluster(ID)
+
+
+local gn = 1
+foreach gg in Quarter1==1 Quarter2==1 Quarter3==1 Quarter4==1 Quarter1!=. Quarter1==. {
+    reg chosen `oFEs' _sob* costNumerical _gend* _bwt* _dob* if `gg', cluster(ID)
+    replace estB=_b[_sob2]  in `gn'
+    replace estS=_se[_sob2] in `gn'
+    replace estN=e(N)       in `gn'
+    replace ubound  = _b[_sob2]+invttail(e(N),0.025)*_se[_sob2] in `gn'
+    replace lbound  = _b[_sob2]-invttail(e(N),0.025)*_se[_sob2] in `gn'
+
+    replace wtpB = -1000*_b[_sob2]/_b[costNumerical] in `gn'
+    nlcom ratio:_b[_sob2]/_b[costNumerical], post
+    replace wtpS = -1000*_se[ratio] in `gn'
+    replace uboundw = wtpB+invttail(estN,0.025)*wtpS in `gn'
+    replace lboundw = wtpB-invttail(estN,0.025)*wtpS in `gn'
+
+    
+    local e`gn' = e(N)      
+    replace group=`gn'      in `gn'
+    local gn=`gn'+3
+}
+
+format estB %5.2f
+
+#delimit ;
+twoway bar estB group, barwidth(1.6) ylabel(-0.02(0.02)0.10)
+yline(0, lcolor(red) lpattern(dash)) bcolor(dknavy) scheme(lean1) 
+|| rcap ubound lbound group, xtitle("") lcolor(black)
+xlabel(1 "Quarter 1 Births" 4 "Quarter 2 Births" 7 "Quarter 3 Births" 10 "Quarter 4 Births"
+       13 "All Parents" 16 "All Non-Parents", angle(60))
+text(-0.01 1 "N=`e1'", size(vsmall)) text(-0.005 4 "N=`e4'", size(vsmall))
+text(-0.01 7 "N=`e7'", size(vsmall)) text(-0.005 10 "N=`e10'", size(vsmall))
+text(-0.01 13 "N=`e13'", size(vsmall)) text(-0.005 16 "N=`e16'", size(vsmall))
+legend(label(1 "Preference") label(2 "95% CI")) ytitle("Spring Preference");
+graph export "$OUT/preferencesGroups-parents.eps", as(eps) replace;
+
+
+twoway bar wtpB group, barwidth(1.6) ylabel(-200(200)1800)
+yline(0, lcolor(red) lpattern(dash)) bcolor(dknavy) scheme(lean1) 
+|| rcap uboundw lboundw group, xtitle("") lcolor(black)
+xlabel(1 "Quarter 1 Births" 4 "Quarter 2 Births" 7 "Quarter 3 Births" 10 "Quarter 4 Births"
+       13 "All Parents" 16 "All Non-Parents", angle(60))
+text(-150 1 "N=`e1'", size(vsmall))   text(-75 4 "N=`e4'", size(vsmall))
+text(-150 7 "N=`e7'", size(vsmall))   text(-75 10 "N=`e10'", size(vsmall))
+text(-150 13 "N=`e13'", size(vsmall)) text(-75 16 "N=`e16'", size(vsmall))
+legend(label(1 "WTP") label(2 "95% CI")) ytitle("Spring Willingness to Pay");
+graph export "$OUT/wtpsGroups-parents.eps", as(eps) replace;
+#delimit cr
+restore
+
+preserve
+gen estB    = .
+gen estS    = .
+gen estN    = .
+gen group   = .
+gen wtpB    = .
+gen wtpS    = .
+gen ubound  = .
+gen lbound  = .
+gen uboundw = .
+gen lboundw = .
 
 local gn = 1
 foreach gg in teacher==1 teacher==0 married==1 married==0 white==1 /*
@@ -760,9 +887,332 @@ text(-150 37 "N=`e37'", size(vsmall)) text(-75 39.5 "N=`e40'", size(vsmall))
 legend(label(1 "WTP") label(2 "95% CI")) ytitle("Spring Willingness to Pay");
 graph export "$OUT/wtpsGroups.eps", as(eps) replace;
 #delimit cr
+restore
+
+
+*-------------------------------------------------------------------------------
+*-- (A0) groups
+*-------------------------------------------------------------------------------
+gen cold = minTemp<23
+gen father = parent==1 if RespSex=="Male"
+gen mother = parent==1 if RespSex=="Female"
+gen motherEmp = RespEmployment=="Employed" if mother==1
+gen motherTeach = teacher==1 if mother==1
+#delimit ;
+local ng RespSex=="Female" RespSex=="Male" parent==1 parent==0 cold==1 cold==0
+   teacher==1 teacher==0 RespEmployment=="Employed" RespEmployment!="Employed"
+   father==1 father==0 mother==1 mother==0 motherEmp==1 motherEmp==0
+   motherTeach==1 motherTeach==0 motherEmp==1&osample==1 motherEmp==0&osample==1
+   motherTeach==1&osample==1 motherTeach==0&osample==1;
+local names Female Male Parent Non-Parent Cold Warm Teacher Non-Teacher Employed
+            Unemployed Father Non-Father Mother Non-Mother Mother-Employed
+            Mother-Unemployed Mother-Teacher Mother-Non-Teacher 
+            Mother-Employed-sample Mother-Unemployed-sample 
+            Mother-Teacher-sample Mother-Non-Teacher-sample;
+#delimit cr
+tokenize `names'
+cap rm "$OUT/samples.xls"
+cap rm "$OUT/samples.txt"
+
+foreach gg of local ng {
+    reg chosen _sob* costNumerical _gend* _bwt* _dob* if `gg', cluster(ID)
+    local wtp = string(-1000*_b[_sob2]/_b[costNumerical], "%5.2f")
+    est store e1
+    nlcom ratio:_b[_sob2]/_b[costNumerical], post
+    local lb = string(-1000*(_b[ratio]-1.96*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+1.96*_se[ratio]), "%5.1f")
+    est restore e1
+    outreg2 using $OUT/samples.xls, excel ctitle(`1')/*
+    */ keep(_sob* costNumerical _gend* _bwt* _dob*)  /*
+    */ addtext(WTP, `wtp', 95% CI, [`ub' - `lb'])
+    macro shift
+}
+gen female   = RespSex=="Female"
+gen employed = RespEmployment=="Employed"
+gen mempsample   = motherEmp if osample==1
+gen mteachsample = motherTeach if osample==1
+
+#delimit ;
+local ng female parent cold teacher employed father mother motherEmp motherTeach
+         mempsample mteachsample;
+local names Female Parent Cold Teacher Employed Father Mother Mother-Employed
+            Mother-Teacher Mother-Employed-Sample Mother-Teacher-Sample;
+#delimit cr
+tokenize `names'
+cap rm "$OUT/samplesInteraction.xls"
+cap rm "$OUT/samplesInteraction.txt"
+
+foreach group of local ng {
+    foreach v of varlist _sob* _gend* _bwt* _dob* {
+        gen _INT`v'=`v'*`group'
+    }
+    reg chosen  _sob* costNumerical _gend* _bwt* _dob* _INT* `group', cluster(ID)
+    local wtp = string(-1000*_b[_sob2]/_b[costNumerical], "%5.2f")
+    local iwtp = string(-1000*_b[_INT_sob2]/_b[costNumerical], "%5.2f")
+
+    est store e1
+    nlcom ratio:_b[_sob2]/_b[costNumerical], post
+    local lb = string(-1000*(_b[ratio]-1.96*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+1.96*_se[ratio]), "%5.1f")
+    est restore e1
+    nlcom ratio2:_b[_INT_sob2]/_b[costNumerical], post
+    local lbi = string(-1000*(_b[ratio2]-1.96*_se[ratio2]), "%5.1f")
+    local ubi = string(-1000*(_b[ratio2]+1.96*_se[ratio2]), "%5.1f")
+    est restore e1
+    outreg2 using $OUT/samplesInteraction.xls, excel ctitle(`1') /*
+        */ keep(_sob* costNumerical _INT_sob*)  /*
+        */ addtext(WTP, `wtp', 95% CI, [`ub' - `lb'], /*
+        */         WTP Interaction, `iwtp', 95% CI Interaction, [`ubi' - `lbi'])
+    macro shift
+    drop _INT*
+}
+
+
+*-------------------------------------------------------------------------------
+*-- (A1) Heterogeneity using mixed logit
+*-------------------------------------------------------------------------------
+gen price = costNumerical
+gen group = 1000*ID+round
+local bwts _bwt2 _bwt3 _bwt4 _bwt5 _bwt6 _bwt7 _bwt8 _bwt9 _bwt10 _bwt11
+
+mixlogit chosen price, id(ID) group(group) rand(_sob* _gend*)
+estimates store mlall
+estadd scalar pcb = 100*normal(_b[Mean:_sob2]/abs(_b[SD:_sob2]))
+local price = _b[price]
+mixlbeta _sob2, saving("$OUT/mixparameters_all") replace
+preserve
+use "$OUT/mixparameters_all", clear
+gen wtp = -1000*_sob2/`price'
+#delimit ;
+hist wtp, scheme(s1mono) xtitle("WTP for Spring Birth ($)")
+fcolor(gs10) lcolor(black) fintensity(25);
+#delimit cr
+graph export "$OUT/WTPdistSpring.eps", replace
+restore
+estadd scalar wtp = -1000*(_b[_sob2]/_b[price])
+nlcom ratio:_b[_sob2]/_b[price], post
+local lb = string(-1000*(_b[ratio]-1.96*_se[ratio]), "%5.1f")
+local ub = string(-1000*(_b[ratio]+1.96*_se[ratio]), "%5.1f")
+estadd local conf95 "[`ub';`lb']": mlall
+drop price group
+
+********************************************************************************
+*** (B) White women
+********************************************************************************
+preserve
+gen estB    = .
+gen estS    = .
+gen estN    = .
+gen group   = .
+gen wtpB    = .
+gen wtpS    = .
+gen ubound  = .
+gen lbound  = .
+gen uboundw = .
+gen lboundw = .
+
+keep if white==1&RespSex=="Female"
+local gn = 1
+foreach gg in teacher==1 teacher==0 married==1 married==0 /*
+*/ RespEmployment=="Employed" RespEmployment!="Employed"  /*
+*/ someCollege==1 someCollege==0 RespYOB>=1976 RespYOB<1976 {
+    reg chosen `oFEs' _sob* costNumerical _gend* _bwt* _dob* if `gg', cluster(ID)
+    replace estB=_b[_sob2]  in `gn'
+    replace estS=_se[_sob2] in `gn'
+    replace estN=e(N)       in `gn'
+    replace ubound  = _b[_sob2]+invttail(e(N),0.025)*_se[_sob2] in `gn'
+    replace lbound  = _b[_sob2]-invttail(e(N),0.025)*_se[_sob2] in `gn'
+
+    replace wtpB = -1000*_b[_sob2]/_b[costNumerical] in `gn'
+    nlcom ratio:_b[_sob2]/_b[costNumerical], post
+    replace wtpS = -1000*_se[ratio] in `gn'
+    replace uboundw = wtpB+invttail(estN,0.025)*wtpS in `gn'
+    replace lboundw = wtpB-invttail(estN,0.025)*wtpS in `gn'
+
+    
+    local e`gn' = e(N)      
+    replace group=`gn'      in `gn'
+    local gn=`gn'+3
+}
+
+format estB %5.2f
+
+#delimit ;
+twoway bar estB group, barwidth(1.6) ylabel(-0.02(0.02)0.10)
+yline(0, lcolor(red) lpattern(dash)) bcolor(dknavy) scheme(lean1) 
+|| rcap ubound lbound group, xtitle("") lcolor(black)
+xlabel(1 "Teachers" 4 "Non-Teachers" 7 "Married" 10 "Non-Married"
+       13 "Employed" 16 "Not Employed" 19 "Some College +" 22 "No College"
+       25 "18-40 Years" 28 "40+ Years", angle(60))
+text(-0.01 1 "N=`e1'", size(vsmall)) text(-0.005 4 "N=`e4'", size(vsmall))
+text(-0.01 7 "N=`e7'", size(vsmall)) text(-0.005 10 "N=`e10'", size(vsmall))
+text(-0.01 13 "N=`e13'", size(vsmall)) text(-0.005 16 "N=`e16'", size(vsmall))
+text(-0.01 19 "N=`e19'", size(vsmall)) text(-0.005 22 "N=`e22'", size(vsmall))
+text(-0.01 25 "N=`e25'", size(vsmall)) text(-0.005 28 "N=`e28'", size(vsmall))
+legend(label(1 "Preference") label(2 "95% CI")) ytitle("Spring Preference");
+graph export "$OUT/preferencesGroups-whiteWomen.eps", as(eps) replace;
+
+
+twoway bar wtpB group, barwidth(1.6) ylabel(-200(200)1800)
+yline(0, lcolor(red) lpattern(dash)) bcolor(dknavy) scheme(lean1) 
+|| rcap uboundw lboundw group, xtitle("") lcolor(black)
+xlabel(1 "Teachers" 4 "Non-Teachers" 7 "Married" 10 "Non-Married"
+       13 "Employed" 16 "Not Employed" 19 "Some College +" 22 "No College"
+       25 "18-40 Years" 28 "40+ Years", angle(60))
+text(-150 1 "N=`e1'", size(vsmall))   text(-75 4 "N=`e4'", size(vsmall))
+text(-150 7 "N=`e7'", size(vsmall))   text(-75 10 "N=`e10'", size(vsmall))
+text(-150 13 "N=`e13'", size(vsmall)) text(-75 16 "N=`e16'", size(vsmall))
+text(-150 19 "N=`e19'", size(vsmall)) text(-75 22 "N=`e22'", size(vsmall))
+text(-150 25 "N=`e25'", size(vsmall)) text(-75 28 "N=`e28'", size(vsmall))
+legend(label(1 "WTP") label(2 "95% CI")) ytitle("Spring Willingness to Pay");
+graph export "$OUT/wtpsGroups-whiteWomen.eps", as(eps) replace;
+#delimit cr
+restore
+
+********************************************************************************
+*** (C) White Married women
+********************************************************************************
+preserve
+gen estB    = .
+gen estS    = .
+gen estN    = .
+gen group   = .
+gen wtpB    = .
+gen wtpS    = .
+gen ubound  = .
+gen lbound  = .
+gen uboundw = .
+gen lboundw = .
+
+keep if white==1&RespSex=="Female"&married==1
+local gn = 1
+foreach gg in teacher==1 teacher==0 RespEmployment=="Employed" /*
+*/ RespEmployment!="Employed" someCollege==1 someCollege==0    /*
+*/ RespYOB>=1976 RespYOB<1976 {
+    reg chosen `oFEs' _sob* costNumerical _gend* _bwt* _dob* if `gg', cluster(ID)
+    replace estB=_b[_sob2]  in `gn'
+    replace estS=_se[_sob2] in `gn'
+    replace estN=e(N)       in `gn'
+    replace ubound  = _b[_sob2]+invttail(e(N),0.025)*_se[_sob2] in `gn'
+    replace lbound  = _b[_sob2]-invttail(e(N),0.025)*_se[_sob2] in `gn'
+
+    replace wtpB = -1000*_b[_sob2]/_b[costNumerical] in `gn'
+    nlcom ratio:_b[_sob2]/_b[costNumerical], post
+    replace wtpS = -1000*_se[ratio] in `gn'
+    replace uboundw = wtpB+invttail(estN,0.025)*wtpS in `gn'
+    replace lboundw = wtpB-invttail(estN,0.025)*wtpS in `gn'
+
+    
+    local e`gn' = e(N)      
+    replace group=`gn'      in `gn'
+    local gn=`gn'+3
+}
+
+format estB %5.2f
+
+#delimit ;
+twoway bar estB group, barwidth(1.6) ylabel(-0.02(0.02)0.10)
+yline(0, lcolor(red) lpattern(dash)) bcolor(dknavy) scheme(lean1) 
+|| rcap ubound lbound group, xtitle("") lcolor(black)
+xlabel(1 "Teachers" 4 "Non-Teachers" 7 "Employed" 10 "Not Employed"
+       13 "Some College +" 16 "No College"
+       19 "18-40 Years" 22 "40+ Years", angle(60))
+text(-0.01 1 "N=`e1'", size(vsmall)) text(-0.005 4 "N=`e4'", size(vsmall))
+text(-0.01 7 "N=`e7'", size(vsmall)) text(-0.005 10 "N=`e10'", size(vsmall))
+text(-0.01 13 "N=`e13'", size(vsmall)) text(-0.005 16 "N=`e16'", size(vsmall))
+text(-0.01 19 "N=`e19'", size(vsmall)) text(-0.005 22 "N=`e22'", size(vsmall))
+legend(label(1 "Preference") label(2 "95% CI")) ytitle("Spring Preference");
+graph export "$OUT/preferencesGroups-whiteMarriedWomen.eps", as(eps) replace;
+
+
+twoway bar wtpB group, barwidth(1.6) ylabel(-200(200)1800)
+yline(0, lcolor(red) lpattern(dash)) bcolor(dknavy) scheme(lean1) 
+|| rcap uboundw lboundw group, xtitle("") lcolor(black)
+xlabel(1 "Teachers" 4 "Non-Teachers" 7 "Employed" 10 "Not Employed"
+       13 "Some College +" 16 "No College"
+       19 "18-40 Years" 22 "40+ Years", angle(60))
+text(-150 1 "N=`e1'", size(vsmall))   text(-75 4 "N=`e4'", size(vsmall))
+text(-150 7 "N=`e7'", size(vsmall))   text(-75 10 "N=`e10'", size(vsmall))
+text(-150 13 "N=`e13'", size(vsmall)) text(-75 16 "N=`e16'", size(vsmall))
+text(-150 19 "N=`e19'", size(vsmall)) text(-75 22 "N=`e22'", size(vsmall))
+legend(label(1 "WTP") label(2 "95% CI")) ytitle("Spring Willingness to Pay");
+graph export "$OUT/wtpsGroups-whiteMarriedWomen.eps", as(eps) replace;
+#delimit cr
+restore
+
+********************************************************************************
+*** (D) White Unmarried women
+********************************************************************************
+preserve
+gen estB    = .
+gen estS    = .
+gen estN    = .
+gen group   = .
+gen wtpB    = .
+gen wtpS    = .
+gen ubound  = .
+gen lbound  = .
+gen uboundw = .
+gen lboundw = .
+
+keep if white==1&RespSex=="Female"&married==0
+local gn = 1
+foreach gg in teacher==1 teacher==0 RespEmployment=="Employed" /*
+*/ RespEmployment!="Employed" someCollege==1 someCollege==0    /*
+*/ RespYOB>=1976 RespYOB<1976 {
+    reg chosen `oFEs' _sob* costNumerical _gend* _bwt* _dob* if `gg', cluster(ID)
+    replace estB=_b[_sob2]  in `gn'
+    replace estS=_se[_sob2] in `gn'
+    replace estN=e(N)       in `gn'
+    replace ubound  = _b[_sob2]+invttail(e(N),0.025)*_se[_sob2] in `gn'
+    replace lbound  = _b[_sob2]-invttail(e(N),0.025)*_se[_sob2] in `gn'
+
+    replace wtpB = -1000*_b[_sob2]/_b[costNumerical] in `gn'
+    nlcom ratio:_b[_sob2]/_b[costNumerical], post
+    replace wtpS = -1000*_se[ratio] in `gn'
+    replace uboundw = wtpB+invttail(estN,0.025)*wtpS in `gn'
+    replace lboundw = wtpB-invttail(estN,0.025)*wtpS in `gn'
+
+    
+    local e`gn' = e(N)      
+    replace group=`gn'      in `gn'
+    local gn=`gn'+3
+}
+
+format estB %5.2f
+
+#delimit ;
+twoway bar estB group, barwidth(1.6) ylabel(-0.02(0.02)0.10)
+yline(0, lcolor(red) lpattern(dash)) bcolor(dknavy) scheme(lean1) 
+|| rcap ubound lbound group, xtitle("") lcolor(black)
+xlabel(1 "Teachers" 4 "Non-Teachers" 7 "Employed" 10 "Not Employed"
+       13 "Some College +" 16 "No College"
+       19 "18-40 Years" 22 "40+ Years", angle(60))
+text(-0.01 1 "N=`e1'", size(vsmall)) text(-0.005 4 "N=`e4'", size(vsmall))
+text(-0.01 7 "N=`e7'", size(vsmall)) text(-0.005 10 "N=`e10'", size(vsmall))
+text(-0.01 13 "N=`e13'", size(vsmall)) text(-0.005 16 "N=`e16'", size(vsmall))
+text(-0.01 19 "N=`e19'", size(vsmall)) text(-0.005 22 "N=`e22'", size(vsmall))
+legend(label(1 "Preference") label(2 "95% CI")) ytitle("Spring Preference");
+graph export "$OUT/preferencesGroups-whiteUnmarriedWomen.eps", as(eps) replace;
+
+
+twoway bar wtpB group, barwidth(1.6) ylabel(-200(200)1800)
+yline(0, lcolor(red) lpattern(dash)) bcolor(dknavy) scheme(lean1) 
+|| rcap uboundw lboundw group, xtitle("") lcolor(black)
+xlabel(1 "Teachers" 4 "Non-Teachers" 7 "Employed" 10 "Not Employed"
+       13 "Some College +" 16 "No College"
+       19 "18-40 Years" 22 "40+ Years", angle(60))
+text(-150 1 "N=`e1'", size(vsmall))   text(-75 4 "N=`e4'", size(vsmall))
+text(-150 7 "N=`e7'", size(vsmall))   text(-75 10 "N=`e10'", size(vsmall))
+text(-150 13 "N=`e13'", size(vsmall)) text(-75 16 "N=`e16'", size(vsmall))
+text(-150 19 "N=`e19'", size(vsmall)) text(-75 22 "N=`e22'", size(vsmall))
+legend(label(1 "WTP") label(2 "95% CI")) ytitle("Spring Willingness to Pay");
+graph export "$OUT/wtpsGroups-whiteUnmarriedWomen.eps", as(eps) replace;
+#delimit cr
+restore
 
 reg chosen `oFEs' _sob* _cost* _gend* _bwt* _dob*, cluster(ID)
-exit
+
 
 
 
@@ -782,6 +1232,7 @@ lab def names -1 "Season of Birth" -2 "Winter" -3 "Spring" -4 "Summer"      /*
 
 gen ratio = 1000*goodSeason/costNumerical
 local nvar1 _bwt2 _bwt3 _bwt4 _bwt5 _bwt6 _bwt7 _bwt8 _bwt9 _bwt10 _bwt11
+order `nvar1'
 local nvar2 _dob2
 
 qui reg chosen `oFEs' _sob* _cost* _gend* _bwt* _dob*
@@ -869,6 +1320,58 @@ foreach c of local conds {
     local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
     local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
     estadd local conf95su "[`ub';`lb']": n`ll'
+
+    local wt [pw=weight]
+    local se cluster(ID)
+    eststo: logit chosen spring summer _sob4 costNumerical `ctrl' `wt' if `c', `se'
+    margins, dydx(spring summer costNumerical  _gend2 `nvar1' `nvar2' _sob4) post
+    est store nw`ll'
+    estadd scalar wtpSpw = -1000*_b[spring]/_b[costNumerical]
+    estadd scalar wtpSuw = -1000*_b[summer]/_b[costNumerical]
+    nlcom ratio:_b[spring]/_b[costNumerical], post
+    local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
+    estadd local conf95spw "[`ub';`lb']": nw`ll'
+    est restore nw`ll'
+    nlcom ratio:_b[summer]/_b[costNumerical], post
+    local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
+    estadd local conf95suw "[`ub';`lb']": nw`ll'
+
+    **NVSS main sample
+    local c osample==1
+    eststo: logit chosen spring summer _sob4 costNumerical `ctrl' if `c', cluster(ID)
+    margins, dydx(spring summer costNumerical  _gend2 `nvar1' `nvar2' _sob4) post
+    est store nmain`ll'
+    estadd scalar wtpSpm = -1000*_b[spring]/_b[costNumerical]
+    estadd scalar wtpSum = -1000*_b[summer]/_b[costNumerical]
+    nlcom ratio:_b[spring]/_b[costNumerical], post
+    local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
+    estadd local conf95spm "[`ub';`lb']": nmain`ll'
+    est restore nmain`ll'
+    nlcom ratio:_b[summer]/_b[costNumerical], post
+    local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
+    estadd local conf95sum "[`ub';`lb']": nmain`ll'
+
+    local c planning==0&parent!=1
+    eststo: logit chosen spring summer _sob4 costNumerical `ctrl' if `c', cluster(ID)
+    margins, dydx(spring summer costNumerical  _gend2 `nvar1' `nvar2' _sob4) post
+    est store nplan`ll'
+    estadd scalar wtpSpp = -1000*_b[spring]/_b[costNumerical]
+    estadd scalar wtpSup = -1000*_b[summer]/_b[costNumerical]
+    nlcom ratio:_b[spring]/_b[costNumerical], post
+    local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
+    estadd local conf95spp "[`ub';`lb']": nplan`ll'
+    est restore nplan`ll'
+    nlcom ratio:_b[summer]/_b[costNumerical], post
+    local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
+    estadd local conf95sup "[`ub';`lb']": nplan`ll'
+
+    
     local ++ll
 }
 
@@ -961,9 +1464,6 @@ foreach bw of local wts {
 }
 
 
-
-
-
 *-------------------------------------------------------------------------------
 *--- (D2) Generate [Day of birth group]
 *-------------------------------------------------------------------------------
@@ -1030,7 +1530,24 @@ lab var PG "Parent $\times$ Good Season"
 lab var _dob2  "Weekend Day"
 lab var _gend2 "Girl"
 
+bys RespState: gen statePop = _N 
+count
+gen surveyProportion = statePop/r(N)
+gen censusProportion = .
+tokenize `sprop'
+local total = 0
+foreach state of local snames {
+    dis "State: `state', pop: `1'"
+    qui replace censusProportion = `1' if RespState=="`state'"
+    local total = `total'+`1'
+    macro shift
+}
+dis `total'
+replace censusProportion = censusProportion/10000
+gen weight = surveyProportion/censusProportion
+replace weight=1/weight
 
+gen osample = white==1&RespSex=="Female"&married==1&parent==1&age>=20&age<=45
 *-------------------------------------------------------------------------------
 *--- (D3) Estimate
 *-------------------------------------------------------------------------------
@@ -1135,9 +1652,87 @@ foreach c of local conds {
     local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
     local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
     estadd local conf95su "[`ub';`lb']": r`ll'
+
+    local wt [pw=weight]
+    local se cluster(ID)
+    eststo: logit chosen spring summer _sob4 costNumerical `ctrl' `wt' if `c', `se'
+    margins, dydx(spring summer costNumerical _gend2 `nvar2' _sob4) post
+    est store rw`ll'
+    estadd scalar wtpSpw = -1000*_b[spring]/_b[costNumerical]
+    estadd scalar wtpSuw = -1000*_b[summer]/_b[costNumerical]
+    nlcom ratio:_b[spring]/_b[costNumerical], post
+    local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
+    estadd local conf95spw "[`ub';`lb']": rw`ll'
+    est restore rw`ll'
+    nlcom ratio:_b[summer]/_b[costNumerical], post
+    local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
+    estadd local conf95suw "[`ub';`lb']": rw`ll'
+
+    **NVSS main sample
+    local c osample==1
+    eststo: logit chosen spring summer _sob4 costNumerical `ctrl' if `c', cluster(ID)
+    margins, dydx(spring summer costNumerical  _gend2 `nvar2' _sob4) post
+    est store rmain`ll'
+    estadd scalar wtpSpm = -1000*_b[spring]/_b[costNumerical]
+    estadd scalar wtpSum = -1000*_b[summer]/_b[costNumerical]
+    nlcom ratio:_b[spring]/_b[costNumerical], post
+    local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
+    estadd local conf95spm "[`ub';`lb']": rmain`ll'
+    est restore rmain`ll'
+    nlcom ratio:_b[summer]/_b[costNumerical], post
+    local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
+    estadd local conf95sum "[`ub';`lb']": rmain`ll'
+
+    local c planning==0&parent!=1
+    eststo: logit chosen spring summer _sob4 costNumerical `ctrl' if `c', cluster(ID)
+    margins, dydx(spring summer costNumerical  _gend2 `nvar2' _sob4) post
+    est store rplan`ll'
+    estadd scalar wtpSpp = -1000*_b[spring]/_b[costNumerical]
+    estadd scalar wtpSup = -1000*_b[summer]/_b[costNumerical]
+    nlcom ratio:_b[spring]/_b[costNumerical], post
+    local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
+    estadd local conf95spp "[`ub';`lb']": rplan`ll'
+    est restore rplan`ll'
+    nlcom ratio:_b[summer]/_b[costNumerical], post
+    local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
+    estadd local conf95sup "[`ub';`lb']": rplan`ll'
+
     local ++ll
 }
 
+********************************************************************************
+*** (D1) Heterogeneity using mixed logit
+********************************************************************************
+gen price = costNumerical
+gen group = 1000*ID+round
+
+mixlogit chosen price, id(ID) group(group) rand(_sob* _gend*)
+estimates store mldob
+estadd scalar pcb = 100*normal(_b[Mean:_sob2]/abs(_b[SD:_sob2]))
+local price = _b[price]
+mixlbeta _sob2, saving("$OUT/mixparameters_dob") replace
+preserve
+use "$OUT/mixparameters_dob", clear
+gen wtp = -1000*_sob2/`price'
+#delimit ;
+hist wtp, scheme(s1mono) xtitle("WTP for Spring Birth ($)")
+fcolor(gs10) lcolor(black) fintensity(25);
+#delimit cr
+graph export "$OUT/WTPdistSpring-dob.eps", replace
+restore
+estadd scalar wtp = -1000*(_b[_sob2]/_b[price])
+nlcom ratio:_b[_sob2]/_b[price], post
+local lb = string(-1000*(_b[ratio]-1.96*_se[ratio]), "%5.1f")
+local ub = string(-1000*(_b[ratio]+1.96*_se[ratio]), "%5.1f")
+estadd local conf95 "[`ub';`lb']": mldob
+
+drop price group
 
 *---------------------------------------------------------------------------
 *--- (D5) Continuous cost graph
@@ -1294,7 +1889,26 @@ lab var _bwt8  "7lbs, 13oz"
 lab var _bwt9  "8lbs, 3oz"
 lab var _bwt10 "8lbs, 8oz"
 lab var _bwt11 "8lbs, 13oz"
+sort _bwt2 _bwt3 _bwt4 _bwt5 _bwt6 _bwt7 _bwt8 _bwt9 _bwt10 _bwt11
 
+bys RespState: gen statePop = _N 
+count
+gen surveyProportion = statePop/r(N)
+gen censusProportion = .
+tokenize `sprop'
+local total = 0
+foreach state of local snames {
+    dis "State: `state', pop: `1'"
+    qui replace censusProportion = `1' if RespState=="`state'"
+    local total = `total'+`1'
+    macro shift
+}
+dis `total'
+replace censusProportion = censusProportion/10000
+gen weight = surveyProportion/censusProportion
+replace weight=1/weight
+
+gen osample = white==1&RespSex=="Female"&married==1&parent==1&age>=20&age<=45
 *-------------------------------------------------------------------------------
 *--- (B3) Estimate
 *-------------------------------------------------------------------------------
@@ -1376,7 +1990,7 @@ foreach c of local conds {
     graph export "$OUT/Conjoint-BwtGroup_`1'.eps", replace
     macro shift
     drop Est UB LB Y
-    
+
     local ctrl `oFEs' _gend* _bwt*
     eststo: logit chosen goodSeason costNumerical `ctrl' if `c', cluster(ID)
     margins, dydx(goodSeason costNumerical  _gend2 `nvar1') post
@@ -1387,25 +2001,101 @@ foreach c of local conds {
     local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
     estadd local conf95 "[`ub';`lb']": o`ll'
 
-    cap {
-        eststo: logit chosen spring summer _sob4 costNumerical `ctrl' if `c', cluster(ID)
-        margins, dydx(spring summer costNumerical  _gend2 `nvar1' _sob4) post
-        est store p`ll'
-        estadd scalar wtpSp = -1000*_b[spring]/_b[costNumerical]
-        estadd scalar wtpSu = -1000*_b[summer]/_b[costNumerical]
-        nlcom ratio:_b[spring]/_b[costNumerical], post
-        local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
-        local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
-        estadd local conf95sp "[`ub';`lb']": p`ll'
-        est restore p`ll'
-        nlcom ratio:_b[summer]/_b[costNumerical], post
-        local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
-        local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
-        estadd local conf95su "[`ub';`lb']": p`ll'
-    }
+    eststo: logit chosen spring summer _sob4 costNumerical `ctrl' if `c', cluster(ID)
+    margins, dydx(spring summer costNumerical  _gend2 `nvar1' _sob4) post
+    est store p`ll'
+    estadd scalar wtpSp = -1000*_b[spring]/_b[costNumerical]
+    estadd scalar wtpSu = -1000*_b[summer]/_b[costNumerical]
+    nlcom ratio:_b[spring]/_b[costNumerical], post
+    local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
+    estadd local conf95sp "[`ub';`lb']": p`ll'
+    est restore p`ll'
+    nlcom ratio:_b[summer]/_b[costNumerical], post
+    local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
+    estadd local conf95su "[`ub';`lb']": p`ll'
+
+    local wt [pw=weight]
+    local se cluster(ID)
+    eststo: logit chosen spring summer _sob4 costNumerical `ctrl' `wt' if `c', `se'
+    margins, dydx(spring summer costNumerical  _gend2 `nvar1' _sob4) post
+    est store pw`ll'
+    estadd scalar wtpSpw = -1000*_b[spring]/_b[costNumerical]
+    estadd scalar wtpSuw = -1000*_b[summer]/_b[costNumerical]
+    nlcom ratio:_b[spring]/_b[costNumerical], post
+    local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
+    estadd local conf95spw "[`ub';`lb']": pw`ll'
+    est restore pw`ll'
+    nlcom ratio:_b[summer]/_b[costNumerical], post
+    local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
+    estadd local conf95suw "[`ub';`lb']": pw`ll'
+
+    **NVSS main sample
+    local c osample==1
+    eststo: logit chosen spring summer _sob4 costNumerical `ctrl' if `c', cluster(ID)
+    margins, dydx(spring summer costNumerical  _gend2 `nvar1' _sob4) post
+    est store pmain`ll'
+    estadd scalar wtpSpm = -1000*_b[spring]/_b[costNumerical]
+    estadd scalar wtpSum = -1000*_b[summer]/_b[costNumerical]
+    nlcom ratio:_b[spring]/_b[costNumerical], post
+    local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
+    estadd local conf95spm "[`ub';`lb']": pmain`ll'
+    est restore pmain`ll'
+    nlcom ratio:_b[summer]/_b[costNumerical], post
+    local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
+    estadd local conf95sum "[`ub';`lb']": pmain`ll'
+
+    local c planning==0&parent!=1
+    eststo: logit chosen spring summer _sob4 costNumerical `ctrl' if `c', cluster(ID)
+    margins, dydx(spring summer costNumerical  _gend2 `nvar1' _sob4) post
+    est store pplan`ll'
+    estadd scalar wtpSpp = -1000*_b[spring]/_b[costNumerical]
+    estadd scalar wtpSup = -1000*_b[summer]/_b[costNumerical]
+    nlcom ratio:_b[spring]/_b[costNumerical], post
+    local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
+    estadd local conf95spp "[`ub';`lb']": pplan`ll'
+    est restore pplan`ll'
+    nlcom ratio:_b[summer]/_b[costNumerical], post
+    local lb = string(-1000*(_b[ratio]-`tvL'*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
+    estadd local conf95sup "[`ub';`lb']": pplan`ll'
+
     local ++ll
 }
 
+********************************************************************************
+*** (B1) Heterogeneity using mixed logit
+********************************************************************************
+gen price = costNumerical
+gen group = 1000*ID+round
+
+mixlogit chosen price, id(ID) group(group) rand(_sob* _gend*)
+estimates store mlbwt
+estadd scalar pcb = 100*normal(_b[Mean:_sob2]/abs(_b[SD:_sob2]))
+local price = _b[price]
+mixlbeta _sob2, saving("$OUT/mixparameters_bwt") replace
+preserve
+use "$OUT/mixparameters_bwt", clear
+gen wtp = -1000*_sob2/`price'
+#delimit ;
+hist wtp, scheme(s1mono) xtitle("WTP for Spring Birth ($)")
+fcolor(gs10) lcolor(black) fintensity(25);
+#delimit cr
+graph export "$OUT/WTPdistSpring-bwt.eps", replace
+restore
+estadd scalar wtp = -1000*(_b[_sob2]/_b[price])
+nlcom ratio:_b[_sob2]/_b[price], post
+local lb = string(-1000*(_b[ratio]-1.96*_se[ratio]), "%5.1f")
+local ub = string(-1000*(_b[ratio]+1.96*_se[ratio]), "%5.1f")
+estadd local conf95 "[`ub';`lb']": mlbwt
+
+drop price group
 
 *---------------------------------------------------------------------------
 *--- (B5) Continuous cost graph
@@ -1481,48 +2171,147 @@ lab var goodSeason "Quarter 2 or Quarter 3"
 #delimit ;
 esttab n1 p1 r1 using "$OUT/conjointWTP-seasons.tex", replace
 cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
-(wtpSp conf95sp N, fmt(%5.1f %5.1f %9.0g) label("WTP for Spring" "95\% CI"
+(wtpSp conf95sp N, fmt(%5.1f %5.1f %9.0g) label("WTP for Spring (USD)" "95\% CI"
                                                 Observations))
 starlevel ("$ ^{\ddagger} $" `pvL') collabels(,none)
 mlabels("Full Sample" "BW Sample" "DoB Sample") booktabs
-label title("Birth Characteristics and Willingness to Pay for Season of Birth") 
+label title("Birth Characteristics and Willingness to Pay for Season of Birth"
+            \label{conjointWTP}) 
 keep(spring summer _sob4 costNumerical _gend2 `nvar1' `nvar2') style(tex) 
 postfoot("\bottomrule           "
-         "\multicolumn{4}{p{9.8cm}}{\begin{footnotesize} Average marginal    "
+         "\multicolumn{4}{p{11.2cm}}{\begin{footnotesize} Average marginal   "
          "effects from a logit regression are displayed. All columns include "
-         "option order fixed effects, round fixed effects and controls for   "
-         "all alternative characteristics (day of birth and gender). Standard"
-         " errors are clustered by respondent. Willingness to pay and its    "
+         "option order fixed effects and round fixed effects. Standard       "
+         "errors are clustered by respondent. Willingness to pay and its     "
          "95\% confidence interval is estimated based on the ratio of costs  "
          "to the probability of choosing a spring birth. The 95\% confidence "
          "interval is calculated using the delta method for the (non-linear) "
-         "ratio, with confidence levels based on Leamer values. $^{\ddagger}$ "
-         "Siginificant based on Leamer criterion at 5\%."
+         "ratio, with confidence levels based on Leamer values. $^{\ddagger}$"
+         " Siginificant based on Leamer criterion at 5\%."
          "\end{footnotesize}}\end{tabular}\end{table}");
+
+esttab nw1 pw1 rw1 using "$OUT/conjointWTP-seasons-wt.tex", replace
+cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
+(wtpSpw conf95spw N, fmt(%5.1f %5.1f %9.0g) label("WTP for Spring (USD)" "95\% CI"
+                                                Observations))
+starlevel ("$ ^{\ddagger} $" `pvL') collabels(,none)
+mlabels("Full Sample" "BW Sample" "DoB Sample") booktabs
+label title("Birth Characteristics and WTP for Season of Birth (Re-weighted)"
+            \label{conjointWTPwt}) 
+keep(spring summer _sob4 costNumerical _gend2 `nvar1' `nvar2') style(tex) 
+postfoot("\bottomrule           "
+         "\multicolumn{4}{p{11.2cm}}{\begin{footnotesize} Average marginal   "
+         "effects from a logit regression are displayed.  Respondents are    "
+         "weighted so the estimation sample is representative at the level of"
+         " each state based on Census Bureau figures. All columns include    "
+         "option order fixed effects and round fixed effects. Standard       "
+         "errors are clustered by respondent. Willingness to pay and its     "
+         "95\% confidence interval is estimated based on the ratio of costs  "
+         "to the probability of choosing a spring birth. The 95\% confidence "
+         "interval is calculated using the delta method for the (non-linear) "
+         "ratio, with confidence levels based on Leamer values. $^{\ddagger}$"
+         " Siginificant based on Leamer criterion at 5\%."
+         "\end{footnotesize}}\end{tabular}\end{table}");
+
+esttab nmain1 pmain1 rmain1 using "$OUT/conjointWTP-seasons-main.tex", replace
+cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
+(wtpSpm conf95spm N, fmt(%5.1f %5.1f %9.0g) label("WTP for Spring (USD)" "95\% CI"
+                                                Observations))
+starlevel ("$ ^{\ddagger} $" `pvL') collabels(,none)
+mlabels("Full Sample" "BW Sample" "DoB Sample") booktabs
+label title("Birth Characteristics and WTP for Season of Birth (White Married Mothers, 20-45)"
+            \label{conjointWTPmain}) 
+keep(spring summer _sob4 costNumerical _gend2 `nvar1' `nvar2') style(tex) 
+postfoot("\bottomrule           "
+         "\multicolumn{4}{p{11.2cm}}{\begin{footnotesize} Average marginal   "
+         "effects from a logit regression are displayed.  Respondents with   "
+         "the same characteristics of those from NVSS and ACS data are used  "
+         "(white married mothers, aged 20-45). All columns include    "
+         "option order fixed effects and round fixed effects. Standard       "
+         "errors are clustered by respondent. Willingness to pay and its     "
+         "95\% confidence interval is estimated based on the ratio of costs  "
+         "to the probability of choosing a spring birth. The 95\% confidence "
+         "interval is calculated using the delta method for the (non-linear) "
+         "ratio, with confidence levels based on Leamer values. $^{\ddagger}$"
+         " Siginificant based on Leamer criterion at 5\%."
+         "\end{footnotesize}}\end{tabular}\end{table}");
+
+esttab nplan1 pplan1 rplan1 using "$OUT/conjointWTP-seasons-nonplanners.tex", replace
+cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
+(wtpSpp conf95spp N, fmt(%5.1f %5.1f %9.0g) label("WTP for Spring (USD)" "95\% CI"
+                                                Observations))
+starlevel ("$ ^{\ddagger} $" `pvL') collabels(,none)
+mlabels("Full Sample" "BW Sample" "DoB Sample") booktabs
+label title("Birth Characteristics and WTP for Season of Birth (Non-Planners)"
+            \label{conjointWTPplan}) 
+keep(spring summer _sob4 costNumerical _gend2 `nvar1' `nvar2') style(tex) 
+postfoot("\bottomrule           "
+         "\multicolumn{4}{p{11.2cm}}{\begin{footnotesize} Average marginal   "
+         "effects from a logit regression are displayed.  Respondents consist"
+         "of those who do not have children and state that they do not plan  "
+         "to have any children in the future. All columns include    "
+         "option order fixed effects and round fixed effects. Standard       "
+         "errors are clustered by respondent. Willingness to pay and its     "
+         "95\% confidence interval is estimated based on the ratio of costs  "
+         "to the probability of choosing a spring birth. The 95\% confidence "
+         "interval is calculated using the delta method for the (non-linear) "
+         "ratio, with confidence levels based on Leamer values. $^{\ddagger}$"
+         " Siginificant based on Leamer criterion at 5\%."
+         "\end{footnotesize}}\end{tabular}\end{table}");
+
 
 esttab m1 o1 q1 using "$OUT/conjointWTP.tex", replace
 cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
 (wtp conf95 N, fmt(%5.1f %9.0g)
- label("Willingness to Pay" "95\% CI WTP" Observations))
+ label("Willingness to Pay (USD)" "95\% CI WTP" Observations))
 starlevel ("$ ^{\ddagger} $" `pvL') collabels(,none)
 mlabels("Full Sample" "BW Sample" "DoB Sample") booktabs
 label title("Birth Characteristics and Willingness to Pay for Season of Birth") 
 keep(goodSeason costNumerical _gend2 `nvar1' `nvar2') style(tex) 
 postfoot("\bottomrule           "
-         "\multicolumn{4}{p{9.8cm}}{\begin{footnotesize} Average marginal    "
+         "\multicolumn{4}{p{11.2cm}}{\begin{footnotesize} Average marginal   "
          "effects from a logit regression are displayed. All columns include "
-         "option order fixed effects, round fixed effects and controls for   "
-         "all alternative characteristics (day of birth and gender). Standard"
-         " errors are clustered by respondent. Willingness to pay and its    "
+         "option order fixed effects and round fixed effects. Standard       "
+         "errors are clustered by respondent. Willingness to pay and its     "
          "95\% confidence interval is estimated based on the ratio of costs  "
          "to the probability of choosing good season.  The 95\% confidence   "
          "interval is calculated using the delta method for the (non-linear) "
-         "ratio, with confidence levels based on Leamer values. $^{\ddagger}$ "
-         "Siginificant based on Leamer criterion at 5\%."
+         "ratio, with confidence levels based on Leamer values. $^{\ddagger}$"
+         " Siginificant based on Leamer criterion at 5\%."
          "\end{footnotesize}}\end{tabular}\end{table}");
 
 #delimit cr
 
+gen price=.
+lab var _sob2 "Spring"
+lab var _sob3 "Summer"
+lab var _sob4 "Fall"
+lab var price "Cost (in 1000s)"
 
+*MIXED LOGIT
+#delimit ;
+esttab mlall mlbwt mldob using "$OUT/WTP-mixedlogit.tex", replace
+cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
+(wtp conf95 pcb N, fmt(%5.1f %5.1f %5.1f %9.0g)
+    label("WTP for Spring Birth" "95\% CI"
+          "\% Positively Impacted by Spring Birth" Observations))
+starlevel ("$ ^{\ddagger} $" `pvL') collabels(,none)
+mlabels("Full Sample" "BW Sample" "DoB Sample") booktabs label style(tex)
+title("Allowing for Preference Heterogeneity with Mixed Logit"\label{WTPmix})
+postfoot("\bottomrule           "
+         "\multicolumn{4}{p{14.1cm}}{\begin{footnotesize} All specifications "
+         "are estimated using a Mixed Logit model. Panel A displays mean     "
+         "coefficients from the mixed logit, and panel B displays the        "
+         "estimated standard deviation of each coefficient.  All coefficients"
+         " with the exception of Cost are allowed to vary randomly throughout"
+         " the sample.  The WTP is calculated as the ratio of the coefficient"
+         " on spring birth to that on costs, and confidence intervals are    "
+         "calculated by the delta method. The \% of respondents who value    "
+         "a spring birth positively based on individual coefficients is      "
+         "displayed at the foot of the table.  Standard errors are clustered "
+         "by respondent."
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
 
 
