@@ -854,6 +854,8 @@ foreach spec in main wt {
     local ub = string(-1000*(_b[ratio]+`tvL'*_se[ratio]), "%5.1f")
     estadd local conf95su "[`ub';`lb']": nmain1
     
+    local c planning==0&white==1&RespSex=="Female"&parent!=1&age>=20&age<=45
+    local c planning==0&white==1&RespSex=="Female"&married==0&parent!=1&age>=20&age<=45
     local c planning==0&parent!=1
     eststo: logit chosen spring summer _sob4 costNumerical `ctrl' `wt' if `c', `se'
     margins, dydx(spring summer costNumerical  _gend2 `nvar1' `nvar2' _sob4) post
@@ -887,7 +889,7 @@ foreach spec in main wt {
                 \label{conjointWTP`spec'}) 
     keep(spring summer _sob4 costNumerical _gend2 `nvar1' `nvar2') style(tex) 
     postfoot("\bottomrule           "
-             "\multicolumn{4}{p{11.2cm}}{\begin{footnotesize} Average marginal   "
+             "\multicolumn{4}{p{12.2cm}}{\begin{footnotesize} Average marginal   "
              "effects from a logit regression are displayed. All columns include "
              "option order fixed effects and round fixed effects. Standard       "
              "errors are clustered by respondent. Willingness to pay and its     "
@@ -898,8 +900,130 @@ foreach spec in main wt {
              " Siginificant based on Leamer criterion at 5\%."
              "\end{footnotesize}}\end{tabular}\end{table}");
     #delimit cr
+    estimates clear
 }
 
+#delimit ;
+gen lowEduc = RespEduc=="Eighth Grade or Less"|RespEduc=="High School Degree/GED"|
+              RespEduc=="Some High School";
+gen young   = age>=20&age<=34;
+#delimit cr
+qui reg chosen spring summer _sob4 costNumerical `ctrl' if osample==1
+local pvL2  = ttail(e(N),sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)))*2
+local cc lowEduc==0 lowEduc==1 young==1 young==0
+local jj = 1
+
+foreach c of local cc {
+    qui reg chosen spring summer _sob4 costNumerical `ctrl' if `c'
+    local tvL2  = sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1))
+    
+    local c `c'&osample==1
+    eststo: logit chosen spring summer _sob4 costNumerical `ctrl' if `c', `se'
+    margins, dydx(spring summer costNumerical _gend2 `nvar1' `nvar2' _sob4) post
+    est store ns`jj'
+    estadd scalar wtpSp = -1000*_b[spring]/_b[costNumerical]
+    nlcom ratio:_b[spring]/_b[costNumerical], post
+    local lb = string(-1000*(_b[ratio]-`tvL2'*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+`tvL2'*_se[ratio]), "%5.1f")
+    estadd local conf95sp "[`ub';`lb']": ns`jj'
+    est restore ns`jj'
+    local ++jj
+}
+#delimit ;
+esttab ns1 ns2 ns3 ns4 using "$OUT/conjointWTP-marriedSubsamples.tex", replace
+cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
+(wtpSp conf95sp N, fmt(%5.1f %5.1f %9.0g) label("WTP for Spring (USD)" "95\% CI"
+                                                Observations))
+starlevel ("$ ^{\ddagger} $" `pvL2') collabels(,none)
+mgroups("Education" "Age", pattern(1 0 1 0)
+        prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
+mlabels("Some College +" "No College" "20-34" "35-45") booktabs
+label title("Birth Characteristics and WTP by Group"
+            \label{conjointWTPmarriedSubsamples}) 
+keep(spring summer _sob4 costNumerical _gend2 `nvar1' `nvar2') style(tex) 
+postfoot("\bottomrule           "
+         "\multicolumn{5}{p{14.1cm}}{\begin{footnotesize} Each regression    "
+         "sample consists of white married mothers aged 20-45 who meet the   "
+         "criteria in column headings. Average marginal   "
+         "effects from a logit regression are displayed. All columns include "
+         "option order fixed effects and round fixed effects. Standard       "
+         "errors are clustered by respondent. Willingness to pay and its     "
+         "95\% confidence interval is estimated based on the ratio of costs  "
+         "to the probability of choosing a spring birth. The 95\% confidence "
+         "interval is calculated using the delta method for the (non-linear) "
+         "ratio, with confidence levels based on Leamer values. $^{\ddagger}$"
+         " Siginificant based on Leamer criterion at 5\%."
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+
+*---------------------------------------------------------------------------
+*--- (A4b) parents only by children
+*---------------------------------------------------------------------------
+gen nkids = 1 if RespNumKids=="1"
+replace nkids = 2 if RespNumKids!="0"&nkids==.
+
+qui reg chosen `oFEs' _sob* _cost* _gend* _bwt* _dob* if nkids==2
+local tvLk  = sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1))
+local pvLk  = ttail(e(N),sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)))*2
+dis `pvLk'
+
+    
+**NVSS main sample
+local c osample==1&nkids==1
+eststo: logit chosen spring summer _sob4 costNumerical `ctrl' if `c', `se'
+margins, dydx(spring summer costNumerical  _gend2 `nvar1' `nvar2' _sob4) post
+est store nk1
+estadd scalar wtpSp = -1000*_b[spring]/_b[costNumerical]
+estadd scalar wtpSu = -1000*_b[summer]/_b[costNumerical]
+nlcom ratio:_b[spring]/_b[costNumerical], post
+local lb = string(-1000*(_b[ratio]-`tvLk'*_se[ratio]), "%5.1f")
+local ub = string(-1000*(_b[ratio]+`tvLk'*_se[ratio]), "%5.1f")
+estadd local conf95sp "[`ub';`lb']": nk1
+est restore nk1
+nlcom ratio:_b[summer]/_b[costNumerical], post
+local lb = string(-1000*(_b[ratio]-`tvLk'*_se[ratio]), "%5.1f")
+local ub = string(-1000*(_b[ratio]+`tvLk'*_se[ratio]), "%5.1f")
+estadd local conf95su "[`ub';`lb']": nk1
+
+local c osample==1&nkids==2
+eststo: logit chosen spring summer _sob4 costNumerical `ctrl' if `c', `se'
+margins, dydx(spring summer costNumerical  _gend2 `nvar1' `nvar2' _sob4) post
+est store nk2
+estadd scalar wtpSp = -1000*_b[spring]/_b[costNumerical]
+estadd scalar wtpSu = -1000*_b[summer]/_b[costNumerical]
+nlcom ratio:_b[spring]/_b[costNumerical], post
+local lb = string(-1000*(_b[ratio]-`tvLk'*_se[ratio]), "%5.1f")
+local ub = string(-1000*(_b[ratio]+`tvLk'*_se[ratio]), "%5.1f")
+estadd local conf95sp "[`ub';`lb']": nk2
+est restore nk2
+nlcom ratio:_b[summer]/_b[costNumerical], post
+local lb = string(-1000*(_b[ratio]-`tvLk'*_se[ratio]), "%5.1f")
+local ub = string(-1000*(_b[ratio]+`tvLk'*_se[ratio]), "%5.1f")
+estadd local conf95su "[`ub';`lb']": nk2
+
+#delimit ;
+esttab nk1 nk2 using "$OUT/conjointWTP-nkids.tex", replace
+cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
+(wtpSp conf95sp N, fmt(%5.1f %5.1f %9.0g) label("WTP for Spring (USD)" "95\% CI"
+                                                Observations))
+starlevel ("$ ^{\ddagger} $" `pvLk') collabels(,none)
+mlabels("1 Child" "2+ Children") booktabs
+label title("Birth Characteristics and WTP for Season of Birth (White Mothers, 20--45)"
+            \label{conjointWTPkids}) 
+keep(spring summer _sob4 costNumerical _gend2 `nvar1' `nvar2') style(tex) 
+postfoot("\bottomrule           "
+         "\multicolumn{3}{p{9.2cm}}{\begin{footnotesize} Average marginal    "
+         "effects from a logit regression are displayed. All columns include "
+         "option order fixed effects and round fixed effects. Standard       "
+         "errors are clustered by respondent. Willingness to pay and its     "
+         "95\% confidence interval is estimated based on the ratio of costs  "
+         "to the probability of choosing a spring birth. The 95\% confidence "
+         "interval is calculated using the delta method for the (non-linear) "
+         "ratio, with confidence levels based on Leamer values. $^{\ddagger}$"
+         " Siginificant based on Leamer criterion at 5\%."
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+exit
 
 *-------------------------------------------------------------------------------
 *-- (A5) Heterogeneity using mixed logit
@@ -909,7 +1033,7 @@ gen group = 1000*ID+round
 tab round, gen(_rr)
 tab option, gen(_oo)
 local bwts _bwt2 _bwt3 _bwt4 _bwt5 _bwt6 _bwt7 _bwt8 _bwt9 _bwt10 _bwt11
-
+/*
 mixlogit chosen price, id(ID) group(group) rand(_sob* _gend* `bwts')
 estimates store mlall
 estadd scalar pcb = 100*normal(_b[Mean:_sob2]/abs(_b[SD:_sob2]))
@@ -1003,8 +1127,57 @@ postfoot("\bottomrule           "
          "\end{footnotesize}}\end{tabular}\end{table}");
 #delimit cr
 estimates clear
-drop price group
 
+*/
+qui reg chosen spring summer _sob4 costNumerical `ctrl' if osample==1&young==1
+local pvL3  = ttail(e(N),sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)))*2
+
+local cc lowEduc==0 lowEduc==1 young==1 young==0
+local jj = 1
+foreach c of local cc {
+    qui reg chosen spring summer _sob4 costNumerical `ctrl' if `c'
+    local tvL2  = sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1))
+
+    *local mopts technique(nr 20 dfp 20 bfgs 20) difficult
+    local c `c'&osample==1
+    mixlogit chosen price if `c', id(ID) group(group) rand(_sob* _gend*)
+    estimates store ml`jj'
+    estadd scalar pcb = 100*normal(_b[Mean:_sob2]/abs(_b[SD:_sob2]))
+    estadd scalar wtp = -1000*(_b[_sob2]/_b[price])
+    nlcom ratio:_b[_sob2]/_b[price], post
+    local lb = string(-1000*(_b[ratio]-`tvL2'*_se[ratio]), "%5.1f")
+    local ub = string(-1000*(_b[ratio]+`tvL2'*_se[ratio]), "%5.1f")
+    estadd local conf95 "[`ub';`lb']": ml`jj'
+    local ++jj
+}
+#delimit ;
+esttab ml1 ml2 ml3 ml4 using "$OUT/WTP-mixedlogit-marriedSubsamples.tex", replace
+cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
+(wtp conf95 pcb N, fmt(%5.1f %5.1f %5.1f %9.0g)
+    label("WTP for Spring Birth" "95\% CI"
+          "\% Positively Impacted by Spring Birth" Observations))
+mgroups("Education" "Age", pattern(1 0 1 0)
+        prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
+mlabels("Some College +" "No College" "20-34" "35-45") booktabs
+label title("Birth Characteristics and WTP by Group (Mixed Logit)"
+            \label{conjointWTPmarriedSubsamples}) 
+starlevel ("$ ^{\ddagger} $" `pvL3') collabels(,none) style(tex)
+postfoot("\bottomrule           "
+         "\multicolumn{5}{p{14.1cm}}{\begin{footnotesize} All specifications "
+         "are estimated using a Mixed Logit model. Panel A displays mean     "
+         "coefficients from the mixed logit, and panel B displays the        "
+         "estimated standard deviation of each coefficient.  All coefficients"
+         " with the exception of Cost are allowed to vary randomly throughout"
+         " the sample.  The WTP is calculated as the ratio of the coefficient"
+         " on spring birth to that on costs, and confidence intervals are    "
+         "calculated by the delta method. The \% of respondents who value    "
+         "a spring birth positively based on individual coefficients is      "
+         "displayed at the foot of the table.  Standard errors are clustered "
+         "by respondent."
+         "\end{footnotesize}}\end{tabular}\end{table}");
+#delimit cr
+estimates clear
+drop price group
 exit
 *---------------------------------------------------------------------------
 *--- (A6) Continuous cost graph
