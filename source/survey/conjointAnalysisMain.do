@@ -420,7 +420,7 @@ xlabel(1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug"
 legend(order(1 "MTurk Survey Sample" 2 "95% CI" 4 "NVSS Birth Data"))
 ytitle("Proportion of Births");
 graph export "$OUT/birthsMonth.eps", as(eps) replace;
-                                        #delimit cr
+#delimit cr
 restore
 *-------------------------------------------------------------------------------
 *--- (1c) Comparison with ACS
@@ -700,9 +700,9 @@ gen LB  = .
 gen Y   = .
 local i = 1
 local vars SEASON-OF_BIRTH _sob1 _sob2 _sob3 _sob4 s COST _cost1 _cost2      /*
-                                                                     */ _cost3 _cost4 _cost5 _cost6 _cost7 _cost8 _cost9 _cost10 s GENDER _gend1  /*
-                                                                                                                                              */ _gend2 s BIRTH-WEIGHT _bwt1 _bwt2 _bwt3 _bwt4 _bwt5 _bwt6 _bwt7 _bwt8     /*
-                                                                                                                                                                                                                     */ _bwt9 _bwt10 _bwt11 s DAY-OF-BIRTH _dob1 _dob2 s
+*/ _cost3 _cost4 _cost5 _cost6 _cost7 _cost8 _cost9 _cost10 s GENDER _gend1  /*
+*/ _gend2 s BIRTH-WEIGHT _bwt1 _bwt2 _bwt3 _bwt4 _bwt5 _bwt6 _bwt7 _bwt8     /*
+*/ _bwt9 _bwt10 _bwt11 s DAY-OF-BIRTH _dob1 _dob2 s
 
 foreach var of local vars {
     qui replace Y = `i' in `i'
@@ -728,24 +728,24 @@ replace Y = -Y
 lab val Y names
 
 *---------------------------------------------------------------------------
-     *--- (A4) Graph
+*--- (A4) Graph
 *---------------------------------------------------------------------------
-                                        #delimit ;
-     twoway rcap  LB UB Y in 1/39, horizontal scheme(s1mono) lcolor(black) ||
-                                                                 scatter Y Est in 1/39, mcolor(black) msymbol(oh) mlwidth(thin)
+#delimit ;
+twoway rcap  LB UB Y in 1/39, horizontal scheme(s1mono) lcolor(black) ||
+  scatter Y Est in 1/39, mcolor(black) msymbol(oh) mlwidth(thin)
 xline(0, lpattern(dash) lcolor(gs7))
 ylabel(-1 -7 -19 -23 -36, valuelabel angle(0))
 ymlabel(-2(-1)-5 -8(-1)-17 -20 -21 -24(-1)-34 -37 -38, valuelabel angle(0))
 ytitle("") xtitle("Effect Size (Probability)") legend(off) ysize(8)
 note(Total respondents = `=`Nobs'/14'.  Total profiles = `Nobs'.);
 *legend(lab(1 "95% CI") lab(2 "Point Estimate"));
-                                        #delimit cr
+#delimit cr
 graph export "$OUT/Conjoint-FullGroup_`1'.eps", replace
 macro shift
 drop Est UB LB Y
 
 local ctrl `oFEs' _gend* _bwt* _dob*
-                      eststo: logit chosen goodSeason costNumerical `ctrl', cluster(ID)
+eststo: logit chosen goodSeason costNumerical `ctrl', cluster(ID)
 margins, dydx(goodSeason costNumerical _gend2 `nvar1' `nvar2') post
 est store m1
 estadd scalar wtp = -1000*_b[goodSeason]/_b[costNumerical]
@@ -839,15 +839,16 @@ foreach spec in main wt {
              "ratio, with confidence levels based on Leamer values. $^{\ddagger}$"
              " Siginificant based on Leamer criterion at 5\%."
              "\end{footnotesize}}\end{tabular}\end{table}");
-                                        #delimit cr
+    #delimit cr
     estimates clear
 }
 
-                                        #delimit ;
+#delimit ;
 gen lowEduc = RespEduc=="Eighth Grade or Less"|RespEduc=="High School Degree/GED"|
-        RespEduc=="Some High School";
+              RespEduc=="Some High School";
 gen young   = age>=20&age<=34;
-                                        #delimit cr
+#delimit cr
+
 qui reg chosen spring summer _sob4 costNumerical `ctrl' if osample==1
 local pvL2  = ttail(e(N),sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)))*2
 local cc lowEduc==0 lowEduc==1 young==1 young==0
@@ -869,7 +870,8 @@ foreach c of local cc {
     est restore ns`jj'
     local ++jj
 }
-                                        #delimit ;
+
+#delimit ;
 esttab ns1 ns2 ns3 ns4 using "$OUT/conjointWTP-marriedSubsamples.tex", replace
 cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
 (wtpSp conf95sp N, fmt(%5.1f %5.1f %9.0g) label("WTP for Spring (USD)" "95\% CI"
@@ -894,20 +896,19 @@ postfoot("\bottomrule           "
          "ratio, with confidence levels based on Leamer values. $^{\ddagger}$"
          " Siginificant based on Leamer criterion at 5\%."
          "\end{footnotesize}}\end{tabular}\end{table}");
-                                        #delimit cr
+#delimit cr
 
 *---------------------------------------------------------------------------
-     *--- (A4b) parents only by children
+*--- (A4b) parents only by children
 *---------------------------------------------------------------------------
-     gen nkids = 1 if RespNumKids=="1"
+gen nkids = 1 if RespNumKids=="1"
 replace nkids = 2 if RespNumKids!="0"&nkids==.
 
-    qui reg chosen `oFEs' _sob* _cost* _gend* _bwt* _dob* if nkids==2
+qui reg chosen `oFEs' _sob* _cost* _gend* _bwt* _dob* if nkids==2
 local tvLk  = sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1))
 local pvLk  = ttail(e(N),sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)))*2
 dis `pvLk'
-
-
+    
 **NVSS main sample
 local c osample==1&nkids==1
 eststo: logit chosen spring summer _sob4 costNumerical `ctrl' if `c', `se'
@@ -1091,7 +1092,7 @@ mgroups("Education" "Age", pattern(1 0 1 0)
         prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
 mlabels("Some College +" "No College" "20-34" "35-45") booktabs
 label title("Birth Characteristics and WTP by Group (Mixed Logit)"
-            \label{conjointWTPmarriedSubsamples})
+            \label{conjointWTPmarriedSubsamples}) 
 starlevel ("$ ^{\ddagger} $" `pvL3') collabels(,none) style(tex)
 postfoot("\bottomrule           "
          "\multicolumn{5}{p{14.1cm}}{\begin{footnotesize} All specifications "
@@ -1111,28 +1112,28 @@ estimates clear
 drop price group
 exit
 *---------------------------------------------------------------------------
-     *--- (A6) Continuous cost graph
+*--- (A6) Continuous cost graph
 *---------------------------------------------------------------------------
-                                        #delimit cr
-     lab def namesT -1 "Season of Birth" -2 "Winter" -3 "Spring" -4 "Summer"      /*
-                                                                        */ -5 "Fall" -6 " " -7 "Cost" -8 "1000s of USD" -9 " " -10 "Gender"          /*
-                                                                                                                                       */ -11 "Boy" -12 "Girl" -13 " " -14 "Birth Weight" -15 "5lbs, 8oz"           /*
-                                                                                                                                                                                                  */ -16 "5lbs, 13oz" -17 "6lbs, 3oz" -18 "6lbs, 8oz" -19 "6lbs, 13oz"         /*
-                                                                                                                                                                                                                                                              */ -20 "7lbs, 3oz" -21 "7lbs, 8oz" -22 "7lbs, 13oz" -23 "8lbs, 3oz"          /*
-                                                                                                                                                                                                                                                                                                                          */ -24 "8lbs, 8oz" -25 "8lbs, 13oz"  -26 " " -27 "Day of Birth" -28 "Weekday"/*
-                                                                                                                                                                                                                                                                                                                                                                                                  */ -29 "Weekend" -30 " "
+#delimit cr
+lab def namesT -1 "Season of Birth" -2 "Winter" -3 "Spring" -4 "Summer"      /*
+*/ -5 "Fall" -6 " " -7 "Cost" -8 "1000s of USD" -9 " " -10 "Gender"          /*
+*/ -11 "Boy" -12 "Girl" -13 " " -14 "Birth Weight" -15 "5lbs, 8oz"           /*
+*/ -16 "5lbs, 13oz" -17 "6lbs, 3oz" -18 "6lbs, 8oz" -19 "6lbs, 13oz"         /*
+*/ -20 "7lbs, 3oz" -21 "7lbs, 8oz" -22 "7lbs, 13oz" -23 "8lbs, 3oz"          /*
+*/ -24 "8lbs, 8oz" -25 "8lbs, 13oz"  -26 " " -27 "Day of Birth" -28 "Weekday"/*
+*/ -29 "Weekend" -30 " "
 
 reg chosen `oFEs' _sob* costNumerical _gend* _bwt* _dob*, cluster(ID)
 local Nobs = e(N)
 
 gen Est = .
-        gen UB  = .
-                gen LB  = .
-                        gen Y   = .
-                                local i = 1
+gen UB  = .
+gen LB  = .
+gen Y   = .
+local i = 1
 local vars SEASON-OF_BIRTH _sob1 _sob2 _sob3 _sob4 s COST costNumerical s    /*
-                                                                            */ GENDER _gend1 _gend2 s BIRTH-WEIGHT _bwt1 _bwt2 _bwt3 _bwt4 _bwt5 _bwt6   /*
-                                                                                                                                                     */ _bwt7 _bwt8 _bwt9 _bwt10 _bwt11 s DAY-OF-BIRTH _dob1 _dob2 s
+*/ GENDER _gend1 _gend2 s BIRTH-WEIGHT _bwt1 _bwt2 _bwt3 _bwt4 _bwt5 _bwt6   /*
+*/ _bwt7 _bwt8 _bwt9 _bwt10 _bwt11 s DAY-OF-BIRTH _dob1 _dob2 s
 
 foreach var of local vars {
     qui replace Y = `i' in `i'
@@ -1157,28 +1158,28 @@ foreach var of local vars {
 replace Y = -Y
 lab val Y namesT
 
-                                        #delimit ;
+#delimit ;
 twoway rcap  LB UB Y in 1/30, horizontal scheme(s1mono) lcolor(black) ||
-                                                            scatter Y Est in 1/30, mcolor(black) msymbol(oh) mlwidth(thin)
+scatter Y Est in 1/30, mcolor(black) msymbol(oh) mlwidth(thin)
 xline(0, lpattern(dash) lcolor(gs7))
 ylabel(-1 -7 -10 -14 -27, valuelabel angle(0))
 ymlabel(-2(-1)-5 -8 -11 -12 -15(-1)-25 -28 -29, valuelabel angle(0))
 ytitle("") xtitle("Effect Size (Probability)") legend(off) ysize(8)
 note(Total respondents = `=`Nobs'/14'.  Total profiles = `Nobs'.);
 *legend(lab(1 "95% CI") lab(2 "Point Estimate"));
-                                        #delimit cr
+#delimit cr
 graph export "$OUT/Conjoint-FullGroup_continuous.eps", replace
 drop Est UB LB Y
 
 
 
 reg chosen `oFEs' _sob* costNumerical _gend* _bwt* _dob*, cluster(ID)
-                                        #delimit ;
+#delimit ;
 local vars _sob2 _sob3 _sob4 _gend2 _bwt2 _bwt3 _bwt4 _bwt5 _bwt6 _bwt7 _bwt8
-_bwt9 _bwt10 _bwt11  _dob2;
+           _bwt9 _bwt10 _bwt11  _dob2;
 local wts `" "5lbs, 13oz" "6lbs, 3oz" "6lbs, 8oz" "6lbs, 13oz" "7lbs, 3oz"
-          "7lbs, 8oz" "7lbs, 13oz" "8lbs, 3oz" "8lbs, 8oz" "8lbs, 13oz" "';
-                                        #delimit cr
+           "7lbs, 8oz" "7lbs, 13oz" "8lbs, 3oz" "8lbs, 8oz" "8lbs, 13oz" "';
+#delimit cr
 foreach var of varlist `vars' {
     local v`var'= -1000*_b[`var']/_b[costNumerical]
 }
@@ -1199,14 +1200,14 @@ foreach bw of local wts {
 
 
 *-------------------------------------------------------------------------------
-     *-- (A0) groups
+*-- (A0) groups
 *-------------------------------------------------------------------------------
-     gen cold = minTemp<23
+gen cold = minTemp<23
 gen father = parent==1 if RespSex=="Male"
 gen mother = parent==1 if RespSex=="Female"
 gen motherEmp = RespEmployment=="Employed" if mother==1
 gen motherTeach = teacher==1 if mother==1
-                                        #delimit ;
+#delimit ;
 local ng RespSex=="Female" RespSex=="Male" parent==1 parent==0 cold==1 cold==0
 teacher==1 teacher==0 RespEmployment=="Employed" RespEmployment!="Employed"
 father==1 father==0 mother==1 mother==0 motherEmp==1 motherEmp==0
@@ -1217,7 +1218,7 @@ Unemployed Father Non-Father Mother Non-Mother Mother-Employed
 Mother-Unemployed Mother-Teacher Mother-Non-Teacher
 Mother-Employed-sample Mother-Unemployed-sample
 Mother-Teacher-sample Mother-Non-Teacher-sample;
-                                        #delimit cr
+#delimit cr
 tokenize `names'
 cap rm "$OUT/samples.xls"
 cap rm "$OUT/samples.txt"
@@ -1230,9 +1231,9 @@ foreach gg of local ng {
     local lb = string(-1000*(_b[ratio]-1.96*_se[ratio]), "%5.1f")
     local ub = string(-1000*(_b[ratio]+1.96*_se[ratio]), "%5.1f")
     est restore e1
-        outreg2 using $OUT/samples.xls, excel ctitle(`1')/*
-                                                      */ keep(_sob* costNumerical _gend* _bwt* _dob*)  /*
-                                                  */ addtext(WTP, `wtp', 95% CI, [`ub' - `lb'])
+    outreg2 using $OUT/samples.xls, excel ctitle(`1')/*
+    */ keep(_sob* costNumerical _gend* _bwt* _dob*)  /*
+    */ addtext(WTP, `wtp', 95% CI, [`ub' - `lb'])
     macro shift
 }
 gen female   = RespSex=="Female"
@@ -1240,12 +1241,12 @@ gen employed = RespEmployment=="Employed"
 gen mempsample   = motherEmp if osample==1
 gen mteachsample = motherTeach if osample==1
 
-                                        #delimit ;
+#delimit ;
 local ng female parent cold teacher employed father mother motherEmp motherTeach
 mempsample mteachsample;
 local names Female Parent Cold Teacher Employed Father Mother Mother-Employed
 Mother-Teacher Mother-Employed-Sample Mother-Teacher-Sample;
-                                        #delimit cr
+#delimit cr
 tokenize `names'
 cap rm "$OUT/samplesInteraction.xls"
 cap rm "$OUT/samplesInteraction.txt"
@@ -1267,11 +1268,11 @@ foreach group of local ng {
     local lbi = string(-1000*(_b[ratio2]-1.96*_se[ratio2]), "%5.1f")
     local ubi = string(-1000*(_b[ratio2]+1.96*_se[ratio2]), "%5.1f")
     est restore e1
-        outreg2 using $OUT/samplesInteraction.xls, excel ctitle(`1') /*
-                                                                     */ keep(_sob* costNumerical _INT_sob*)  /*
-                                                                     */ addtext(WTP, `wtp', 95% CI, [`ub' - `lb'], /*
-                                                                                */         WTP Interaction, `iwtp', 95% CI Interaction, [`ubi' - `lbi'])
+    outreg2 using $OUT/samplesInteraction.xls, excel ctitle(`1') /*
+    */ keep(_sob* costNumerical _INT_sob*)  /*
+    */ addtext(WTP, `wtp', 95% CI, [`ub' - `lb'], /*
+    */         WTP Interaction, `iwtp', 95% CI Interaction, [`ubi' - `lbi'])
     macro shift
     drop _INT*
-             }
+}
 
