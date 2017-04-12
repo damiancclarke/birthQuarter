@@ -659,7 +659,7 @@ replace weight=1/weight
 
 gen osample = white==1&RespSex=="Female"&married==1&parent==1&age>=20&age<=45
 
-
+/*
 *-------------------------------------------------------------------------------
 *-- (A3) Main analysis
 *-------------------------------------------------------------------------------
@@ -819,12 +819,12 @@ foreach spec in main wt {
     lab var costNumerical "Cost (in 1000s)"
     lab var goodSeason "Quarter 2 or Quarter 3"
                                         #delimit ;
-    esttab n1 nmain1 nplan1 using "$OUT/conjointWTP-seasons-`spec'.tex", replace
+    esttab n1 nplan1 nmain1 using "$OUT/conjointWTP-seasons-`spec'.tex", replace
     cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
     (wtpSp conf95sp N, fmt(%5.1f %5.1f %9.0g) label("WTP for Spring (USD)" "95\% CI"
                                                     Observations))
     starlevel ("$ ^{\ddagger} $" `pvL') collabels(,none)
-    mlabels("Full Sample" "White Mothers, 20-45" "Non-Planners") booktabs
+    mlabels("Full Sample" "Non-Planners" "White Mothers, 20-45") booktabs
     label title("Birth Characteristics and Willingness to Pay for Season of Birth"
                 \label{conjointWTP`spec'})
     keep(spring summer _sob4 costNumerical _gend2 `nvar1' `nvar2') style(tex)
@@ -844,14 +844,14 @@ foreach spec in main wt {
 }
 
 #delimit ;
-gen lowEduc = RespEduc=="Eighth Grade or Less"|RespEduc=="High School Degree/GED"|
-              RespEduc=="Some High School";
 gen young   = age>=20&age<=34;
+gen nkids = 1 if RespNumKids=="1";
+replace nkids = 2 if RespNumKids!="0"&nkids==.;
 #delimit cr
 
 qui reg chosen spring summer _sob4 costNumerical `ctrl' if osample==1
 local pvL2  = ttail(e(N),sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)))*2
-local cc lowEduc==0 lowEduc==1 young==1 young==0
+local cc young==1 young==0 nkids==1 nkids==2
 local jj = 1
 
 foreach c of local cc {
@@ -877,9 +877,9 @@ cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
 (wtpSp conf95sp N, fmt(%5.1f %5.1f %9.0g) label("WTP for Spring (USD)" "95\% CI"
                                                 Observations))
 starlevel ("$ ^{\ddagger} $" `pvL2') collabels(,none)
-mgroups("Education" "Age", pattern(1 0 1 0)
+mgroups("Age" "Fertility", pattern(1 0 1 0)
         prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
-mlabels("Some College +" "No College" "20-34" "35-45") booktabs
+mlabels("20-34" "35-45" "1 Child" "2+ Children") booktabs
 label title("Birth Characteristics and WTP by Group"
             \label{conjointWTPmarriedSubsamples})
 keep(spring summer _sob4 costNumerical _gend2 `nvar1' `nvar2') style(tex)
@@ -887,73 +887,6 @@ postfoot("\bottomrule           "
          "\multicolumn{5}{p{14.1cm}}{\begin{footnotesize} Each regression    "
          "sample consists of white married mothers aged 20-45 who meet the   "
          "criteria in column headings. Average marginal   "
-         "effects from a logit regression are displayed. All columns include "
-         "option order fixed effects and round fixed effects. Standard       "
-         "errors are clustered by respondent. Willingness to pay and its     "
-         "95\% confidence interval is estimated based on the ratio of costs  "
-         "to the probability of choosing a spring birth. The 95\% confidence "
-         "interval is calculated using the delta method for the (non-linear) "
-         "ratio, with confidence levels based on Leamer values. $^{\ddagger}$"
-         " Siginificant based on Leamer criterion at 5\%."
-         "\end{footnotesize}}\end{tabular}\end{table}");
-#delimit cr
-
-*---------------------------------------------------------------------------
-*--- (A4b) parents only by children
-*---------------------------------------------------------------------------
-gen nkids = 1 if RespNumKids=="1"
-replace nkids = 2 if RespNumKids!="0"&nkids==.
-
-qui reg chosen `oFEs' _sob* _cost* _gend* _bwt* _dob* if nkids==2
-local tvLk  = sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1))
-local pvLk  = ttail(e(N),sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)))*2
-dis `pvLk'
-    
-**NVSS main sample
-local c osample==1&nkids==1
-eststo: logit chosen spring summer _sob4 costNumerical `ctrl' if `c', `se'
-margins, dydx(spring summer costNumerical  _gend2 `nvar1' `nvar2' _sob4) post
-est store nk1
-estadd scalar wtpSp = -1000*_b[spring]/_b[costNumerical]
-estadd scalar wtpSu = -1000*_b[summer]/_b[costNumerical]
-nlcom ratio:_b[spring]/_b[costNumerical], post
-local lb = string(-1000*(_b[ratio]-`tvLk'*_se[ratio]), "%5.1f")
-local ub = string(-1000*(_b[ratio]+`tvLk'*_se[ratio]), "%5.1f")
-estadd local conf95sp "[`ub';`lb']": nk1
-est restore nk1
-nlcom ratio:_b[summer]/_b[costNumerical], post
-local lb = string(-1000*(_b[ratio]-`tvLk'*_se[ratio]), "%5.1f")
-local ub = string(-1000*(_b[ratio]+`tvLk'*_se[ratio]), "%5.1f")
-estadd local conf95su "[`ub';`lb']": nk1
-
-local c osample==1&nkids==2
-eststo: logit chosen spring summer _sob4 costNumerical `ctrl' if `c', `se'
-margins, dydx(spring summer costNumerical  _gend2 `nvar1' `nvar2' _sob4) post
-est store nk2
-estadd scalar wtpSp = -1000*_b[spring]/_b[costNumerical]
-estadd scalar wtpSu = -1000*_b[summer]/_b[costNumerical]
-nlcom ratio:_b[spring]/_b[costNumerical], post
-local lb = string(-1000*(_b[ratio]-`tvLk'*_se[ratio]), "%5.1f")
-local ub = string(-1000*(_b[ratio]+`tvLk'*_se[ratio]), "%5.1f")
-estadd local conf95sp "[`ub';`lb']": nk2
-est restore nk2
-nlcom ratio:_b[summer]/_b[costNumerical], post
-local lb = string(-1000*(_b[ratio]-`tvLk'*_se[ratio]), "%5.1f")
-local ub = string(-1000*(_b[ratio]+`tvLk'*_se[ratio]), "%5.1f")
-estadd local conf95su "[`ub';`lb']": nk2
-
-#delimit ;
-esttab nk1 nk2 using "$OUT/conjointWTP-nkids.tex", replace
-cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
-(wtpSp conf95sp N, fmt(%5.1f %5.1f %9.0g) label("WTP for Spring (USD)" "95\% CI"
-                                                Observations))
-starlevel ("$ ^{\ddagger} $" `pvLk') collabels(,none)
-mlabels("1 Child" "2+ Children") booktabs
-label title("Birth Characteristics and WTP for Season of Birth (White Mothers, 20--45)"
-            \label{conjointWTPkids})
-keep(spring summer _sob4 costNumerical _gend2 `nvar1' `nvar2') style(tex)
-postfoot("\bottomrule           "
-         "\multicolumn{3}{p{9.2cm}}{\begin{footnotesize} Average marginal    "
          "effects from a logit regression are displayed. All columns include "
          "option order fixed effects and round fixed effects. Standard       "
          "errors are clustered by respondent. Willingness to pay and its     "
@@ -973,7 +906,7 @@ gen group = 1000*ID+round
 tab round, gen(_rr)
 tab option, gen(_oo)
 local bwts _bwt2 _bwt3 _bwt4 _bwt5 _bwt6 _bwt7 _bwt8 _bwt9 _bwt10 _bwt11
-/*
+
 mixlogit chosen price, id(ID) group(group) rand(_sob* _gend* `bwts')
 estimates store mlall
 estadd scalar pcb = 100*normal(_b[Mean:_sob2]/abs(_b[SD:_sob2]))
@@ -993,62 +926,63 @@ nlcom ratio:_b[_sob2]/_b[price], post
 local lb = string(-1000*(_b[ratio]-1.96*_se[ratio]), "%5.1f")
 local ub = string(-1000*(_b[ratio]+1.96*_se[ratio]), "%5.1f")
 estadd local conf95 "[`ub';`lb']": mlall
-mixlogit chosen price if osample==1, id(ID) group(group) rand(_sob* _gend* `bwts')
-estimates store mlmain
-estadd scalar pcb = 100*normal(_b[Mean:_sob2]/abs(_b[SD:_sob2]))
-local price = _b[price]
-mixlbeta _sob2 if osample==1, saving("$OUT/mixparameters_main") replace
-preserve
-use "$OUT/mixparameters_main", clear
-gen wtp = -1000*_sob2/`price'
-#delimit ;
-hist wtp, scheme(s1mono) xtitle("WTP for Spring Birth ($)")
-fcolor(gs10) lcolor(black) fintensity(25);
-#delimit cr
-graph export "$OUT/WTPdistSpring_main.eps", replace
-restore
-estadd scalar wtp = -1000*(_b[_sob2]/_b[price])
-nlcom ratio:_b[_sob2]/_b[price], post
-local lb = string(-1000*(_b[ratio]-1.96*_se[ratio]), "%5.1f")
-local ub = string(-1000*(_b[ratio]+1.96*_se[ratio]), "%5.1f")
-estadd local conf95 "[`ub';`lb']": mlmain
-mixlogit chosen price if planning==0&parent!=1, id(ID) group(group) rand(_sob* _gend* `bwts')
-estimates store mlplan
-estadd scalar pcb = 100*normal(_b[Mean:_sob2]/abs(_b[SD:_sob2]))
-local price = _b[price]
-mixlbeta _sob2 if planning==0&parent!=1, saving("$OUT/mixparameters_noplan") replace
-preserve
-use "$OUT/mixparameters_noplan", clear
-gen wtp = -1000*_sob2/`price'
-#delimit ;
-hist wtp, scheme(s1mono) xtitle("WTP for Spring Birth ($)")
-fcolor(gs10) lcolor(black) fintensity(25);
-#delimit cr
-graph export "$OUT/WTPdistSpring_noplan.eps", replace
-restore
-estadd scalar wtp = -1000*(_b[_sob2]/_b[price])
-nlcom ratio:_b[_sob2]/_b[price], post
-local lb = string(-1000*(_b[ratio]-1.96*_se[ratio]), "%5.1f")
-local ub = string(-1000*(_b[ratio]+1.96*_se[ratio]), "%5.1f")
-estadd local conf95 "[`ub';`lb']": mlplan
+
+*mixlogit chosen price if osample==1, id(ID) group(group) rand(_sob* _gend* `bwts')
+*estimates store mlmain
+*estadd scalar pcb = 100*normal(_b[Mean:_sob2]/abs(_b[SD:_sob2]))
+*local price = _b[price]
+*mixlbeta _sob2 if osample==1, saving("$OUT/mixparameters_main") replace
+*preserve
+*use "$OUT/mixparameters_main", clear
+*gen wtp = -1000*_sob2/`price'
+*#delimit ;
+*hist wtp, scheme(s1mono) xtitle("WTP for Spring Birth ($)")
+*fcolor(gs10) lcolor(black) fintensity(25);
+*#delimit cr
+*graph export "$OUT/WTPdistSpring_main.eps", replace
+*restore
+*estadd scalar wtp = -1000*(_b[_sob2]/_b[price])
+*nlcom ratio:_b[_sob2]/_b[price], post
+*local lb = string(-1000*(_b[ratio]-1.96*_se[ratio]), "%5.1f")
+*local ub = string(-1000*(_b[ratio]+1.96*_se[ratio]), "%5.1f")
+*estadd local conf95 "[`ub';`lb']": mlmain
+*mixlogit chosen price if planning==0&parent!=1, id(ID) group(group) rand(_sob* _gend* `bwts')
+*estimates store mlplan
+*estadd scalar pcb = 100*normal(_b[Mean:_sob2]/abs(_b[SD:_sob2]))
+*local price = _b[price]
+*mixlbeta _sob2 if planning==0&parent!=1, saving("$OUT/mixparameters_noplan") replace
+*preserve
+*use "$OUT/mixparameters_noplan", clear
+*gen wtp = -1000*_sob2/`price'
+*#delimit ;
+*hist wtp, scheme(s1mono) xtitle("WTP for Spring Birth ($)")
+*fcolor(gs10) lcolor(black) fintensity(25);
+*#delimit cr
+*graph export "$OUT/WTPdistSpring_noplan.eps", replace
+*restore
+*estadd scalar wtp = -1000*(_b[_sob2]/_b[price])
+*nlcom ratio:_b[_sob2]/_b[price], post
+*local lb = string(-1000*(_b[ratio]-1.96*_se[ratio]), "%5.1f")
+*local ub = string(-1000*(_b[ratio]+1.96*_se[ratio]), "%5.1f")
+*estadd local conf95 "[`ub';`lb']": mlplan
+
 lab var _sob2 "Spring"
 lab var _sob3 "Summer"
 lab var _sob4 "Fall"
 lab var price "Cost (in 1000s)"
 *MIXED LOGIT
 #delimit ;
-esttab mlall mlmain mlplan using "$OUT/WTP-mixedlogit.tex", replace
+esttab mlall using "$OUT/WTP-mixedlogit.tex", replace
 cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
 (wtp conf95 pcb N, fmt(%5.1f %5.1f %5.1f %9.0g)
     label("WTP for Spring Birth" "95\% CI"
           "\% Positively Impacted by Spring Birth" Observations))
 starlevel ("$ ^{\ddagger} $" `pvL') collabels(,none) style(tex)
-mlabels("Full Sample" "White Mothers, 20-45" "Non-Planners") booktabs label
+aamlabels("Mixed Logit") booktabs label
 title("Allowing for Preference Heterogeneity with Mixed Logit"\label{WTPmix})
 postfoot("\bottomrule           "
-         "\multicolumn{4}{p{14.1cm}}{\begin{footnotesize} All specifications "
-         "are estimated using a Mixed Logit model. Panel A displays mean     "
-         "coefficients from the mixed logit, and panel B displays the        "
+         "\multicolumn{2}{p{14.1cm}}{\begin{footnotesize} Panel A displays   "
+         "mean coefficients from the mixed logit, and panel B displays the   "
          "estimated standard deviation of each coefficient.  All coefficients"
          " with the exception of Cost are allowed to vary randomly throughout"
          " the sample.  The WTP is calculated as the ratio of the coefficient"
@@ -1061,55 +995,112 @@ postfoot("\bottomrule           "
 #delimit cr
 estimates clear
 */
-qui reg chosen spring summer _sob4 costNumerical `ctrl' if osample==1&young==1
-local pvL3  = ttail(e(N),sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1)))*2
+*-------------------------------------------------------------------------------
+*-- (A5b) Bootstrap WTP predictors for NVSS analysis
+*-------------------------------------------------------------------------------
+cap gen price = costNumerical
+cap gen group = 1000*ID+round
+local bwts _bwt2 _bwt3 _bwt4 _bwt5 _bwt6 _bwt7 _bwt8 _bwt9 _bwt10 _bwt11
 
-local cc lowEduc==0 lowEduc==1 young==1 young==0
-local jj = 1
-foreach c of local cc {
-    qui reg chosen spring summer _sob4 costNumerical `ctrl' if `c'
-    local tvL2  = sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1))
+gen educYrs     = 8 if RespEduc=="Eighth Grade or Less"
+replace educYrs = 10 if RespEduc=="Eighth Grade or Less"
+replace educYrs = 12 if RespEduc=="High School Degree/GED"
+replace educYrs = 13 if RespEduc=="Some College"
+replace educYrs = 14 if RespEduc=="2-year College Degree"
+replace educYrs = 16 if RespEduc=="4-year College Degree"
+replace educYrs = 17 if RespEduc=="Master's Degree"
+replace educYrs = 17 if RespEduc=="Doctoral Degree"
+replace educYrs = 17 if RespEduc=="Professional Degree (JD,MD,MBA)"
+local wt [pw=weight]
 
-    *local mopts technique(nr 20 dfp 20 bfgs 20) difficult
-    local c `c'&osample==1
-    mixlogit chosen price if `c', id(ID) group(group) rand(_sob* _gend*)
-    estimates store ml`jj'
-    estadd scalar pcb = 100*normal(_b[Mean:_sob2]/abs(_b[SD:_sob2]))
-    estadd scalar wtp = -1000*(_b[_sob2]/_b[price])
-    nlcom ratio:_b[_sob2]/_b[price], post
-    local lb = string(-1000*(_b[ratio]-`tvL2'*_se[ratio]), "%5.1f")
-    local ub = string(-1000*(_b[ratio]+`tvL2'*_se[ratio]), "%5.1f")
-    estadd local conf95 "[`ub';`lb']": ml`jj'
-    local ++jj
+
+mixlogit chosen price `wt' if osample==1, id(ID) group(group) rand(_sob* _gend* `bwts')
+local price = _b[price]
+tempfile betas
+set seed 1704
+mixlbeta _sob2 if osample==1, saving(`betas') replace
+rename _sob2 __sob2
+merge m:1 ID using `betas'
+drop _merge
+rename _sob2 betaSOB
+rename __sob2 _sob2
+replace betaSOB=-1000*betaSOB/`price'
+gen educYrsSq = educYrs^2
+
+reg betaSOB i.age educYrs educYrsSq `wt'
+estimates store WTPbase
+gen WTPests  = .
+gen WTPestsC = .
+gen WTPmean  = .                
+*preserve
+local bsamp 0
+if `bsamp'==1 {
+    use "$NVS/nvss2005_2013_all", clear
+    keep if birthOrder==1&motherAge>=20&motherAge<=45&married==1&twin==1&white==1&liveBirth==1
+    drop if educYrs==.|smoker==.|gestation==.
+    rename motherAge age
+    #delimit ;
+    keep age educYrs educYrsSq quarter2 smoker gestation WIC underweight hispanic
+    overweight obese noART fips;
+    #delimit cr
+    save "$NVS/nvss2005_2013_BSAMP", replace
 }
-#delimit ;
-esttab ml1 ml2 ml3 ml4 using "$OUT/WTP-mixedlogit-marriedSubsamples.tex", replace
-cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
-(wtp conf95 pcb N, fmt(%5.1f %5.1f %5.1f %9.0g)
-    label("WTP for Spring Birth" "95\% CI"
-          "\% Positively Impacted by Spring Birth" Observations))
-mgroups("Education" "Age", pattern(1 0 1 0)
-        prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))
-mlabels("Some College +" "No College" "20-34" "35-45") booktabs
-label title("Birth Characteristics and WTP by Group (Mixed Logit)"
-            \label{conjointWTPmarriedSubsamples}) 
-starlevel ("$ ^{\ddagger} $" `pvL3') collabels(,none) style(tex)
-postfoot("\bottomrule           "
-         "\multicolumn{5}{p{14.1cm}}{\begin{footnotesize} All specifications "
-         "are estimated using a Mixed Logit model. Panel A displays mean     "
-         "coefficients from the mixed logit, and panel B displays the        "
-         "estimated standard deviation of each coefficient.  All coefficients"
-         " with the exception of Cost are allowed to vary randomly throughout"
-         " the sample.  The WTP is calculated as the ratio of the coefficient"
-         " on spring birth to that on costs, and confidence intervals are    "
-         "calculated by the delta method. The \% of respondents who value    "
-         "a spring birth positively based on individual coefficients is      "
-         "displayed at the foot of the table.  Standard errors are clustered "
-         "by respondent."
-         "\end{footnotesize}}\end{tabular}\end{table}");
-#delimit cr
-estimates clear
-drop price group
+else use "$NVS/nvss2005_2013_BSAMP", clear
+local controls smoker WIC underweight overweight obese noART hispanic
+
+
+predict WTPhat, xb
+reg quarter2 WTPhat if smoker!=.&gest!=.
+predict q2hat if e(sample)==1
+
+logit quarter2 WTPhat if smoker!=.&gest!=.
+margins, dydx(*)
+predict q2hatLog if e(sample)==1
+exit
+sum WTPhat if e(sample)==1
+local WTPmean = r(mean)
+dis 1000*_b[WTPhat]
+local wtp1 _b[WTPhat]
+reg quarter2 WTPhat `controls' i.fips
+sum WTPhat if e(sample)==1
+dis 1000*_b[WTPhat]
+local wtp2 _b[WTPhat]
+restore
+replace WTPests  = `wtp1'    in 1
+replace WTPestsC = `wtp2'    in 1
+replace WTPmean  = `WTPmean' in 1
+drop betaSOB
+
+
+*-- Bootstrap N=100 --------------------------------------------------------
+set seed 1307
+
+local j = 2
+local N = 100
+foreach num of numlist 1(1)`N' {
+    dis "BOOTSTRAP REPLICATION `num'"
+    preserve
+    estimates restore WTPbase
+
+    use "$NVS/nvss2005_2013_BSAMP", clear
+    bsample
+    local controls smoker WIC underweight overweight obese noART hispanic
+
+    predict WTPhat, xb
+    qui reg quarter2 WTPhat if smoker!=.&gest!=.
+    sum WTPhat if e(sample)==1
+    local WTPmean = r(mean)
+    dis 1000*_b[WTPhat]
+    local wtp1 =  _b[WTPhat]
+    reg quarter2 WTPhat `controls'
+    dis 1000*_b[WTPhat]
+    local wtp2 =  _b[WTPhat]
+    restore
+    replace WTPests  = `wtp1'    in `j'
+    replace WTPestsC = `wtp2'    in `j'
+    replace WTPmean  = `WTPmean' in `j'
+    local ++j
+}    
 exit
 *---------------------------------------------------------------------------
 *--- (A6) Continuous cost graph
