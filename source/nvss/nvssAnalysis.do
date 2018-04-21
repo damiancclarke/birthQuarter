@@ -41,14 +41,14 @@ local Xnote  "$ \chi^2 $ test of age variables refers to the test that
               the coefficients on mother's age and age squared are jointly
               equal to zero. The critical value for rejection of joint
               insignificance is displayed below the test statistic.";
-local onote  "Optimal age calculates the turning point of the mother's age
-              quadratic.";
+local onote  "Spring Birth Maximizing Age calculates the turning point of the
+              mother's age quadratic.";
 local enote  "Heteroscedasticity robust standard errors are reported in
               parentheses.";
 lab def mon 1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug"
             9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec";
 #delimit cr
-/*
+
 ********************************************************************************
 *** (2) Open data for descriptives
 ********************************************************************************
@@ -112,9 +112,11 @@ gen birth = 1
 #delimit ;
 local add `" "20-45 All Observations" "20-45 White married" "20-45 White women"
              "20-45 White unmarried" "20-45 Black unmarried"
-             "20-45 White married" "20-45 White unmarried" "';
-local nam All whiteMarried whiteAll whiteUnmarried blackUnmarried
-whiteMarried-b2 whiteUnmarried-b2;
+             "20-45 White married" "20-45 White unmarried"
+             "20-45 White unmarried, no paternity acnowledged"
+             "20-45 White unmarried, no paternity acnowledged" "';
+local nam All whiteMarried whiteAll whiteUnmarried blackUnmarried 
+whiteMarried-b2 whiteUnmarried-b2 noPaternity noPaternity-b2;
 #delimit cr
 tokenize `nam'
 
@@ -136,12 +138,19 @@ foreach type of local add {
     if `k'==5 local gg motherAge>=20&motherAge<=45&black==1&married==0&birthOrder==1
     if `k'==6 local gg motherAge>=20&motherAge<=45&white==1&married==1&birthOrder==2
     if `k'==7 local gg motherAge>=20&motherAge<=45&white==1&married==0&birthOrder==2
+    if `k'==8 local gg motherAge>=20&motherAge<=45&white==1&mar_p=="N"&birthOrder==1
+    if `k'==9 local gg motherAge>=20&motherAge<=45&white==1&mar_p=="N"&birthOrder==2
+    if `k'<8 { 
+        local ++k
+        exit
+    }
+
     local mc hispanic
     if `k'==1 local mc black white hispanic married
     if `k'==3 local mc hispanic married
 
     #delimit ;
-    local Mum  motherAge `mc' young age2024 age2527 age2831 age3239 age4045;
+    local Mum  motherAge `mc' young;
     local MumP college educCat smoker ART WIC BMI underwe normalBM overwe obese;
     local Kid  Quarter1 Quarter2 Quarter3 Quarter4 gestat premature female
     birthweight lbw apgar;
@@ -164,9 +173,7 @@ foreach type of local add {
     }
     local ++k
 }
-
 exit
-
 keep if birthOrder==1
 
 ********************************************************************************
@@ -204,7 +211,7 @@ graph export "$GRA/proportionMonthART.eps", as(eps) replace;
 restore
 
 
-*/
+
 ********************************************************************************
 *** (3d) Age plots by month (ART, no ART)
 ********************************************************************************
@@ -227,13 +234,16 @@ local tw &twin==0
 local add `" "20-45 All Observations" "20-45 White married" "20-45 White women"
              "20-45 White unmarried" "20-45 Black unmarried"
              "Second births" "Second births White unmarried" "Including twins"
-"Second births White unmarried, no ART" "20-45 White unmarried, no ART" "';
+             "Second births White unmarried, no ART" "20-45 White unmarried, no ART"
+             "White unmarried no paternity acnowledged, 20--45"
+             "Second Births White unmarried no paternity acknowledged, 20--45""';
 local nam All whiteMarried whiteAll whiteUnmarried blackUnmarried secondBirths
-          secondBirthsWU wTwins secondBirthsWU-noART whiteUnmarried-noART;
+          secondBirthsWU wTwins secondBirthsWU-noART whiteUnmarried-noART
+          noPaternity secondBirtsNP;
 #delimit cr
 
 tokenize `nam'
-/*
+
 local k=1
 foreach type of local add {
     if `k'==1 local gg motherAge>=20&motherAge<=45`bb'`tw'
@@ -244,7 +254,9 @@ foreach type of local add {
     if `k'==6 local gg motherAge>=20&motherAge<=45&white==1&married==1&birthOrder==2`tw'
     if `k'==7 local gg motherAge>=20&motherAge<=45&white==1&married==0&birthOrder==2`tw'
     if `k'==8 local gg motherAge>=20&motherAge<=45&white==1&married==1`bb'
-    if `k'>8 {
+    if `k'==11 local gg motherAge>=20&motherAge<=45&white==1&mar_p=="N"`bb'`tw'
+    if `k'==12 local gg motherAge>=20&motherAge<=45&white==1&mar_p=="N"&birthOrder==2`tw'    
+    if `k'==9|`k'==10 | `k'<9{
         local ++k
         exit
     }
@@ -321,10 +333,9 @@ foreach type of local add {
 *** (3e) Age plots by quarter
 ********************************************************************************
 tokenize `nam'
-
 local k=1
 foreach type of local add {
-    if `k'<=8 {
+    if `k'<11 {
         local ++k
         exit
     }
@@ -338,6 +349,8 @@ foreach type of local add {
     if `k'==8 local gg motherAge>=20&motherAge<=45&white==1&married==1`bb'
     if `k'==9 local gg motherAge>=20&motherAge<=45&white==1&married==0&birthOrder==2`tw'&ART!=1
     if `k'==10 local gg motherAge>=20&motherAge<=45&white==1&married==0`bb'`tw'&ART!=1
+    if `k'==11 local gg motherAge>=20&motherAge<=45&white==1&mar_p=="N"`bb'`tw'
+    if `k'==12 local gg motherAge>=20&motherAge<=45&white==1&mar_p=="N"&birthOrder==2`tw'    
     
     preserve
     keep if `gg'
@@ -393,12 +406,48 @@ foreach type of local add {
     note("Number of observations = `NN'");
     graph export "$GRA/quarter2-3Age_2045_``k''.eps", as(eps) replace;
     #delimit cr
+
+    foreach Q in 2 3 {
+        cap gen quarter`Q' = expectQuarter==`Q'
+        lab var quarter`Q' "Quarter `Q'"
+        reg quarter`Q' _age1-_age26 if motherAge>=20&motherAge<=45&state=="Texas", nocons
+        count if e(sample)==1
+        local NN = string(r(N),"%15.0fc")
+        local tL1  = sqrt((e(df_r)/1)*(e(N)^(1/e(N))-1))
+        
+        gen ageES`Q'T = .
+        gen ageLB`Q'T = .
+        gen ageUB`Q'T = .
+        gen ageNM`Q'T = .
+        foreach num of numlist 1(1)26 {
+            replace ageES`Q'T = _b[_age`num']                     in `num'
+            replace ageLB`Q'T = _b[_age`num']-`tL1'*_se[_age`num'] in `num'
+            replace ageUB`Q'T = _b[_age`num']+`tL1'*_se[_age`num'] in `num'
+            replace ageNM`Q'T = `num'+19                          in `num'
+        }
+    }
     
+    local s1 lpattern(solid) lwidth(medthick)
+    local s2 lpattern(dash)  lwidth(medium)    
+    #delimit ;
+    twoway connected ageES2T ageNM2T in 1/26, `s1' lcolor(red) mcolor(red) m(S)
+    || line ageLB2T ageNM2T in 1/26,     `s2' lcolor(red)
+    || line ageUB2T ageNM2T in 1/26,     `s2' lcolor(red)
+    || connected ageES3T ageNM3T in 1/26,`s1' lcolor(blue) mcolor(blue) m(Oh)
+    || line ageLB3T ageNM3T in 1/26,     `s2' lcolor(blue) xlabel(20(1)45) 
+    || line ageUB3T ageNM3T in 1/26,     `s2' lcolor(blue) scheme(s1mono) 
+    legend(order(1 "Point Estimate (Quarter 2)" 2 "95 % CI (Quarter 2)"
+                 4 "Point Estimate (Quarter 3)" 6 "95 % CI (Quarter 3)"))
+    xtitle("Mother's Age") ytitle("Proportion in Quarter" " ")
+    note("Number of observations = `NN'");
+    graph export "$GRA/quarter2-3Age_2045_``k''_Texas.eps", as(eps) replace;
+    #delimit cr
+
     local ++k
     restore
 }
 
-*/
+
 ********************************************************************************
 *** (3f) Births per month
 ********************************************************************************
@@ -406,6 +455,10 @@ tokenize `nam'
 count
 local k=1
 foreach type of local add {
+    if `k'<11 {
+        local ++k
+        exit
+    }
     if `k'==1 local gg motherAge>=20&motherAge<=45`bb'`tw'
     if `k'==2 local gg motherAge>=20&motherAge<=45&white==1&married==1`bb'`tw'
     if `k'==3 local gg motherAge>=20&motherAge<=45&white==1`bb'`tw'
@@ -416,6 +469,8 @@ foreach type of local add {
     if `k'==8 local gg motherAge>=20&motherAge<=45&white==1&married==1`bb'
     if `k'==9 local gg motherAge>=20&motherAge<=45&white==1&married==0&birthOrder==2`tw'&ART!=1
     if `k'==10 local gg motherAge>=20&motherAge<=45&white==1&married==0`bb'`tw'&ART!=1
+    if `k'==11 local gg motherAge>=20&motherAge<=45&white==1&mar_p=="N"`bb'`tw'
+    if `k'==12 local gg motherAge>=20&motherAge<=45&white==1&mar_p=="N"&birthOrder==2`tw'    
     
     preserve
     keep if `gg'
@@ -485,13 +540,17 @@ gen quarter3 = expectMonth==7|expectMonth==8|expectMonth==9
 lab var quarter2 "Quarter 2"
 lab var quarter3 "Quarter 3"
 
+exit
+
 ********************************************************************************
 *** (5a) Run for quarter 2 and 3
 ********************************************************************************
 #delimit ;
 local add `" "All Observations, 20--45" "White Married Mothers, 20--45"
-         "White Unmarried Mothers, 20--45"  "Black Unmarried Mothers, 20--45" "';
-local nam All whiteMarried whiteUnmarried blackUnmarried;
+         "White Unmarried Mothers, 20--45"  "Black Unmarried Mothers, 20--45"
+         "Unmarried No Paternity Acnowledged, 20--45"
+         "Unmarried Paternity Acknowledged, 20--45""';
+local nam All whiteMarried whiteUnmarried blackUnmarried noPaternity Paternity;
 #delimit cr
 tokenize `nam'
 
@@ -499,13 +558,15 @@ local age motherAge motherAge2
 local edu highEd
 local c2  WIC underweight overweight obese noART
 local yab abs(fips)
-/*
+
 local k=1
 foreach type of local add {
     if `k'==1 local gg motherAge>=20&motherAge<=45
     if `k'==2 local gg motherAge>=20&motherAge<=45&white==1&married==1
     if `k'==3 local gg motherAge>=20&motherAge<=45&white==1&married==0
     if `k'==4 local gg motherAge>=20&motherAge<=45&black==1&married==0
+    if `k'==5 local gg motherAge>=20&motherAge<=45&white==1&mar_p=="N"
+    if `k'==6 local gg motherAge>=20&motherAge<=45&white==1&mar_p=="Y"
     local nc hispanic
     if `k'==0 local nc black white hispanic married
 
@@ -551,7 +612,7 @@ foreach type of local add {
         are included. `Fnote' Leamer critical values refer to Leamer/Schwartz/Deaton 
         critical 5\% values adjusted for sample size. The Leamer critical value 
         for a t-statistic is `tL1' in columns 1-3 and `tL4' in columns 4 and 5.
-        `onote' `enote' $^{\ddagger}$ Siginificant based on Leamer criterion at 5\%.";
+        `onote' `enote' $^{\ddagger}$ Significance based on Leamer criterion at 5\%.";
 
         esttab est3 est2 est1 est4 est5 using "$OUT/NVSSBinaryQ`Q'_``k''.tex",
         replace `estopt' keep(`age' `edu' smoker `c2' `nc') 
@@ -560,7 +621,7 @@ foreach type of local add {
         starlevel ("$ ^{\ddagger} $" `pvL')
         postfoot("F-test of Age Variables  &`F3a'&`F2a'&`F1a'&`F4a'&`F5a' \\ "
                  "Leamer Critical Value (F)&`L1'&`L1'&`L1'&`L4'&`L4' \\      "
-                 "Optimal Age &`opt3'&`opt2'&`opt1'&`opt4'&`opt5' \\         "
+                 "Spring Birth Maximizing Age &`opt3'&`opt2'&`opt1'&`opt4'&`opt5' \\         "
                  "State and Year FE&&Y&Y&Y&Y\\ Gestation FE &&&Y&Y&Y\\       "
                  "2009-2013 Only&&&&Y&Y\\ \bottomrule                        "
                  "\multicolumn{6}{p{16.2cm}}{\begin{footnotesize} `not'"
@@ -571,7 +632,7 @@ foreach type of local add {
     restore
     local ++k
 }
-
+exit
 
 ********************************************************************************
 *** (5b) Alternative Regressions
@@ -583,14 +644,16 @@ local add `" "Excluding November and December conceptions"
              "for Second births"
              "for Second births with no ART"
              "for First births with no ART"
-"with state-specific linear trends and unemployment rate at conception" "';
-local nam NoNovDec NoDec Birth2 Birth2WU Birth2WU-noART whiteUnmarried-noART StateT;
+"with state-specific linear trends and unemployment rate at conception" 
+             "for Second births""';
+local nam NoNovDec NoDec Birth2 Birth2WU Birth2WU-noART whiteUnmarried-noART
+          StateT Birth2NP;
 #delimit cr
 tokenize `nam'
 
 local k=1
 foreach type of local add {
-    if `k'<5|`k'>6 {
+    if `k'<8 {
         local ++k
         exit
     }
@@ -601,15 +664,16 @@ foreach type of local add {
     if `k'==5 local gg twin==1&liveBirth==1&birthOrder==2&married==0&ART!=1
     if `k'==6 local gg twin==1&liveBirth==1&birthOrder==1&married==0&ART!=1
     if `k'==7 local gg twin==1&liveBirth==1&birthOrder==1&married==1
-
+    if `k'==8 local gg twin==1&liveBirth==1&birthOrder==2&mar_p=="N"
+    
     local ff first
     local mm married
     local MM Married
-    if `k'==3|`k'==4|`k'==5 local ff second
-    if `k'==4|`k'==5|`k'==6 local mm unmarried
-    if `k'==4|`k'==5|`k'==6 local MM Unmarried
+    if `k'==3|`k'==4|`k'==5|`k'==8 local ff second
+    if `k'==4|`k'==5|`k'==6|`k'==8 local mm unmarried
+    if `k'==4|`k'==5|`k'==6|`k'==8 local MM Unmarried
     local c3
-    if `k'==6 local c3  i.fips#c.year value
+    if `k'==7 local c3  i.fips#c.year value
     local con smoker i.gestation hispanic
     preserve
     keep if motherAge>=20&motherAge<=45&white==1&`gg'
@@ -653,7 +717,7 @@ foreach type of local add {
         to Leamer/Schwartz/Deaton critical 5\% values adjusted for sample
         size. The Leamer critical value for a t-statistic is `tL1' in
         columns 1-3 and `tL4' in columns 4 and 5.  `onote' `enote'
-        $^{\ddagger}$ Siginificant based on Leamer criterion at 5\%.";
+        $^{\ddagger}$ Significance based on Leamer criterion at 5\%.";
 
         esttab est3 est2 est1 est4 est5 using "$OUT/NVSSBinaryQ`Q'_``k''.tex",
         replace `estopt' keep(`age' `edu' smoker `c2' hispanic) 
@@ -662,7 +726,7 @@ foreach type of local add {
         starlevel ("$ ^{\ddagger} $" `pvL')
         postfoot("F-test of Age Variables  &`F3a'&`F2a'&`F1a'&`F4a'&`F5a' \\ "
                  "Leamer Critical Value (F)&`L1'&`L1'&`L1'&`L4'&`L4' \\      "
-                 "Optimal Age &`opt3'&`opt2'&`opt1'&`opt4'&`opt5' \\         "
+                 "Spring Birth Maximizing Age &`opt3'&`opt2'&`opt1'&`opt4'&`opt5' \\         "
                  "State and Year FE&&Y&Y&Y&Y\\ Gestation FE &&&Y&Y&Y\\       "
                  "2009-2013 Only&&&&Y&Y\\ \bottomrule                        "
                  "\multicolumn{6}{p{16.2cm}}{\begin{footnotesize} `not'"
@@ -731,7 +795,7 @@ foreach type of local add {
         Leamer critical values refer to Leamer/Schwartz/Deaton critical 5\%
         values adjusted for sample size. The Leamer critical value for a
         t-statistic is `tL1' in columns 1-3 and `tL4' in columns 4 and 5.
-        `onote' `enote' $^{\ddagger}$ Siginificant based on Leamer criterion at 5\%.";
+        `onote' `enote' $^{\ddagger}$ Significance based on Leamer criterion at 5\%.";
 
         esttab est3 est2 est1 est4 est5 using "$OUT/NVSSLinAgeQ`Q'_``k''.tex",
         replace `estopt' keep(`age' `edu' smoker `c2' hispanic) 
@@ -741,7 +805,7 @@ foreach type of local add {
         starlevel ("$ ^{\ddagger} $" `pvL')
         postfoot("F-test of Age Variables  &`F3a'&`F2a'&`F1a'&`F4a'&`F5a' \\ "
                  "Leamer Critical Value (F)&`L1'&`L1'&`L1'&`L4'&`tL4' \\     "
-                 "Optimal Age &`opt3'&`opt2'&`opt1'&`opt4'&--     \\         "
+                 "Spring Birth Maximizing Age &`opt3'&`opt2'&`opt1'&`opt4'&--     \\         "
                  "State and Year FE&&Y&Y&Y&Y\\ Gestation FE &&&Y&Y&Y\\       "
                  "2009-2013 Only&&&&Y&Y\\ \bottomrule                        "
                  "\multicolumn{6}{p{16.2cm}}{\begin{footnotesize} `not'"
@@ -827,7 +891,7 @@ foreach type of local add {
         included. `Xnote' Leamer critical values refer to Leamer/Schwartz/Deaton 
         critical 5\% values adjusted for sample size. The Leamer critical value 
         for a t-statistic is `tL1' in columns 1-3 and `tL4' in columns 4 and 5.
-        `onote' `enote' $^{\ddagger}$ Siginificant based on Leamer criterion at 5\%.";
+        `onote' `enote' $^{\ddagger}$ Significance based on Leamer criterion at 5\%.";
 
         esttab m3 m2 m1 m4 m5 using "$OUT/NVSSLogitQ`Q'_``k''.tex", margin
         replace `estopt' keep(`age' `edu' smoker `c2' `nc') style(tex) 
@@ -836,7 +900,7 @@ foreach type of local add {
         starlevel ("$ ^{\ddagger} $" `pvL') booktabs 
         postfoot("$ \chi^2$ test of Age Variables  &`F3a'&`F2a'&`F1a'&`F4a'&`F5a' \\ "
                  "Leamer Critical Value (Age)&`L1'&`L1'&`L1'&`L4'&`L4' \\      "
-                 "Optimal Age &`opt3'&`opt2'&`opt1'&`opt4'&`opt5' \\         "
+                 "Spring Birth Maximizing Age &`opt3'&`opt2'&`opt1'&`opt4'&`opt5' \\         "
                  "State and Year FE&&Y&Y&Y&Y\\ Gestation FE &&&Y&Y&Y\\       "
                  "2009-2013 Only&&&&Y&Y\\ \bottomrule                        "
                  "\multicolumn{6}{p{16.2cm}}{\begin{footnotesize} `not'"
@@ -886,7 +950,7 @@ postfoot("\bottomrule
         child. Leamer critical values refer to Leamer/Schwartz/Deaton critical
         5\% values adjusted for sample size. The Leamer critical value for a
         t-statistic is `tL4'.
-        `enote' $^{\ddagger}$ Siginificant based on Leamer criterion at 5\%."
+        `enote' $^{\ddagger}$ Significance based on Leamer criterion at 5\%."
         "\end{footnotesize}}\end{tabular}\end{table}") booktabs replace;
 
 esttab est2 est4 est6 est8 est10 est12 using "$OUT/NVSSQualityQAll_NC.tex",
@@ -900,22 +964,28 @@ postfoot("\bottomrule
          child. Leamer critical values refer to Leamer/Schwartz/Deaton critical
          5\% values adjusted for sample size. The Leamer critical value for a
          t-statistic is `tL4'.
-         `enote' $^{\ddagger}$ Siginificant based on Leamer criterion at 5\%."
+         `enote' $^{\ddagger}$ Significance based on Leamer criterion at 5\%."
          "\end{footnotesize}}\end{tabular}\end{table}") booktabs;
 #delimit cr
 estimates clear
 
-*/
+
 ********************************************************************************
 *** (7) Including fetal deaths
 ********************************************************************************
+use          "$DAT/nvss2005_2013_all", clear
 append using "$DAT/nvssFD2005_2013_all"
-replace motherAge2 = motherAge2/100 if liveBirth==0
 keep if twin==1 & motherAge>=20 & motherAge <= 45 & birthOrder==1
+gen state2 = subinstr(state," ", "", .)
+bys state: egen minTemp = mean(cold)
+replace motherAge2 = motherAge2/100 if liveBirth==0
+exit
+keep if liveBirth==0|(liveBirth==1&highEd!=.&smoker!=.&gestation!=.)
+keep if twin<3
 
-drop quarter2 quarter3 expectMonth
 gen expectMonth = conceptionMonth+9
 replace expectMonth = expectMonth-12 if expectMonth>12
+drop quarter2 quarter3
 gen quarter2 = expectMonth==4|expectMonth==5|expectMonth==6
 gen quarter3 = expectMonth==7|expectMonth==8|expectMonth==9
 lab var quarter2 "Quarter 2"
@@ -993,45 +1063,72 @@ foreach type of local add {
     msymbol(o) msize(small) xlabel(1 4(4)52) scheme(s1mono)
     xtitle("Week of Influenza Activity");
     graph export "$GRA/Influenza.eps", as(eps) replace;
-    #delimit cr
-    
+    #delimit cr    
     restore
-    
+
     preserve
     keep if `gg'
-    collapse (sum) births fetalDeath, by(expectedMonth)
+    
+    gen temp = "cold" if minTemp<=32
+    replace temp="warm" if minTemp>32
+    count if temp=="cold"
+    local coldN = r(N)
+    count if temp=="warm"
+    local warmN = r(N)
+    collapse (sum) births fetalDeath, by(birthMonth temp)
     egen totalFdeath = total(fetalDeath)
     egen totalBirths = total(births)
     gen  total = births+fetalDeath
     gen  birthsTotal = births/total
     gen  fetalDeathTotal = fetalDeath/total
     replace fetalDeath = fetalDeath/totalFdeath
-
-    #delimit ;
-    twoway line fetalDeath expectedMo, lcolor(black) lwidth(thick) scheme(s1mono)
-    ylabel(0.07(0.01)0.10)
-    ytitle("Proportion Fetal Deaths") xtitle("Month of Expected Birth")
-    xlabel(1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug"
-           9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec") note("Number of observations=`fN'"); 
-    graph export "$GRA/fetaldeathsExpR-``k''.eps", as(eps) replace;
-
-    twoway line fetalDeathTotal expectedMo, lcolor(black) lwidth(thick) scheme(s1mono)
-    ylabel(`min'(`del')`max')
-    ytitle("Fetal Deaths/(Fetal Deaths+Births)") xtitle("Month of Expected Birth")
-    xlabel(1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug"
-           9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec") note("Number of observations=`NN'"); 
-    graph export "$GRA/birthsFdeathsExp-``k''.eps", as(eps) replace;
-
-    local max2 = 1-`min';
-    local min2 = 1-`max';
-    twoway line birthsTotal expectedMo, lcolor(black) lwidth(thick) scheme(s1mono)
-    ylabel(`min2'(`del')`max2')
-    ytitle("Births/(Fetal Deaths+Births)") xtitle("Month of Expected Birth")
-    xlabel(1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug"
-           9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec") note("Number of observations=`NN'"); 
-    graph export "$GRA/birthsFdeathsExp-``k''-2.eps", as(eps) replace;
-    #delimit cr
+    foreach t in cold warm {
+        #delimit ;
+        twoway line fetalDeathTotal birthMonth if temp=="`t'", 
+        lcolor(black) lwidth(thick) scheme(s1mono) 
+        ytitle("Fetal Deaths/(Fetal Deaths+Births)") xtitle("Month of Occurrence")
+        xlabel(1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug"
+               9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec") note("Number of observations=``t'N'"); 
+        graph export "$GRA/birthsFdeaths-``k''-`t'.eps", as(eps) replace;
+        #delimit cr
+    }
     restore
+    
+    *preserve
+    *keep if `gg'
+    *collapse (sum) births fetalDeath, by(expectedMonth)
+    *egen totalFdeath = total(fetalDeath)
+    *egen totalBirths = total(births)
+    *gen  total = births+fetalDeath
+    *gen  birthsTotal = births/total
+    *gen  fetalDeathTotal = fetalDeath/total
+    *replace fetalDeath = fetalDeath/totalFdeath
+    *
+    *#delimit ;
+    *twoway line fetalDeath expectedMo, lcolor(black) lwidth(thick) scheme(s1mono)
+    *ylabel(0.07(0.01)0.10)
+    *ytitle("Proportion Fetal Deaths") xtitle("Month of Expected Birth")
+    *xlabel(1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug"
+    *       9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec") note("Number of observations=`fN'"); 
+    *graph export "$GRA/fetaldeathsExpR-``k''.eps", as(eps) replace;
+    *
+    *twoway line fetalDeathTotal expectedMo, lcolor(black) lwidth(thick) scheme(s1mono)
+    *ylabel(`min'(`del')`max')
+    *ytitle("Fetal Deaths/(Fetal Deaths+Births)") xtitle("Month of Expected Birth")
+    *xlabel(1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug"
+    *       9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec") note("Number of observations=`NN'"); 
+    *graph export "$GRA/birthsFdeathsExp-``k''.eps", as(eps) replace;
+    *
+    *local max2 = 1-`min';
+    *local min2 = 1-`max';
+    *twoway line birthsTotal expectedMo, lcolor(black) lwidth(thick) scheme(s1mono)
+    *ylabel(`min2'(`del')`max2')
+    *ytitle("Births/(Fetal Deaths+Births)") xtitle("Month of Expected Birth")
+    *xlabel(1 "Jan" 2 "Feb" 3 "Mar" 4 "Apr" 5 "May" 6 "Jun" 7 "Jul" 8 "Aug"
+    *       9 "Sep" 10 "Oct" 11 "Nov" 12 "Dec") note("Number of observations=`NN'"); 
+    *graph export "$GRA/birthsFdeathsExp-``k''-2.eps", as(eps) replace;
+    *#delimit cr
+    *restore
 
     local ++k
 }
@@ -1082,7 +1179,7 @@ foreach type of local add {
         starlevel("$ ^{\ddagger} $" `pvL')
         postfoot("F-test of Age Variables&`F4a'&`F3a'&`F2a'&`F1a' \\         "
          "Leamer Critical Value (F)  &`L1'&`L1'&`L1'&`L1'     \\             "
-         "Optimal Age &`opt4'&`opt3'&`opt2'&`opt1' \\                        "
+         "Spring Birth Maximizing Age &`opt4'&`opt3'&`opt2'&`opt1' \\                        "
          "State and Year FE&&Y&Y&Y\\  Gestation FE &&&&Y \\ \bottomrule      "
          "\multicolumn{5}{p{12.4cm}}{\begin{footnotesize}  Main sample is    "
          "augmented to include fetal deaths occurring between 25 and 44      "
@@ -1091,7 +1188,7 @@ foreach type of local add {
          " ART controls are not included. `Fnote' Leamer critical values     "
          "refer to Leamer/Schwartz/Deaton critical 5\% values adjusted for   "
          "sample size. The Leamer critical value for the t-statistic is      "
-         "`tL1'. `onote' `enote' $^{\ddagger}$ Siginificant based on Leamer  "
+         "`tL1'. `onote' `enote' $^{\ddagger}$ Significance based on Leamer  "
          "criterion. \end{footnotesize}}\end{tabular}\end{table}") booktabs ;
         #delimit cr
         estimates clear
