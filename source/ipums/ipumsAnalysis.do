@@ -31,7 +31,7 @@ local estopt cells(b(star fmt(%-9.3f)) se(fmt(%-9.3f) par([ ]) )) stats
              collabels(none) label;
 local wt     [pw=perwt];
 local lnote  "Heteroscedasticity robust standard errors are reported in 
-            parentheses. $ ^\ddagger $ Significant based on the Leamer criterion
+            parentheses. $ ^\ddagger $ Significance based on the Leamer criterion
             at 5\%.";
 local Fnote  "F-test of age variables refers to the F-statistic on the test that
               the coefficients on mother's age and age squared or all occupation
@@ -72,7 +72,7 @@ lab var unemployment "Unemployment Rate"
 lab var logInc       "log(household income)"
 
 replace twoLevelOcc = "No Occupation" if twoLevelOcc=="Unemployed"
-
+exit
 ********************************************************************************
 *** (3) regressions: industry (by quarter)
 ********************************************************************************
